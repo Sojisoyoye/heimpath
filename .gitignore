@@ -8,3 +8,5 @@ node_modules/
 .taskmaster/
 .claude/
 .copier/
+.DS_Store
+**/.env
