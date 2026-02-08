@@ -1,0 +1,4392 @@
+    <PRD>
+Product Requirements Document: German Real Estate Navigator
+Version: 1.0
+Date: January 27, 2026
+Author: Product Management Team
+Status: Draft for Review
+Document Owner: Product Manager
+
+
+================================================================================
+1. INTRODUCTION
+================================================================================
+
+
+--------------------------------------------------------------------------------
+1.1 PURPOSE OF THIS DOCUMENT
+--------------------------------------------------------------------------------
+
+    This Product Requirements Document (PRD) defines the comprehensive product specifications, features, and technical requirements for the German Real Estate Navigator application. This document serves as the authoritative reference for the development team, stakeholders, and quality assurance personnel throughout the product development lifecycle.
+    The German Real Estate Navigator is a guided, step-by-step platform designed to help foreign investors and immigrants navigate the complete German property buying process from initial research to ownership. The application integrates legal knowledge, document translation services, and financial calculators to provide an all-in-one solution for property acquisition in Germany.
+
+--------------------------------------------------------------------------------
+1.2 DOCUMENT SCOPE
+--------------------------------------------------------------------------------
+
+    This PRD covers:
+    Complete product vision and objectives
+    Detailed feature specifications
+    User stories with acceptance criteria
+    Technical architecture and stack
+    User interface requirements
+    Success metrics and KPIs
+    Development phases and timelines
+
+--------------------------------------------------------------------------------
+1.3 DOCUMENT AUDIENCE
+--------------------------------------------------------------------------------
+
+    This document is intended for:
+    Product management team
+    Software development team (frontend, backend, mobile)
+    UX/UI designers
+    Quality assurance engineers
+    Project stakeholders
+    Business analysts
+    Technical architects
+
+--------------------------------------------------------------------------------
+1.4 RELATED DOCUMENTS
+--------------------------------------------------------------------------------
+
+    Functional Requirements Document v1.0
+    Technical Architecture Specification
+    API Documentation (auto-generated via FastAPI)
+    Database Schema Design
+    Security and Compliance Requirements
+    GDPR Compliance Checklist
+
+================================================================================
+2. PRODUCT OVERVIEW
+================================================================================
+
+
+--------------------------------------------------------------------------------
+2.1 PRODUCT VISION
+--------------------------------------------------------------------------------
+
+    To become the trusted guide for foreign investors and immigrants navigating German real estate, democratizing access to information typically gatekept by agents and lawyers, and empowering users with complete transparency throughout their property buying journey.
+
+--------------------------------------------------------------------------------
+2.2 PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+
+    Foreign investors and immigrants face significant challenges when attempting to purchase property in Germany:
+
+CURRENT PAIN POINTS:
+    - Overwhelming bureaucracy with no clear starting point
+    - Laws and regulations scattered across multiple sources, all in German
+    - Hidden costs that agents don't disclose upfront
+    - Complex legal documents in German without accessible translations
+    - No single platform that guides users through the entire process
+    - Uncertainty about financing eligibility and requirements
+    - Fear of making costly mistakes due to lack of knowledge
+
+MARKET GAP:
+    - No existing solution combines legal education, document translation, and financial tools
+    - Current offerings are either too technical (legal databases in German) or too superficial (generic real estate portals)
+    - No platform specifically targets and serves the needs of non-German speaking property buyers
+
+--------------------------------------------------------------------------------
+2.3 PRODUCT DESCRIPTION
+--------------------------------------------------------------------------------
+
+    The German Real Estate Navigator is a web and mobile application that provides:
+    Guided journey system: Step-by-step walkthrough of the entire property buying process (15 steps across 4 phases), personalized based on user's situation
+    Legal knowledge base: 50+ German real estate laws translated and explained in plain English, with practical implications
+    Document translation engine: AI-powered translation of critical documents (contracts, property listings, legal notices) with automatic clause detection and risk warnings
+    Financial calculators: Hidden costs calculator, ROI analyzer, and financing eligibility assessment
+    Progress tracking: Visual dashboard showing journey progress, deadlines, budget status, and next actions
+    Contextual help: Relevant laws, articles, and tools surfaced at each step of the journey
+
+--------------------------------------------------------------------------------
+2.4 KEY DIFFERENTIATORS
+--------------------------------------------------------------------------------
+
+    Feature
+    Our Product
+    Competitors
+    Guided step-by-step journey
+    ✅ Full journey from start to ownership
+    ❌ None offer complete guidance
+    Multi-language legal content
+    ✅ German laws in plain English
+    ❌ German only or basic translations
+    Document translation
+    ✅ AI-powered with clause detection
+    ❌ Generic translation or none
+    Cost transparency
+    ✅ Complete breakdown with state variations
+    ⚠️ Partial or hidden information
+    All-in-one platform
+    ✅ Education + tools + guidance
+    ❌ Fragmented across multiple sites
+    Foreign investor focus
+    ✅ Built specifically for immigrants
+    ❌ Generic for all users
+
+
+--------------------------------------------------------------------------------
+2.5 SUCCESS CRITERIA
+--------------------------------------------------------------------------------
+
+    The product will be considered successful when it achieves:
+    User adoption metrics (6 months):
+    5,000 registered users
+    500 premium subscribers (10% conversion rate)
+    60% of users complete at least 3 journey steps
+    30% of users translate at least 1 document
+    Engagement metrics:
+    Average session duration: 8+ minutes
+    40% return rate within 30 days
+    4+ star average rating
+    Net Promoter Score (NPS) > 40
+    Business metrics (12 months):
+    €10,000 Monthly Recurring Revenue (MRR)
+    Customer Acquisition Cost (CAC) < €50
+    Lifetime Value (LTV) > €150
+    LTV:CAC ratio > 3:1
+    <5% monthly churn rate
+
+
+================================================================================
+3. GOALS AND OBJECTIVES
+================================================================================
+
+
+--------------------------------------------------------------------------------
+3.1 BUSINESS GOALS
+--------------------------------------------------------------------------------
+
+
+PRIMARY BUSINESS GOALS:
+    - Market entry and validation (Months 0-6)
+    - Establish product-market fit with 5,000 registered users
+    - Achieve 10% free-to-premium conversion rate
+    - Generate €5,000 MRR by month 6
+    - Validate core value proposition through user feedback
+    - Revenue and growth (Months 6-12)
+    - Scale to 15,000 total users
+    - Reach €10,000 MRR
+    - Achieve profitability (cover operating costs)
+    - Expand to 2 additional languages (Turkish, Arabic)
+    - Market leadership (Year 2)
+    - Become the #1 platform for foreign property buyers in Germany
+    - 50,000 total users
+    - €50,000 MRR
+    - Launch mobile apps (iOS, Android)
+    - Expand to property management features
+
+REVENUE MODEL:
+    - Freemium subscription (Free, Premium €19.90/month, Enterprise €99/month)
+    - Pay-per-use document translations (€4.90 each)
+    - Referral fees from partners (lawyers, mortgage brokers) - future
+    - Premium content (courses, webinars) - future
+
+--------------------------------------------------------------------------------
+3.2 PRODUCT GOALS
+--------------------------------------------------------------------------------
+
+
+USER EXPERIENCE GOALS:
+    - Reduce time spent researching from 40+ hours to <10 hours
+    - Eliminate confusion about "what to do next" (100% of users know next action)
+    - Increase confidence in property buying decisions (80% report feeling confident)
+    - Minimize surprises about costs (90% accuracy in cost estimation)
+    - Enable non-German speakers to navigate process independently
+
+FEATURE GOALS:
+    - Enable 80% of users to complete journey setup within 15 minutes
+    - Provide 100% of relevant laws at each journey step
+    - Translate documents with 90%+ accuracy within 10 minutes
+    - Calculate costs within €500 accuracy for 95% of scenarios
+    - Surface contextual help automatically (no searching required)
+
+--------------------------------------------------------------------------------
+3.3 USER GOALS
+--------------------------------------------------------------------------------
+
+    For first-time property buyers:
+    Understand the complete buying process from start to finish
+    Know exactly what to do at each stage
+    Avoid costly mistakes and surprises
+    Feel confident making decisions
+    Successfully purchase first property in Germany
+    For foreign investors:
+    Understand German laws and regulations in their language
+    Translate critical documents without hiring expensive translators
+    Calculate accurate costs and ROI before committing
+    Navigate bureaucracy without speaking fluent German
+    Maximize investment returns through informed decisions
+    For immigrants in Germany:
+    Access reliable information in English (not relying on biased agents)
+    Learn about rights and protections under German law
+    Build wealth through property ownership
+    Integrate into German society through property ownership
+    Support family members through the same process
+
+
+================================================================================
+4. TARGET AUDIENCE
+================================================================================
+
+
+--------------------------------------------------------------------------------
+4.1 PRIMARY USER PERSONAS
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+PERSONA 1: TECH PROFESSIONAL INVESTOR
+--------------------------------------------------------------------------------
+
+
+DEMOGRAPHICS:
+    - Age: 28-38
+    - Gender: Any
+    - Nationality: Non-German (primarily EU, US, UK, India, Turkey)
+    - Location: Living in Germany (Berlin, Munich, Frankfurt) or planning to move
+    - Income: €60,000-100,000/year
+    - Education: University degree
+
+CHARACTERISTICS:
+    - Tech-savvy, comfortable with apps and digital tools
+    - English-speaking, limited or no German language skills
+    - Career-focused, values efficiency and time-saving
+    - Risk-aware but willing to invest for long-term returns
+    - Prefers self-service research before consulting experts
+
+GOALS:
+    - Build wealth through real estate investment
+    - Purchase rental property for passive income
+    - Understand tax implications and optimize returns
+    - Navigate process quickly (limited time due to career)
+    - Make data-driven investment decisions
+
+PAIN POINTS:
+    - Overwhelmed by German bureaucracy and legal complexity
+    - Frustrated by lack of English resources
+    - Concerned about hidden costs and surprises
+    - Worried about making expensive mistakes
+    - Limited time to research during work hours
+
+HOW OUR PRODUCT HELPS:
+    - Guided journey saves 30+ hours of research time
+    - All content in English with clear explanations
+    - Hidden cost calculator reveals true expenses upfront
+    - Step-by-step guidance prevents mistakes
+    - Mobile-responsive for research on-the-go
+
+--------------------------------------------------------------------------------
+PERSONA 2: FAMILY-ORIENTED IMMIGRANT
+--------------------------------------------------------------------------------
+
+
+DEMOGRAPHICS:
+    - Age: 32-45
+    - Gender: Any
+    - Nationality: Non-EU (Turkey, Syria, Afghanistan, Middle East, Africa)
+    - Location: Living in Germany for 2-5 years
+    - Income: €40,000-70,000/year
+    - Education: Varies (high school to university)
+
+CHARACTERISTICS:
+    - Family-focused, purchasing home for stability
+    - Limited German language proficiency
+    - Values community and cultural support
+    - Cautious with money, risk-averse
+    - Seeks guidance and reassurance throughout process
+
+GOALS:
+    - Own home for family stability and security
+    - Build equity instead of "wasting" money on rent
+    - Integrate into German society through homeownership
+    - Provide better future for children
+    - Avoid being taken advantage of by agents/sellers
+
+PAIN POINTS:
+    - Language barrier makes legal documents intimidating
+    - Unfamiliar with German property buying norms
+    - Concerned about discrimination or unfair treatment
+    - Limited knowledge of financing options
+    - Fear of hidden requirements for non-EU citizens
+
+HOW OUR PRODUCT HELPS:
+    - Simple language explanations (8th grade reading level)
+    - Document translation removes language barrier
+    - Clear guidance on foreign buyer requirements
+    - Step-by-step reduces fear and uncertainty
+    - Financing wizard shows realistic options for their situation
+
+--------------------------------------------------------------------------------
+PERSONA 3: EXPAT PROFESSIONAL COUPLE
+--------------------------------------------------------------------------------
+
+
+DEMOGRAPHICS:
+    - Age: 30-42
+    - Gender: Typically dual-income couple
+    - Nationality: EU or international (UK, US, France, Italy, Spain)
+    - Location: Relocated to Germany for work (2-3 year assignment)
+    - Combined income: €100,000-180,000/year
+    - Education: University degrees, often advanced
+
+CHARACTERISTICS:
+    - High income, can afford premium services
+    - Time-constrained due to demanding careers
+    - Quality-focused, willing to pay for convenience
+    - Digitally native, expects modern user experience
+    - May relocate again in future (investment perspective)
+
+GOALS:
+    - Buy property to avoid high rents in German cities
+    - Build international real estate portfolio
+    - Potentially rent out when relocated (investment property)
+    - Understand tax implications in multiple countries
+    - Streamline process as much as possible
+
+PAIN POINTS:
+    - Limited time due to work demands
+    - Need to coordinate between two busy schedules
+    - Uncertainty about long-term plans (buy or rent?)
+    - Complex tax situation with international income
+    - High expectations for service quality
+
+HOW OUR PRODUCT HELPS:
+    - Premium tier offers priority support and features
+    - Progress saves automatically (resume anytime)
+    - Shared access for couples (future feature)
+    - ROI calculator helps investment decision
+    - Professional presentation for advisors/employers
+
+--------------------------------------------------------------------------------
+4.2 SECONDARY USER PERSONAS
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+PERSONA 4: PROPERTY MANAGEMENT PROFESSIONAL
+--------------------------------------------------------------------------------
+
+    Real estate agents/property managers serving international clients
+    Use platform to educate clients and streamline processes
+    Enterprise tier with multi-user access (future)
+
+--------------------------------------------------------------------------------
+PERSONA 5: LEGAL/FINANCIAL ADVISOR
+--------------------------------------------------------------------------------
+
+    Lawyers, tax advisors, mortgage brokers working with foreign buyers
+    Use platform as educational resource to share with clients
+    Potential partners for referral marketplace (future)
+
+--------------------------------------------------------------------------------
+4.3 USER SEGMENTATION
+--------------------------------------------------------------------------------
+
+
+BY PROPERTY TYPE:
+    - 60% Apartment buyers (Eigentumswohnung)
+    - 30% House buyers (Haus)
+    - 10% Multi-family/commercial (future focus)
+
+BY USE CASE:
+    - 55% Investment property (rental income)
+    - 35% Primary residence (owner-occupied)
+    - 10% Mixed use (live in part, rent out part)
+
+BY LOCATION (GERMAN STATES):
+    - 25% Berlin (high foreign population)
+    - 20% Bavaria (Munich, strong economy)
+    - 15% North Rhine-Westphalia (Cologne, Düsseldorf)
+    - 10% Hamburg
+    - 10% Hesse (Frankfurt)
+    - 20% Other states
+
+BY LANGUAGE:
+    - 100% English (MVP)
+    - Future: Turkish (18% of immigrants), Arabic (12%), Polish (8%)
+
+--------------------------------------------------------------------------------
+4.4 USER ACQUISITION CHANNELS
+--------------------------------------------------------------------------------
+
+    Primary channels (MVP):
+    Organic search (SEO) - 40% of traffic
+    Target keywords: "buying property Germany foreigner", "German real estate laws English", "land transfer tax Germany"
+    Long-tail: "how to buy apartment Berlin as American", "translate German purchase contract"
+    Content marketing: 50+ articles optimized for search
+    Expat communities (online) - 30% of traffic
+    Facebook groups: "Expats in Berlin", "Americans in Germany", etc.
+    Reddit: r/germany, r/eupersonalfinance, r/realestateinvesting
+    LinkedIn: International professional groups in Germany
+    Forum participation and helpful answers with link to platform
+    Paid advertising - 20% of traffic
+    Google Ads: Intent keywords (€500-1000/month)
+    Facebook/Instagram: Targeting expats in Germany (€300-500/month)
+    Retargeting: Visitors who didn't complete registration
+    Word of mouth / referrals - 10% of traffic
+    Referral program (future): Give 1 month free, get 1 month free
+    Social sharing of calculations and results
+    Success stories and testimonials
+    Secondary channels (post-MVP):
+    Partnerships with relocation agencies
+    Corporate benefits programs (for companies relocating employees)
+    Language schools and integration centers
+    Immigrant advocacy organizations
+    Real estate agent partnerships
+
+
+================================================================================
+5. FEATURES AND REQUIREMENTS
+================================================================================
+
+
+--------------------------------------------------------------------------------
+5.1 FEATURE PRIORITIZATION FRAMEWORK
+--------------------------------------------------------------------------------
+
+    Features are prioritized using the MoSCoW method:
+    Must Have: Critical for MVP, product cannot launch without these
+    Should Have: Important but not critical, can be added shortly after MVP
+    Could Have: Desirable features that enhance the product
+    Won't Have: Explicitly out of scope for MVP
+
+--------------------------------------------------------------------------------
+5.2 CORE FEATURES (MUST HAVE FOR MVP)
+--------------------------------------------------------------------------------
+
+
+================================================================================
+FEATURE 1: GUIDED PROPERTY JOURNEY SYSTEM
+================================================================================
+
+Feature ID: F-001
+Priority: Must Have
+Epic: User Onboarding and Journey Management
+    Description: Interactive step-by-step guidance system that walks users through the entire property buying process from initial research to ownership transfer. The journey is personalized based on user's situation (property type, location, financing needs, citizenship status) and provides progressive disclosure of information to avoid overwhelming users.
+
+KEY CAPABILITIES:
+    - 7-question onboarding questionnaire to personalize journey
+    - Auto-generated journey with 8-15 steps based on user inputs
+    - Journey dashboard showing overall progress, current phase, next actions
+    - Individual step pages with tasks, checklists, relevant laws, costs, timeline
+    - Progress persistence (auto-save every 30 seconds)
+    - Deadline tracking and reminders
+    - Cost tracking across all steps
+    - Contextual help and warnings at each step
+
+USER VALUE:
+    - Eliminates confusion about "what to do next"
+    - Breaks down overwhelming process into manageable steps
+    - Provides confidence through clear guidance
+    - Prevents costly mistakes through warnings and checklists
+    - Saves 30+ hours of research time
+
+BUSINESS VALUE:
+    - Core differentiator (unique to our platform)
+    - High engagement (users return to complete journey)
+    - Clear conversion path (free users upgrade for advanced features)
+    - Retention driver (journey takes 3-6 months, keeping users engaged)
+
+TECHNICAL REQUIREMENTS:
+    - Dynamic journey generation algorithm based on user inputs
+    - State machine for step progression and prerequisites
+    - Real-time progress calculation
+    - Notification system for deadlines
+    - Mobile-responsive UI for all journey components
+
+DEPENDENCIES:
+    - User authentication system (F-002)
+    - Database for journey state storage
+    - Laws database (F-003) for contextual legal information
+    - Notification system (F-010)
+
+SUCCESS METRICS:
+    - 80% of users complete journey setup (questionnaire)
+    - 60% of users advance past Step 3
+    - 30% journey completion rate (all 15 steps)
+    - Average 8 minutes session duration on journey pages
+    - 40% return rate within 7 days
+
+
+================================================================================
+FEATURE 2: USER AUTHENTICATION AND ACCOUNT MANAGEMENT
+================================================================================
+
+Feature ID: F-002
+Priority: Must Have
+Epic: User Management
+    Description: Secure user registration, authentication, and account management system enabling users to create accounts, log in securely, manage their profiles, and control their subscription status.
+
+KEY CAPABILITIES:
+    - Email/password registration with email verification
+    - OAuth registration via Google (optional for MVP)
+    - Secure login with JWT token-based authentication
+    - Password reset via email
+    - User profile management (name, email, location, preferences)
+    - Subscription management (view plan, upgrade/downgrade, cancel)
+    - Usage tracking (document translations remaining)
+    - Data export (GDPR compliance)
+    - Account deletion (GDPR compliance)
+
+USER VALUE:
+    - Secure access to personal data and saved progress
+    - Control over personal information and privacy
+    - Ability to manage subscription independently
+    - Peace of mind about data security
+
+BUSINESS VALUE:
+    - Foundation for freemium model (track usage limits)
+    - User identification for analytics and personalization
+    - Compliance with GDPR and data protection laws
+    - Revenue collection through subscription management
+
+TECHNICAL REQUIREMENTS:
+    - JWT token generation and validation
+    - Bcrypt password hashing (cost factor 12)
+    - Email verification service integration
+    - Session management (30-day expiration with "remember me")
+    - Rate limiting (5 failed login attempts = 15-min lockout)
+    - HTTPS/TLS for all authentication endpoints
+    - Stripe integration for payment/subscription management
+
+SECURITY CONSIDERATIONS:
+    - OWASP Top 10 compliance
+    - SQL injection prevention (parameterized queries)
+    - XSS prevention (input sanitization)
+    - CSRF protection
+    - Secure password storage (never plain text)
+    - Audit logging of authentication events
+
+SUCCESS METRICS:
+    - <2% registration abandonment rate
+    - <1% failed login rate (excluding password mistakes)
+    - 0 security breaches or data leaks
+    - <5% support tickets related to account issues
+
+
+================================================================================
+FEATURE 3: LEGAL KNOWLEDGE BASE
+================================================================================
+
+Feature ID: F-003
+Priority: Must Have
+Epic: Content and Education
+    Description: Comprehensive database of 50 German real estate laws translated into English with plain-language explanations, practical examples, and contextual relevance indicators. Laws are browsable by category, searchable, and automatically surfaced at relevant journey steps.
+
+KEY CAPABILITIES:
+
+50 LAWS ACROSS 5 CATEGORIES:
+    - Buying Process (12 laws)
+    - Costs & Taxes (10 laws)
+    - Rental & Landlord Law (15 laws)
+    - Condominium Ownership (8 laws)
+    - Agent Regulations (5 laws)
+
+EACH LAW ENTRY INCLUDES:
+    - Official citation and title
+    - One-line summary (280 characters)
+    - Short summary (2-3 sentences)
+    - Detailed explanation (2-3 paragraphs)
+    - Real-world example
+    - Common disputes and resolutions
+    - What it means for buyer/seller/landlord/tenant
+    - Related laws (hyperlinked)
+    - Court rulings (2-5 key decisions)
+    - Original German text (collapsible)
+    - Last amended date and change history
+    - State-specific variations (e.g., land transfer tax rates by state)
+    - Interactive state comparison maps
+    - Bookmark functionality
+    - Full-text search across all laws
+    - Browse by category, property type, user role
+    - Personalized recommendations based on journey position
+
+USER VALUE:
+    - Access to legal information in plain English
+    - Understanding of rights and obligations
+    - Confidence in navigating legal system
+    - Ability to make informed decisions
+    - Quick reference during property viewings or negotiations
+
+BUSINESS VALUE:
+    - Core content moat (expensive to replicate)
+    - SEO traffic from long-tail legal queries
+    - Establishes authority and trust
+    - Foundation for contextual help in journey
+
+CONTENT CREATION REQUIREMENTS:
+    - Partner with German real estate lawyer for content creation
+    - Professional legal translation to English
+    - Quality review by second lawyer
+    - Regular updates when laws change (quarterly check)
+    - Content management system for easy updates
+
+TECHNICAL REQUIREMENTS:
+    - PostgreSQL database with full-text search indexes
+    - Content versioning (track changes over time)
+    - Related law relationship mapping
+    - State variation data structure
+    - Automated change detection from official sources (weekly cron job)
+
+SUCCESS METRICS:
+    - 40% of users view at least 3 laws
+    - 25% of users bookmark at least 1 law
+    - Average 3 minutes reading time per law page
+    - 85% helpfulness rating ("Was this helpful?")
+    - 30% of users click through to related laws
+
+
+================================================================================
+FEATURE 4: DOCUMENT TRANSLATION ENGINE
+================================================================================
+
+Feature ID: F-004
+Priority: Must Have
+Epic: Document Processing
+    Description: AI-powered document translation service that converts German real estate documents (contracts, leases, property listings) into English with automatic detection of key clauses and risk warnings.
+
+KEY CAPABILITIES:
+    - Document upload via drag-and-drop or file browser
+    - Support for PDF format (max 10 pages free tier, 20 pages premium)
+
+AUTOMATIC DOCUMENT TYPE DETECTION:
+    - Kaufvertrag (Purchase Contract)
+    - Mietvertrag (Rental Agreement)
+    - Exposé (Property Listing)
+    - Nebenkostenabrechnung (Utility Statement)
+    - Grundbuchauszug (Land Registry Extract)
+    - Teilungserklärung (Condo Declaration)
+    - Hausgeldabrechnung (Condo Fee Statement)
+    - Wohnungsgeberbestätigung (Landlord Confirmation)
+    - Text extraction from PDF (OCR if needed)
+    - Translation via DeepL API (German  English)
+
+KEY CLAUSE DETECTION AND HIGHLIGHTING:
+    - Purchase price and payment terms
+    - Dates and deadlines
+    - Warranty exclusions
+    - Special conditions
+    - Financial terms (rent, deposits, fees)
+
+RISK DETECTION AND WARNINGS:
+    - High-risk clauses (e.g., "Gewährleistung ausgeschlossen")
+    - Unusual terms requiring attention
+    - Missing required information
+    - Side-by-side view (original German | English translation)
+    - Key information summary box
+    - Downloadable annotated PDF
+    - Document storage in user account
+    - Translation history
+
+USER VALUE:
+    - Understand German documents without expensive translator
+    - Identify problematic clauses before signing
+    - Save €200-500 per document vs. certified translation
+    - Quick turnaround (5-10 minutes vs. days for human translator)
+    - Reference documents anytime from account
+
+BUSINESS VALUE:
+    - Strong conversion driver (free users hit 5 translation limit quickly)
+    - Recurring usage (users translate multiple documents)
+    - High perceived value (saves hundreds of euros)
+    - Sticky feature (documents stored in account)
+
+TECHNICAL REQUIREMENTS:
+    - DeepL API integration (official Python SDK)
+    - PDF text extraction (pdfplumber library)
+    - Async processing (Celery background tasks)
+    - Document storage (AWS S3, encrypted at rest)
+    - Progress tracking and status updates
+    - Usage limit enforcement per subscription tier
+    - Keyword matching for clause detection (regex patterns)
+    - Future: ML model for improved clause detection
+
+USAGE LIMITS:
+    - Free tier: 5 documents/month, max 10 pages each
+    - Premium tier: 30 documents/month, max 20 pages each
+    - Enterprise tier: Unlimited
+
+PROCESSING TIME:
+    - Target: 5-10 minutes for typical 5-page document
+    - Status updates every 10 seconds
+    - Email notification when complete
+
+SUCCESS METRICS:
+    - 50% of users translate at least 1 document
+    - 80% of free users who translate 5 documents upgrade to premium
+    - 90%+ translation accuracy (spot-check sample)
+    - 85% user satisfaction with translation quality
+    - <5% processing failures
+
+
+================================================================================
+FEATURE 5: HIDDEN COSTS CALCULATOR
+================================================================================
+
+Feature ID: F-005
+Priority: Must Have
+Epic: Financial Tools
+    Description: Interactive calculator that reveals the true cost of buying property in Germany, including all hidden fees and taxes that real estate agents don't disclose upfront. Includes state-by-state comparison feature.
+
+KEY CAPABILITIES:
+
+INPUT FORM ACCEPTING:
+    - Purchase price (€10,000 - €10,000,000)
+    - Property type (apartment/house)
+    - Location (German state selector)
+    - Agent involvement (yes/no)
+    - Financing details (optional)
+
+AUTOMATIC CALCULATIONS:
+    - Land transfer tax (state-specific rates: 3.5-6.5%)
+    - Notary fees (based on GNotKG schedule, ~1.5%)
+    - Land registry fee (~0.5%)
+    - Agent commission (if applicable, ~3.57% buyer's share)
+    - Total acquisition cost
+    - Cost as percentage of purchase price
+
+RESULTS DISPLAY:
+    - "What agents tell you" vs. "Real total cost"
+    - Detailed breakdown with explanations
+    - Visual pie chart of cost distribution
+    - Potential savings in different states
+
+STATE COMPARISON TOOL:
+    - Interactive map of Germany
+    - Color-coded by transfer tax rate
+    - Table of all 16 states with calculated amounts
+    - Savings calculator (vs. user's selected state)
+
+SAVE AND SHARE FUNCTIONALITY:
+    - Save calculation with custom name
+    - Download as PDF report
+    - Share via email or link
+    - Multiple scenario comparison
+
+USER VALUE:
+    - No surprises about total costs
+    - Transparent breakdown of all fees
+    - Informed decision-making about location
+    - Budget accurately for property purchase
+    - Negotiate confidently with agents
+
+BUSINESS VALUE:
+    - Viral feature (users share calculations)
+    - Trust builder (transparency = credibility)
+    - Lead generator (saved calculations require account)
+    - SEO traffic ("land transfer tax Germany")
+
+TECHNICAL REQUIREMENTS:
+    - Real-time calculation on input change
+    - Current state tax rates database (updated annually)
+    - GNotKG fee schedule algorithm
+    - Chart.js or Recharts for visualizations
+    - PDF generation library
+    - Shareable link generation (unique URLs)
+
+DATA SOURCES:
+    - Official state tax rates (verified quarterly)
+    - GNotKG notary fee schedule
+    - Average agent commission rates (by region)
+
+SUCCESS METRICS:
+    - 60% of users use calculator at least once
+    - 40% of users save at least 1 calculation
+    - 20% of users share calculation (viral coefficient)
+    - 80% report calculation matched actual costs within €500
+
+
+================================================================================
+FEATURE 6: ROI CALCULATOR
+================================================================================
+
+Feature ID: F-006
+Priority: Must Have
+Epic: Financial Tools
+    Description: Investment analysis calculator that helps users evaluate whether a property is a good investment by calculating key metrics like cash flow, rental yield, cash-on-cash return, and long-term projections.
+
+KEY CAPABILITIES:
+
+INPUT FORM ACCEPTING:
+    - Purchase price
+    - Down payment amount
+    - Interest rate
+    - Loan term (years)
+    - Expected monthly rent
+    - Vacancy rate (%, default 5%)
+    - Monthly condo fee (if applicable)
+    - Annual property tax (auto-estimated)
+    - Annual maintenance (%, default 1% of value)
+
+CALCULATIONS:
+    - Monthly mortgage payment (amortization formula)
+    - Monthly net rental income (rent - vacancy)
+    - Monthly operating expenses
+    - Monthly cash flow (positive or negative)
+    - Annual cash flow
+    - Gross rental yield (%)
+    - Net rental yield (%)
+    - Cash-on-cash return (%)
+    - Cap rate (%)
+    - Break-even rent amount
+
+INVESTMENT GRADE (0-10 SCALE):
+    - 8-10: Excellent (green)
+    - 6-7.9: Good (light green)
+    - 4-5.9: Moderate (yellow)
+    - 2-3.9: Poor (orange)
+    - 0-1.9: Very Poor (red)
+
+10-YEAR PROJECTION:
+    - Equity buildup (year by year)
+    - Cumulative cash flow
+    - Property value (assuming 3% appreciation)
+    - Line chart visualization
+    - Table with yearly breakdown
+
+BREAK-EVEN ANALYSIS:
+    - Required rent for positive cash flow
+    - Required down payment for positive cash flow
+    - Required interest rate for positive cash flow
+    - Pros and cons lists (auto-generated)
+    - Scenario comparison (compare up to 3 scenarios)
+    - Save and share functionality
+
+USER VALUE:
+    - Make data-driven investment decisions
+    - Understand true profitability of property
+    - Compare multiple properties objectively
+    - Plan for negative cash flow periods
+    - Optimize down payment and financing
+
+BUSINESS VALUE:
+    - Positions platform as investment tool (attracts serious buyers)
+    - Encourages premium upgrade (save unlimited calculations)
+    - Reduces buyer's remorse (informed decisions)
+    - Data for market insights (what users search for)
+
+TECHNICAL REQUIREMENTS:
+    - Amortization formula implementation
+    - Property tax estimation algorithm (state-specific)
+    - Configurable assumptions (appreciation rate, rent increases)
+    - Chart.js or Recharts for visualizations
+    - Scenario state management
+    - Calculation history storage
+
+ASSUMPTIONS:
+    - Default 3% annual property appreciation
+    - Default 2% annual rent increases
+    - Default 5% vacancy rate
+    - Fixed mortgage payment (typical in Germany)
+    - Simplified tax treatment (no depreciation in calculator)
+
+SUCCESS METRICS:
+    - 40% of users use ROI calculator
+    - 30% of users save at least 1 ROI calculation
+    - Average 2.5 calculations per user
+    - 75% report calculator influenced their decision
+
+
+================================================================================
+FEATURE 7: FINANCING ELIGIBILITY WIZARD
+================================================================================
+
+Feature ID: F-007
+Priority: Must Have
+Epic: Financial Tools
+    Description: Interactive multi-step questionnaire that assesses user's likelihood of obtaining mortgage financing in Germany and provides personalized recommendations and document checklist.
+
+KEY CAPABILITIES:
+
+7-QUESTION WIZARD COLLECTING:
+    - Employment status (permanent/self-employed/other)
+    - Years at current employer
+    - Monthly net income
+    - Existing monthly debt obligations
+    - Down payment available
+    - Credit history (SCHUFA: good/fair/poor/unknown)
+    - Citizenship/residency status
+
+ELIGIBILITY SCORE CALCULATION (0-100):
+    - Weighted scoring algorithm
+    - Strong factors: Permanent employment 2+ years, good income-to-debt ratio, 20%+ down payment
+    - Moderate factors: EU citizenship, good SCHUFA, stable income
+    - Weak factors: Self-employed, non-EU, limited credit history, low down payment
+
+LIKELIHOOD ASSESSMENT:
+    - 80-100: High likelihood (green)
+    - 60-79: Good likelihood (light green)
+    - 40-59: Moderate likelihood (yellow)
+    - 20-39: Low likelihood (orange)
+    - 0-19: Very low likelihood (red)
+
+PERSONALIZED RESULTS:
+    - Overall likelihood verdict
+    - Strengths (green checkmarks)
+    - Areas to strengthen (orange warnings with actionable advice)
+    - Maximum loan amount estimate
+    - Recommended down payment percentage
+    - Expected interest rate range
+    - Likely loan-to-value ratio
+
+REQUIRED DOCUMENTS CHECKLIST (PERSONALIZED):
+    - Essential documents (all applicants)
+    - Additional documents (based on user's situation)
+    - Format requirements
+    - Tips for obtaining each document
+    - Downloadable PDF checklist
+    - Link to journey Step 3 (document gathering)
+
+NEXT STEPS GUIDANCE:
+    - Get SCHUFA report (with external link)
+    - Gather documents
+    - Get pre-approval
+    - Learn about financing options (links to articles)
+
+USER VALUE:
+    - Realistic assessment of financing prospects
+    - Clear understanding of what's needed
+    - Actionable advice to improve eligibility
+    - Confidence about affordability
+    - Time saved (avoid applying to wrong lenders)
+
+BUSINESS VALUE:
+    - Qualifies users early (prevents wasted effort on unqualified buyers)
+    - Educational (builds trust and authority)
+    - Links to journey (drives engagement)
+    - Data insights (understand user demographics)
+
+TECHNICAL REQUIREMENTS:
+    - Multi-step form with progress indicator
+    - Scoring algorithm with configurable weights
+    - Conditional logic for document checklist
+    - PDF generation for checklist
+    - Result storage in user profile
+
+VALIDATION:
+    - Consult with German mortgage brokers to validate scoring
+    - Test with sample user profiles
+    - Adjust weights based on real approval rates
+
+SUCCESS METRICS:
+    - 50% of users complete wizard
+    - 70% report results matched actual pre-approval outcome
+    - 85% find document checklist helpful
+    - 30% of users link wizard results to journey
+
+
+================================================================================
+FEATURE 8: CONTENT LIBRARY
+================================================================================
+
+Feature ID: F-008
+Priority: Must Have
+Epic: Content and Education
+    Description: Collection of 12+ educational articles covering key topics in German real estate, optimized for SEO and providing in-depth guidance beyond what the journey steps offer.
+
+KEY CAPABILITIES:
+
+MINIMUM 12 ARTICLES ACROSS 4 CATEGORIES:
+
+BUYING PROCESS (4 ARTICLES):
+    - Complete Guide to Buying Property in Germany as a Foreigner
+    - What is a Notar and Why You Need One
+    - Understanding the Grundbuch (Land Registry)
+    - Due Diligence Checklist for German Property
+
+COSTS & TAXES (3 ARTICLES):
+    - Hidden Costs When Buying Property in Germany
+    - Tax Benefits for Rental Property Investors
+    - Understanding Grundsteuer (Property Tax)
+
+REGULATIONS (3 ARTICLES):
+    - Berlin Rent Control: What Landlords Need to Know
+    - Agent Commission Rules in Germany (Bestellerprinzip)
+    - Foreign Investor Restrictions and Requirements
+
+COMMON PITFALLS (2 ARTICLES):
+    - 10 Things Real Estate Agents Don't Tell You
+    - Red Flags When Viewing Properties
+
+ARTICLE STRUCTURE:
+    - Title, meta description (SEO-optimized)
+    - Estimated reading time (auto-calculated)
+    - Difficulty level badge (beginner/intermediate/advanced)
+    - Key takeaways box (3-5 bullet points)
+    - Table of contents (auto-generated from H2/H3 headings)
+    - Main content (1,500-3,000 words, scannable format)
+    - Related laws sidebar (hyperlinked)
+    - Related tools/calculators (embedded or linked)
+    - Related articles footer (3-5 suggestions)
+    - Social share buttons
+    - "Was this helpful?" rating widget
+
+ARTICLE BROWSING:
+    - Category pages
+    - Tag filtering
+    - Search functionality
+    - "Most Popular" list
+    - "Recently Updated" list
+
+SEO OPTIMIZATION:
+    - Target keywords per article
+    - Internal linking to laws and journey steps
+    - Schema markup (Article type)
+    - Optimized images with alt text
+    - Meta tags and Open Graph tags
+
+USER VALUE:
+    - Deep-dive information beyond journey steps
+    - Comprehensive guides for specific topics
+    - Build knowledge and confidence
+    - Reference materials for decision-making
+
+BUSINESS VALUE:
+    - Primary SEO traffic driver (40% of organic traffic)
+    - Establishes thought leadership
+    - Low-cost content marketing
+    - Long-term asset (evergreen content)
+    - Supports user retention (reason to return)
+
+CONTENT REQUIREMENTS:
+    - Hire freelance writer with German real estate knowledge (€75-100/article)
+    - Legal review by German lawyer
+    - Quarterly updates to keep content current
+    - Internal linking strategy
+    - Image sourcing (licensed or original)
+
+TECHNICAL REQUIREMENTS:
+    - Content Management System (admin panel)
+    - Markdown editor or WYSIWYG
+    - SEO fields (meta description, slug, keywords)
+    - Related content linking
+    - Reading time calculation
+    - View count tracking
+    - Search indexing
+
+SUCCESS METRICS:
+    - 30% of users read at least 1 article
+    - 10% of users read 3+ articles
+    - Average 4 minutes per article (indicates thorough reading)
+    - 40% of organic traffic from article pages
+    - 20% of article readers create account
+
+
+================================================================================
+FEATURE 9: DASHBOARD AND PROGRESS TRACKING
+================================================================================
+
+Feature ID: F-009
+Priority: Must Have
+Epic: User Onboarding and Journey Management
+    Description: Centralized user dashboard displaying journey progress, saved items, recent activity, usage statistics, and quick action buttons.
+
+KEY CAPABILITIES:
+
+OVERVIEW SECTION:
+    - Overall journey progress (% complete)
+    - Current phase and step
+    - Next recommended action (primary CTA)
+    - Number of action items requiring attention
+    - Time since journey started
+    - Estimated time remaining
+    - Budget status (on track/over budget)
+
+JOURNEY PREVIEW:
+    - List of all phases with completion status
+    - Current step highlighted
+    - Quick navigation to any unlocked step
+    - Visual progress bar
+
+SAVED ITEMS:
+    - Documents (3 most recent, link to view all)
+    - Calculations (2 most recent, link to view all)
+    - Bookmarked laws (top 3, link to view all)
+
+ACTIVITY TIMELINE:
+    - Recent actions (last 10)
+    - Timestamped entries
+    - Type icons (document uploaded, step completed, law viewed, etc.)
+
+QUICK ACTIONS SECTION:
+    - Upload document
+    - Calculate costs
+    - Browse laws
+    - Continue journey (primary CTA)
+
+NOTIFICATIONS PANEL:
+    - Unread notification count (badge)
+    - Preview of top 3 notifications
+    - Link to notification center
+
+USAGE STATS (FOR FREE USERS):
+    - Document translations: X/5 used this month
+    - Resets in: X days
+    - Upgrade prompt when approaching limit
+
+PERSONALIZED RECOMMENDATIONS:
+    - Laws relevant to current step
+    - Articles matching user interests
+    - Tools to try next
+    - Mobile-responsive layout (single column on mobile)
+
+USER VALUE:
+    - Single place to see all progress and activity
+    - Clear next action (reduces decision fatigue)
+    - Quick access to all key features
+    - Motivation through visible progress
+    - Easy resume point when returning
+
+BUSINESS VALUE:
+    - Increases engagement (users return to dashboard)
+    - Clear upgrade prompts (usage limits visible)
+    - Reduces friction (quick actions)
+    - Personalization opportunities (recommendations)
+
+TECHNICAL REQUIREMENTS:
+    - Real-time progress calculation
+    - Activity event logging
+    - Notification aggregation
+    - Responsive grid layout
+    - Caching for performance (dashboard loads fast)
+    - Skeleton loaders while data fetches
+
+SUCCESS METRICS:
+    - 70% of users return to dashboard at least 3 times
+    - 50% of users click "Continue journey" from dashboard
+    - 30% of users use quick actions
+    - <2 seconds dashboard load time
+
+
+================================================================================
+FEATURE 10: NOTIFICATIONS AND REMINDERS
+================================================================================
+
+Feature ID: F-010
+Priority: Must Have
+Epic: User Engagement
+    Description: System for delivering timely notifications to users about deadlines, document completion, upcoming steps, and other important events via in-app notifications and email.
+
+KEY CAPABILITIES:
+
+NOTIFICATION TYPES:
+    - Journey deadlines (1 week, 3 days, 1 day before)
+    - Document translation complete
+    - Step completion congratulations
+    - Payment due reminders
+    - Subscription expiration (7 days before)
+    - Law updates (for bookmarked laws)
+    - Usage limits approaching (80% of quota)
+    - New feature announcements
+
+DELIVERY CHANNELS:
+    - In-app notification bell (with badge count)
+    - Email (user preference, default ON)
+    - Browser push notifications (future, opt-in)
+
+IN-APP NOTIFICATION CENTER:
+    - Dropdown from bell icon
+    - Unread indicator (bold text, blue dot)
+    - Notification title and preview text
+    - Timestamp (relative, e.g., "2 hours ago")
+    - Action button (e.g., "View Step", "Download Document")
+    - Delete/dismiss button
+    - Mark all as read
+    - Filter by type
+    - Clear all notifications
+
+EMAIL NOTIFICATIONS:
+    - Professional template design
+    - Clear subject lines
+    - Preview text optimized for mobile
+    - Primary CTA button
+    - Unsubscribe link (except critical transactional)
+    - Company branding and footer
+
+NOTIFICATION PREFERENCES:
+    - Enable/disable each notification type
+    - Choose delivery method (in-app only/email only/both)
+    - Quiet hours (no emails during sleep, future)
+
+TRANSACTIONAL EMAILS:
+    - Welcome email on registration
+    - Email verification link
+    - Password reset link
+    - Payment receipt
+    - Subscription confirmation/cancellation
+    - Document translation ready
+
+ONBOARDING EMAIL SEQUENCE:
+    - Day 1: Welcome + getting started guide
+    - Day 3: How to use the journey feature
+    - Day 7: Explore the law database
+    - Day 14: Check-in + offer help
+    - User can opt-out of sequence
+
+USER VALUE:
+    - Never miss important deadlines
+    - Timely reminders reduce stress
+    - Stay informed about progress
+    - Control over notification frequency
+    - Choice of delivery channel
+
+BUSINESS VALUE:
+    - Drives re-engagement (brings users back)
+    - Reduces churn (timely reminders)
+    - Increases completion rate (deadline nudges)
+    - Email list for marketing (future)
+
+TECHNICAL REQUIREMENTS:
+    - Notification database table
+    - Email service integration (SendGrid)
+    - Scheduled jobs (Celery Beat for deadline checks)
+    - Real-time notification delivery (WebSocket or polling)
+    - User preference storage
+    - Email template engine
+    - Unsubscribe link management
+    - Email bounce/complaint handling
+
+EMAIL DELIVERABILITY:
+    - SPF, DKIM, DMARC configuration
+    - Monitor sender reputation
+    - Handle bounces and complaints
+    - Respect unsubscribe requests immediately
+
+SUCCESS METRICS:
+    - 70% email open rate (onboarding sequence)
+    - 25% click-through rate (email CTAs)
+    - <5% unsubscribe rate
+    - 50% of users who receive deadline reminder complete action within 24 hours
+    - <2% complaint rate (spam reports)
+
+
+--------------------------------------------------------------------------------
+5.3 IMPORTANT FEATURES (SHOULD HAVE FOR MVP)
+--------------------------------------------------------------------------------
+
+
+================================================================================
+FEATURE 11: SEARCH FUNCTIONALITY
+================================================================================
+
+Feature ID: F-011
+Priority: Should Have
+Epic: Content Discovery
+    Description: Global search across all content (laws, articles, journey steps, FAQs) with auto-suggest and relevance ranking.
+
+KEY CAPABILITIES:
+    - Search bar accessible from all pages (header)
+    - Auto-suggest results as user types (minimum 3 characters)
+
+SEARCH ACROSS:
+    - Laws (titles, summaries, explanations)
+    - Articles (titles, content)
+    - FAQs (questions, answers)
+    - Journey steps (titles, descriptions)
+    - Glossary terms
+    - Fuzzy matching (typo tolerance)
+    - Exact phrase matching (quoted searches)
+    - German and English term support
+    - Results grouped by type (Laws/Articles/FAQs/Steps)
+    - Matching text highlighted in results
+    - Snippet showing context (150 characters)
+    - Relevance scoring (most relevant first)
+    - Pagination (10 results per page)
+
+ZERO RESULTS HANDLING:
+    - "Did you mean..." suggestions
+    - Popular searches
+    - Link to contact support
+    - Search analytics (log queries for improvement)
+
+SUCCESS METRICS:
+    - 30% of users use search at least once
+    - 80% of searches return relevant results (user clicks within top 5)
+    - <5% zero-result searches
+
+
+================================================================================
+FEATURE 12: FAQ SYSTEM
+================================================================================
+
+Feature ID: F-012
+Priority: Should Have
+Epic: Content and Education
+    Description: Frequently Asked Questions organized by category with collapsible accordion interface and helpfulness ratings.
+
+KEY CAPABILITIES:
+
+30+ FAQS ACROSS CATEGORIES:
+    - General (5 FAQs)
+    - Buying process (8 FAQs)
+    - Financing (7 FAQs)
+    - Legal questions (6 FAQs)
+    - Using the platform (4 FAQs)
+    - Accordion interface (collapse/expand)
+    - Search within FAQs
+    - Related law links
+    - Related article links
+    - Helpfulness rating (thumbs up/down)
+    - "Suggest a question" form
+    - Most helpful FAQs highlighted
+
+SUCCESS METRICS:
+    - 25% of users visit FAQ page
+    - 60% find answer without contacting support
+    - 80% helpfulness rating
+
+
+================================================================================
+FEATURE 13: GLOSSARY OF GERMAN TERMS
+================================================================================
+
+Feature ID: F-013
+Priority: Should Have
+Epic: Content and Education
+    Description: Searchable glossary of 200+ German real estate terms with English translations, definitions, and usage examples.
+
+KEY CAPABILITIES:
+    - Alphabetical list of terms
+    - Search functionality
+
+EACH ENTRY INCLUDES:
+    - German term
+    - English translation
+    - Simple definition (1-2 sentences)
+    - Usage example
+    - Related laws (if applicable)
+    - Pronunciation guide (future)
+
+IN-CONTEXT TOOLTIPS:
+    - Hover over German terms throughout app
+    - Popup shows translation and definition
+    - Link to full glossary entry
+    - Glossary export (printable PDF)
+
+SUCCESS METRICS:
+    - 20% of users visit glossary
+    - 40% of users hover over at least 1 term tooltip
+    - Average 5 terms viewed per session
+
+
+--------------------------------------------------------------------------------
+5.4 ENHANCEMENT FEATURES (COULD HAVE, POST-MVP)
+--------------------------------------------------------------------------------
+
+
+================================================================================
+FEATURE 14: PROPERTY PORTFOLIO MANAGER
+================================================================================
+
+Priority: Could Have (Year 2)
+    Track multiple properties, rental income, expenses, generate tax documents and annual reports.
+
+================================================================================
+FEATURE 15: MULTI-LANGUAGE UI SUPPORT
+================================================================================
+
+Priority: Could Have (Year 2)
+    Translate entire platform UI to Turkish, Arabic, Polish, German.
+
+================================================================================
+FEATURE 16: AI CHATBOT
+================================================================================
+
+Priority: Could Have (Year 2)
+    Trained on German real estate law, provides instant Q&A, links to relevant content.
+
+================================================================================
+FEATURE 17: PROFESSIONAL MARKETPLACE
+================================================================================
+
+Priority: Could Have (Year 2)
+    Directory of English-speaking lawyers, tax advisors, property managers with booking and reviews.
+
+================================================================================
+FEATURE 18: MARKET DATA INTEGRATION
+================================================================================
+
+Priority: Could Have (Year 2+)
+    Neighborhood price trends, rental yield analysis, school ratings, transport scores.
+
+================================================================================
+FEATURE 19: NATIVE MOBILE APPS
+================================================================================
+
+Priority: Could Have (Year 2)
+    iOS and Android apps with offline access, push notifications, camera document scanning.
+
+
+--------------------------------------------------------------------------------
+5.5 EXPLICITLY OUT OF SCOPE (WON'T HAVE FOR MVP)
+--------------------------------------------------------------------------------
+
+    The following features will NOT be included in MVP:
+    ❌ Community forum/user discussions
+    ❌ Document template generator
+    ❌ Advanced tax optimization tools
+    ❌ Real estate listing integration (ImmoScout24 API)
+    ❌ Video tutorials (start with written content)
+    ❌ Virtual property tours
+    ❌ Tenant screening service
+    ❌ Automated rent collection
+    ❌ Renovation cost estimator
+    ❌ Property comparison tool (side-by-side)
+    ❌ Referral program
+    ❌ White-label options
+    ❌ Public API (Enterprise feature for future)
+
+
+================================================================================
+6. USER STORIES AND ACCEPTANCE CRITERIA
+================================================================================
+
+
+--------------------------------------------------------------------------------
+6.1 USER AUTHENTICATION AND ACCOUNT MANAGEMENT
+--------------------------------------------------------------------------------
+
+    ST-101: User registration
+    As a new visitor
+    I want to create an account with my email and password
+    So that I can save my progress and access personalized features
+    Acceptance criteria:
+    Given I am on the homepage or any page
+    When I click "Sign Up" button
+    Then I should see a registration form with fields:
+    Email (required, valid email format)
+    Password (required, min 8 chars, 1 uppercase, 1 number)
+    Confirm password (required, must match password)
+    Name (required, 2-100 chars)
+    Terms of Service checkbox (required)
+    Privacy Policy checkbox (required)
+    When I submit the form with valid data
+    Then my account should be created
+    And I should receive a verification email within 5 minutes
+    And I should be redirected to onboarding questionnaire
+    And I should see a message "Please verify your email"
+    When I submit the form with invalid data
+    Then I should see inline error messages for each invalid field
+    And my account should not be created
+    Additional scenarios:
+    Email already exists: Show error "This email is already registered. Try logging in."
+    Password too weak: Show error "Password must contain at least 1 uppercase letter and 1 number"
+    Terms not accepted: Disable submit button until checked
+
+    ST-102: Email verification
+    As a newly registered user
+    I want to verify my email address
+    So that I can access full account features
+    Acceptance criteria:
+    Given I have registered an account
+    When I check my email inbox
+    Then I should receive a verification email within 5 minutes
+    And the email should contain:
+    Welcome message
+    Verification link (valid for 24 hours)
+    Instructions to click link
+    Fallback: "Didn't receive email?" link
+    When I click the verification link
+    Then I should be redirected to the app
+    And I should see "Email verified successfully!" message
+    And my email_verified status should be set to true
+    And I should have full access to platform features
+    When I try to click an expired link (>24 hours)
+    Then I should see "Link expired. Request a new verification email."
+    And I should see "Resend verification email" button
+
+    ST-103: User login
+    As a registered user
+    I want to log in to my account
+    So that I can access my saved data and continue my journey
+    Acceptance criteria:
+    Given I have a registered and verified account
+    When I click "Log In" button
+    Then I should see a login form with fields:
+    Email (required)
+    Password (required)
+    "Remember me" checkbox (optional)
+    "Forgot password?" link
+    When I submit valid credentials
+    Then I should be logged in
+    And I should be redirected to my dashboard
+    And a JWT token should be created (30-day expiration if "Remember me" checked, otherwise 24 hours)
+    When I submit invalid credentials
+    Then I should see error "Invalid email or password"
+    And my login attempt should be logged
+    When I fail login 5 times within 15 minutes
+    Then my account should be locked for 15 minutes
+    And I should see "Too many failed attempts. Try again in 15 minutes."
+
+    ST-104: Password reset
+    As a user who forgot my password
+    I want to reset my password via email
+    So that I can regain access to my account
+    Acceptance criteria:
+    Given I am on the login page
+    When I click "Forgot password?" link
+    Then I should see password reset form with:
+    Email field (required)
+    Submit button "Send reset link"
+    When I submit my registered email
+    Then I should see "If that email exists, we sent a reset link"
+    And I should receive a password reset email within 5 minutes
+    And the email should contain:
+    Reset link (valid for 1 hour)
+    Instructions
+    Security notice: "Didn't request this? Ignore this email."
+    When I click the reset link
+    Then I should see password reset form with:
+    New password field (required, validation rules)
+    Confirm new password field (required)
+    Submit button "Reset password"
+    When I submit valid new password
+    Then my password should be updated (bcrypt hashed)
+    And all existing sessions should be invalidated
+    And I should be redirected to login page
+    And I should see "Password reset successful. Please log in."
+    When I try to use an expired reset link
+    Then I should see "Reset link expired. Request a new one."
+
+    ST-105: OAuth registration (Google)
+    As a new visitor
+    I want to sign up using my Google account
+    So that I can register quickly without creating a new password
+    Acceptance criteria:
+    Given I am on the registration page
+    When I click "Sign up with Google" button
+    Then I should be redirected to Google OAuth consent screen
+    When I authorize the app
+    Then my account should be created using my Google email and name
+    And I should be redirected back to the app
+    And I should be logged in automatically
+    And email_verified should be set to true (trust Google verification)
+    And I should be redirected to onboarding questionnaire
+    When I use an email that already exists
+    Then I should see "Email already registered. Try logging in with Google."
+
+    ST-106: User profile management
+    As a logged-in user
+    I want to view and update my profile information
+    So that I can keep my details current and personalize my experience
+    Acceptance criteria:
+    Given I am logged in
+    When I navigate to Settings > Profile
+    Then I should see my current profile information:
+    Name (editable)
+    Email (editable, requires re-verification if changed)
+    Location (state selector, editable)
+    Preferred language (dropdown, currently English only)
+    Investment profile section:
+    Status (dropdown: Researching/Ready to buy/Already own/Managing)
+    Interests (multi-select checkboxes: Rental income/Tax optimization/Flipping/Long-term wealth)
+    When I update any field and click "Save changes"
+    Then my profile should be updated in database
+    And I should see "Profile updated successfully" message
+    When I change my email
+    Then I should receive verification email at new address
+    And my email_verified status should be set to false
+    And I should see warning "Please verify your new email"
+    When I submit invalid data (e.g., blank name)
+    Then I should see inline validation errors
+    And my profile should not be updated
+
+    ST-107: Change password
+    As a logged-in user
+    I want to change my password
+    So that I can maintain account security
+    Acceptance criteria:
+    Given I am logged in
+    When I navigate to Settings > Security > Change Password
+    Then I should see form with fields:
+    Current password (required)
+    New password (required, validation rules)
+    Confirm new password (required)
+    When I submit the form with correct current password and valid new password
+    Then my password should be updated (bcrypt hashed)
+    And all other sessions should be invalidated (force re-login on other devices)
+    And I should remain logged in on current device
+    And I should see "Password changed successfully"
+    When I submit incorrect current password
+    Then I should see "Current password is incorrect"
+    And my password should not be changed
+    When new password doesn't meet requirements
+    Then I should see specific validation errors
+    And my password should not be changed
+
+    ST-108: Account deletion (GDPR compliance)
+    As a logged-in user
+    I want to delete my account and all associated data
+    So that I can exercise my right to be forgotten
+    Acceptance criteria:
+    Given I am logged in
+    When I navigate to Settings > Account > Delete Account
+    Then I should see warning message:
+    "This action is permanent and cannot be undone"
+    List of what will be deleted:
+    Profile information
+    Journey progress
+    Uploaded documents
+    Saved calculations
+    Bookmarks and history
+    Confirmation checkbox "I understand this cannot be undone"
+    Text input "Type DELETE to confirm"
+    "Cancel" and "Delete My Account" buttons
+    When I check confirmation and type "DELETE" correctly and click button
+    Then I should see final confirmation dialog "Are you sure?"
+    When I confirm
+    Then my account should be soft-deleted (marked for deletion)
+    And all my sessions should be terminated
+    And I should be logged out
+    And I should see "Your account has been scheduled for deletion within 30 days"
+    And a deletion job should be scheduled for 30 days from now
+    And I should receive confirmation email
+    When 30 days have passed
+    Then all my data should be permanently deleted from database
+    And my uploaded documents should be deleted from S3
+    And deletion should be logged for audit trail
+
+    ST-109: Data export (GDPR compliance)
+    As a logged-in user
+    I want to export all my data
+    So that I can have a copy or transfer to another service
+    Acceptance criteria:
+    Given I am logged in
+    When I navigate to Settings > Privacy > Export Data
+    Then I should see:
+    Explanation of what will be exported
+    "Request Export" button
+    When I click "Request Export"
+    Then export job should be queued
+    And I should see "We're preparing your data. You'll receive an email when ready (within 24 hours)"
+    When export is complete (within 24 hours)
+    Then I should receive email with:
+    Download link (valid for 7 days)
+    File size
+    Expiration notice
+    When I click download link
+    Then I should receive a JSON file containing:
+    Profile information
+    Journey state and progress
+    Document metadata (URLs to download separately)
+    Calculation history
+    Bookmarked laws
+    Activity history
+    Timestamps for all data
+    All personal data should be included as per GDPR requirements
+
+    ST-110: Subscription management - View plan
+    As a logged-in user
+    I want to view my current subscription plan and usage
+    So that I know what features I have access to and my usage limits
+    Acceptance criteria:
+    Given I am logged in
+    When I navigate to Settings > Subscription
+    Then I should see:
+    Current plan name (Free/Premium/Enterprise)
+    Plan features list with checkmarks
+    Current billing cycle (if premium): "Next billing date: Feb 27, 2026"
+    Payment method (if premium): "•••• 4242" (last 4 digits)
+
+USAGE STATS:
+    - Document translations: 2/5 used this month (Free) or 15/30 (Premium)
+    - Resets in: X days
+    - Progress bar showing usage
+
+ACTION BUTTONS BASED ON PLAN:
+    - Free: "Upgrade to Premium" (primary CTA)
+    - Premium: "Manage Subscription", "Cancel Subscription"
+    - Enterprise: "Contact Sales"
+
+    ST-111: Subscription upgrade
+    As a free tier user
+    I want to upgrade to premium subscription
+    So that I can access more translations and advanced features
+    Acceptance criteria:
+    Given I am a free tier user
+    When I click "Upgrade to Premium" button (available on dashboard, after hitting translation limit, or in settings)
+    Then I should see pricing page with:
+    Premium plan details:
+    €19.90/month or €199/year (save 17%)
+    Feature comparison table (Free vs Premium)
+    Benefits highlighted
+    Toggle for monthly/yearly billing
+    "Continue to Payment" button
+    When I click "Continue to Payment"
+    Then I should see Stripe Checkout page with:
+    Plan summary (€19.90/month or €199/year)
+    Payment form (card details)
+    Billing address
+    "Subscribe" button
+    When I enter valid payment details and click "Subscribe"
+    Then my subscription should be created in Stripe
+    And my account should be upgraded to Premium tier
+    And I should receive confirmation email
+    And I should be redirected to dashboard
+    And I should see "Welcome to Premium!" success message
+    And my translation limit should be reset to 30/month
+    And my next billing date should be set to 1 month from now (or 1 year)
+    When payment fails
+    Then I should see error message from Stripe
+    And my account should remain Free tier
+    And I should be able to try again
+
+    ST-112: Subscription cancellation
+    As a premium subscriber
+    I want to cancel my subscription
+    So that I can stop being charged
+    Acceptance criteria:
+    Given I am a premium subscriber
+    When I navigate to Settings > Subscription > Cancel Subscription
+    Then I should see cancellation flow:
+    "We're sorry to see you go" message
+    Reasons for canceling (optional multi-choice)
+    Impact explanation: "Your premium features will remain active until [end of billing period]"
+    "Cancel Subscription" and "Never mind, keep Premium" buttons
+    When I click "Cancel Subscription"
+    Then my subscription should be cancelled in Stripe (cancel at period end)
+    And my premium access should continue until current period ends
+    And my next_billing_date should be cleared
+    And I should see "Subscription cancelled. Your premium features remain active until [date]"
+    And I should receive cancellation confirmation email
+    When current period ends
+    Then my account should be downgraded to Free tier
+    And my translation limit should reset to 5/month
+    And I should receive "Your premium subscription has ended" email with option to resubscribe
+
+
+--------------------------------------------------------------------------------
+6.2 GUIDED JOURNEY SYSTEM
+--------------------------------------------------------------------------------
+
+    ST-201: Journey initialization - Onboarding questionnaire
+    As a new or returning user
+    I want to answer questions about my situation
+    So that the app can create a personalized buying journey for me
+    Acceptance criteria:
+    Given I am a new user who just completed registration
+    Or I am an existing user without an active journey
+    When I navigate to dashboard or click "Start Your Journey"
+    Then I should see onboarding questionnaire page with:
+    Progress indicator showing "Question 1 of 7"
+    Clear question text
+    Multiple choice or input field (depending on question)
+    "Back" and "Next" buttons
+    "Skip" option where applicable
+    The 7 questions should be:
+    What's your current situation? (Just starting / Found property / In process / Already own)
+    What type of property? (Apartment / House / Multi-family / Not sure)
+    Where do you want to buy? (State/city dropdown with all 16 German states)
+    Do you plan to live in it or rent it out? (Live in / Rent out / Both / Not sure)
+    How much can you afford? (Purchase price, down payment, monthly payment - all numeric inputs)
+    What's your citizenship/residency? (German / EU / Non-EU with permit / Living abroad)
+    What's your biggest concern? (Legal process / Financing / Finding property / Costs/taxes / Language / All of above)
+    When I answer each question and click "Next"
+    Then my answer should be saved (auto-save)
+    And I should advance to next question
+    And progress indicator should update
+    When I click "Back"
+    Then I should return to previous question
+    And my previous answer should be pre-filled
+    When I reach question 7 and click "Next"
+    Then my answers should be submitted
+    And journey should be generated based on my answers
+    And I should be redirected to journey confirmation page
+    When I close browser mid-questionnaire and return later
+    Then my progress should be preserved
+    And I should be able to continue from where I left off
+
+    ST-202: Journey generation
+    As a user who completed the questionnaire
+    I want the system to generate a personalized journey
+    So that I have a clear roadmap tailored to my situation
+    Acceptance criteria:
+    Given I have completed all 7 questionnaire questions
+    When journey generation algorithm runs
+    Then journey should be created with:
+    4 phases (Preparation, Property Search, Legal Process, Ownership Transfer)
+    8-15 steps total (varies by answers)
+    Each step assigned with:
+    Title and description
+    Estimated time required
+    Estimated costs (if applicable)
+    Relevant laws
+    Tasks and checklist items
+    Resources and tools
+    Journey logic should include/exclude steps based on answers:
+    If property type = "Apartment": Include WEG-specific steps (Step 6 tasks about Hausgeld, Teilungserklärung)
+    If property type = "House": Exclude WEG steps, include property boundary steps
+    If use case = "Rent out": Include landlord law steps, rental income calculation
+    If use case = "Live in": Focus on owner-occupancy rules, homeowner tax benefits
+    If citizenship = "Non-EU": Add step about foreign buyer restrictions
+    If location = "Berlin": Include Berlin-specific rent control information
+    If financing need = High (low down payment): Add detailed financing steps
+    When generation is complete
+    Then I should be redirected to journey confirmation page
+    And I should see summary:
+    "Your personalized journey is ready!"
+    Total number of steps
+    Estimated timeline (e.g., "3-6 months")
+    Estimated total costs (calculated from hidden costs calculator + mortage)
+    "Start Journey" button (primary CTA)
+
+    ST-203: Journey dashboard
+    As a user with an active journey
+    I want to see my overall progress and current status
+    So that I know where I am in the process and what to do next
+    Acceptance criteria:
+    Given I have an active journey
+    When I navigate to Dashboard or click "My Journey"
+    Then I should see journey dashboard with:
+
+OVERVIEW SECTION:
+    - Overall progress bar (e.g., "40% complete")
+    - Current phase name (e.g., "Phase 2: Property Search")
+    - Current step name (e.g., "Step 6: View Properties & Due Diligence")
+    - "Continue" button (primary CTA) linking to current step
+    - Time elapsed since journey started (e.g., "Started 4 weeks ago")
+    - Estimated time remaining (e.g., "8-12 weeks remaining")
+    - Budget status indicator (On track / Over budget with amount)
+    - Number of action items requiring attention (e.g., "2 action items")
+
+PHASES LIST:
+
+ALL 4 PHASES DISPLAYED WITH:
+    - Phase number and name
+
+COMPLETION STATUS BADGE:
+    - ✅ "Complete" (green) if all steps done
+    - 🔵 "In Progress" (blue) with percentage if partially done
+    - ⚪ "Not Started" (gray) if no steps done
+
+LIST OF STEPS WITHIN PHASE WITH STATUS ICONS:
+    - ✅ Complete (green checkmark)
+    - 🔵 In Progress (blue circle)
+    - ⚪ Not Started (gray circle)
+    - ⏸️ Skipped (gray pause icon)
+    - Click any unlocked step to view details
+
+QUICK STATS:
+    - X of Y steps completed
+    - X documents uploaded
+    - X laws bookmarked
+    - X calculations saved
+    - Tip of the day (rotating helpful tip related to current step)
+    - All elements should be clickable to navigate to relevant pages
+    - Mobile view should stack vertically (single column)
+
+    ST-204: Individual step page - Structure
+    As a user in my journey
+    I want to view detailed information about a specific step
+    So that I know exactly what to do and can complete the step
+    Acceptance criteria:
+    Given I am on journey dashboard
+    When I click on any step
+    Then I should see step detail page with:
+    Header:
+    Breadcrumb: "Journey > Phase 2 > Step 6"
+    Step title (e.g., "View Properties & Due Diligence")
+    Step number (e.g., "Step 6 of 15")
+    Progress bar showing position within journey
+    Time estimate (e.g., "⏱️ Time needed: 2-4 weeks")
+    Cost estimate (e.g., "💰 Costs: €0-500")
+    "Back to Journey" link
+    "Save Progress" button
+    Main content sections (in order):
+    "What you'll do in this step" (plain English explanation, 100-150 words)
+    "Your checklist" (expandable task list with checkboxes)
+    "Laws & regulations you need to know" (relevant laws with "why it matters here")
+    "Costs at this stage" (detailed breakdown)
+    "Helpful tools" (embedded calculators or links)
+    "Common questions" (FAQ accordion specific to step)
+    "Detailed guide" (expandable 2000-word comprehensive guide)
+    "Learn more" (related articles and videos)
+    Navigation footer:
+    "⬅️ Previous Step" button (with step name)
+    "Mark Step as Complete ✓" button (primary CTA)
+    "➡️ Next Step" button (disabled if step not complete)
+    All sections should be collapsible for mobile
+    Progress should auto-save every 30 seconds
+
+    ST-205: Task completion within step
+    As a user working on a step
+    I want to check off tasks as I complete them
+    So that I can track my progress within the step
+    Acceptance criteria:
+    Given I am viewing a step detail page
+    When I expand "Your checklist" section
+    Then I should see 3-10 tasks with:
+    Task number and title
+    Checkbox (unchecked by default)
+    Expandable details (click to expand/collapse)
+    Status indicator:
+    ☑️ Complete (checked, green)
+    🔵 In Progress (if partially done)
+    ⚪ Not Started (unchecked, gray)
+    When expanded, each task shows:
+    Detailed instructions (what to do, how to do it)
+    Sub-checklist items (if applicable)
+    Related documents to upload (with upload button)
+    Related tools/calculators (with link)
+    Red flags or warnings (if applicable)
+    When I click a task checkbox
+    Then task should be marked as complete
+    And checkbox should display checkmark
+    And task status should change to "Complete"
+    And task completion should be saved to database immediately
+    And step progress percentage should update (e.g., "3 of 5 tasks complete - 60%")
+    When I uncheck a task
+    Then task should be marked as incomplete
+    And changes should save immediately
+    When I complete all required tasks in a step
+    Then "Mark Step as Complete" button should become enabled (green)
+    And I should see encouraging message "All tasks complete! Ready to move to next step?"
+
+    ST-206: Step completion
+    As a user who finished all tasks in a step
+    I want to mark the step as complete
+    So that I can move to the next step in my journey
+    Acceptance criteria:
+    Given I have completed all required tasks in a step
+    When I click "Mark Step as Complete ✓" button
+    Then I should see confirmation dialog:
+    "Mark this step as complete?"
+    Summary of what I accomplished
+    "Yes, I'm done" and "Not yet" buttons
+    When I click "Yes, I'm done"
+    Then step should be marked as complete in database
+    And step status should change to ✅ Complete
+    And next step should be unlocked
+    And I should see congratulations message: "Great work! Step 6 complete. 🎉"
+    And overall journey progress should update (e.g., 40%  47%)
+    And I should see "Continue to Next Step" button
+    When I click "Continue to Next Step"
+    Then I should navigate to Step 7 detail page
+    When I return to journey dashboard
+    Then Step 6 should show green checkmark
+    And Step 7 should show blue "In Progress" indicator
+    When I manually mark a step complete (without completing all tasks)
+    Then I should see warning: "You haven't completed all tasks. Are you sure?"
+    And I can choose to proceed or cancel
+
+    ST-207: Journey progress persistence
+    As a user working on my journey
+    I want my progress to be automatically saved
+    So that I don't lose work if I close the browser or my session expires
+    Acceptance criteria:
+    Given I am interacting with any journey component
+    When I perform any action:
+    Check/uncheck a task
+    Add notes to a step
+    Upload a document
+    Expand/collapse sections
+    Mark step as complete
+    Then changes should be auto-saved within 30 seconds
+    And I should see subtle "Saved" indicator (checkmark icon, fades after 2 seconds)
+    When auto-save fails (network error)
+    Then I should see warning: "Changes not saved. Check your connection."
+    And system should retry auto-save every 30 seconds
+    When I close browser and reopen later
+    Then I should be able to resume from exact position:
+    Same step I was on
+    Same tasks checked
+    Same notes preserved
+    Same scroll position (nice-to-have)
+    When I have unsaved changes and try to navigate away
+    Then I should see warning: "You have unsaved changes. Leave anyway?"
+    And I can choose to stay or leave
+
+    ST-208: Deadline and reminder management
+    As a user with time-sensitive steps
+    I want to set deadlines and receive reminders
+    So that I don't miss important dates
+    Acceptance criteria:
+    Given I am viewing a step detail page
+    When I see "Set deadline" option
+    Then I should be able to:
+    Click "Set deadline" link
+    See date picker modal
+    Select a future date
+    Add optional note (e.g., "Notary appointment")
+    Save deadline
+    When deadline is saved
+    Then I should see deadline displayed on:
+    Step detail page (e.g., "⏰ Deadline: Feb 15, 2026")
+    Journey dashboard (in timeline view)
+    Upcoming deadlines widget
+    When deadline is approaching
+    Then I should receive notifications:
+    1 week before: Email + in-app notification
+    3 days before: Email + in-app notification
+    1 day before: Email + in-app notification (marked urgent)
+    Notifications should include:
+    Step name
+    Deadline date
+    Quick link to step page
+    "Mark as complete" quick action
+    When deadline passes without completion
+    Then deadline should display in red
+    And step should show "Overdue" badge
+    And I should receive "Deadline passed" notification
+    When I complete step before deadline
+    Then future reminder notifications should be cancelled
+    When I edit or delete deadline
+    Then changes should save immediately
+    And notification schedule should update accordingly
+
+    ST-209: Cost tracking across journey
+    As a user progressing through journey
+    I want to track all costs as I incur them
+    So that I stay within budget and have accurate records
+    Acceptance criteria:
+    Given I have an active journey
+    When I navigate to Dashboard > Budget Tracker
+    Then I should see:
+    Budget overview:
+    Initial budget set (from questionnaire)
+    Total estimated costs (calculated at journey start)
+    Total spent so far
+    Remaining budget
+    Budget status indicator:
+    🟢 "On track" if spent < 90% of budget
+    🟡 "Approaching limit" if spent 90-100% of budget
+    🔴 "Over budget" if spent > 100% with amount
+    Cost breakdown by step:
+    List of all steps with cost estimates
+    Actual costs entered (if any)
+    Variance (actual vs. estimated)
+Status: Paid ✓ / Pending / Not yet incurred
+    Visual charts:
+    Pie chart: Cost breakdown by category (taxes, fees, etc.)
+    Line chart: Cumulative spending over time
+    When I complete a step with associated costs (e.g., Step 12 - Pay transfer tax)
+    Then I should see prompt: "Did you incur costs for this step?"
+    And I should be able to:
+    Enter actual amount paid (numeric input)
+    Select cost category (dropdown: Transfer tax / Notary fee / Inspection / etc.)
+    Add date paid (date picker)
+    Upload receipt (optional)
+    Add notes (optional)
+    Click "Save expense"
+    When expense is saved
+    Then total spent should update immediately
+    And step should show "Paid ✓" badge
+    And budget status should recalculate
+    When I exceed budget
+    Then I should see warning notification
+    And budget status should turn red
+    When I want to view expense details
+    Then I should be able to:
+    Click any expense to view details
+    Edit expense amount or date
+    Delete expense (with confirmation)
+    Download expense report (PDF)
+
+
+--------------------------------------------------------------------------------
+6.3 LEGAL KNOWLEDGE BASE
+--------------------------------------------------------------------------------
+
+    ST-301: Browse laws by category
+    As a user wanting to learn about German real estate laws
+    I want to browse laws organized by category
+    So that I can find relevant legal information for my situation
+    Acceptance criteria:
+    Given I am on any page
+    When I click "Laws" in main navigation
+    Then I should see laws homepage with:
+    5 main category cards:
+    🏠 Buying Process (12 laws)
+    💰 Costs & Taxes (10 laws)
+    🏘️ Renting & Landlord Law (15 laws)
+    🏗️ Condominium Ownership (8 laws)
+    💼 Agent Regulations (5 laws)
+    Each card should show:
+    Icon
+    Category name
+    Number of laws
+    Brief description (1 sentence)
+    "View laws" button
+    Search bar at top
+    "Most viewed" laws section (top 5)
+    "Recently updated" laws section (if any in last 30 days)
+    When I click on a category card
+    Then I should see category page with:
+    Category name and description
+    Filter options:
+    Property type (Apartment / House / Both)
+    User role (Buyer / Seller / Landlord / Tenant)
+    List of laws in that category with:
+    Law code (e.g., "BGB § 535")
+    Law title
+    One-line summary (280 chars)
+    Relevance badges (e.g., "Critical for buyers", "WEG only")
+    Bookmark icon (empty heart if not bookmarked)
+    Sorting options:
+    Most relevant (default)
+    Alphabetical (A-Z)
+    Recently updated
+    Most viewed
+    When I click on a law in the list
+    Then I should navigate to law detail page
+
+    ST-302: Search laws
+    As a user looking for specific legal information
+    I want to search across all laws
+    So that I can quickly find what I need
+    Acceptance criteria:
+    Given I am on laws homepage or any laws page
+    When I type in search bar (minimum 3 characters)
+    Then I should see auto-suggest dropdown with:
+    Top 5 matching laws
+    Matching text highlighted
+    Law code and title
+    Category badge
+    Click any result to navigate to law page
+    When I press Enter or click "Search" button
+    Then I should see search results page with:
+    Search query displayed (e.g., "Results for: landlord obligations")
+    Number of results (e.g., "5 laws found")
+    Results grouped by category
+    Each result showing:
+    Law code and title
+    Snippet of matching text (150 chars with search terms highlighted)
+    Category badge
+    Relevance score indicator (subtle)
+    Filters sidebar:
+    Category (multi-select)
+    Property type
+    User role
+    Sorting options (Relevance / Alphabetical / Date updated)
+    Pagination (10 results per page)
+    When no results found
+    Then I should see:
+    "No laws found for 'your query'"
+    "Did you mean..." suggestions (if applicable)
+    Popular search queries
+    Link to contact support
+    Search should support:
+    German terms (e.g., "Mietpreisbremse")
+    English terms (e.g., "rent control")
+    Law codes (e.g., "BGB 535")
+    Fuzzy matching (typo tolerance: "landlrod"  "landlord")
+    Exact phrases (quoted searches: "warranty excluded")
+
+    ST-303: View law detail page
+    As a user researching a specific law
+    I want to see comprehensive information about that law
+    So that I understand what it means and how it affects me
+    Acceptance criteria:
+    Given I clicked on a law from search results or category list
+    When law detail page loads
+    Then I should see (in this order):
+    Header section:
+    Law code and title (e.g., "BGB § 535 - Landlord and Tenant Obligations")
+    Language selector (English selected, others grayed out for MVP)
+    Bookmark button (heart icon, filled if bookmarked)
+    Share button (opens share modal)
+    Print/PDF button
+    Quick summary box (highlighted):
+    One-line summary (280 chars, prominent text)
+    What this means for you section:
+    Role selector tabs: Buyer / Seller / Landlord / Tenant / Investor
+    Selected tab shows role-specific implications (3-5 bullet points)
+    Default tab based on user's profile
+    Real-world example box (colored background):
+    Scenario heading
+    Example situation (2-3 sentences)
+    How law applies
+    Outcome
+    Detailed explanation:
+    2-3 paragraphs explaining law in plain English
+    Key terms linked to glossary (hover shows definition)
+    Collapsible for mobile
+    Common disputes section:
+    Accordion list of 3-5 frequent issues
+    Each item shows:
+    Dispute question/scenario
+    Typical resolution
+    Court precedent (if applicable)
+    Related laws section:
+    3-6 related laws with:
+    Law code and title (clickable links)
+    Relationship type ("This law modifies...", "See also...")
+    Court rulings section (if applicable):
+    2-5 key court decisions
+    Each showing:
+    Court name and case number
+    Decision date
+    Summary (2-3 sentences)
+    Practical impact
+    Link to full decision (external)
+    Original German text (collapsible, collapsed by default):
+    Full legal text in German
+    Source attribution with link
+    Last amended date
+    Metadata footer:
+    Last updated date
+    Applies to: All of Germany / Specific states
+    Source link (gesetze-im-internet.de)
+    Helpfulness widget:
+    "Was this helpful?" with thumbs up/down
+    Optional feedback text box
+    Related resources:
+    Articles that reference this law (3-5 links)
+    Journey steps where this law is relevant
+    Tools/calculators related to this law
+    All sections should be responsive (stack vertically on mobile)
+    Page should load within 2 seconds
+
+    ST-304: Bookmark laws
+    As a logged-in user
+    I want to bookmark laws I find important
+    So that I can easily reference them later
+    Acceptance criteria:
+    Given I am viewing a law detail page
+    And I am logged in
+    When I click bookmark button (heart icon)
+    Then heart icon should fill with color (become solid)
+    And law should be added to my bookmarks
+    And I should see subtle "Bookmarked" toast notification
+    And bookmark should save to database immediately
+    When I click bookmark button again
+    Then heart icon should become empty (outline only)
+    And law should be removed from my bookmarks
+    And I should see "Bookmark removed" toast notification
+    When I navigate to Dashboard > Bookmarks
+    Then I should see list of all bookmarked laws with:
+    Law code and title
+    Category badge
+    One-line summary
+    Date bookmarked
+    Quick notes field (optional, can add notes per bookmark)
+    Remove bookmark button (X icon)
+    Click law to view detail page
+    When I am not logged in and click bookmark
+    Then I should see modal: "Sign in to bookmark laws"
+    With "Log In" and "Sign Up" buttons
+
+    ST-305: Law state variations (e.g., transfer tax)
+    As a user researching location-dependent laws
+    I want to see how laws vary by German state
+    So that I can make informed decisions about where to buy
+    Acceptance criteria:
+    Given I am viewing a law with state variations (e.g., GrEStG § 1 - Land Transfer Tax)
+    When page loads
+    Then I should see state-specific content:
+    User's state detected from profile (e.g., "Berlin")
+    Prominent display: "Your rate in Berlin: 6.0%"
+    "Compare with other states" expandable section
+    When I expand "Compare with other states"
+    Then I should see:
+    Interactive map of Germany
+    Each state colored by rate (gradient: green = low, red = high)
+    Hover over state shows tooltip with rate
+    Click state to select it
+    Table of all 16 states:
+    State name
+    Transfer tax rate (%)
+    Bar chart visualization
+    Calculated tax amount for example €300,000 property
+    Savings vs. user's selected state
+    "Your state" row highlighted in table
+    Sort options (Rate: Low to High / High to Low / Alphabetical)
+    When I click a different state on map or in table
+    Then rate information should update
+    And I should see: "In [State]: [Rate]%"
+    And calculated amounts should update
+    When I click "Calculate for your property"
+    Then I should see mini calculator:
+    Purchase price input
+    Instant calculation for selected state
+    Comparison with user's state
+    State variations should also appear for:
+    Rent control laws (city-specific)
+    Building codes
+    Any regulation that varies by location
+
+    ST-306: Law update notifications
+    As a user who bookmarked laws
+    I want to be notified when those laws change
+    So that I stay informed about legal updates affecting me
+    Acceptance criteria:
+    Given I have bookmarked one or more laws
+    When system detects a law change (weekly automated check):
+    System compares checksum of law text from official source
+    If checksum differs, law is flagged as updated
+    Then notification should be created:
+    Type: "Law Update"
+Priority: High
+    Content: "[Law Code] has been updated"
+    And I should receive:
+    In-app notification (bell icon badge count increases)
+    Email notification (within 24 hours of detection)
+    Email should contain:
+    Law code and title
+    Date of update
+    Summary of changes (if admin has added change notes)
+    Link to view updated law
+    List of other bookmarked laws that were updated (if multiple)
+    When I click notification
+    Then I should navigate to law detail page
+    And I should see "Updated" badge near title
+    And I should see "What changed" section showing:
+    Amendment date
+    Summary of changes (admin-entered)
+    Link to compare old vs. new text (future feature)
+    When multiple bookmarked laws update in same week
+    Then I should receive single digest email
+    Not separate email for each law
+
+
+--------------------------------------------------------------------------------
+6.4 DOCUMENT TRANSLATION
+--------------------------------------------------------------------------------
+
+    ST-401: Upload document for translation
+    As a user with a German document
+    I want to upload it to the platform
+    So that I can get an English translation
+    Acceptance criteria:
+    Given I am logged in
+    When I navigate to Dashboard > Translate Document or Documents > Upload
+    Then I should see upload interface with:
+    Drag-and-drop zone (large, prominent)
+    "Or click to browse" text
+    Supported formats displayed: "PDF only (for MVP)"
+    File size limits displayed:
+    Free: "Max 10 pages"
+    Premium: "Max 20 pages"
+    Your usage displayed: "2 / 5 translations used this month"
+    When I drag a PDF file over drop zone
+    Then drop zone should highlight (border color change)
+    When I drop file or select via browser
+    Then system should validate file:
+    File type is PDF
+    File size < 10MB
+    Page count within tier limit
+    When validation passes
+    Then I should see:
+    File name displayed
+    File size displayed
+    Page count displayed (estimated)
+    "Document type" dropdown:
+    Kaufvertrag (Purchase Contract)
+    Mietvertrag (Rental Agreement)
+    Exposé (Property Listing)
+    Nebenkostenabrechnung (Utility Statement)
+    Grundbuchauszug (Land Registry Extract)
+    Teilungserklärung (Condo Declaration)
+    Hausgeldabrechnung (Condo Fee Statement)
+    Wohnungsgeberbestätigung (Landlord Confirmation)
+    Other / Not sure
+    "Upload & Translate" button (primary CTA)
+    "Cancel" button
+    When validation fails
+    Then I should see specific error:
+    Wrong file type: "Please upload a PDF file"
+    Too large: "File exceeds 10MB limit"
+    Too many pages: "Document exceeds 10 page limit. Upgrade to Premium for 20-page limit."
+    Over usage limit: "You've used all 5 translations this month. Upgrade to Premium for 30/month or purchase additional translations (€4.90 each)."
+    And upload should be blocked
+    When I click "Upload & Translate"
+    Then document should upload to server (with progress bar)
+    And I should be redirected to translation processing page
+
+    ST-402: Document translation processing
+    As a user who uploaded a document
+    I want to see the translation status in real-time
+    So that I know when my translation is ready
+    Acceptance criteria:
+    Given I just uploaded a document
+    When translation processing begins
+    Then I should see processing page with:
+    Document name and icon
+    Progress indicator (animated)
+    Status text that updates:
+    "Uploading... 10%"
+    "Extracting text... 30%"
+    "Translating... 70%"
+    "Analyzing clauses... 90%"
+    "Complete! 100%"
+    Estimated time remaining (e.g., "About 5 minutes remaining")
+    Option to "Close this window - we'll email you when ready"
+    Status should update every 10 seconds (via WebSocket or polling)
+    When processing completes successfully (within 5-10 minutes)
+    Then I should:
+    See "Translation complete! ✓" message
+    See "View Translation" button (primary CTA)
+    Receive email notification with link to view translation
+    And document should be saved to my account with status "Complete"
+    When processing fails
+    Then I should see error message:
+    "Translation failed. Please try again."
+    Specific error if known:
+    "Could not extract text from PDF. File may be scanned image or corrupted."
+    "Translation service temporarily unavailable."
+    "Try again" button
+    "Contact support" link
+    And I should receive error email
+    And I should not be charged a translation (quota not decreased)
+    When I close browser during processing
+    Then processing should continue in background
+    And I should receive email when complete
+    And I can view result from Documents > My Documents list
+
+    ST-403: View translation results
+    As a user whose document was translated
+    I want to see the translation with highlighted key clauses
+    So that I can understand the document and identify important terms
+    Acceptance criteria:
+    Given my document translation is complete
+    When I click "View Translation" or access from Documents list
+    Then I should see translation results page with:
+    Header:
+    Document name (editable, click to rename)
+    Document type badge
+    Translation date
+    Actions: Download / Share / Delete
+    View toggle:
+    "Side by side" (default)
+    "English only"
+    "German only"
+    Side-by-side view:
+    Left column: Original German text
+    Right column: English translation
+    Synchronized scrolling (scroll one side, other side scrolls)
+    Zoom controls (100% / 125% / 150%)
+    Key information summary box (top, highlighted):
+    Document type detected (with confidence %)
+    Key data extracted:
+    For Kaufvertrag: Purchase price, payment deadline, transfer date, parties
+    For Mietvertrag: Monthly rent, deposit, notice period, parties
+    For WEG docs: Monthly Hausgeld, reserve fund, ownership share
+    Presented as labeled fields with values
+    Highlighted clauses in text:
+    Color-coded highlighting:
+    🔵 Blue: Financial terms (prices, amounts, fees)
+    🟠 Orange: Dates and deadlines
+    🔴 Red: Warnings/exclusions (e.g., "Gewährleistung ausgeschlossen")
+    🟢 Green: Rights/benefits
+    Hover over highlight shows tooltip with:
+    Clause type
+    Explanation (1-2 sentences)
+    Warnings section (if any flagged):
+    List of potential issues detected:
+    High risk warnings (red icon)
+    Medium risk warnings (orange icon)
+    Info notices (blue icon)
+    Each warning shows:
+    Issue title
+    Explanation (2-3 sentences)
+    Recommendation ("What to do")
+    Link to relevant law or article
+    Example warnings:
+    "Warranty excluded - This is legal but risky. Consider inspection."
+    "Short payment deadline - You have only 15 days to pay. Ensure financing approved."
+    "High condo fees - €4.20/sqm is above Berlin average of €3.50/sqm."
+    Download options:
+    Original PDF
+    Translated PDF (with highlights and annotations)
+    Side-by-side PDF
+    Text file (English only)
+    Page should be printable (print-friendly CSS)
+    Mobile view should show tabs (German / English) instead of side-by-side
+
+    ST-404: Save and manage translated documents
+    As a user with translated documents
+    I want to access them anytime from my account
+    So that I can reference them during my journey
+    Acceptance criteria:
+    Given I have translated one or more documents
+    When I navigate to Documents > My Documents
+    Then I should see list of all my documents with:
+    Document name
+    Document type badge
+    Upload date
+    Status badge:
+    "Complete" (green)
+    "Processing" (blue with spinner)
+    "Failed" (red)
+    File size
+    Page count
+    Quick actions:
+    View (eye icon)
+    Download (download icon)
+    Delete (trash icon)
+    Search bar (filter by name)
+    Filter by document type (dropdown)
+    Sort by:
+    Date (newest first - default)
+    Date (oldest first)
+    Name (A-Z)
+    Document type
+    When I click document name or View icon
+    Then I should navigate to translation results page (ST-403)
+    When I click Download icon
+    Then download menu should appear:
+    Original PDF
+    Translated PDF
+    Side-by-side PDF
+    When I click Delete icon
+    Then I should see confirmation dialog:
+    "Delete this document?"
+    "This cannot be undone"
+    "Cancel" and "Delete" buttons
+    When I confirm deletion
+    Then document should be deleted from database and S3
+    And I should see "Document deleted" message
+    And document should disappear from list
+    When I have no documents yet
+    Then I should see empty state:
+    Illustration
+    "No documents yet"
+    "Upload your first document to get started"
+    "Upload Document" button
+    Documents should be stored encrypted (AES-256) in S3
+    Access should be restricted to document owner only
+
+    ST-405: Translation usage limits and quota
+    As a free tier user
+    I want to see my remaining translation quota
+    So that I know when I need to upgrade
+    Acceptance criteria:
+    Given I am a free tier user
+    When I am on any page
+    Then Dashboard should show usage widget:
+    "Document translations: 2 / 5 used this month"
+    Progress bar (40% filled)
+    "Resets in: 12 days"
+    When I attempt to upload 6th document in a month
+    Then upload should be blocked
+    And I should see upgrade modal:
+    "You've reached your monthly limit"
+    "Upgrade to Premium for 30 translations/month"
+    Pricing: €19.90/month or €199/year
+    "Or purchase individual translation for €4.90"
+    "Upgrade to Premium" button (primary CTA)
+    "Buy 1 Translation" button (secondary CTA)
+    "Remind me later" link
+    When I upgrade to Premium
+    Then my quota should immediately increase to 30/month
+    And existing quota should reset to 30/30
+    When I purchase single translation
+    Then my available translations should increase by 1
+    And Stripe should charge €4.90
+    And I should receive payment confirmation
+    When new month begins
+    Then quota should reset:
+    Free: 5/5
+    Premium: 30/30
+    Usage count should reset to 0
+    And I should see "Your translation quota has been reset" notification
+
+
+--------------------------------------------------------------------------------
+6.5 CALCULATORS AND FINANCIAL TOOLS
+--------------------------------------------------------------------------------
+
+    ST-501: Hidden costs calculator - Input and calculation
+    As a user researching property costs
+    I want to calculate the true cost including all hidden fees
+    So that I can budget accurately
+    Acceptance criteria:
+    Given I am on any page
+    When I navigate to Tools > Hidden Costs Calculator or click calculator from journey step
+    Then I should see calculator interface with:
+    Input section:
+    Purchase price (required, €10,000 - €10,000,000, numeric input with € symbol)
+    Property type (required, dropdown: Apartment / House)
+    Location (required, dropdown: All 16 German states)
+    Agent involved? (required, radio: Yes / No)
+    Show financing details (optional, expandable)
+    If expanded:
+    Down payment amount (numeric, default 20% of purchase price)
+    Interest rate (numeric, %, default 3.5%)
+    Loan term (numeric, years, default 30)
+    All inputs should update calculation in real-time (debounced 500ms)
+    Inputs should remember last values during session
+    When I enter valid purchase price (e.g., €300,000), select state (e.g., Berlin), and property type
+    Then calculation should run automatically
+    And results section should display:
+    "What agents tell you" section:
+    Purchase price only: €300,000 (large text)
+    "Hidden costs most people miss" section:
+    Land transfer tax: €18,000 (6.0% in Berlin)
+    Info icon: "This varies by state - Bavaria only 3.5%!"
+    Notary fees: €4,500 (1.5% typical)
+    Info icon: "Legally required - you cannot avoid this"
+    Land registry fee: €1,500 (0.5% typical)
+    Agent commission: €0 (in this scenario, seller pays)
+    Info icon: "In your scenario, seller pays per BestellPG"
+    Each line item should show:
+    Cost name
+    Amount (€)
+    Percentage of purchase price
+    Info icon (hover shows explanation)
+    Total acquisition cost section (highlighted):
+    Total: €324,000
+    "That's 8% more than the listing price!"
+    Percentage increase badge
+    Continue
+    18:46
+    Visual breakdown:
+    Pie chart showing proportions:
+    Purchase price (largest slice)
+    Transfer tax
+    Notary fees
+    Registry fee
+    Agent (if applicable)
+    Calculations should use:
+    Official state transfer tax rates (updated annually)
+    GNotKG notary fee schedule
+    Standard registry fee (0.5%)
+    BestellPG rules for agent commission
+    Results should update immediately when any input changes
+    Calculation accuracy: Should match real costs within €500 for 95% of cases
+
+    ST-502: Hidden costs calculator - State comparison
+    As a user evaluating different locations
+    I want to compare costs across German states
+    So that I can see how location affects my total investment
+    Acceptance criteria:
+    Given I have calculated costs for a property
+    When I click "Compare with other states" button below results
+    Then I should see state comparison section expand with:
+    Interactive map of Germany:
+    All 16 states displayed
+    Color-coded by transfer tax rate:
+    Green shades: 3.5-4.5% (lowest)
+    Yellow shades: 4.5-5.5% (medium)
+    Orange/Red shades: 5.5-6.5% (highest)
+    Hover over state shows tooltip:
+    State name
+    Transfer tax rate
+    Total acquisition cost for this property
+    Click state to select it (highlights border)
+    Comparison table:
+    All 16 states listed
+    Columns:
+    State name
+    Transfer tax rate (%)
+    Visual bar (length represents rate)
+    Transfer tax amount (€) for this property
+    Total acquisition cost (€)
+    Savings vs. your selected state (€, +/- with color)
+    User's currently selected state highlighted (background color)
+    Sort controls:
+    Transfer tax rate (Low to High / High to Low)
+    State name (A-Z / Z-A)
+    Savings (Most to Least)
+    Top 3 cheapest states highlighted:
+    🥇 Bavaria: 3.5%  Total €316,500 (Save €7,500!)
+    🥈 Saxony: 3.5%  Total €316,500 (Save €7,500!)
+    🥉 Hamburg: 4.5%  Total €319,500 (Save €4,500!)
+    Quick insights box:
+    "If you're flexible on location, buying in Bavaria vs. Berlin saves €7,500 on this property!"
+    Link to article: "Tax considerations when choosing location"
+    When I click a different state in map or table
+    Then all calculations should update:
+    Transfer tax amount recalculated
+    Total acquisition cost recalculated
+    Savings comparison recalculated
+    User's selected state should update (but profile not changed)
+    When I want to use a different property price
+    Then I can edit purchase price input above
+    And all state comparisons should recalculate immediately
+
+    ST-503: Save and share calculation
+    As a user who completed a calculation
+    I want to save it for later reference or share with others
+    So that I can track different scenarios and discuss with advisors
+    Acceptance criteria:
+    Given I have completed a calculation (hidden costs or ROI)
+    When I see results
+    Then I should see action buttons:
+    "Save Calculation" (bookmark icon)
+    "Download PDF" (download icon)
+    "Share" (share icon)
+    When I click "Save Calculation":
+    If logged in:
+    Modal appears: "Name this calculation"
+    Text input (pre-filled: "€300,000 Apartment in Berlin")
+    Optional notes field
+    "Save" and "Cancel" buttons
+    When I click Save:
+    Calculation saved to my account with:
+    Custom name
+    All input values
+    Calculation results
+    Timestamp
+    Calculation type (Hidden Costs / ROI)
+    Success message: "Calculation saved!"
+    Available in Dashboard > Saved Calculations
+    If not logged in:
+    Modal: "Sign in to save calculations"
+    "Log In" and "Sign Up" buttons
+    When I click "Download PDF":
+    PDF should generate and download immediately
+    PDF should include:
+    App branding/logo
+    Calculation type title
+    Date generated
+    All input parameters (in table format)
+    All results (formatted nicely)
+    Visual charts (embedded)
+    State comparison table (if applicable)
+    Disclaimer: "Estimates only. Actual costs may vary."
+    Watermark: "Generated by German Real Estate Navigator"
+    Filename: "HiddenCosts_Berlin_€300k_2026-01-27.pdf"
+    When I click "Share":
+    Share modal appears with options:
+    Copy link (generates unique shareable URL)
+    Email (opens email modal to send link)
+    Social media buttons (LinkedIn, WhatsApp - opens share dialog)
+    When someone accesses shared link:
+    They see read-only version of calculation
+    They see "Create your own calculation" CTA
+    They cannot edit inputs
+    They can clone to their account (if logged in)
+
+    ST-504: ROI calculator - Input and calculation
+    As an investor evaluating a property
+    I want to calculate expected ROI and cash flow
+    So that I can make informed investment decisions
+    Acceptance criteria:
+    Given I navigate to Tools > ROI Calculator
+    Then I should see calculator with two sections:
+    Property details (left column):
+    Purchase price (required, numeric)
+    Down payment amount (required, numeric, default 20% of price)
+    Interest rate (required, %, default 3.5%)
+    Loan term (required, years, default 30)
+    Income & expenses (right column):
+    Expected monthly rent (required, numeric)
+    Vacancy rate (%, default 5%, with info icon explaining)
+    Monthly condo fee - Hausgeld (numeric, 0 if not WEG)
+    Annual property tax - Grundsteuer (numeric, or "Auto-estimate" checkbox)
+    Annual maintenance (%, default 1% of property value)
+    All inputs should have:
+    Clear labels
+    Helper text where needed
+    Default values pre-filled
+    Validation (positive numbers only)
+    When I enter valid inputs (e.g., €300,000 purchase, €60,000 down, 3.5%, 30yr, €1,400 rent)
+    Then calculation should run and display results:
+    Investment grade (prominent, top):
+    Score: 7.2 / 10
+    Grade badge: "GOOD" (color-coded: green for 8-10, yellow for 6-7.9, orange for 4-5.9, red for <4)
+    Brief verdict: "Moderate investment. Good long-term potential but expect negative cash flow initially."
+    Key metrics section:
+    Gross rental yield: 5.6% (industry avg: 4-6%)
+    Net rental yield: 2.8% (target: 3-4%)
+    Cash-on-cash return: 4.2% (good if > 4%)
+    Cap rate: 3.1% (acceptable)
+    Each metric with:
+    Value
+    Comparison to benchmark
+    Info icon explaining metric
+    Monthly cash flow breakdown:
+    Income side:
+    Monthly rent: €1,400
+    Less vacancy (5%): -€70
+    Net rental income: €1,330
+    Expense side:
+    Mortgage payment: -€1,078
+    Property tax: -€150
+    Insurance: -€80
+    Maintenance reserve: -€250
+    Condo fee: -€180
+    Total expenses: -€1,738
+    NET MONTHLY CASH FLOW: -€408 (red if negative, green if positive)
+    Warning if negative: "⚠️ This property has negative cash flow in early years. However, loan paydown + appreciation may compensate."
+    10-year projection (visual):
+    Line chart showing:
+    Equity buildup over time (blue line)
+    Cumulative cash flow (green/red line)
+    Property value (assuming 3% appreciation, dashed line)
+    Table below chart:
+    Year | Equity | Annual Cash Flow | Property Value
+    Year 1 | €60k | -€4,896 | €309k
+    Year 5 | €98k | -€3,200 | €347k
+    Year 10 | €148k | -€1,100 | €403k
+    Assumptions displayed:
+    2% annual rent increases
+    3% property appreciation
+    Fixed mortgage payment
+    Click "Edit assumptions" to change
+
+    ST-505: ROI calculator - Break-even analysis
+    As an investor evaluating a property
+    I want to understand what it would take to achieve positive cash flow
+    So that I can optimize my investment strategy
+    Acceptance criteria:
+    Given I have calculated ROI and have negative cash flow
+    When I scroll to "Break-even analysis" section
+    Then I should see:
+    Header: "To achieve positive cash flow, you need:"
+    Three scenario cards:
+    Scenario 1: Higher rent
+    Current rent: €1,400
+    Required rent: €1,800 (+€400)
+    Feasibility indicator: "⚠️ Above market rate for this area"
+    Link: "Check average rents in Berlin"
+    Scenario 2: Larger down payment
+    Current down payment: €60,000 (20%)
+    Required down payment: €90,000 (30%)
+    Difference: +€30,000
+    New monthly payment: €902 (vs. current €1,078)
+    New monthly cash flow: +€48
+    Scenario 3: Lower interest rate
+    Current rate: 3.5%
+    Required rate: 2.5%
+    Feasibility: "✓ Possible with excellent credit and larger down payment"
+    New monthly payment: €950
+    New monthly cash flow: +€76
+    Scenario comparison toggle:
+    "Compare scenarios side-by-side"
+    When clicked, shows comparison table:
+    Current | Scenario A | Scenario B | Scenario C
+    Monthly cash flow
+    10-year total return
+    Risk level
+    Each scenario should:
+    Be clearly labeled
+    Show specific numbers
+    Indicate feasibility (easy / moderate / difficult)
+    Allow user to "Apply this scenario" (updates inputs)
+
+    ST-506: Financing eligibility wizard
+    As a user uncertain about mortgage approval
+    I want to assess my financing eligibility
+    So that I know my realistic budget and what I need to prepare
+    Acceptance criteria:
+    Given I navigate to Tools > Financing Eligibility or from journey Step 2
+    Then I should see wizard introduction page:
+    Title: "Financing Eligibility Check"
+    Explanation: "Answer 7 quick questions to assess your chances of getting a mortgage in Germany"
+    Estimated time: "Takes 2-3 minutes"
+    Privacy note: "Your answers are private and only used to generate recommendations"
+    "Start Assessment" button
+    When I click "Start Assessment"
+    Then I should see Question 1 of 7:
+    Progress bar: "1/7"
+    Question: "What is your employment status?"
+    Options (radio buttons):
+    ⚪ Permanently employed in Germany (2+ years)
+    ⚪ Permanently employed in Germany (<2 years)
+    ⚪ Self-employed in Germany
+    ⚪ Employed outside Germany
+    ⚪ Other
+    "Back" (disabled on Q1) and "Next" buttons
+    Question 2: "How long have you been with your current employer?"
+    Numeric input: years and months
+    Question 3: "What is your monthly net income?"
+    Numeric input: € (with info: "After taxes, from all sources")
+    Question 4: "What are your monthly debt obligations?"
+    Numeric input: € (with examples: "Credit cards, car loans, student loans, etc.")
+    Question 5: "How much down payment do you have available?"
+    Numeric input: €
+    Question 6: "What is your credit history in Germany?"
+    Options:
+    ⚪ Good (I have a SCHUFA score and it's positive)
+    ⚪ Fair (Some negative entries)
+    ⚪ Poor (Multiple negative entries)
+    ⚪ Unknown (I haven't checked)
+    Question 7: "What is your citizenship/residency status?"
+    Options:
+    ⚪ German citizen
+    ⚪ EU citizen living in Germany
+    ⚪ Non-EU with unlimited residence permit
+    ⚪ Non-EU with limited residence permit
+    ⚪ Living outside Germany
+    When I complete all questions and click "Next" on Q7
+    Then wizard should calculate and show results page
+
+    ST-507: Financing eligibility - Results and recommendations
+    As a user who completed eligibility wizard
+    I want to see my assessment results and personalized recommendations
+    So that I understand my financing prospects and next steps
+    Acceptance criteria:
+    Given I completed all 7 eligibility questions
+    When results calculate
+    Then I should see results page with:
+    Overall likelihood section (prominent, top):
+    Likelihood score: 82/100
+    Verdict badge: "HIGH LIKELIHOOD" (color-coded: green 80-100, light green 60-79, yellow 40-59, orange 20-39, red 0-19)
+    Brief statement: "Based on your answers, you have strong prospects for mortgage approval in Germany."
+    Your strengths section:
+    Green checkmarks with text:
+    ✅ Permanent employment (2+ years)
+    ✅ Good income-to-debt ratio (25%)
+    ✅ Down payment available (25% of purchase price)
+    ✅ EU citizenship (no restrictions)
+    Areas to strengthen section:
+    Orange warnings with actionable advice:
+    ⚠️ Limited credit history in Germany
+    What to do: "Get your SCHUFA report early to check for any issues"
+    Link: [Order SCHUFA Report ]
+    ⚠️ First-time property buyer
+    What to do: "Some banks prefer existing homeowners. Consider mortgage broker who knows which banks are flexible."
+    Link: [Learn about mortgage brokers ]
+    Estimated loan terms section:
+    Maximum loan amount: €400,000
+    Recommended down payment: 20-25% (€80-100k)
+    Expected interest rate range: 3.2-3.8%
+    Likely loan-to-value: 75-80%
+    Based on: Income, debts, down payment entered
+    Required documents checklist section:
+    "Here's what you'll need to apply for a mortgage:"
+    Essential documents (for all applicants):
+    □ Last 3 months' pay slips (Gehaltsabrechnungen)
+    □ Employment contract (Arbeitsvertrag)
+    □ Last 2 years' tax returns (Steuerbescheid)
+    □ Bank statements (3-6 months)
+    □ ID/passport + residence permit
+    □ SCHUFA credit report
+    Additional documents (personalized based on answers):
+    If self-employed: □ Business financial statements, □ Tax returns for business
+    If non-EU: □ Residence permit copy, □ Work visa
+    "Download full checklist as PDF" button
+    "Save to journey Step 3" button (if user has active journey)
+    Recommended next steps section:
+    Numbered list:
+    Get your SCHUFA report [Order SCHUFA ] (~€30, takes 2-4 weeks)
+    Gather required documents (Use checklist above)
+    Get pre-approval from banks [Banks Friendly to Foreign Investors ]
+    Learn about financing options [Read: Low Down Payment Strategies ]
+    Actions:
+    "Save My Results" button
+    "Email Me This Report" button
+    "Start Over" button
+    When I click "Save My Results" (if logged in)
+    Then results should save to my account
+    And be accessible from Dashboard > Assessments
+    When I click "Email Me This Report"
+    Then I should see email modal:
+    Pre-filled with my email
+    "Send" button
+    When sent, I receive professional email with full report
+
+
+--------------------------------------------------------------------------------
+6.6 CONTENT AND DISCOVERY
+--------------------------------------------------------------------------------
+
+    ST-601: Browse and read articles
+    As a user wanting to learn about German real estate
+    I want to browse and read educational articles
+    So that I can deepen my knowledge on specific topics
+    Acceptance criteria:
+    Given I am on any page
+    When I click "Learn" or "Articles" in main navigation
+    Then I should see articles homepage with:
+    Hero section: "Learn About German Real Estate"
+    Featured article (large card at top):
+    Thumbnail image
+    Category badge
+    Title
+    Excerpt (150 chars)
+    Reading time (e.g., "8 min read")
+    Difficulty badge (Beginner/Intermediate/Advanced)
+    Author (if applicable)
+    "Read article" button
+    Browse by category section:
+    4 category cards:
+    Buying Process (4 articles)
+    Costs & Taxes (3 articles)
+    Regulations (3 articles)
+    Common Pitfalls (2 articles)
+    Each card shows article count and "View all" link
+    Recent articles section:
+    Grid of 6 most recent articles
+    Each showing: thumbnail, title, excerpt, reading time, category
+    Most popular section:
+    List of 5 most-viewed articles (last 30 days)
+    Showing: title, view count, reading time
+    When I click on a category card
+    Then I should see category page with:
+    Category name and description
+    List of all articles in category
+    Filter by difficulty (All / Beginner / Intermediate / Advanced)
+    Sort by (Newest / Most Popular / Alphabetical)
+    When I click on an article
+    Then I should navigate to article detail page
+
+    ST-602: Article detail page
+    As a user reading an article
+    I want to see well-structured content with related resources
+    So that I can learn effectively and explore related topics
+    Acceptance criteria:
+    Given I clicked on an article
+    When article page loads
+    Then I should see:
+    Header:
+    Category badge
+    Article title (H1)
+    Meta information:
+    Author name (if applicable)
+    Published date
+    Last updated date (if different from published)
+    Reading time (auto-calculated)
+    Difficulty badge
+    Social share buttons (Twitter, LinkedIn, Email, Copy link)
+    Key takeaways box (highlighted, top of content):
+    "Key Takeaways" heading
+    3-5 bullet points summarizing main points
+    Allows readers to quickly grasp content
+    Table of contents (sidebar on desktop, collapsible on mobile):
+    Auto-generated from H2 and H3 headings
+    Clickable links to jump to sections
+    Sticky positioning (follows scroll on desktop)
+    Currently viewing section highlighted
+    Main article content:
+    Well-formatted text (1,500-3,000 words)
+    Clear headings (H2, H3)
+    Short paragraphs (3-4 sentences max)
+    Bullet points and numbered lists where appropriate
+    Bold text for emphasis (sparingly)
+    Blockquotes for important notes
+    Images with captions (if applicable)
+    Internal links to:
+    Related laws (highlighted, e.g., "See BGB § 535")
+    Related journey steps
+    Other articles
+    External links (open in new tab, with external icon)
+    Related laws sidebar (desktop) or section (mobile):
+    "Laws mentioned in this article"
+    List of 3-5 relevant laws with:
+    Law code and title (clickable links)
+    One-line summary
+    "Critical" or "Important" badge
+    Related tools section:
+    "Tools that help with this topic"
+    Links to calculators mentioned in article
+    Example: Article on "Hidden Costs"  Link to Hidden Costs Calculator
+    Helpful? rating widget:
+    "Was this helpful?"
+    Thumbs up / Thumbs down buttons
+    Optional feedback text box (if thumbs down)
+    Thank you message after rating
+    Related articles footer:
+    "You might also like"
+    3-5 related article cards
+    Recommendation logic:
+    Same category
+    Similar topics (based on tags)
+    Popular articles
+    Comments section (future, placeholder for MVP):
+    "Comments coming soon"
+    For MVP: "Have questions? Contact us"
+    Article should be optimized for:
+    Readability (8th grade reading level)
+    SEO (meta tags, schema markup)
+    Print (print-friendly CSS)
+    Mobile (responsive, readable on small screens)
+    Page load time: <2 seconds
+
+    ST-603: FAQ page
+    As a user with common questions
+    I want to browse FAQs organized by category
+    So that I can find answers quickly without contacting support
+    Acceptance criteria:
+    Given I navigate to Help > FAQ
+    Then I should see FAQ page with:
+    Hero: "Frequently Asked Questions"
+    Search bar: "Search FAQs..." (searches question and answer text)
+    Category tabs:
+    All
+    General (5 FAQs)
+    Buying Process (8 FAQs)
+    Financing (7 FAQs)
+    Legal Questions (6 FAQs)
+    Using the Platform (4 FAQs)
+    Default view: All categories expanded
+    FAQ list (accordion format):
+    Each FAQ shows:
+    Question text (bold, large text)
+    Collapse/expand icon (chevron)
+    Helpfulness count (e.g., "👍 45 found this helpful")
+    Collapsed by default (except first 3)
+    When I click a question
+    Then answer should expand with:
+    Answer text (formatted with paragraphs, lists, links)
+    Related links (articles, laws, tools)
+    "Was this helpful?" buttons (thumbs up/down)
+    When I click thumbs up/down:
+    Count increments
+    "Thanks for your feedback!" message
+    Option to add comment (thumbs down only)
+    "Expand all" / "Collapse all" toggle button
+    When I search FAQs
+    Then results should filter to matching questions
+    And matching text should be highlighted
+    When no results found
+    Then show: "No FAQs match your search. Try different keywords or contact support."
+    Bottom of page:
+    "Didn't find what you're looking for?"
+    "Contact Support" button
+    "Suggest a question" link (opens form)
+
+    ST-604: Glossary of German terms
+    As a user encountering German real estate terms
+    I want to look up definitions in a glossary
+    So that I can understand terminology
+    Acceptance criteria:
+    Given I navigate to Resources > Glossary
+    Then I should see glossary page with:
+    Title: "German Real Estate Terms Glossary"
+    Search bar: "Search terms..."
+    Alphabet filter: A B C D E F G H ... Z (clickable letters)
+    Count: "200+ terms"
+    Term list (default: all terms, alphabetical):
+    Each entry shows:
+    German term (bold, large)
+    English translation (italic)
+    Definition (1-2 sentences, plain language)
+    Usage example (in context)
+    Related laws (if applicable, clickable links)
+    Pronunciation guide (future feature, grayed out for MVP)
+    Entries separated by horizontal line
+    Letter headers (A, B, C...) as you scroll
+    Export button: "Download Glossary PDF" (printable reference)
+    When I click alphabet letter
+    Then page should jump to terms starting with that letter
+    When I search
+    Then results should filter to matching terms (German or English)
+    In-context tooltips (across all app pages):
+    When German terms appear in content (articles, laws, steps)
+    And term exists in glossary
+    Then term should be underlined with dotted line
+    When I hover over term (desktop)
+    Or tap term (mobile)
+    Then tooltip should appear showing:
+    German term
+    English translation
+    Brief definition (1 sentence)
+    "View in glossary " link
+    Tooltip should be dismissible (click outside or close icon)
+    Common terms that should be in glossary (examples):
+    Hausgeld - Condo fees
+    Nebenkosten - Utility costs
+    Notar - Notary
+    Grundbuch - Land registry
+    Eigentumswohnung - Condominium apartment
+    Kaufvertrag - Purchase contract
+    Mietvertrag - Rental agreement
+    [... 193 more terms]
+
+
+--------------------------------------------------------------------------------
+6.7 NOTIFICATIONS AND ENGAGEMENT
+--------------------------------------------------------------------------------
+
+    ST-701: In-app notifications
+    As a logged-in user
+    I want to receive notifications about important events
+    So that I stay informed and take timely action
+    Acceptance criteria:
+    Given I am logged in
+    When I am on any page
+    Then I should see notification bell icon in header:
+    Bell icon (outline when no unread, solid when unread notifications)
+    Badge with unread count (e.g., "3" in red circle)
+    No badge if all notifications read
+    When I click notification bell
+    Then dropdown should open showing:
+    Header:
+    "Notifications"
+    "Mark all as read" link
+    Close icon (X)
+    Notification list:
+    Most recent 10 notifications
+    Each notification shows:
+    Icon (based on type: 📄 document, ⏰ deadline, ✅ completion, etc.)
+    Title (bold if unread)
+    Brief description
+    Timestamp (relative: "2 hours ago", "Yesterday", "Jan 15")
+    Unread indicator (blue dot)
+    Action button (e.g., "View Document", "View Step")
+    Dismiss icon (X)
+    Notifications grouped by date (Today, Yesterday, This Week, Older)
+    Footer:
+    "View all notifications" link (if more than 10 exist)
+    Empty state (if no notifications):
+    Icon
+    "No notifications yet"
+    "We'll notify you about important updates"
+    When I click a notification
+    Then I should:
+    Navigate to relevant page (document, step, etc.)
+    Notification marked as read
+    Blue dot disappears
+    Unread count decrements
+    Dropdown closes
+    When I click "Mark all as read"
+    Then all notifications should be marked read
+    And blue dots should disappear
+    And badge count should become 0
+    When I dismiss a notification (click X)
+    Then notification should be removed from list
+    And marked as dismissed in database
+    When I click "View all notifications"
+    Then I should navigate to Notifications Center page showing:
+    All notifications (paginated, 20 per page)
+    Filter by type (All / Deadlines / Documents / Steps / Updates)
+    Filter by read status (All / Unread / Read)
+    Mark all as read button
+    Clear all button (with confirmation)
+
+    ST-702: Email notifications
+    As a user
+    I want to receive important notifications via email
+    So that I don't miss deadlines or important updates even when not using the app
+    Acceptance criteria:
+    Given I am a registered user
+    When an event triggers a notification (e.g., document translation complete, deadline approaching)
+    Then I should receive email notification (if enabled in preferences):
+    Email structure:
+    From: "German Real Estate Navigator noreply@realestate-navigator.com"
+    Subject line: Clear and specific (e.g., "Your document translation is ready", "Reminder: Notary appointment in 3 days")
+    Preview text: First line optimized for mobile
+    Professional HTML template with:
+    App logo/branding at top
+    Personalized greeting: "Hi [Name],"
+    Clear message body (2-3 short paragraphs)
+    Primary CTA button (e.g., "View Translation", "View Step")
+    Secondary links (if applicable)
+    Footer with:
+    Company name and address
+    Unsubscribe link (required, except critical transactional)
+    Preferences link ("Manage notification settings")
+    Social media icons (optional)
+    Mobile-responsive (readable on all devices)
+    Email types and frequency:
+    Transactional (cannot unsubscribe):
+    Email verification
+    Password reset
+    Payment receipt
+    Document translation ready
+    Important (default ON, can disable):
+    Deadline reminders (1 week, 3 days, 1 day before)
+    Step completion milestones
+    Subscription expiration (7 days before)
+    Informational (default ON, can disable):
+    Journey progress updates (weekly digest)
+    Law updates (for bookmarked laws)
+    New features
+    Tips and recommendations
+    Marketing (default OFF, must opt-in):
+    Newsletter
+    Promotional offers
+    Educational content
+    When I click "Unsubscribe" link in email
+    Then I should be taken to unsubscribe confirmation page:
+    "You've been unsubscribed from [notification type]"
+    Option to resubscribe
+    Link to manage all preferences
+    Confirmation: "We'll still send you critical account emails"
+    Email deliverability requirements:
+    99% delivery rate (not bounced)
+    <2% spam complaint rate
+    70%+ open rate (important notifications)
+    25%+ click-through rate (emails with CTAs)
+
+    ST-703: Notification preferences
+    As a logged-in user
+    I want to control which notifications I receive and how
+    So that I only get notifications that are useful to me
+    Acceptance criteria:
+    Given I am logged in
+    When I navigate to Settings > Notifications
+    Then I should see notification preferences page with:
+    Introduction: "Manage how and when you hear from us"
+    Notification types table:
+    Columns: Notification Type | In-App | Email | Description
+    Rows (each notification type):
+    Journey deadlines | [Toggle] | [Toggle] | Reminders for upcoming deadlines
+    Document ready | [Toggle] | [Toggle] | Your document translation is complete
+    Step completed | [Toggle] | [Toggle] | Congratulations on completing a step
+    Law updates | [Toggle] | [Toggle] | Changes to laws you bookmarked
+    Usage limits | [Toggle] | [Toggle] | Approaching your monthly quota
+    Weekly summary | [n/a] | [Toggle] | Your progress this week
+    Tips & recommendations | [Toggle] | [Toggle] | Helpful tips based on your journey
+    New features | [Toggle] | [Toggle] | Latest updates to the platform
+    Newsletter | [n/a] | [Toggle] | Monthly newsletter (must opt-in)
+    Toggle states:
+    ON (blue, switch to right)
+    OFF (gray, switch to left)
+    Transactional emails section (separate, grayed out):
+    "These emails are required for account security and cannot be disabled:"
+    List: Email verification, Password reset, Payment receipts
+    Frequency settings (future feature, grayed out for MVP):
+    Placeholder: "Coming soon: Choose quiet hours and digest options"
+    "Save preferences" button (primary CTA)
+    "Reset to defaults" link
+    When I toggle any notification setting
+    Then toggle should update immediately (visual feedback)
+    And setting should be saved to database
+    And "Saved" indicator should flash briefly
+    When I click "Save preferences"
+    Then I should see confirmation: "Notification preferences updated"
+    Continue
+    18:49
+    When I click "Reset to defaults"
+    Then confirmation dialog: "Reset all notification settings to defaults?"
+    When I confirm:
+    All toggles reset to default state
+    Saved to database
+    "Preferences reset" message
+    Default settings should be:
+    All "Important" notifications: ON for both in-app and email
+    All "Informational" notifications: ON for in-app, ON for email
+    All "Marketing" notifications: OFF
+
+
+--------------------------------------------------------------------------------
+6.8 SEARCH AND DISCOVERY
+--------------------------------------------------------------------------------
+
+    ST-801: Global search
+    As a user looking for information
+    I want to search across all content in the app
+    So that I can quickly find what I need
+    Acceptance criteria:
+    Given I am on any page
+    When I see search bar in header (magnifying glass icon)
+    And I click on it or press "/" keyboard shortcut
+    Then search input should focus and expand:
+    Placeholder text: "Search laws, articles, steps..."
+    Search icon inside input
+    Clear button (X) when text entered
+    When I type minimum 3 characters
+    Then auto-suggest dropdown should appear showing:
+    Top 5 matching results across all content types
+    Results grouped by type:
+    Laws (max 2 results)
+    Articles (max 2 results)
+    Journey Steps (max 1 result)
+    Each result showing:
+    Type badge
+    Title (with search terms highlighted)
+    Brief snippet (50 chars)
+    "See all results" link at bottom
+    Keyboard navigation (arrow keys to navigate, Enter to select)
+    When I press Enter or click "See all results"
+    Then I should navigate to search results page
+    When search results page loads
+    Then I should see:
+    Search query in header: "Results for: [query]"
+    Results count: "12 results found"
+    Filter sidebar (desktop) or expandable section (mobile):
+    Content type (checkboxes):
+    All (default)
+    Laws
+    Articles
+    Journey Steps
+    FAQs
+    Clear filters button
+    Sort dropdown:
+    Relevance (default)
+    Newest first
+    Alphabetical (A-Z)
+    Results list:
+    Grouped by content type (Laws, Articles, Steps, FAQs)
+    Each group showing count (e.g., "Laws (5)")
+    Each result card showing:
+    Type badge
+    Title (clickable, with search terms highlighted)
+    Snippet (150 chars with search terms highlighted)
+    Breadcrumb (e.g., "Buying Process > Step 6")
+    Relevance score indicator (subtle, for debugging)
+    Pagination (10 results per page)
+    Zero results state:
+    "No results found for '[query]'"
+    Suggestions:
+    "Try different keywords"
+    "Check your spelling"
+    "Use more general terms"
+    "Did you mean..." with spelling suggestions
+    Popular searches (5 common queries)
+    "Contact support" link
+    Search should support:
+    Full-text search across:
+    Law titles, summaries, explanations
+    Article titles, content
+    Step titles, descriptions
+    FAQ questions, answers
+    German and English terms
+    Fuzzy matching (typo tolerance)
+    Stemming (e.g., "buying" matches "buy", "buyer")
+    Exact phrase matching (quoted searches)
+    Boolean operators (AND, OR) - future
+    Search performance:
+    Results should appear within 1 second
+    Auto-suggest within 300ms of typing
+
+
+--------------------------------------------------------------------------------
+6.9 DATABASE MODELING
+--------------------------------------------------------------------------------
+
+    ST-901: Database schema design
+    As a system architect
+    I want a well-designed relational database schema
+    So that data is stored efficiently, consistently, and securely
+    Acceptance criteria:
+    Given the application requirements
+    Then database schema should include the following core tables:
+    Users and Authentication:
+    users table:
+    id (Primary Key, serial)
+    email (unique, not null)
+    password_hash (not null, bcrypt)
+    name (not null)
+    location_state (2-char state code)
+    preferred_language (default 'en')
+    email_verified (boolean, default false)
+    is_active (boolean, default true)
+    created_at (timestamp)
+    updated_at (timestamp)
+    last_login_at (timestamp)
+    user_profiles table:
+    id (Primary Key)
+    user_id (Foreign Key  users)
+    investment_status (enum: researching/ready/own/managing)
+    interests (JSON array)
+    created_at, updated_at
+    Subscriptions:
+    subscriptions table:
+    id (Primary Key)
+    user_id (Foreign Key  users, unique)
+    tier (enum: free/premium/enterprise)
+    stripe_customer_id (string)
+    stripe_subscription_id (string)
+    status (enum: active/cancelled/expired)
+    current_period_start (date)
+    current_period_end (date)
+    cancel_at_period_end (boolean)
+    created_at, updated_at
+    Journey System:
+    user_journeys table:
+    id (Primary Key)
+    user_id (Foreign Key  users, unique)
+    journey_type, property_type, location_state, use_case, citizenship
+    budget_purchase, budget_downpayment (decimal)
+    status (enum: in_progress/completed/abandoned)
+    current_step_id (Foreign Key  journey_steps)
+    progress_percent (integer, 0-100)
+    started_at, completed_at, updated_at
+    journey_steps table (template/definition):
+    id (Primary Key)
+    step_number, phase_number, phase_name
+    step_name, step_slug, description_short, description_long
+    estimated_duration_days, typical_costs_min, typical_costs_max
+    applicable_to_property_types (array)
+    is_optional (boolean)
+    order_index
+    user_step_progress table:
+    id (Primary Key)
+    user_id (Foreign Key)
+    journey_id (Foreign Key)
+    step_id (Foreign Key)
+    status (enum: not_started/in_progress/completed/skipped)
+    started_at, completed_at
+    notes (text)
+    UNIQUE(user_id, step_id)
+    step_tasks table:
+    id (Primary Key)
+    step_id (Foreign Key)
+    task_number, task_title, task_description
+    task_type, is_required, estimated_duration_minutes
+    order_index
+    user_task_completion table:
+    id (Primary Key)
+    user_id, task_id, step_progress_id (Foreign Keys)
+    status (enum)
+    completed_at, notes
+    UNIQUE(user_id, task_id)
+    Laws Database:
+    laws table:
+    id (Primary Key)
+    law_code (unique, e.g., "BGB_535")
+    category, jurisdiction
+    priority_score (for ranking)
+    view_count, bookmark_count
+    created_at, updated_at
+    law_content table:
+    id (Primary Key)
+    law_id (Foreign Key)
+    language_code (e.g., 'en', 'de')
+    title, official_citation
+    summary_one_line, summary_short, summary_detailed
+    original_text, original_source_url
+    what_it_means_buyer, what_it_means_seller (JSON)
+    real_world_example, common_disputes (JSON)
+    effective_date, last_amended, amendment_summary
+    meta_description, keywords (array)
+    UNIQUE(law_id, language_code)
+    law_relationships table:
+    law_id, related_law_id (Foreign Keys)
+    relationship_type, description
+    PRIMARY KEY(law_id, related_law_id)
+    law_state_variations table:
+    id (Primary Key)
+    law_id (Foreign Key)
+    state_code (2 chars)
+    variation_type, description_en, value_numeric, value_text
+    source_url
+    court_rulings table:
+    id (Primary Key)
+    law_id (Foreign Key)
+    court_name, case_number, decision_date
+    summary_en, summary_de, practical_impact
+    source_url, relevance_score
+    user_law_bookmarks table:
+    id (Primary Key)
+    user_id, law_id (Foreign Keys)
+    notes (text, optional)
+    created_at
+    UNIQUE(user_id, law_id)
+    Documents:
+    documents table:
+    id (Primary Key)
+    user_id (Foreign Key)
+    file_name, file_size, page_count
+    document_type (enum)
+    storage_url (S3 path, encrypted)
+    status (enum: uploading/processing/complete/failed)
+    uploaded_at, processed_at
+    document_translations table:
+    id (Primary Key)
+    document_id (Foreign Key, unique)
+    original_text, translated_text (text)
+    detected_clauses (JSON)
+    warnings (JSON)
+    confidence_score (decimal)
+    processing_time_seconds
+    created_at
+
+CALCULATIONS:
+
+SAVED_CALCULATIONS TABLE:
+    - id (Primary Key)
+    - user_id (Foreign Key)
+    - calculation_type (enum: hidden_costs/roi/financing)
+    - custom_name, notes
+    - input_values (JSON)
+    - result_values (JSON)
+    - created_at, updated_at
+
+CONTENT:
+
+ARTICLES TABLE:
+    - id (Primary Key)
+    - slug (unique)
+    - category, difficulty_level
+    - title, meta_description
+    - content (text, Markdown)
+    - author, published_at, updated_at
+    - view_count, reading_time_minutes
+    - keywords (array)
+    - is_published (boolean)
+
+FAQS TABLE:
+    - id (Primary Key)
+    - category, question, answer (text)
+    - order_index
+    - helpful_count, not_helpful_count
+    - is_published (boolean)
+
+GLOSSARY_TERMS TABLE:
+    - id (Primary Key)
+    - german_term (unique)
+    - english_translation
+    - definition, usage_example
+    - related_law_ids (array)
+    - pronunciation_guide (future)
+
+NOTIFICATIONS:
+
+NOTIFICATIONS TABLE:
+    - id (Primary Key)
+    - user_id (Foreign Key)
+    - notification_type, notification_title, notification_body
+    - related_step_id, related_document_id (Foreign Keys, nullable)
+    - priority (enum: low/medium/high/urgent)
+    - is_read (boolean, default false)
+    - created_at, read_at
+
+USER ACTIVITY:
+
+USER_ACTIVITY_LOG TABLE:
+    - id (Primary Key)
+    - user_id (Foreign Key)
+    - activity_type (enum: view_law/read_article/complete_step/etc.)
+    - entity_type, entity_id
+    - metadata (JSON)
+    - created_at
+    - INDEX on (user_id, created_at)
+
+INDEXES FOR PERFORMANCE:
+    - users: email (unique)
+    - laws: law_code (unique), category
+    - law_content: (law_id, language_code)
+    - user_step_progress: (user_id, step_id)
+    - documents: (user_id, status)
+    - notifications: (user_id, is_read, created_at)
+
+FULL-TEXT SEARCH INDEXES ON:
+    - law_content: title, summaries
+    - articles: title, content
+    - faqs: question, answer
+
+DATA INTEGRITY:
+    - All Foreign Keys with CASCADE on delete where appropriate
+    - NOT NULL constraints on required fields
+    - UNIQUE constraints where needed
+    - CHECK constraints (e.g., progress_percent BETWEEN 0 AND 100)
+    - Default values for timestamps, booleans, enums
+
+SECURITY:
+    - Passwords stored as bcrypt hashes (never plain text)
+    - Document URLs encrypted at rest
+    - Sensitive PII encrypted (if storing payment details beyond Stripe)
+    - Row-level security policies (future, PostgreSQL RLS)
+
+BACKUP AND RECOVERY:
+    - Daily full backups
+    - Hourly incremental backups
+    - 90-day retention
+    - Test recovery monthly
+
+
+================================================================================
+7. TECHNICAL REQUIREMENTS / STACK
+================================================================================
+
+
+--------------------------------------------------------------------------------
+7.1 FRONTEND ARCHITECTURE
+--------------------------------------------------------------------------------
+
+    Technology stack:
+    Framework: React 18.2+ (functional components, hooks)
+    Language: JavaScript ES6+ (TypeScript future consideration)
+    Styling: Tailwind CSS 3.3+
+    State Management:
+    React Context API for global state (user, auth)
+    React Query (TanStack Query) for server state management
+    Local state (useState) for component-level state
+    Routing: React Router v6
+    Forms: React Hook Form + Zod validation
+    HTTP Client: Axios
+    Charts: Recharts or Chart.js
+    PDF Viewer: react-pdf
+    Date Handling: date-fns
+    Icons: Lucide React or Hero Icons
+    Build Tool: Vite
+    Package Manager: npm or yarn
+    Architecture pattern:
+    src/
+    ├── components/
+    │   ├── common/          # Reusable UI components
+    │   ├── journey/         # Journey-specific components
+    │   ├── laws/            # Law browser components
+    │   ├── documents/       # Document translation components
+    │   ├── calculators/     # Calculator components
+    │   └── layout/          # Layout components (Header, Footer, Sidebar)
+    ├── pages/               # Page-level components
+    ├── hooks/               # Custom React hooks
+    ├── contexts/            # React Context providers
+    ├── services/            # API service layer
+    ├── utils/               # Helper functions
+    ├── constants/           # Constants, enums
+    ├── assets/              # Images, fonts
+    └── styles/              # Global styles, Tailwind config
+    Key requirements:
+    Mobile-first responsive design
+    Accessibility: WCAG 2.1 Level AA compliance
+    Browser support: Chrome, Firefox, Safari, Edge (latest 2 versions)
+    Progressive Web App (PWA) capabilities (future)
+    SEO optimization (meta tags, semantic HTML, schema markup)
+    Performance:
+    First Contentful Paint < 1.5s
+    Time to Interactive < 3.5s
+    Lighthouse score > 90
+
+
+--------------------------------------------------------------------------------
+7.2 MOBILE ARCHITECTURE
+--------------------------------------------------------------------------------
+
+    Technology stack:
+    Framework: React Native 0.72+
+    Language: JavaScript ES6+ (TypeScript future consideration)
+    Navigation: React Navigation v6
+    State Management: Same as web (React Context, React Query)
+    Styling: React Native StyleSheet + styled-components
+    Storage: AsyncStorage (local) + Secure Store (sensitive data)
+    HTTP Client: Axios (shared with web)
+    Push Notifications: Expo Notifications or Firebase Cloud Messaging
+    Document Handling: react-native-pdf or expo-document-picker
+    Image Handling: expo-image-picker (camera document scanning)
+    Platform support:
+    iOS 13+ (iPhone 6s and newer)
+    Android 8.0+ (API level 26+)
+    Deployment:
+    iOS: App Store
+    Android: Google Play Store
+    Over-the-air updates: Expo Updates or CodePush
+    Architecture pattern:
+    mobile/
+    ├── src/
+    │   ├── components/      # Shared components
+    │   ├── screens/         # Screen components (pages)
+    │   ├── navigation/      # Navigation configuration
+    │   ├── hooks/           # Custom hooks
+    │   ├── services/        # API services (shared with web)
+    │   ├── utils/           # Helpers
+    │   └── constants/       # Constants
+    ├── ios/                 # iOS native code
+    ├── android/             # Android native code
+    └── app.json             # Expo/React Native config
+    Key features for mobile:
+    Offline mode (cache journey progress, bookmarked laws)
+    Biometric authentication (Face ID, Touch ID, fingerprint)
+    Camera document scanning
+    Push notifications
+    Deep linking (email links open in app)
+    Note: Mobile apps are post-MVP (Year 2). MVP focuses on mobile-responsive web app.
+
+
+--------------------------------------------------------------------------------
+7.3 BACKEND ARCHITECTURE
+--------------------------------------------------------------------------------
+
+    Technology stack:
+    Framework: FastAPI 0.104+ (Python 3.11+)
+    Language: Python 3.11+
+    ASGI Server: Uvicorn
+    ORM: SQLAlchemy 2.0 (async)
+    Database Migrations: Alembic
+    Data Validation: Pydantic v2
+    Authentication: python-jose (JWT)
+    Password Hashing: passlib with bcrypt
+    Task Queue: Celery 5+ with Redis broker
+    Scheduler: Celery Beat (periodic tasks)
+    HTTP Client: httpx (async)
+    Architecture pattern:
+    backend/
+    ├── app/
+    │   ├── main.py                 # FastAPI app entry
+    │   ├── config.py               # Settings (env vars)
+    │   ├── database.py             # DB connection, session
+    │   ├── dependencies.py         # Dependency injection
+    │   │
+    │   ├── models/                 # SQLAlchemy models (database tables)
+    │   │   ├── user.py
+    │   │   ├── journey.py
+    │   │   ├── law.py
+    │   │   ├── document.py
+    │   │   └── ...
+    │   │
+    │   ├── schemas/                # Pydantic schemas (API contracts)
+    │   │   ├── user.py
+    │   │   ├── journey.py
+    │   │   └── ...
+    │   │
+    │   ├── api/                    # API route handlers
+    │   │   ├── v1/
+    │   │   │   ├── auth.py
+    │   │   │   ├── users.py
+    │   │   │   ├── journey.py
+    │   │   │   ├── laws.py
+    │   │   │   ├── documents.py
+    │   │   │   ├── calculators.py
+    │   │   │   └── subscriptions.py
+    │   │   └── __init__.py
+    │   │
+    │   ├── services/               # Business logic
+    │   │   ├── auth_service.py
+    │   │   ├── journey_service.py
+    │   │   ├── translation_service.py
+    │   │   ├── pdf_service.py
+    │   │   ├── calculator_service.py
+    │   │   └── payment_service.py
+    │   │
+    │   ├── tasks/                  # Celery background tasks
+    │   │   ├── translate_document.py
+    │   │   ├── send_email.py
+    │   │   ├── check_deadlines.py
+    │   │   └── update_laws.py
+    │   │
+    │   ├── utils/                  # Helper functions
+    │   │   ├── security.py         # JWT, hashing
+    │   │   ├── email.py            # SendGrid wrapper
+    │   │   ├── storage.py          # S3 wrapper
+    │   │   └── validators.py
+    │   │
+    │   └── tests/                  # Unit & integration tests
+    │       ├── test_auth.py
+    │       ├── test_journey.py
+    │       └── ...
+    │
+    ├── alembic/                    # Database migrations
+    ├── scripts/                    # Utility scripts
+    ├── requirements.txt
+    ├── Dockerfile
+    └── docker-compose.yml
+    API design principles:
+    RESTful API design
+    Versioned endpoints (/api/v1/)
+    Consistent response format (JSON)
+    Proper HTTP status codes
+    Pagination for list endpoints
+    Rate limiting (per user/IP)
+    CORS configuration for frontend domains
+    Example API structure:
+    POST   /api/v1/auth/register
+    POST   /api/v1/auth/login
+    POST   /api/v1/auth/refresh
+    POST   /api/v1/auth/password-reset
+
+    GET    /api/v1/users/me
+    PATCH  /api/v1/users/me
+    DELETE /api/v1/users/me
+
+    GET    /api/v1/journey
+    POST   /api/v1/journey/initialize
+    GET    /api/v1/journey/steps/{step_id}
+    PATCH  /api/v1/journey/steps/{step_id}
+    POST   /api/v1/journey/steps/{step_id}/complete
+
+    GET    /api/v1/laws
+    GET    /api/v1/laws/{law_code}
+    POST   /api/v1/laws/{law_code}/bookmark
+    GET    /api/v1/laws/search?q={query}
+
+    POST   /api/v1/documents/upload
+    GET    /api/v1/documents/{document_id}
+    GET    /api/v1/documents/{document_id}/translation
+    DELETE /api/v1/documents/{document_id}
+
+    POST   /api/v1/calculators/hidden-costs
+    POST   /api/v1/calculators/roi
+    POST   /api/v1/calculators/financing-eligibility
+
+    GET    /api/v1/subscriptions/current
+    POST   /api/v1/subscriptions/upgrade
+    POST   /api/v1/subscriptions/cancel
+    POST   /api/v1/webhooks/stripe    # Stripe webhooks
+
+PERFORMANCE REQUIREMENTS:
+    - API response time: <500ms (95th percentile)
+    - Support 500 concurrent users (MVP)
+    - Horizontal scaling capability (add more workers)
+
+
+--------------------------------------------------------------------------------
+7.4 DATABASE
+--------------------------------------------------------------------------------
+
+    Primary database:
+    RDBMS: PostgreSQL 15+
+    Hosting:
+    MVP: AWS RDS (db.t3.medium: 2 vCPU, 4GB RAM)
+    Production: AWS RDS Multi-AZ for high availability
+    Connection pooling: PgBouncer or SQLAlchemy pooling
+    Backup: Daily automated backups, 90-day retention
+    Caching layer:
+    Cache: Redis 7+
+    Hosting: AWS ElastiCache (cache.t3.micro for MVP)
+    Use cases:
+    Session storage
+    Rate limiting counters
+    Frequently accessed data (laws, articles)
+    Celery task queue broker
+    Celery task results backend
+    Search:
+    MVP: PostgreSQL full-text search
+    Future (Year 2): Elasticsearch for advanced search
+    File storage:
+    Object storage: AWS S3
+    Buckets:
+    user-documents (private, encrypted)
+    static-assets (public, cached via CloudFront)
+    CDN: CloudFront for static assets
+    Encryption: AES-256 at rest, TLS in transit
+
+
+--------------------------------------------------------------------------------
+7.5 THIRD-PARTY INTEGRATIONS
+--------------------------------------------------------------------------------
+
+    Translation:
+    Service: DeepL API
+    Plan: DeepL API Free (500k characters/month) initially, upgrade as needed
+    Cost: ~€5/month for MVP usage
+    SDK: deepl-python (official)
+    Fallback: Google Translate API (if DeepL unavailable)
+    Payments:
+    Service: Stripe
+    Products: Subscriptions, one-time payments
+    Webhook handling: /api/v1/webhooks/stripe
+    SDK: stripe-python (official)
+    Features:
+    Customer portal (self-service subscription management)
+    Payment method updates
+    Invoice generation
+    Email:
+    Service: SendGrid
+    Plan: Free tier (100 emails/day) initially
+    SDK: sendgrid-python (official)
+    Email types:
+    Transactional (verification, password reset, receipts)
+    Notifications (deadlines, document ready)
+    Marketing (newsletter - future)
+    Templates: Stored in SendGrid (dynamic content)
+    Analytics:
+    Web analytics: Google Analytics 4
+    Event tracking: Mixpanel (future, post-MVP)
+    Error tracking: Sentry
+    Logging: AWS CloudWatch Logs
+    Authentication (optional OAuth):
+    Google OAuth: google-auth library
+    Future: Facebook, Apple Sign-In
+
+
+--------------------------------------------------------------------------------
+7.6 DEVELOPMENT AND DEPLOYMENT
+--------------------------------------------------------------------------------
+
+    Version control:
+    Git: GitHub
+    Branching strategy: Git Flow
+    main (production)
+    develop (staging)
+    feature/* branches
+    hotfix/* branches
+    CI/CD:
+    Platform: GitHub Actions
+    Pipeline:
+    Code push  Run tests (pytest, jest)
+    Tests pass  Build Docker images
+    Push to staging  Manual smoke test
+    Approve  Deploy to production
+    Deployment: Zero-downtime (blue-green or rolling)
+    Environments:
+    Development: Local (Docker Compose)
+    Staging: AWS (mirrors production)
+    Production: AWS
+    Infrastructure as Code:
+    Tool: Terraform or AWS CDK
+    Resources managed:
+    ECS services
+    RDS instances
+    S3 buckets
+    Load balancers
+    CloudFront distributions
+    Containerization:
+    Docker: All services containerized
+    Orchestration:
+    MVP: AWS ECS Fargate (serverless containers)
+    Future: Kubernetes (if scaling requirements increase)
+    Monitoring and alerting:
+    Uptime monitoring: Pingdom or UptimeRobot
+    APM: Datadog or New Relic
+    Alerts: Slack/email notifications for:
+    Service downtime
+    Error rate spikes
+    High response times
+    Failed background jobs
+    Security:
+    SSL/TLS: AWS Certificate Manager (ACM)
+    WAF: AWS WAF (Web Application Firewall)
+    DDoS protection: AWS Shield
+    Secrets management: AWS Secrets Manager
+    Vulnerability scanning: Snyk or Dependabot
+
+
+--------------------------------------------------------------------------------
+7.7 TESTING STRATEGY
+--------------------------------------------------------------------------------
+
+    Unit testing:
+    Backend: pytest (Python)
+    Target coverage: >80%
+    Test business logic, services, utilities
+    Frontend: Jest + React Testing Library
+    Target coverage: >70%
+    Test components, hooks, utilities
+    Integration testing:
+    Backend: pytest with test database
+    Test API endpoints end-to-end
+    Test database interactions
+    Test third-party integrations (mocked)
+    Frontend: None for MVP (future: Cypress or Playwright)
+    E2E testing:
+    Tool: Playwright (future, post-MVP)
+    Critical flows to test:
+    User registration and login
+    Journey creation and progression
+    Document upload and translation
+    Calculator usage
+    Payment flow (Stripe test mode)
+    Manual testing:
+    Browser testing: BrowserStack or manual
+    Device testing: Real devices (iOS, Android) + emulators
+    Usability testing: 30-50 beta users before launch
+    Performance testing:
+    Load testing: Locust or k6
+    Target: 500 concurrent users without degradation
+    Metrics: Response time, error rate, throughput
+
+
+--------------------------------------------------------------------------------
+7.8 COMPLIANCE AND SECURITY
+--------------------------------------------------------------------------------
+
+    GDPR compliance:
+    Data encryption at rest and in transit
+    User consent for data collection (Privacy Policy, Terms)
+    Right to access data (export feature)
+    Right to deletion (account deletion feature)
+    Data retention policies (90 days for deleted accounts)
+    Privacy Policy and Terms of Service (lawyer-reviewed)
+    Cookie consent banner (minimal cookies for MVP)
+    Data Processing Agreement (DPA) with third-party services
+    Security measures:
+    HTTPS everywhere (TLS 1.2+)
+    Password hashing (bcrypt, cost factor 12)
+    JWT token authentication (short expiration, refresh tokens)
+    Rate limiting (prevent brute force, DDoS)
+    Input validation and sanitization (prevent SQL injection, XSS)
+    CORS configuration (whitelist frontend domains)
+    Security headers (CSP, HSTS, X-Frame-Options)
+    Regular dependency updates (automated via Dependabot)
+    Penetration testing (before launch, annually thereafter)
+    Bug bounty program (future, post-MVP)
+    Legal disclaimers:
+    Prominent disclaimers on:
+    Translation results: "Not certified legal translation"
+    Law pages: "For informational purposes only, not legal advice"
+    Calculators: "Estimates only, consult professionals"
+    Terms of Service: User accepts limitations of liability
+    No attorney-client relationship established
+
+
+================================================================================
+8. DESIGN AND USER INTERFACE
+================================================================================
+
+
+--------------------------------------------------------------------------------
+8.1 DESIGN PRINCIPLES
+--------------------------------------------------------------------------------
+
+    Core design philosophy:
+    Simplicity: Minimize cognitive load, progressive disclosure of information
+    Clarity: Clear labels, unambiguous CTAs, no jargon without explanation
+    Trust: Professional appearance, consistent branding, transparency
+    Accessibility: WCAG 2.1 AA compliance, readable fonts, sufficient contrast
+    Efficiency: Minimize clicks to complete tasks, smart defaults
+    Design values:
+    Mobile-first: Design for mobile, enhance for desktop
+    Consistency: Reuse patterns, maintain visual hierarchy
+    Feedback: Immediate response to user actions (loaders, confirmations)
+    Forgiveness: Allow undo, confirmations for destructive actions
+    Guidance: Contextual help, tooltips, inline instructions
+
+
+--------------------------------------------------------------------------------
+8.2 VISUAL DESIGN SYSTEM
+--------------------------------------------------------------------------------
+
+    Color palette:
+    Primary: Blue (#2563EB) - Trust, professionalism
+    Used for: CTAs, links, active states
+    Secondary: Teal (#14B8A6) - Growth, progress
+    Used for: Success states, completed items
+    Accent: Orange (#F97316) - Attention, warnings
+    Used for: Warnings, important notices
+    Neutral: Gray scale (#F9FAFB to #111827)
+    Used for: Text, backgrounds, borders
+    Semantic colors:
+    Success: Green (#10B981)
+    Warning: Yellow (#F59E0B)
+    Error: Red (#EF4444)
+    Info: Blue (#3B82F6)
+    Typography:
+    Primary font: Inter (sans-serif)
+    Headings: 600-700 weight
+    Body: 400-500 weight
+    Secondary font: System fonts fallback
+    Font sizes (Tailwind scale):
+    xs: 0.75rem (12px)
+    sm: 0.875rem (14px)
+    base: 1rem (16px) - body text
+    lg: 1.125rem (18px)
+    xl: 1.25rem (20px)
+    2xl: 1.5rem (24px)
+    3xl: 1.875rem (30px)
+    4xl: 2.25rem (36px) - page titles
+    Line height: 1.5 for body, 1.2 for headings
+    Readability: Max line width 65-75 characters
+    Spacing:
+    System: 4px base unit (Tailwind's spacing scale)
+    Common values: 4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px
+    Component padding: 16px (mobile), 24px (desktop)
+    Section spacing: 48px (mobile), 64px (desktop)
+    Iconography:
+    Icon library: Lucide React or Hero Icons
+    Size: 16px (small), 20px (medium), 24px (large)
+    Style: Outline (default), solid (for emphasis)
+    Usage: Always paired with text labels (accessibility)
+    Components:
+    Buttons:
+    Primary: Blue background, white text, hover darkens
+    Secondary: White background, blue border, blue text
+    Tertiary: Text only, no background, underline on hover
+    Sizes: sm (32px height), md (40px), lg (48px)
+    States: Default, hover, active, disabled, loading
+    Forms:
+    Input fields: Gray border, blue focus ring
+    Labels: Above input, bold, dark gray
+    Helper text: Below input, small, gray
+    Error state: Red border, red text
+    Success state: Green border (subtle)
+    Cards:
+    Background: White
+    Border: 1px gray
+    Border radius: 8px
+    Shadow: Subtle (0 1px 3px rgba(0,0,0,0.1))
+    Hover: Lift effect (increase shadow)
+    Modals:
+    Overlay: Semi-transparent black (#00000080)
+    Content: White card, centered
+    Max width: 500px (small), 800px (large)
+    Close button: Top right corner (X icon)
+    Notifications/Toasts:
+    Position: Top right (desktop), top center (mobile)
+    Auto-dismiss: 5 seconds (info), manual dismiss (errors)
+    Types: Success (green), error (red), warning (yellow), info (blue)
+
+
+--------------------------------------------------------------------------------
+8.3 LAYOUT AND NAVIGATION
+--------------------------------------------------------------------------------
+
+    Header (Desktop):
+    ┌─────────────────────────────────────────────────────────┐
+    │ [Logo] Journey  Laws  Tools  Learn  |  [Search] [Bell] │
+    │                                      |  [Avatar ▼]     │
+    └─────────────────────────────────────────────────────────┘
+    Fixed position (sticky)
+    Logo: Left, links to homepage
+    Primary nav: Journey, Laws, Tools, Learn
+    Utilities: Search, Notifications (bell with badge), User menu (avatar with dropdown)
+    Background: White with subtle bottom border
+    Header (Mobile):
+    ┌─────────────────────────────────────────┐
+    │ [☰ Menu]  [Logo]     [Search] [Avatar] │
+    └─────────────────────────────────────────┘
+    Hamburger menu (opens slide-out drawer)
+    Simplified, prioritizes mobile interactions
+    Footer:
+    Columns (desktop):
+    Column 1: About, Contact, Blog
+    Column 2: Journey Guide, Laws, Tools
+    Column 3: Help, FAQ, Terms, Privacy
+    Column 4: Social media icons
+    Mobile: Stacked vertically
+    Bottom bar: Copyright, language selector
+    Main content area:
+    Max width: 1280px (centered)
+    Padding: 16px (mobile), 24px (tablet), 32px (desktop)
+    Background: Light gray (#F9FAFB)
+    Dashboard layout:
+    ┌─────────────────────────────────────────┐
+    │ [Header]                                 │
+    ├──────────────┬──────────────────────────┤
+    │ [Sidebar]    │ [Main Content]           │
+    │ - Dashboard  │ Journey progress          │
+    │ - Journey    │ Quick actions             │
+    │ - Documents  │ Recent activity           │
+    │ - Calculator │ Saved items               │
+    │ - Laws       │                           │
+    │ - Settings   │                           │
+    └──────────────┴──────────────────────────┘
+    Sidebar: Fixed (desktop), hidden/drawer (mobile)
+    Main content: Scrollable, responsive grid
+
+
+--------------------------------------------------------------------------------
+8.4 KEY PAGE WIREFRAMES
+--------------------------------------------------------------------------------
+
+    Homepage:
+    Hero section: Value proposition, "Get Started" CTA
+    How it works: 3 steps (illustrated)
+    Features showcase: Journey, Laws, Translation, Calculators (cards)
+    Testimonials: 3-5 user quotes
+    Pricing: Free vs. Premium comparison
+    FAQ: Top 5 questions (accordion)
+    Final CTA: "Start Your Free Journey"
+    Journey dashboard:
+    Progress overview card (top, prominent)
+    Phase accordion list (expandable)
+    Quick actions sidebar (right, desktop)
+    Upcoming deadlines widget
+    Budget tracker widget
+    Step detail page:
+    Breadcrumb navigation
+    Step header (title, time, cost)
+    Task checklist (expandable)
+    Laws section (sidebar on desktop)
+    Helpful tools (embedded or linked)
+    Navigation footer (prev/next step)
+    Law detail page:
+    Header (title, bookmark, share)
+    Quick summary (highlighted box)
+    What this means for you (tabs by role)
+    Real-world example (colored background)
+    Detailed explanation (collapsible on mobile)
+    Related laws (sidebar)
+    Original text (collapsible)
+    Calculator result page:
+    Input summary (top, editable)
+    Results headline (prominent, large text)
+    Visual breakdown (chart)
+    Detailed breakdown (table)
+    Actions (save, download, share)
+
+
+--------------------------------------------------------------------------------
+8.5 RESPONSIVE DESIGN BREAKPOINTS
+--------------------------------------------------------------------------------
+
+    Breakpoints:
+    xs: < 640px (Mobile portrait)
+    sm: ≥ 640px (Mobile landscape, small tablets)
+    md: ≥ 768px (Tablets)
+    lg: ≥ 1024px (Desktop)
+    xl: ≥ 1280px (Large desktop)
+    2xl: ≥ 1536px (Extra large)
+    Responsive behavior:
+    Navigation: Hamburger menu on mobile, full nav on desktop
+    Sidebar: Hidden/drawer on mobile, fixed on desktop
+    Grids: 1 column (mobile), 2 columns (tablet), 3-4 columns (desktop)
+    Tables: Horizontal scroll on mobile, or convert to cards
+    Modals: Full screen on mobile, centered card on desktop
+    Font sizes: Slightly smaller on mobile (scale factor 0.9)
+
+
+--------------------------------------------------------------------------------
+8.6 ACCESSIBILITY REQUIREMENTS
+--------------------------------------------------------------------------------
+
+    WCAG 2.1 Level AA compliance:
+    Perceivable:
+    Text contrast ratio ≥ 4.5:1 (body text), ≥ 3:1 (large text)
+    All images have alt text
+    Color not the only means of conveying information
+    Captions for videos (future)
+    Operable:
+    All functionality available via keyboard
+    No keyboard traps
+    Skip to main content link
+    Focus indicators visible (blue ring)
+    No time limits on interactions (except sessions)
+    Understandable:
+    Clear, consistent navigation
+    Form labels and instructions
+    Error messages descriptive and helpful
+    Consistent terminology throughout
+    Robust:
+    Valid HTML5 semantic markup
+    ARIA labels where needed
+    Screen reader compatible
+    Testing:
+    Manual keyboard navigation testing
+    Screen reader testing (NVDA, JAWS, VoiceOver)
+    Automated tools (Axe, Lighthouse)
+    Color blindness simulator (check contrast)
+
+
+--------------------------------------------------------------------------------
+8.7 ANIMATION AND MICRO-INTERACTIONS
+--------------------------------------------------------------------------------
+
+    Principles:
+    Purposeful: Animations guide attention, provide feedback
+    Subtle: No distracting or excessive animations
+    Fast: Duration 200-300ms (transitions), 500ms max (page loads)
+    Skippable: Respect prefers-reduced-motion (accessibility)
+    Examples:
+    Button hover: Background darkens, slight lift (shadow)
+    Card hover: Subtle lift effect (increase shadow)
+    Loading states: Skeleton loaders (not spinners)
+    Page transitions: Fade in (300ms)
+    Toast notifications: Slide in from top
+    Accordion expand: Smooth height transition
+    Progress bars: Animated fill (smooth)
+    Success states: Checkmark animation (bounce in)
+    Easing functions:
+    Default: ease-in-out (cubic-bezier(0.4, 0, 0.2, 1))
+    Entrances: ease-out (decelerate)
+    Exits: ease-in (accelerate)
+
+
+--------------------------------------------------------------------------------
+8.8 DESIGN DELIVERABLES
+--------------------------------------------------------------------------------
+
+    For development handoff:
+    Component library (Figma or similar):
+    All reusable components with variants
+    Interactive prototypes for complex flows
+    Design specifications:
+    Color codes (hex)
+    Typography (font families, sizes, weights)
+    Spacing values
+    Border radius, shadows
+    Page mockups (high-fidelity):
+    Key pages at all breakpoints (mobile, tablet, desktop)
+    Different states (empty, loading, error, success)
+    User flows:
+    Journey initialization flow
+    Document translation flow
+    Payment flow
+    Assets:
+    Logo (SVG, multiple sizes)
+    Icons (SVG)
+    Illustrations (if custom)
+    Images (optimized for web)
+
+    Appendices
+    Appendix A: Glossary
+    MVP: Minimum Viable Product - first version with core features Journey: Step-by-step guided process through property buying WEG: Wohnungseigentumsgemeinschaft - condominium ownership Hausgeld: Monthly condominium fees Grundbuch: Official land registry in Germany Notar: Notary public (required for property transactions in Germany) Kaufvertrag: Purchase contract Mietvertrag: Rental agreement SCHUFA: German credit bureau Grunderwerbsteuer: Land transfer tax BestellPG: Law governing who pays real estate agent commission
+    Appendix B: Abbreviations
+    API: Application Programming Interface CTA: Call to Action GDPR: General Data Protection Regulation JWT: JSON Web Token KPI: Key Performance Indicator MRR: Monthly Recurring Revenue NPS: Net Promoter Score PRD: Product Requirements Document ROI: Return on Investment SEO: Search Engine Optimization UI/UX: User Interface / User Experience WCAG: Web Content Accessibility Guidelines
+    Appendix C: References
+    Functional Requirements Document v1.0
+    Technical Architecture Specification
+    German Federal Ministry of Justice: https://www.gesetze-im-internet.de
+    GDPR Official Text: https://gdpr.eu
+    WCAG 2.1 Guidelines: https://www.w3.org/WAI/WCAG21/quickref/
+
+    Document Control:
+Version: 1.0
+Date: January 27, 2026
+Author: Product Management Team
+    Approvals Required: Product Owner, Tech Lead, Stakeholders
+    Next Review: After MVP launch (Month 6)
+    Change Log:
+    v1.0 (2026-01-27): Initial PRD based on functional requirements
+
+    END OF PRODUCT REQUIREMENTS DOCUMENT
+    </PRD>
+

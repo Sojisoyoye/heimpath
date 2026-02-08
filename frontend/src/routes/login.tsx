@@ -1,0 +1,167 @@
+import { zodResolver } from "@hookform/resolvers/zod"
+import {
+  createFileRoute,
+  Link as RouterLink,
+  redirect,
+} from "@tanstack/react-router"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
+import type { Body_login_login_access_token as AccessToken } from "@/client"
+import { AuthLayout } from "@/components/Common/AuthLayout"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { LoadingButton } from "@/components/ui/loading-button"
+import { PasswordInput } from "@/components/ui/password-input"
+import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+
+/******************************************************************************
+                              Constants
+******************************************************************************/
+
+const formSchema = z.object({
+  username: z.string().email({ message: "Please enter a valid email address" }),
+  password: z
+    .string()
+    .min(1, { message: "Password is required" })
+    .min(8, { message: "Password must be at least 8 characters" }),
+}) satisfies z.ZodType<AccessToken>
+
+type FormData = z.infer<typeof formSchema>
+
+/******************************************************************************
+                              Route
+******************************************************************************/
+
+export const Route = createFileRoute("/login")({
+  component: Login,
+  beforeLoad: async () => {
+    if (isLoggedIn()) {
+      throw redirect({ to: "/" })
+    }
+  },
+  head: () => ({
+    meta: [{ title: "Log In - HeimPath" }],
+  }),
+})
+
+/******************************************************************************
+                              Components
+******************************************************************************/
+
+/** Default component. Login page. */
+function Login() {
+  const { loginMutation } = useAuth()
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    mode: "onBlur",
+    criteriaMode: "all",
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  })
+
+  const onSubmit = (data: FormData) => {
+    if (loginMutation.isPending) return
+    loginMutation.mutate(data)
+  }
+
+  return (
+    <AuthLayout>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-6"
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold">Welcome back</h1>
+            <p className="text-sm text-muted-foreground">
+              Sign in to continue your property journey
+            </p>
+          </div>
+
+          <div className="grid gap-4">
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="email-input"
+                      placeholder="you@example.com"
+                      type="email"
+                      autoComplete="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center">
+                    <FormLabel>Password</FormLabel>
+                    <RouterLink
+                      to="/recover-password"
+                      className="ml-auto text-sm text-muted-foreground underline-offset-4 hover:underline hover:text-foreground"
+                    >
+                      Forgot password?
+                    </RouterLink>
+                  </div>
+                  <FormControl>
+                    <PasswordInput
+                      data-testid="password-input"
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <LoadingButton
+              type="submit"
+              className="w-full"
+              loading={loginMutation.isPending}
+            >
+              Sign In
+            </LoadingButton>
+          </div>
+
+          <div className="text-center text-sm text-muted-foreground">
+            New to HeimPath?{" "}
+            <RouterLink
+              to="/signup"
+              className="font-medium text-foreground underline underline-offset-4 hover:text-blue-600"
+            >
+              Create an account
+            </RouterLink>
+          </div>
+        </form>
+      </Form>
+    </AuthLayout>
+  )
+}
+
+/******************************************************************************
+                              Export
+******************************************************************************/
+
+export default Login
