@@ -7,7 +7,6 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { JourneyDetail } from "@/components/Journey"
 import { useJourney, useJourneyProgress } from "@/hooks/queries"
-import { useUpdateTask } from "@/hooks/mutations"
 
 /******************************************************************************
                               Route
@@ -35,9 +34,6 @@ function JourneyDetailPage() {
   } = useJourney(journeyId)
 
   const { data: progress } = useJourneyProgress(journeyId)
-
-  // We need the stepId for the mutation, so we'll track it when toggling
-  const updateTaskMutation = useUpdateTask(journeyId, "")
 
   const handleTaskToggle = (
     stepId: string,

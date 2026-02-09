@@ -1,61 +1,141 @@
-import { createFileRoute } from "@tanstack/react-router"
+/**
+ * Settings Page
+ * User account settings and profile management
+ */
 
-import ChangePassword from "@/components/UserSettings/ChangePassword"
-import DeleteAccount from "@/components/UserSettings/DeleteAccount"
-import UserInformation from "@/components/UserSettings/UserInformation"
+import { createFileRoute } from "@tanstack/react-router"
+import { Settings, User, Crown, Shield } from "lucide-react"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import ChangePassword from "@/components/UserSettings/ChangePassword"
+import UserInformation from "@/components/UserSettings/UserInformation"
+import {
+  ProfileHeader,
+  SubscriptionCard,
+  SubscriptionUpgrade,
+  DataExportButton,
+  DeleteAccountModal,
+} from "@/components/Profile"
 import useAuth from "@/hooks/useAuth"
 
-const tabsConfig = [
-  { value: "my-profile", title: "My profile", component: UserInformation },
-  { value: "password", title: "Password", component: ChangePassword },
-  { value: "danger-zone", title: "Danger zone", component: DeleteAccount },
-]
+/******************************************************************************
+                              Route
+******************************************************************************/
 
 export const Route = createFileRoute("/_layout/settings")({
-  component: UserSettings,
+  component: SettingsPage,
   head: () => ({
-    meta: [
-      {
-        title: "Settings - FastAPI Cloud",
-      },
-    ],
+    meta: [{ title: "Settings - HeimPath" }],
   }),
 })
 
-function UserSettings() {
+/******************************************************************************
+                              Components
+******************************************************************************/
+
+/** Profile tab content. */
+function ProfileTab() {
+  const { user } = useAuth()
+
+  if (!user) return null
+
+  return (
+    <div className="space-y-6">
+      <ProfileHeader
+        fullName={user.full_name || "User"}
+        email={user.email}
+        citizenship={user.citizenship}
+        subscriptionTier={user.subscription_tier || "free"}
+        emailVerified={user.email_verified ?? false}
+        createdAt={user.created_at || new Date().toISOString()}
+      />
+      <UserInformation />
+    </div>
+  )
+}
+
+/** Subscription tab content. */
+function SubscriptionTab() {
+  const { user } = useAuth()
+  const currentTier = user?.subscription_tier || "free"
+
+  return (
+    <div className="space-y-6">
+      <SubscriptionCard tier={currentTier} />
+      <SubscriptionUpgrade currentTier={currentTier} />
+    </div>
+  )
+}
+
+/** Security tab content. */
+function SecurityTab() {
+  const { user } = useAuth()
+
+  return (
+    <div className="space-y-6">
+      <ChangePassword />
+      <DataExportButton />
+      {user && (
+        <DeleteAccountModal email={user.email} />
+      )}
+    </div>
+  )
+}
+
+/** Default component. Settings page with tabs. */
+function SettingsPage() {
   const { user: currentUser } = useAuth()
-  const finalTabs = currentUser?.is_superuser
-    ? tabsConfig.slice(0, 3)
-    : tabsConfig
 
   if (!currentUser) {
     return null
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">User Settings</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Settings className="h-6 w-6" />
+          Settings
+        </h1>
         <p className="text-muted-foreground">
           Manage your account settings and preferences
         </p>
       </div>
 
-      <Tabs defaultValue="my-profile">
-        <TabsList>
-          {finalTabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.title}
-            </TabsTrigger>
-          ))}
+      <Tabs defaultValue="profile">
+        <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsTrigger value="profile" className="gap-2">
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className="gap-2">
+            <Crown className="h-4 w-4" />
+            <span className="hidden sm:inline">Subscription</span>
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">Security</span>
+          </TabsTrigger>
         </TabsList>
-        {finalTabs.map((tab) => (
-          <TabsContent key={tab.value} value={tab.value}>
-            <tab.component />
-          </TabsContent>
-        ))}
+
+        <TabsContent value="profile" className="mt-6">
+          <ProfileTab />
+        </TabsContent>
+
+        <TabsContent value="subscription" className="mt-6">
+          <SubscriptionTab />
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-6">
+          <SecurityTab />
+        </TabsContent>
       </Tabs>
     </div>
   )
 }
+
+/******************************************************************************
+                              Export
+******************************************************************************/
+
+export default SettingsPage
