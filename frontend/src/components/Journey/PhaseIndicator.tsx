@@ -7,7 +7,6 @@ import { Check } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { JOURNEY_PHASES } from "@/common/constants"
-import Colors from "@/common/styles/Colors"
 import type { JourneyPhase } from "@/models/journey"
 
 interface IProps {
@@ -15,17 +14,6 @@ interface IProps {
   completedPhases?: JourneyPhase[]
   variant?: "horizontal" | "vertical"
   className?: string
-}
-
-/******************************************************************************
-                              Constants
-******************************************************************************/
-
-const PHASE_COLORS: Record<JourneyPhase, string> = {
-  research: Colors.Journey.Research,
-  preparation: Colors.Journey.Preparation,
-  buying: Colors.Journey.Buying,
-  closing: Colors.Journey.Closing,
 }
 
 /******************************************************************************
@@ -41,7 +29,6 @@ function PhaseStep(props: {
   variant: "horizontal" | "vertical"
 }) {
   const { phase, isCurrent, isCompleted, isLast, variant } = props
-  const phaseKey = phase.key as JourneyPhase
 
   return (
     <div

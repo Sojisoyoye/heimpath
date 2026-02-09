@@ -36,7 +36,11 @@ export function Main({ items }: MainProps) {
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isActive = currentPath === item.path
+            // Check if current path matches or starts with the item path (for nested routes)
+            const isActive =
+              item.path === "/"
+                ? currentPath === "/"
+                : currentPath === item.path || currentPath.startsWith(`${item.path}/`)
 
             return (
               <SidebarMenuItem key={item.title}>

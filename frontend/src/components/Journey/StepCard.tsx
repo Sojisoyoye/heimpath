@@ -23,7 +23,6 @@ import type { JourneyStep, StepStatus } from "@/models/journey"
 interface IProps {
   step: JourneyStep
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
-  onStepStatusChange?: (stepId: string, status: StepStatus) => void
   isActive?: boolean
   defaultExpanded?: boolean
   className?: string
@@ -89,7 +88,6 @@ function StepCard(props: IProps) {
   const {
     step,
     onTaskToggle,
-    onStepStatusChange,
     isActive = false,
     defaultExpanded = false,
     className,

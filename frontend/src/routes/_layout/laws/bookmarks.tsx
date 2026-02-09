@@ -1,22 +1,22 @@
 /**
- * New Journey Page
- * Multi-step wizard for creating a personalized property buying journey
+ * Bookmarks Page
+ * Displays user's bookmarked laws
  */
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { JourneyWizard } from "@/components/Journey"
+import { BookmarksList } from "@/components/Legal"
 
 /******************************************************************************
                               Route
 ******************************************************************************/
 
-export const Route = createFileRoute("/_layout/journeys/new")({
-  component: NewJourneyPage,
+export const Route = createFileRoute("/_layout/laws/bookmarks")({
+  component: BookmarksPage,
   head: () => ({
-    meta: [{ title: "Create Journey - HeimPath" }],
+    meta: [{ title: "My Bookmarks - HeimPath" }],
   }),
 })
 
@@ -24,25 +24,25 @@ export const Route = createFileRoute("/_layout/journeys/new")({
                               Components
 ******************************************************************************/
 
-/** Default component. New journey page with wizard. */
-function NewJourneyPage() {
+/** Default component. Bookmarks page. */
+function BookmarksPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link to="/journeys">
+          <Link to="/laws">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Create New Journey</h1>
+          <h1 className="text-2xl font-bold">My Bookmarks</h1>
           <p className="text-muted-foreground">
-            Answer a few questions to get your personalized property buying guide
+            Laws you've saved for quick reference
           </p>
         </div>
       </div>
 
-      <JourneyWizard className="mx-auto max-w-4xl" />
+      <BookmarksList />
     </div>
   )
 }
@@ -51,4 +51,4 @@ function NewJourneyPage() {
                               Export
 ******************************************************************************/
 
-export default NewJourneyPage
+export default BookmarksPage

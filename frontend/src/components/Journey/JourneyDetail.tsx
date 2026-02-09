@@ -16,7 +16,7 @@ import { PhaseIndicator } from "./PhaseIndicator"
 import { ProgressBar } from "./ProgressBar"
 import { StepCard } from "./StepCard"
 import { GERMAN_STATES, PROPERTY_TYPES, FINANCING_TYPES } from "@/common/constants"
-import type { JourneyPublic, JourneyProgress, JourneyPhase } from "@/models/journey"
+import type { JourneyPublic, JourneyProgress } from "@/models/journey"
 
 interface IProps {
   journey: JourneyPublic
@@ -177,18 +177,6 @@ function JourneyDetail(props: IProps) {
   const propertyLabel =
     PROPERTY_TYPES.find((p) => p.value === journey.propertyType)?.label.split(" ")[0] ||
     journey.propertyType
-
-  // Group steps by phase
-  const stepsByPhase = journey.steps.reduce(
-    (acc, step) => {
-      if (!acc[step.phase]) {
-        acc[step.phase] = []
-      }
-      acc[step.phase].push(step)
-      return acc
-    },
-    {} as Record<JourneyPhase, typeof journey.steps>
-  )
 
   return (
     <div className={cn("space-y-6", className)}>
