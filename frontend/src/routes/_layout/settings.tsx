@@ -39,14 +39,21 @@ function ProfileTab() {
 
   if (!user) return null
 
+  // Cast to access extended properties that may be added to backend later
+  const extendedUser = user as typeof user & {
+    citizenship?: string
+    subscription_tier?: "free" | "premium" | "enterprise"
+    email_verified?: boolean
+  }
+
   return (
     <div className="space-y-6">
       <ProfileHeader
         fullName={user.full_name || "User"}
         email={user.email}
-        citizenship={user.citizenship}
-        subscriptionTier={user.subscription_tier || "free"}
-        emailVerified={user.email_verified ?? false}
+        citizenship={extendedUser.citizenship}
+        subscriptionTier={extendedUser.subscription_tier || "free"}
+        emailVerified={extendedUser.email_verified ?? false}
         createdAt={user.created_at || new Date().toISOString()}
       />
       <UserInformation />
@@ -57,7 +64,12 @@ function ProfileTab() {
 /** Subscription tab content. */
 function SubscriptionTab() {
   const { user } = useAuth()
-  const currentTier = user?.subscription_tier || "free"
+
+  // Cast to access extended properties that may be added to backend later
+  const extendedUser = user as typeof user & {
+    subscription_tier?: "free" | "premium" | "enterprise"
+  }
+  const currentTier = extendedUser?.subscription_tier || "free"
 
   return (
     <div className="space-y-6">
