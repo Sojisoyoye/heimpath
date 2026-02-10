@@ -10,3 +10,4 @@ node_modules/
 .copier/
 .DS_Store
 **/.env
+CONTRIBUTING.md
