@@ -25,6 +25,8 @@ import { Route as LayoutLawsBookmarksRouteImport } from './routes/_layout/laws/b
 import { Route as LayoutLawsLawIdRouteImport } from './routes/_layout/laws/$lawId'
 import { Route as LayoutJourneysNewRouteImport } from './routes/_layout/journeys/new'
 import { Route as LayoutJourneysJourneyIdRouteImport } from './routes/_layout/journeys/$journeyId'
+import { Route as LayoutJourneysJourneyIdIndexRouteImport } from './routes/_layout/journeys/$journeyId.index'
+import { Route as LayoutJourneysJourneyIdPropertyEvaluationRouteImport } from './routes/_layout/journeys/$journeyId.property-evaluation'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -105,6 +107,18 @@ const LayoutJourneysJourneyIdRoute = LayoutJourneysJourneyIdRouteImport.update({
   path: '/journeys/$journeyId',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutJourneysJourneyIdIndexRoute =
+  LayoutJourneysJourneyIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LayoutJourneysJourneyIdRoute,
+  } as any)
+const LayoutJourneysJourneyIdPropertyEvaluationRoute =
+  LayoutJourneysJourneyIdPropertyEvaluationRouteImport.update({
+    id: '/property-evaluation',
+    path: '/property-evaluation',
+    getParentRoute: () => LayoutJourneysJourneyIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
@@ -116,12 +130,14 @@ export interface FileRoutesByFullPath {
   '/calculators': typeof LayoutCalculatorsRoute
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
-  '/journeys/$journeyId': typeof LayoutJourneysJourneyIdRoute
+  '/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
   '/journeys/': typeof LayoutJourneysIndexRoute
   '/laws/': typeof LayoutLawsIndexRoute
+  '/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
+  '/journeys/$journeyId/': typeof LayoutJourneysJourneyIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -133,12 +149,13 @@ export interface FileRoutesByTo {
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
-  '/journeys/$journeyId': typeof LayoutJourneysJourneyIdRoute
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
   '/journeys': typeof LayoutJourneysIndexRoute
   '/laws': typeof LayoutLawsIndexRoute
+  '/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
+  '/journeys/$journeyId': typeof LayoutJourneysJourneyIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,12 +169,14 @@ export interface FileRoutesById {
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
-  '/_layout/journeys/$journeyId': typeof LayoutJourneysJourneyIdRoute
+  '/_layout/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
   '/_layout/journeys/new': typeof LayoutJourneysNewRoute
   '/_layout/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/_layout/laws/bookmarks': typeof LayoutLawsBookmarksRoute
   '/_layout/journeys/': typeof LayoutJourneysIndexRoute
   '/_layout/laws/': typeof LayoutLawsIndexRoute
+  '/_layout/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
+  '/_layout/journeys/$journeyId/': typeof LayoutJourneysJourneyIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -177,6 +196,8 @@ export interface FileRouteTypes {
     | '/laws/bookmarks'
     | '/journeys/'
     | '/laws/'
+    | '/journeys/$journeyId/property-evaluation'
+    | '/journeys/$journeyId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -188,12 +209,13 @@ export interface FileRouteTypes {
     | '/items'
     | '/settings'
     | '/'
-    | '/journeys/$journeyId'
     | '/journeys/new'
     | '/laws/$lawId'
     | '/laws/bookmarks'
     | '/journeys'
     | '/laws'
+    | '/journeys/$journeyId/property-evaluation'
+    | '/journeys/$journeyId'
   id:
     | '__root__'
     | '/_layout'
@@ -212,6 +234,8 @@ export interface FileRouteTypes {
     | '/_layout/laws/bookmarks'
     | '/_layout/journeys/'
     | '/_layout/laws/'
+    | '/_layout/journeys/$journeyId/property-evaluation'
+    | '/_layout/journeys/$journeyId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -336,8 +360,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutJourneysJourneyIdRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/journeys/$journeyId/': {
+      id: '/_layout/journeys/$journeyId/'
+      path: '/'
+      fullPath: '/journeys/$journeyId/'
+      preLoaderRoute: typeof LayoutJourneysJourneyIdIndexRouteImport
+      parentRoute: typeof LayoutJourneysJourneyIdRoute
+    }
+    '/_layout/journeys/$journeyId/property-evaluation': {
+      id: '/_layout/journeys/$journeyId/property-evaluation'
+      path: '/property-evaluation'
+      fullPath: '/journeys/$journeyId/property-evaluation'
+      preLoaderRoute: typeof LayoutJourneysJourneyIdPropertyEvaluationRouteImport
+      parentRoute: typeof LayoutJourneysJourneyIdRoute
+    }
   }
 }
+
+interface LayoutJourneysJourneyIdRouteChildren {
+  LayoutJourneysJourneyIdPropertyEvaluationRoute: typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
+  LayoutJourneysJourneyIdIndexRoute: typeof LayoutJourneysJourneyIdIndexRoute
+}
+
+const LayoutJourneysJourneyIdRouteChildren: LayoutJourneysJourneyIdRouteChildren =
+  {
+    LayoutJourneysJourneyIdPropertyEvaluationRoute:
+      LayoutJourneysJourneyIdPropertyEvaluationRoute,
+    LayoutJourneysJourneyIdIndexRoute: LayoutJourneysJourneyIdIndexRoute,
+  }
+
+const LayoutJourneysJourneyIdRouteWithChildren =
+  LayoutJourneysJourneyIdRoute._addFileChildren(
+    LayoutJourneysJourneyIdRouteChildren,
+  )
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
@@ -345,7 +400,7 @@ interface LayoutRouteChildren {
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
-  LayoutJourneysJourneyIdRoute: typeof LayoutJourneysJourneyIdRoute
+  LayoutJourneysJourneyIdRoute: typeof LayoutJourneysJourneyIdRouteWithChildren
   LayoutJourneysNewRoute: typeof LayoutJourneysNewRoute
   LayoutLawsLawIdRoute: typeof LayoutLawsLawIdRoute
   LayoutLawsBookmarksRoute: typeof LayoutLawsBookmarksRoute
@@ -359,7 +414,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
-  LayoutJourneysJourneyIdRoute: LayoutJourneysJourneyIdRoute,
+  LayoutJourneysJourneyIdRoute: LayoutJourneysJourneyIdRouteWithChildren,
   LayoutJourneysNewRoute: LayoutJourneysNewRoute,
   LayoutLawsLawIdRoute: LayoutLawsLawIdRoute,
   LayoutLawsBookmarksRoute: LayoutLawsBookmarksRoute,

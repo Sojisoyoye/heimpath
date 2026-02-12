@@ -3,7 +3,8 @@
  * Displays a journey step with tasks and status
  */
 
-import { ChevronDown, ChevronRight, Check, Clock, Circle } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
+import { ChevronDown, ChevronRight, Check, Clock, Circle, Calculator } from "lucide-react"
 import { useState } from "react"
 
 import { cn } from "@/common/utils"
@@ -18,14 +19,22 @@ import {
 } from "@/components/ui/card"
 import { TaskCheckbox } from "./TaskCheckbox"
 import { ProgressBar } from "./ProgressBar"
-import type { JourneyStep, StepStatus } from "@/models/journey"
+import { PropertyGoalsForm } from "./StepContent/PropertyGoalsForm"
+import { MarketInsights } from "./StepContent/MarketInsights"
+import type { JourneyStep, StepStatus, PropertyGoals, PropertyType } from "@/models/journey"
 
 interface IProps {
   step: JourneyStep
+  journeyId: string
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
   isActive?: boolean
   defaultExpanded?: boolean
   className?: string
+  // Journey data for step content
+  propertyLocation?: string
+  propertyType?: PropertyType
+  budgetEuros?: number
+  propertyGoals?: PropertyGoals
 }
 
 /******************************************************************************
@@ -87,15 +96,21 @@ function StatusBadge(props: { status: StepStatus }) {
 function StepCard(props: IProps) {
   const {
     step,
+    journeyId,
     onTaskToggle,
     isActive = false,
     defaultExpanded = false,
     className,
+    propertyLocation,
+    propertyType,
+    budgetEuros,
+    propertyGoals,
   } = props
 
+  const navigate = useNavigate()
   const [isExpanded, setIsExpanded] = useState(defaultExpanded || isActive)
 
-  const completedTasks = step.tasks.filter((t) => t.isCompleted).length
+  const completedTasks = step.tasks.filter((t) => t.is_completed).length
   const totalTasks = step.tasks.length
   const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
 
@@ -123,7 +138,7 @@ function StepCard(props: IProps) {
                 {step.phase.charAt(0).toUpperCase() + step.phase.slice(1)}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                Step {step.stepNumber}
+                Step {step.step_number}
               </span>
             </div>
             <CardTitle className="text-lg">{step.title}</CardTitle>
@@ -178,10 +193,49 @@ function StepCard(props: IProps) {
         </>
       )}
 
-      {step.estimatedDuration && (
+      {/* Step 1: Property Goals Form */}
+      {step.step_number === 1 && (
+        <div className="px-6 pb-4">
+          <PropertyGoalsForm
+            journeyId={journeyId}
+            initialGoals={propertyGoals}
+          />
+        </div>
+      )}
+
+      {/* Step 2: Market Insights */}
+      {step.step_number === 2 && (
+        <div className="px-6 pb-4">
+          <MarketInsights
+            propertyLocation={propertyLocation}
+            propertyType={propertyType}
+            budgetEuros={budgetEuros}
+            propertyGoals={propertyGoals}
+          />
+        </div>
+      )}
+
+      {/* Property Evaluation Calculator button for Step 3 */}
+      {step.step_number === 3 && (
+        <div className="px-6 pb-4">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate({
+              to: "/journeys/$journeyId/property-evaluation",
+              params: { journeyId },
+            })}
+          >
+            <Calculator className="h-4 w-4" />
+            Property Evaluation Calculator
+          </Button>
+        </div>
+      )}
+
+      {step.estimated_duration_days && (
         <div className="px-6 pb-4">
           <p className="text-xs text-muted-foreground">
-            Estimated duration: {step.estimatedDuration}
+            Estimated duration: {step.estimated_duration_days} days
           </p>
         </div>
       )}
