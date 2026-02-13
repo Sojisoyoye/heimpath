@@ -81,7 +81,10 @@ function usePropertyEvaluation(state: PropertyEvaluationState): UsePropertyEvalu
     const debtServiceMonthly = monthlyInterest + monthlyRepayment;
 
     // ========== Tax Calculation ==========
-    const buildingValue = propertyInfo.purchasePrice * (rent.buildingSharePercent / 100);
+    // AfA basis = building share of purchase price + ALL incidental costs
+    const buildingValue =
+      propertyInfo.purchasePrice * (rent.buildingSharePercent / 100) +
+      totalIncidentalCosts;
     const depreciationYearly = buildingValue * (rent.depreciationRatePercent / 100);
     const depreciationMonthly = depreciationYearly / 12;
     const interestYearly = monthlyInterest * 12;
