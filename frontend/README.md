@@ -1,6 +1,8 @@
-# FastAPI Project - Frontend
+# HeimPath - Frontend
 
-The frontend is built with [Vite](https://vitejs.dev/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/), [TanStack Query](https://tanstack.com/query), [TanStack Router](https://tanstack.com/router) and [Tailwind CSS](https://tailwindcss.com/).
+HeimPath is a German Real Estate Navigator helping foreign investors and immigrants navigate property buying processes. The frontend provides guided journeys, document translation, financial calculators, and legal knowledge resources.
+
+Built with [Vite](https://vitejs.dev/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/), [TanStack Query](https://tanstack.com/query), [TanStack Router](https://tanstack.com/router) and [Tailwind CSS](https://tailwindcss.com/).
 
 ## Requirements
 
@@ -13,109 +15,112 @@ bun install
 bun run dev
 ```
 
-* Then open your browser at http://localhost:5173/.
+Then open your browser at http://localhost:5173/.
 
-Notice that this live server is not running inside Docker, it's for local development, and that is the recommended workflow. Once you are happy with your frontend, you can build the frontend Docker image and start it, to test it in a production-like environment. But building the image at every change will not be as productive as running the local development server with live reload.
+This live server is for local development with hot reload. For production-like testing, build the Docker image instead:
+
+```bash
+docker compose up --build frontend -d
+```
 
 Check the file `package.json` to see other available options.
 
-### Removing the frontend
+## Code Structure
 
-If you are developing an API-only app and want to remove the frontend, you can do it easily:
+```
+frontend/src/
+├── assets/                  Static assets
+├── common/
+│   ├── constants/           Shared constants and configuration values
+│   ├── styles/              Color tokens and shared styles
+│   └── utils/               Shared utility functions
+├── components/
+│   ├── Calculators/         Financial calculators (Property Evaluation)
+│   ├── Journey/             Journey wizard and step components
+│   └── ui/                  Reusable UI primitives (shadcn/ui)
+├── hooks/
+│   ├── queries/             React Query hooks for data fetching
+│   └── mutations/           React Query hooks for data mutations
+├── models/                  TypeScript models for domain entities
+├── routes/                  TanStack Router route definitions and pages
+└── services/                API service layer for backend communication
+```
 
-* Remove the `./frontend` directory.
+## Key Features
 
-* In the `compose.yml` file, remove the whole service / section `frontend`.
+### Guided Journeys
 
-* In the `compose.override.yml` file, remove the whole service / section `frontend` and `playwright`.
+Step-by-step workflows guiding users through the German property buying process. Journeys are personalized based on user citizenship and property situation, with task tracking and progress indicators.
 
-Done, you have a frontend-less (api-only) app. 🤓
+### Property Evaluation Calculator
 
----
+A comprehensive investment property analysis tool located in `src/components/Calculators/PropertyEvaluationCalculator/`. It provides five sections:
 
-If you want, you can also remove the `FRONTEND` environment variables from:
+* **Property Information** - Address, size, purchase price, and transaction fees (broker, notary, land registry, transfer tax). Tip: retrieve from the property listing (Expose).
+* **Rent, Taxes, Forecast** - Monthly rent inputs, depreciation (AfA) settings, marginal tax rate, and forecast assumptions for cost, rent, and value increases. Tip: retrieve rent from the Expose.
+* **Operating Costs** - Allocable and non-allocable management costs (house allowance, property tax, reserves) entered as absolute EUR/month values. Tip: retrieve from the annual settlement (Abrechnung).
+* **Financing** - Loan percentage (of purchase price), interest rate, and initial repayment rate. Tip: retrieve from the bank offer.
+* **Evaluation** - Calculated results including gross rental yield, cold rent factor, monthly cashflow (before and after tax), tax calculation with AfA depreciation, and return on equity.
 
-* `.env`
-* `./scripts/*.sh`
+### Document Translation
 
-But it would be only to clean them up, leaving them won't really have any effect either way.
+Integration with translator for translating German legal and financial documents, with risk warnings for terms requiring manual review.
+
+## API Configuration
+
+To connect to a remote API, set the environment variable `VITE_API_URL` in `frontend/.env`:
+
+```env
+VITE_API_URL=https://api.my-domain.example.com
+```
 
 ## Generate Client
 
 ### Automatically
 
 * Activate the backend virtual environment.
-* From the top level project directory, run the script:
+* From the top level project directory, run:
 
 ```bash
 bash ./scripts/generate-client.sh
 ```
 
-* Commit the changes.
-
 ### Manually
 
 * Start the Docker Compose stack.
-
-* Download the OpenAPI JSON file from `http://localhost/api/v1/openapi.json` and copy it to a new file `openapi.json` at the root of the `frontend` directory.
-
-* To generate the frontend client, run:
+* Download the OpenAPI JSON file from `http://localhost/api/v1/openapi.json` and copy it to `openapi.json` at the root of the `frontend` directory.
+* Generate the frontend client:
 
 ```bash
 bun run generate-client
 ```
 
-* Commit the changes.
-
-Notice that everytime the backend changes (changing the OpenAPI schema), you should follow these steps again to update the frontend client.
-
-## Using a Remote API
-
-If you want to use a remote API, you can set the environment variable `VITE_API_URL` to the URL of the remote API. For example, you can set it in the `frontend/.env` file:
-
-```env
-VITE_API_URL=https://api.my-domain.example.com
-```
-
-Then, when you run the frontend, it will use that URL as the base URL for the API.
-
-## Code Structure
-
-The frontend code is structured as follows:
-
-* `frontend/src` - The main frontend code.
-* `frontend/src/assets` - Static assets.
-* `frontend/src/client` - The generated OpenAPI client.
-* `frontend/src/components` -  The different components of the frontend.
-* `frontend/src/hooks` - Custom hooks.
-* `frontend/src/routes` - The different routes of the frontend which include the pages.
+Every time the backend changes (OpenAPI schema), regenerate the client following these steps.
 
 ## End-to-End Testing with Playwright
 
-The frontend includes initial end-to-end tests using Playwright. To run the tests, you need to have the Docker Compose stack running. Start the stack with the following command:
+Start the Docker Compose stack:
 
 ```bash
 docker compose up -d --wait backend
 ```
 
-Then, you can run the tests with the following command:
+Run the tests:
 
 ```bash
 bunx playwright test
 ```
 
-You can also run your tests in UI mode to see the browser and interact with it running:
+Run tests in UI mode:
 
 ```bash
 bunx playwright test --ui
 ```
 
-To stop and remove the Docker Compose stack and clean the data created in tests, use the following command:
+Stop and clean up:
 
 ```bash
 docker compose down -v
 ```
 
-To update the tests, navigate to the tests directory and modify the existing test files or add new ones as needed.
-
-For more information on writing and running Playwright tests, refer to the official [Playwright documentation](https://playwright.dev/docs/intro).
+For more information, refer to the [Playwright documentation](https://playwright.dev/docs/intro).
