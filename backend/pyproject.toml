@@ -22,6 +22,8 @@ dependencies = [
     "asyncpg>=0.29.0",
     "sqlalchemy[asyncio]>=2.0",
     "stripe>=7.0.0",
+    "azure-ai-translation-text>=1.0.0",
+    "aiohttp>=3.9.0",
 ]
 
 [dependency-groups]

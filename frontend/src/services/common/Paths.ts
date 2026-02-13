@@ -33,6 +33,8 @@ export const PATHS = {
       `${API_V1}/journeys/${journeyId}/steps/${stepId}`,
     UPDATE_TASK: (journeyId: string, stepId: string, taskId: string) =>
       `${API_V1}/journeys/${journeyId}/steps/${stepId}/tasks/${taskId}`,
+    PROPERTY_GOALS: (journeyId: string) =>
+      `${API_V1}/journeys/${journeyId}/property-goals`,
   },
 
   // Legal Knowledge Base

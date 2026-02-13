@@ -12,6 +12,53 @@ from app.models.journey import (
 )
 
 
+# Property Goals schemas (Step 1)
+
+
+class PropertyGoals(BaseModel):
+    """Property goals and preferences from Step 1."""
+
+    # Property type preference (can differ from initial questionnaire)
+    preferred_property_type: str | None = None
+
+    # Room requirements
+    min_rooms: int | None = Field(default=None, ge=1, le=10)
+    min_bathrooms: int | None = Field(default=None, ge=1, le=5)
+
+    # Floor preferences
+    preferred_floor: str | None = None  # "ground", "middle", "top", "any"
+    has_elevator_required: bool = False
+
+    # Must-have features (checkboxes)
+    features: list[str] = Field(default_factory=list)
+    # e.g., ["balcony", "garden", "parking", "storage", "modern_kitchen", "energy_efficient"]
+
+    # Size preferences
+    min_size_sqm: int | None = Field(default=None, ge=10)
+    max_size_sqm: int | None = Field(default=None, ge=10)
+
+    # Additional notes (optional text input)
+    additional_notes: str | None = Field(default=None, max_length=1000)
+
+    # Completion status
+    is_completed: bool = False
+
+
+class PropertyGoalsUpdate(BaseModel):
+    """Schema for updating property goals."""
+
+    preferred_property_type: str | None = None
+    min_rooms: int | None = Field(default=None, ge=1, le=10)
+    min_bathrooms: int | None = Field(default=None, ge=1, le=5)
+    preferred_floor: str | None = None
+    has_elevator_required: bool | None = None
+    features: list[str] | None = None
+    min_size_sqm: int | None = Field(default=None, ge=10)
+    max_size_sqm: int | None = Field(default=None, ge=10)
+    additional_notes: str | None = Field(default=None, max_length=1000)
+    is_completed: bool | None = None
+
+
 # Questionnaire schemas
 
 
@@ -153,6 +200,7 @@ class JourneyResponse(BaseModel):
     has_german_residency: bool
     budget_euros: int | None = None
     target_purchase_date: datetime | None = None
+    property_goals: PropertyGoals | None = None
     started_at: datetime | None = None
     completed_at: datetime | None = None
     is_active: bool

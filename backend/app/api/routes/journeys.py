@@ -22,6 +22,8 @@ from app.schemas.journey import (
     JourneyTaskUpdate,
     JourneyUpdate,
     NextStepResponse,
+    PropertyGoals,
+    PropertyGoalsUpdate,
 )
 from app.services.journey_service import (
     InvalidStepTransitionError,
@@ -86,6 +88,7 @@ def create_journey(
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
+        property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
         is_active=journey.is_active,
@@ -136,6 +139,7 @@ def list_journeys(
                 has_german_residency=journey.has_german_residency,
                 budget_euros=journey.budget_euros,
                 target_purchase_date=journey.target_purchase_date,
+                property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
                 started_at=journey.started_at,
                 completed_at=journey.completed_at,
                 is_active=journey.is_active,
@@ -216,6 +220,7 @@ def get_journey(
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
+        property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
         is_active=journey.is_active,
@@ -280,6 +285,7 @@ def update_journey(
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
+        property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
         is_active=journey.is_active,
@@ -544,3 +550,77 @@ def delete_journey(
     session.commit()
 
     return Message(message="Journey deleted successfully")
+
+
+@router.get("/{journey_id}/property-goals", response_model=PropertyGoals)
+def get_property_goals(
+    journey_id: uuid.UUID,
+    session: Session = Depends(get_db),
+    current_user: CurrentUser = None,
+) -> PropertyGoals:
+    """
+    Get property goals for a journey (Step 1 data).
+    """
+    service = get_journey_service()
+    try:
+        journey = service.get_journey(
+            session=session,
+            journey_id=journey_id,
+            user_id=current_user.id,
+        )
+    except JourneyNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Journey not found",
+        )
+
+    if journey.property_goals:
+        return PropertyGoals(**journey.property_goals)
+
+    return PropertyGoals()
+
+
+@router.patch("/{journey_id}/property-goals", response_model=PropertyGoals)
+def update_property_goals(
+    journey_id: uuid.UUID,
+    request: PropertyGoalsUpdate,
+    session: Session = Depends(get_db),
+    current_user: CurrentUser = None,
+) -> PropertyGoals:
+    """
+    Update property goals for a journey (Step 1 data).
+
+    This endpoint allows users to define their property preferences:
+    - Number of rooms and bathrooms
+    - Floor preferences
+    - Must-have features (balcony, parking, etc.)
+    - Size requirements
+    - Additional notes
+    """
+    service = get_journey_service()
+    try:
+        journey = service.get_journey(
+            session=session,
+            journey_id=journey_id,
+            user_id=current_user.id,
+        )
+    except JourneyNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Journey not found",
+        )
+
+    # Get existing goals or create new
+    existing_goals = journey.property_goals or {}
+
+    # Merge updates
+    update_data = request.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        existing_goals[field] = value
+
+    journey.property_goals = existing_goals
+    session.add(journey)
+    session.commit()
+    session.refresh(journey)
+
+    return PropertyGoals(**journey.property_goals)

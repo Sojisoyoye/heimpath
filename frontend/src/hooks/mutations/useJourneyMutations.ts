@@ -6,7 +6,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { JourneyService } from "@/services/JourneyService";
 import { queryKeys } from "@/query/queryKeys";
-import type { JourneyCreate, JourneyStepUpdate, JourneyTaskUpdate } from "@/models/journey";
+import type { JourneyCreate, JourneyStepUpdate, JourneyTaskUpdate, PropertyGoalsUpdate } from "@/models/journey";
 
 /**
  * Create a new journey
@@ -67,7 +67,7 @@ export function useUpdateTask(journeyId: string, stepId: string) {
         queryKeys.journeys.detail(journeyId),
         (old: unknown) => {
           if (!old) return old;
-          const journey = old as { steps: Array<{ id: string; tasks: Array<{ id: string; isCompleted: boolean }> }> };
+          const journey = old as { steps: Array<{ id: string; tasks: Array<{ id: string; is_completed: boolean }> }> };
           return {
             ...journey,
             steps: journey.steps.map((step) =>
@@ -76,7 +76,7 @@ export function useUpdateTask(journeyId: string, stepId: string) {
                     ...step,
                     tasks: step.tasks.map((task) =>
                       task.id === taskId
-                        ? { ...task, isCompleted: data.isCompleted }
+                        ? { ...task, is_completed: data.is_completed }
                         : task
                     ),
                   }
@@ -103,6 +103,23 @@ export function useUpdateTask(journeyId: string, stepId: string) {
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.journeys.progress(journeyId),
+      });
+    },
+  });
+}
+
+/**
+ * Update property goals for a journey (Step 1)
+ */
+export function useUpdatePropertyGoals(journeyId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: PropertyGoalsUpdate) =>
+      JourneyService.updatePropertyGoals(journeyId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.journeys.detail(journeyId),
       });
     },
   });

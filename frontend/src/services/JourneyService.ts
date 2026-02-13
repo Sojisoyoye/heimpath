@@ -16,6 +16,8 @@ import type {
   JourneyStepUpdate,
   JourneyTaskUpdate,
   NextStepRecommendation,
+  PropertyGoals,
+  PropertyGoalsUpdate,
 } from "@/models/journey";
 
 interface JourneyListResponse {
@@ -105,6 +107,31 @@ class JourneyServiceClass {
     await request<void>(OpenAPI, {
       method: "PATCH",
       url: PATHS.JOURNEYS.UPDATE_TASK(journeyId, stepId, taskId),
+      body: data,
+      mediaType: "application/json",
+    });
+  }
+
+  /**
+   * Get property goals for a journey (Step 1)
+   */
+  async getPropertyGoals(journeyId: string): Promise<PropertyGoals> {
+    return request<PropertyGoals>(OpenAPI, {
+      method: "GET",
+      url: PATHS.JOURNEYS.PROPERTY_GOALS(journeyId),
+    });
+  }
+
+  /**
+   * Update property goals for a journey (Step 1)
+   */
+  async updatePropertyGoals(
+    journeyId: string,
+    data: PropertyGoalsUpdate
+  ): Promise<PropertyGoals> {
+    return request<PropertyGoals>(OpenAPI, {
+      method: "PATCH",
+      url: PATHS.JOURNEYS.PROPERTY_GOALS(journeyId),
       body: data,
       mediaType: "application/json",
     });

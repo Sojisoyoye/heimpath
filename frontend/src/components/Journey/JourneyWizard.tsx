@@ -221,14 +221,23 @@ function JourneyWizard(props: IProps) {
       return
     }
 
+    // Transform wizard state to backend-compatible format
+    const hasGermanResidency =
+      state.residencyStatus === "german_citizen" ||
+      state.residencyStatus === "eu_citizen" ||
+      state.residencyStatus === "non_eu_resident"
+
     const journeyData: JourneyCreate = {
-      propertyType: state.propertyType,
-      targetState: state.targetState,
-      financingType: state.financingType,
-      residencyStatus: state.residencyStatus,
-      budgetMin: state.budgetMin,
-      budgetMax: state.budgetMax,
-      targetDate: state.targetDate,
+      title: "My Property Journey",
+      questionnaire: {
+        property_type: state.propertyType,
+        property_location: state.targetState,
+        financing_type: state.financingType,
+        is_first_time_buyer: true, // Default value, can be added to wizard later
+        has_german_residency: hasGermanResidency,
+        budget_euros: state.budgetMax || state.budgetMin,
+        target_purchase_date: state.targetDate,
+      },
     }
 
     try {

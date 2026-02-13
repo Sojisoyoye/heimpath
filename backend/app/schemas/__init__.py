@@ -27,6 +27,8 @@ from app.schemas.journey import (
     JourneyTaskUpdate,
     JourneyUpdate,
     NextStepResponse,
+    PropertyGoals,
+    PropertyGoalsUpdate,
     QuestionnaireAnswers,
 )
 from app.schemas.user import (
@@ -44,6 +46,18 @@ from app.schemas.user import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+)
+from app.schemas.translation import (
+    BatchTranslationRequest,
+    BatchTranslationResponse,
+    LanguageDetectionRequest,
+    LanguageDetectionResponse,
+    LegalTermWarning,
+    RiskLevel,
+    SupportedLanguage,
+    TranslationRequest,
+    TranslationResponse,
+    TranslationResult,
 )
 
 __all__ = [
@@ -67,6 +81,8 @@ __all__ = [
     "Message",
     "NewPassword",
     "NextStepResponse",
+    "PropertyGoals",
+    "PropertyGoalsUpdate",
     "QuestionnaireAnswers",
     "RefreshTokenRequest",
     "RegisterRequest",
@@ -87,4 +103,14 @@ __all__ = [
     "UserUpdateMe",
     "VerifyEmailRequest",
     "VerifyEmailResponse",
+    "BatchTranslationRequest",
+    "BatchTranslationResponse",
+    "LanguageDetectionRequest",
+    "LanguageDetectionResponse",
+    "LegalTermWarning",
+    "RiskLevel",
+    "SupportedLanguage",
+    "TranslationRequest",
+    "TranslationResponse",
+    "TranslationResult",
 ]

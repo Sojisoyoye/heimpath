@@ -76,3 +76,7 @@ export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
 } as const;
+
+// Re-export property goals constants
+export * from "./propertyGoals";
+export * from "./propertyEvaluation";

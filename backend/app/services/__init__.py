@@ -43,6 +43,13 @@ from app.services.rate_limit_service import (
     RateLimitInfo,
     get_login_rate_limiter,
 )
+from app.services.translation_service import (
+    TranslationError,
+    TranslationResult,
+    TranslationService,
+    TranslationServiceNotConfiguredError,
+    get_translation_service,
+)
 
 __all__ = [
     "AuthService",
@@ -77,4 +84,9 @@ __all__ = [
     "get_login_rate_limiter",
     "get_password_reset_service",
     "get_payment_service",
+    "get_translation_service",
+    "TranslationError",
+    "TranslationResult",
+    "TranslationService",
+    "TranslationServiceNotConfiguredError",
 ]

@@ -121,6 +121,16 @@ class Settings(BaseSettings):
     def stripe_enabled(self) -> bool:
         return bool(self.STRIPE_SECRET_KEY)
 
+    # Azure Translator configuration (free tier: 2M chars/month)
+    AZURE_TRANSLATOR_KEY: str | None = None
+    AZURE_TRANSLATOR_REGION: str = "westeurope"
+    AZURE_TRANSLATOR_ENDPOINT: str = "https://api.cognitive.microsofttranslator.com"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def translator_enabled(self) -> bool:
+        return bool(self.AZURE_TRANSLATOR_KEY)
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (

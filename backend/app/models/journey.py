@@ -12,7 +12,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID, JSONB
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -108,6 +108,9 @@ class Journey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     has_german_residency = Column(Boolean, default=False, nullable=False)
     budget_euros = Column(Integer, nullable=True)
     target_purchase_date = Column(DateTime(timezone=True), nullable=True)
+
+    # Property goals (Step 1 user input)
+    property_goals = Column(JSONB, nullable=True)
 
     # Progress tracking
     started_at = Column(DateTime(timezone=True), nullable=True)

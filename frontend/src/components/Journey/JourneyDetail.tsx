@@ -38,16 +38,17 @@ function JourneyOverview(props: {
   const { journey, progress } = props
 
   const stateName =
-    GERMAN_STATES.find((s) => s.code === journey.targetState)?.name ||
-    journey.targetState
+    GERMAN_STATES.find((s) => s.code === journey.property_location)?.name ||
+    journey.property_location
   const propertyLabel =
-    PROPERTY_TYPES.find((p) => p.value === journey.propertyType)?.label ||
-    journey.propertyType
+    PROPERTY_TYPES.find((p) => p.value === journey.property_type)?.label ||
+    journey.property_type
   const financingLabel =
-    FINANCING_TYPES.find((f) => f.value === journey.financingType)?.label ||
-    journey.financingType
+    FINANCING_TYPES.find((f) => f.value === journey.financing_type)?.label ||
+    journey.financing_type
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "Not set"
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
@@ -85,11 +86,11 @@ function JourneyOverview(props: {
             <span className="text-muted-foreground">Financing:</span>
             <span className="font-medium">{financingLabel}</span>
           </div>
-          {journey.budgetMin && journey.budgetMax && (
+          {journey.budget_euros && (
             <div className="flex items-start gap-2 text-sm">
               <span className="text-muted-foreground">Budget:</span>
               <span className="font-medium">
-                {formatCurrency(journey.budgetMin)} - {formatCurrency(journey.budgetMax)}
+                {formatCurrency(journey.budget_euros)}
               </span>
             </div>
           )}
@@ -101,19 +102,19 @@ function JourneyOverview(props: {
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Started:</span>
-            <span className="font-medium">{formatDate(journey.startedAt)}</span>
+            <span className="font-medium">{formatDate(journey.started_at)}</span>
           </div>
-          {journey.targetDate && (
+          {journey.target_purchase_date && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Target:</span>
-              <span className="font-medium">{formatDate(journey.targetDate)}</span>
+              <span className="font-medium">{formatDate(journey.target_purchase_date)}</span>
             </div>
           )}
-          {progress?.estimatedDaysRemaining && (
+          {progress?.estimated_days_remaining && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Est. remaining:</span>
               <span className="font-medium">
-                {progress.estimatedDaysRemaining} days
+                {progress.estimated_days_remaining} days
               </span>
             </div>
           )}
@@ -125,11 +126,11 @@ function JourneyOverview(props: {
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Overall Progress</span>
             <span className="font-medium">
-              {progress?.completedSteps ?? 0} / {progress?.totalSteps ?? journey.steps.length} steps
+              {progress?.completed_steps ?? 0} / {progress?.total_steps ?? journey.steps.length} steps
             </span>
           </div>
           <ProgressBar
-            value={progress?.percentComplete ?? 0}
+            value={progress?.progress_percentage ?? 0}
             showLabel
             size="md"
           />
@@ -172,11 +173,11 @@ function JourneyDetail(props: IProps) {
   }
 
   const stateName =
-    GERMAN_STATES.find((s) => s.code === journey.targetState)?.name ||
-    journey.targetState
+    GERMAN_STATES.find((s) => s.code === journey.property_location)?.name ||
+    journey.property_location
   const propertyLabel =
-    PROPERTY_TYPES.find((p) => p.value === journey.propertyType)?.label.split(" ")[0] ||
-    journey.propertyType
+    PROPERTY_TYPES.find((p) => p.value === journey.property_type)?.label?.split(" ")[0] ||
+    journey.property_type
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -199,19 +200,19 @@ function JourneyDetail(props: IProps) {
           variant="secondary"
           className={cn(
             "text-sm",
-            journey.currentPhase === "research" && "bg-blue-100 text-blue-800",
-            journey.currentPhase === "preparation" && "bg-purple-100 text-purple-800",
-            journey.currentPhase === "buying" && "bg-orange-100 text-orange-800",
-            journey.currentPhase === "closing" && "bg-green-100 text-green-800"
+            journey.current_phase === "research" && "bg-blue-100 text-blue-800",
+            journey.current_phase === "preparation" && "bg-purple-100 text-purple-800",
+            journey.current_phase === "buying" && "bg-orange-100 text-orange-800",
+            journey.current_phase === "closing" && "bg-green-100 text-green-800"
           )}
         >
-          {journey.currentPhase.charAt(0).toUpperCase() + journey.currentPhase.slice(1)} Phase
+          {journey.current_phase.charAt(0).toUpperCase() + journey.current_phase.slice(1)} Phase
         </Badge>
       </div>
 
       {/* Phase indicator */}
       <PhaseIndicator
-        currentPhase={journey.currentPhase}
+        currentPhase={journey.current_phase}
         className="rounded-lg border bg-card p-4"
       />
 
@@ -223,9 +224,14 @@ function JourneyDetail(props: IProps) {
             <StepCard
               key={step.id}
               step={step}
+              journeyId={journey.id}
               onTaskToggle={onTaskToggle}
-              isActive={step.stepNumber === journey.currentStepNumber}
-              defaultExpanded={step.stepNumber === journey.currentStepNumber}
+              isActive={step.step_number === journey.current_step_number}
+              defaultExpanded={step.step_number === journey.current_step_number}
+              propertyLocation={journey.property_location}
+              propertyType={journey.property_type}
+              budgetEuros={journey.budget_euros}
+              propertyGoals={journey.property_goals}
             />
           ))}
         </div>

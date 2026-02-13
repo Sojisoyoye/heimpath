@@ -20,3 +20,6 @@ export { FinancingSelector } from "./FinancingSelector"
 export { BudgetInput } from "./BudgetInput"
 export { TimelineSelector } from "./TimelineSelector"
 export { ResidencySelector } from "./ResidencySelector"
+
+// Step content components
+export { PropertyGoalsForm, MarketInsights } from "./StepContent"

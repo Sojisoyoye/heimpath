@@ -47,17 +47,18 @@ function JourneyCard(props: IProps) {
   const { journey, progress, className } = props
 
   const stateName =
-    GERMAN_STATES.find((s) => s.code === journey.targetState)?.name ||
-    journey.targetState
+    GERMAN_STATES.find((s) => s.code === journey.property_location)?.name ||
+    journey.property_location
   const propertyLabel =
-    PROPERTY_TYPES.find((p) => p.value === journey.propertyType)?.label ||
-    journey.propertyType
+    PROPERTY_TYPES.find((p) => p.value === journey.property_type)?.label ||
+    journey.property_type
 
-  const completedSteps = progress?.completedSteps ?? 0
-  const totalSteps = progress?.totalSteps ?? journey.steps.length
-  const percentComplete = progress?.percentComplete ?? 0
+  const completedSteps = progress?.completed_steps ?? 0
+  const totalSteps = progress?.total_steps ?? journey.steps.length
+  const percentComplete = progress?.progress_percentage ?? 0
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "Not set"
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -71,7 +72,7 @@ function JourneyCard(props: IProps) {
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <CardTitle className="text-xl">
-              {propertyLabel.split(" ")[0]} in {stateName}
+              {propertyLabel?.split(" ")[0]} in {stateName}
             </CardTitle>
             <CardDescription className="flex items-center gap-4">
               <span className="flex items-center gap-1">
@@ -80,20 +81,20 @@ function JourneyCard(props: IProps) {
               </span>
               <span className="flex items-center gap-1">
                 <Home className="h-3.5 w-3.5" />
-                {propertyLabel.split(" ")[0]}
+                {propertyLabel?.split(" ")[0]}
               </span>
             </CardDescription>
           </div>
           <Badge
             variant="secondary"
             className={cn(
-              journey.currentPhase === "research" && "bg-blue-100 text-blue-800",
-              journey.currentPhase === "preparation" && "bg-purple-100 text-purple-800",
-              journey.currentPhase === "buying" && "bg-orange-100 text-orange-800",
-              journey.currentPhase === "closing" && "bg-green-100 text-green-800"
+              journey.current_phase === "research" && "bg-blue-100 text-blue-800",
+              journey.current_phase === "preparation" && "bg-purple-100 text-purple-800",
+              journey.current_phase === "buying" && "bg-orange-100 text-orange-800",
+              journey.current_phase === "closing" && "bg-green-100 text-green-800"
             )}
           >
-            {PHASE_LABELS[journey.currentPhase]}
+            {PHASE_LABELS[journey.current_phase]}
           </Badge>
         </div>
       </CardHeader>
@@ -112,16 +113,16 @@ function JourneyCard(props: IProps) {
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" />
-            Started {formatDate(journey.startedAt)}
+            Started {formatDate(journey.started_at)}
           </span>
-          {journey.targetDate && (
+          {journey.target_purchase_date && (
             <span className="flex items-center gap-1">
-              Target: {formatDate(journey.targetDate)}
+              Target: {formatDate(journey.target_purchase_date)}
             </span>
           )}
         </div>
 
-        {journey.budgetMin && journey.budgetMax && (
+        {journey.budget_euros && (
           <div className="text-sm">
             <span className="text-muted-foreground">Budget: </span>
             <span className="font-medium">
@@ -129,13 +130,7 @@ function JourneyCard(props: IProps) {
                 style: "currency",
                 currency: "EUR",
                 maximumFractionDigits: 0,
-              }).format(journey.budgetMin)}
-              {" - "}
-              {new Intl.NumberFormat("de-DE", {
-                style: "currency",
-                currency: "EUR",
-                maximumFractionDigits: 0,
-              }).format(journey.budgetMax)}
+              }).format(journey.budget_euros)}
             </span>
           </div>
         )}
