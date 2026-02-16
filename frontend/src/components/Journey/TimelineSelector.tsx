@@ -70,7 +70,7 @@ function PresetButton(props: {
         "rounded-full px-4 py-2 text-sm font-medium transition-all",
         isSelected
           ? "bg-blue-600 text-white"
-          : "bg-muted hover:bg-muted/80 text-foreground"
+          : "bg-muted hover:bg-muted/80 text-foreground",
       )}
     >
       {label}
@@ -101,7 +101,7 @@ function TimelineSelector(props: IProps) {
       const presetDate = getDateInMonths(preset.months)
       // Allow 7 days tolerance for matching
       const diff = Math.abs(
-        new Date(value).getTime() - new Date(presetDate).getTime()
+        new Date(value).getTime() - new Date(presetDate).getTime(),
       )
       if (diff < 7 * 24 * 60 * 60 * 1000) {
         return preset.months

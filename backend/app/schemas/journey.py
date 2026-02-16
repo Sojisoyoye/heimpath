@@ -1,4 +1,5 @@
 """Journey request/response schemas."""
+
 import uuid
 from datetime import datetime
 
@@ -10,7 +11,6 @@ from app.models.journey import (
     PropertyType,
     StepStatus,
 )
-
 
 # Property Goals schemas (Step 1)
 

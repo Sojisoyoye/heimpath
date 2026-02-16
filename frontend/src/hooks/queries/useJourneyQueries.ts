@@ -3,9 +3,9 @@
  * React Query hooks for journey data fetching
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { JourneyService } from "@/services/JourneyService";
-import { queryKeys } from "@/query/queryKeys";
+import { useQuery } from "@tanstack/react-query"
+import { queryKeys } from "@/query/queryKeys"
+import { JourneyService } from "@/services/JourneyService"
 
 /**
  * Get all journeys for the current user
@@ -14,7 +14,7 @@ export function useJourneys() {
   return useQuery({
     queryKey: queryKeys.journeys.list(),
     queryFn: () => JourneyService.getJourneys(),
-  });
+  })
 }
 
 /**
@@ -25,7 +25,7 @@ export function useJourney(journeyId: string) {
     queryKey: queryKeys.journeys.detail(journeyId),
     queryFn: () => JourneyService.getJourney(journeyId),
     enabled: !!journeyId,
-  });
+  })
 }
 
 /**
@@ -36,7 +36,7 @@ export function useJourneyProgress(journeyId: string) {
     queryKey: queryKeys.journeys.progress(journeyId),
     queryFn: () => JourneyService.getProgress(journeyId),
     enabled: !!journeyId,
-  });
+  })
 }
 
 /**
@@ -47,5 +47,5 @@ export function useNextStep(journeyId: string) {
     queryKey: queryKeys.journeys.nextStep(journeyId),
     queryFn: () => JourneyService.getNextStep(journeyId),
     enabled: !!journeyId,
-  });
+  })
 }

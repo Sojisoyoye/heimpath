@@ -4,8 +4,8 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { Calendar, MapPin, Home, ArrowRight } from "lucide-react"
-
+import { ArrowRight, Calendar, Home, MapPin } from "lucide-react"
+import { GERMAN_STATES, PROPERTY_TYPES } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,9 +17,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import type { JourneyProgress, JourneyPublic } from "@/models/journey"
 import { ProgressBar } from "./ProgressBar"
-import { GERMAN_STATES, PROPERTY_TYPES } from "@/common/constants"
-import type { JourneyPublic, JourneyProgress } from "@/models/journey"
 
 interface IProps {
   journey: JourneyPublic
@@ -88,10 +87,14 @@ function JourneyCard(props: IProps) {
           <Badge
             variant="secondary"
             className={cn(
-              journey.current_phase === "research" && "bg-blue-100 text-blue-800",
-              journey.current_phase === "preparation" && "bg-purple-100 text-purple-800",
-              journey.current_phase === "buying" && "bg-orange-100 text-orange-800",
-              journey.current_phase === "closing" && "bg-green-100 text-green-800"
+              journey.current_phase === "research" &&
+                "bg-blue-100 text-blue-800",
+              journey.current_phase === "preparation" &&
+                "bg-purple-100 text-purple-800",
+              journey.current_phase === "buying" &&
+                "bg-orange-100 text-orange-800",
+              journey.current_phase === "closing" &&
+                "bg-green-100 text-green-800",
             )}
           >
             {PHASE_LABELS[journey.current_phase]}

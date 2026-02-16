@@ -3,6 +3,7 @@
 Provides subscription management via Stripe including checkout sessions,
 customer portal, and webhook processing.
 """
+
 import uuid
 from dataclasses import dataclass
 from enum import Enum
@@ -339,8 +340,12 @@ class PaymentService:
         """
         try:
             sub = stripe.Subscription.retrieve(subscription_id)
-            price_id = sub["items"]["data"][0]["price"]["id"] if sub["items"]["data"] else None
-            tier = self.get_tier_for_price(price_id) if price_id else SubscriptionTier.FREE
+            price_id = (
+                sub["items"]["data"][0]["price"]["id"] if sub["items"]["data"] else None
+            )
+            tier = (
+                self.get_tier_for_price(price_id) if price_id else SubscriptionTier.FREE
+            )
 
             return SubscriptionInfo(
                 tier=tier,

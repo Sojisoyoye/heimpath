@@ -2,24 +2,22 @@
  * Journey components index
  */
 
+export { BudgetInput } from "./BudgetInput"
+export { FinancingSelector } from "./FinancingSelector"
 // Dashboard components
 export { JourneyCard } from "./JourneyCard"
 export { JourneyDetail } from "./JourneyDetail"
 export { JourneyList } from "./JourneyList"
-export { PhaseIndicator } from "./PhaseIndicator"
-export { ProgressBar } from "./ProgressBar"
-export { StepCard } from "./StepCard"
-export { TaskCheckbox } from "./TaskCheckbox"
-
 // Wizard components
 export { JourneyWizard } from "./JourneyWizard"
-export { WizardStepIndicator } from "./WizardStepIndicator"
-export { PropertyTypeSelector } from "./PropertyTypeSelector"
 export { LocationSelector } from "./LocationSelector"
-export { FinancingSelector } from "./FinancingSelector"
-export { BudgetInput } from "./BudgetInput"
-export { TimelineSelector } from "./TimelineSelector"
+export { PhaseIndicator } from "./PhaseIndicator"
+export { ProgressBar } from "./ProgressBar"
+export { PropertyTypeSelector } from "./PropertyTypeSelector"
 export { ResidencySelector } from "./ResidencySelector"
-
+export { StepCard } from "./StepCard"
 // Step content components
-export { PropertyGoalsForm, MarketInsights } from "./StepContent"
+export { MarketInsights, PropertyGoalsForm } from "./StepContent"
+export { TaskCheckbox } from "./TaskCheckbox"
+export { TimelineSelector } from "./TimelineSelector"
+export { WizardStepIndicator } from "./WizardStepIndicator"

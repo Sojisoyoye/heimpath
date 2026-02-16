@@ -4,9 +4,8 @@
  */
 
 import { Check } from "lucide-react"
-
-import { cn } from "@/common/utils"
 import { JOURNEY_PHASES } from "@/common/constants"
+import { cn } from "@/common/utils"
 import type { JourneyPhase } from "@/models/journey"
 
 interface IProps {
@@ -34,7 +33,7 @@ function PhaseStep(props: {
     <div
       className={cn(
         "flex items-center",
-        variant === "horizontal" ? "flex-1" : "flex-col"
+        variant === "horizontal" ? "flex-1" : "flex-col",
       )}
     >
       <div className="flex items-center gap-2">
@@ -45,21 +44,19 @@ function PhaseStep(props: {
             isCurrent &&
               !isCompleted &&
               "border-blue-600 bg-blue-600 text-white",
-            !isCurrent && !isCompleted && "border-muted-foreground/30 text-muted-foreground"
+            !isCurrent &&
+              !isCompleted &&
+              "border-muted-foreground/30 text-muted-foreground",
           )}
         >
-          {isCompleted ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            phase.order
-          )}
+          {isCompleted ? <Check className="h-4 w-4" /> : phase.order}
         </div>
         <span
           className={cn(
             "text-sm font-medium",
             isCurrent && "text-foreground",
             isCompleted && "text-green-600",
-            !isCurrent && !isCompleted && "text-muted-foreground"
+            !isCurrent && !isCompleted && "text-muted-foreground",
           )}
         >
           {phase.label}
@@ -70,7 +67,7 @@ function PhaseStep(props: {
         <div
           className={cn(
             "mx-2 h-0.5 flex-1",
-            isCompleted ? "bg-green-600" : "bg-muted-foreground/30"
+            isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
           )}
         />
       )}
@@ -79,7 +76,7 @@ function PhaseStep(props: {
         <div
           className={cn(
             "ml-4 mt-2 mb-2 w-0.5 h-8",
-            isCompleted ? "bg-green-600" : "bg-muted-foreground/30"
+            isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
           )}
         />
       )}
@@ -97,7 +94,7 @@ function PhaseIndicator(props: IProps) {
   } = props
 
   const currentPhaseIndex = JOURNEY_PHASES.findIndex(
-    (p) => p.key === currentPhase
+    (p) => p.key === currentPhase,
   )
 
   return (
@@ -105,7 +102,7 @@ function PhaseIndicator(props: IProps) {
       className={cn(
         "flex",
         variant === "horizontal" ? "flex-row items-center" : "flex-col",
-        className
+        className,
       )}
     >
       {JOURNEY_PHASES.map((phase, index) => (

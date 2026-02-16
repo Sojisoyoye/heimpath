@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
+import { RESIDENCY_STATUS_OPTIONS } from "@/common/constants"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
   Form,
@@ -28,7 +28,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
-import { RESIDENCY_STATUS_OPTIONS } from "@/common/constants"
 
 /******************************************************************************
                               Constants
@@ -43,7 +42,9 @@ const formSchema = z
       .string()
       .min(1, { message: "Password is required" })
       .min(8, { message: "Password must be at least 8 characters" })
-      .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+      .regex(/[A-Z]/, {
+        message: "Password must contain at least one uppercase letter",
+      })
       .regex(/[0-9]/, { message: "Password must contain at least one number" }),
     confirm_password: z
       .string()
@@ -235,11 +236,17 @@ function SignUp() {
 
           <p className="text-center text-xs text-muted-foreground">
             By creating an account, you agree to our{" "}
-            <a href="/terms" className="underline underline-offset-4 hover:text-foreground">
+            <a
+              href="/terms"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
               Terms of Service
             </a>{" "}
             and{" "}
-            <a href="/privacy" className="underline underline-offset-4 hover:text-foreground">
+            <a
+              href="/privacy"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
               Privacy Policy
             </a>
           </p>

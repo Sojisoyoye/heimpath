@@ -1,6 +1,5 @@
 """Journey database models for the guided property buying process."""
-import uuid
-from datetime import datetime
+
 from enum import Enum as PyEnum
 
 from sqlalchemy import (
@@ -12,7 +11,8 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID, JSONB
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -56,20 +56,26 @@ class FinancingType(str, PyEnum):
 # Define PostgreSQL enum types with create_type=False to prevent auto-creation
 # These will be created by Alembic migration
 _journey_phase_enum = PgEnum(
-    'research', 'preparation', 'buying', 'closing',
-    name='journeyphase', create_type=False
+    "research",
+    "preparation",
+    "buying",
+    "closing",
+    name="journeyphase",
+    create_type=False,
 )
 _step_status_enum = PgEnum(
-    'not_started', 'in_progress', 'completed', 'skipped',
-    name='stepstatus', create_type=False
+    "not_started",
+    "in_progress",
+    "completed",
+    "skipped",
+    name="stepstatus",
+    create_type=False,
 )
 _property_type_enum = PgEnum(
-    'apartment', 'house', 'land', 'commercial',
-    name='propertytype', create_type=False
+    "apartment", "house", "land", "commercial", name="propertytype", create_type=False
 )
 _financing_type_enum = PgEnum(
-    'cash', 'mortgage', 'mixed',
-    name='financingtype', create_type=False
+    "cash", "mortgage", "mixed", name="financingtype", create_type=False
 )
 
 

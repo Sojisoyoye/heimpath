@@ -3,10 +3,9 @@
  * Allows user to select property type for their journey
  */
 
-import { Building, Home, Building2, Store, MapPin } from "lucide-react"
-
-import { cn } from "@/common/utils"
+import { Building, Building2, Home, MapPin, Store } from "lucide-react"
 import { PROPERTY_TYPES } from "@/common/constants"
+import { cn } from "@/common/utils"
 import type { PropertyType } from "@/models/journey"
 
 interface IProps {
@@ -48,19 +47,19 @@ function PropertyOption(props: {
         "flex flex-col items-center gap-3 rounded-lg border-2 p-6 transition-all hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20",
         isSelected
           ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30"
-          : "border-muted"
+          : "border-muted",
       )}
     >
       <Icon
         className={cn(
           "h-10 w-10",
-          isSelected ? "text-blue-600" : "text-muted-foreground"
+          isSelected ? "text-blue-600" : "text-muted-foreground",
         )}
       />
       <span
         className={cn(
           "text-sm font-medium text-center",
-          isSelected ? "text-blue-600" : "text-foreground"
+          isSelected ? "text-blue-600" : "text-foreground",
         )}
       >
         {type.label}

@@ -3,10 +3,9 @@
  * Allows user to select their residency status
  */
 
-import { Globe, Flag, Home, Plane, Info } from "lucide-react"
-
-import { cn } from "@/common/utils"
+import { Flag, Globe, Home, Info, Plane } from "lucide-react"
 import { RESIDENCY_STATUS_OPTIONS } from "@/common/constants"
+import { cn } from "@/common/utils"
 import type { ResidencyStatus } from "@/models/journey"
 
 interface IProps {
@@ -68,20 +67,20 @@ function ResidencyOption(props: {
         "flex items-start gap-4 rounded-lg border-2 p-5 transition-all hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 text-left w-full",
         isSelected
           ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30"
-          : "border-muted"
+          : "border-muted",
       )}
     >
       <Icon
         className={cn(
           "h-6 w-6 shrink-0 mt-0.5",
-          isSelected ? "text-blue-600" : "text-muted-foreground"
+          isSelected ? "text-blue-600" : "text-muted-foreground",
         )}
       />
       <div className="space-y-1">
         <span
           className={cn(
             "font-medium block",
-            isSelected ? "text-blue-600" : "text-foreground"
+            isSelected ? "text-blue-600" : "text-foreground",
           )}
         >
           {option.label}

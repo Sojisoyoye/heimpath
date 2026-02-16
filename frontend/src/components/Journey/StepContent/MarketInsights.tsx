@@ -4,41 +4,40 @@
  */
 
 import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  MapPin,
-  Euro,
-  Users,
-  BarChart3,
-  Info,
   AlertCircle,
-} from "lucide-react";
-
-import { cn } from "@/common/utils";
+  BarChart3,
+  Euro,
+  Info,
+  MapPin,
+  Minus,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react"
 import {
   GERMAN_STATES,
   MARKET_DATA_BY_STATE,
   PROPERTY_TYPE_MULTIPLIERS,
   PROPERTY_TYPES,
-} from "@/common/constants";
+} from "@/common/constants"
+import { cn } from "@/common/utils"
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import type { PropertyGoals } from "@/models/journey";
+} from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import type { PropertyGoals } from "@/models/journey"
 
 interface IProps {
-  propertyLocation?: string;
-  propertyType?: string;
-  budgetEuros?: number;
-  propertyGoals?: PropertyGoals;
-  className?: string;
+  propertyLocation?: string
+  propertyType?: string
+  budgetEuros?: number
+  propertyGoals?: PropertyGoals
+  className?: string
 }
 
 /******************************************************************************
@@ -49,25 +48,25 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 0,
-});
+})
 
 const TREND_ICONS = {
   rising: TrendingUp,
   stable: Minus,
   falling: TrendingDown,
-};
+}
 
 const TREND_COLORS = {
   rising: "text-green-600",
   stable: "text-yellow-600",
   falling: "text-red-600",
-};
+}
 
 const TREND_LABELS = {
   rising: "Prices Rising",
   stable: "Prices Stable",
   falling: "Prices Falling",
-};
+}
 
 /******************************************************************************
                               Components
@@ -75,19 +74,19 @@ const TREND_LABELS = {
 
 /** Stat card for displaying key metrics. */
 function StatCard(props: {
-  label: string;
-  value: string;
-  sublabel?: string;
-  icon: React.ComponentType<{ className?: string }>;
-  highlight?: boolean;
+  label: string
+  value: string
+  sublabel?: string
+  icon: React.ComponentType<{ className?: string }>
+  highlight?: boolean
 }) {
-  const { label, value, sublabel, icon: Icon, highlight } = props;
+  const { label, value, sublabel, icon: Icon, highlight } = props
 
   return (
     <div
       className={cn(
         "rounded-lg border p-4",
-        highlight && "border-blue-300 bg-blue-50 dark:bg-blue-950/30"
+        highlight && "border-blue-300 bg-blue-50 dark:bg-blue-950/30",
       )}
     >
       <div className="flex items-start justify-between">
@@ -101,7 +100,7 @@ function StatCard(props: {
         <Icon className="h-5 w-5 text-muted-foreground" />
       </div>
     </div>
-  );
+  )
 }
 
 /** No goals warning. */
@@ -118,48 +117,53 @@ function NoGoalsWarning() {
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 /** Default component. Market insights for Step 2. */
 function MarketInsights(props: IProps) {
-  const { propertyLocation, propertyType, budgetEuros, propertyGoals, className } =
-    props;
+  const {
+    propertyLocation,
+    propertyType,
+    budgetEuros,
+    propertyGoals,
+    className,
+  } = props
 
   // Get state info
-  const stateInfo = GERMAN_STATES.find((s) => s.code === propertyLocation);
+  const stateInfo = GERMAN_STATES.find((s) => s.code === propertyLocation)
   const marketData = propertyLocation
     ? MARKET_DATA_BY_STATE[propertyLocation]
-    : null;
+    : null
 
   // Use property goals preferred type if available, otherwise fall back to journey property type
   const effectivePropertyType =
-    propertyGoals?.preferred_property_type || propertyType || "apartment";
+    propertyGoals?.preferred_property_type || propertyType || "apartment"
   const propertyTypeLabel =
     PROPERTY_TYPES.find((t) => t.value === effectivePropertyType)?.label.split(
-      " "
-    )[0] || "Property";
+      " ",
+    )[0] || "Property"
 
   // Calculate adjusted price based on property type
-  const typeMultiplier = PROPERTY_TYPE_MULTIPLIERS[effectivePropertyType] || 1;
+  const typeMultiplier = PROPERTY_TYPE_MULTIPLIERS[effectivePropertyType] || 1
   const adjustedAvgPrice = marketData
     ? Math.round(marketData.avgPricePerSqm * typeMultiplier)
-    : 0;
+    : 0
   const adjustedMinPrice = marketData
     ? Math.round(marketData.priceRange.min * typeMultiplier)
-    : 0;
+    : 0
   const adjustedMaxPrice = marketData
     ? Math.round(marketData.priceRange.max * typeMultiplier)
-    : 0;
+    : 0
 
   // Calculate estimated size based on budget
   const estimatedSqm =
     budgetEuros && adjustedAvgPrice > 0
       ? Math.round(budgetEuros / adjustedAvgPrice)
-      : 0;
+      : 0
 
   // Check if property goals are set
-  const hasGoals = propertyGoals?.is_completed;
+  const hasGoals = propertyGoals?.is_completed
 
   if (!stateInfo || !marketData) {
     return (
@@ -176,10 +180,10 @@ function MarketInsights(props: IProps) {
           </p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
-  const TrendIcon = TREND_ICONS[marketData.trend];
+  const TrendIcon = TREND_ICONS[marketData.trend]
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -199,7 +203,9 @@ function MarketInsights(props: IProps) {
         {/* Market Trend */}
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="flex items-center gap-3">
-            <TrendIcon className={cn("h-6 w-6", TREND_COLORS[marketData.trend])} />
+            <TrendIcon
+              className={cn("h-6 w-6", TREND_COLORS[marketData.trend])}
+            />
             <div>
               <p className="font-medium">{TREND_LABELS[marketData.trend]}</p>
               <p className="text-sm text-muted-foreground">
@@ -215,10 +221,11 @@ function MarketInsights(props: IProps) {
               marketData.trend === "stable" &&
                 "border-yellow-300 bg-yellow-50 text-yellow-700",
               marketData.trend === "falling" &&
-                "border-red-300 bg-red-50 text-red-700"
+                "border-red-300 bg-red-50 text-red-700",
             )}
           >
-            {marketData.trend.charAt(0).toUpperCase() + marketData.trend.slice(1)}
+            {marketData.trend.charAt(0).toUpperCase() +
+              marketData.trend.slice(1)}
           </Badge>
         </div>
 
@@ -275,11 +282,21 @@ function MarketInsights(props: IProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    Total Additional Costs (~{(marketData.agentFeePercent + stateInfo.transferTaxRate + 2).toFixed(1)}%)
+                    Total Additional Costs (~
+                    {(
+                      marketData.agentFeePercent +
+                      stateInfo.transferTaxRate +
+                      2
+                    ).toFixed(1)}
+                    %)
                   </span>
                   <span className="font-medium">
                     {CURRENCY_FORMATTER.format(
-                      budgetEuros * (marketData.agentFeePercent + stateInfo.transferTaxRate + 2) / 100
+                      (budgetEuros *
+                        (marketData.agentFeePercent +
+                          stateInfo.transferTaxRate +
+                          2)) /
+                        100,
                     )}
                   </span>
                 </div>
@@ -354,8 +371,8 @@ function MarketInsights(props: IProps) {
               • Agent fees are typically split 50/50 between buyer and seller
             </li>
             <li>
-              • Budget an additional 10-15% for transaction costs (notary, taxes,
-              etc.)
+              • Budget an additional 10-15% for transaction costs (notary,
+              taxes, etc.)
             </li>
             {marketData.trend === "rising" && (
               <li>• Market is competitive - be prepared to move quickly</li>
@@ -367,11 +384,11 @@ function MarketInsights(props: IProps) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export { MarketInsights };
+export { MarketInsights }

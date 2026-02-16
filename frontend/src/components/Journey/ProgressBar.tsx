@@ -43,7 +43,7 @@ function ProgressBar(props: IProps) {
       <div
         className={cn(
           "w-full overflow-hidden rounded-full bg-secondary",
-          SIZE_CLASSES[size]
+          SIZE_CLASSES[size],
         )}
         role="progressbar"
         aria-valuenow={percentage}
@@ -53,7 +53,7 @@ function ProgressBar(props: IProps) {
         <div
           className={cn(
             "h-full rounded-full bg-blue-600 transition-all duration-300",
-            percentage === 100 && "bg-green-600"
+            percentage === 100 && "bg-green-600",
           )}
           style={{ width: `${percentage}%` }}
         />

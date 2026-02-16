@@ -2,6 +2,7 @@
 
 Provides endpoints for creating and managing property buying journeys.
 """
+
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -88,7 +89,9 @@ def create_journey(
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
-        property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
+        property_goals=PropertyGoals(**journey.property_goals)
+        if journey.property_goals
+        else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
         is_active=journey.is_active,
@@ -139,7 +142,9 @@ def list_journeys(
                 has_german_residency=journey.has_german_residency,
                 budget_euros=journey.budget_euros,
                 target_purchase_date=journey.target_purchase_date,
-                property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
+                property_goals=PropertyGoals(**journey.property_goals)
+                if journey.property_goals
+                else None,
                 started_at=journey.started_at,
                 completed_at=journey.completed_at,
                 is_active=journey.is_active,
@@ -220,7 +225,9 @@ def get_journey(
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
-        property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
+        property_goals=PropertyGoals(**journey.property_goals)
+        if journey.property_goals
+        else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
         is_active=journey.is_active,
@@ -285,7 +292,9 @@ def update_journey(
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
-        property_goals=PropertyGoals(**journey.property_goals) if journey.property_goals else None,
+        property_goals=PropertyGoals(**journey.property_goals)
+        if journey.property_goals
+        else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
         is_active=journey.is_active,
@@ -482,7 +491,7 @@ def update_task_status(
     """
     service = get_journey_service()
     try:
-        journey = service.get_journey(
+        _journey = service.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -504,7 +513,7 @@ def update_task_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Step not found",
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",

@@ -4,19 +4,22 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, Calendar, MapPin, Home, Wallet } from "lucide-react"
-
+import { ArrowLeft, Calendar, Home, MapPin, Wallet } from "lucide-react"
+import {
+  FINANCING_TYPES,
+  GERMAN_STATES,
+  PROPERTY_TYPES,
+} from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import type { JourneyProgress, JourneyPublic } from "@/models/journey"
 import { PhaseIndicator } from "./PhaseIndicator"
 import { ProgressBar } from "./ProgressBar"
 import { StepCard } from "./StepCard"
-import { GERMAN_STATES, PROPERTY_TYPES, FINANCING_TYPES } from "@/common/constants"
-import type { JourneyPublic, JourneyProgress } from "@/models/journey"
 
 interface IProps {
   journey: JourneyPublic
@@ -102,12 +105,16 @@ function JourneyOverview(props: {
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Started:</span>
-            <span className="font-medium">{formatDate(journey.started_at)}</span>
+            <span className="font-medium">
+              {formatDate(journey.started_at)}
+            </span>
           </div>
           {journey.target_purchase_date && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Target:</span>
-              <span className="font-medium">{formatDate(journey.target_purchase_date)}</span>
+              <span className="font-medium">
+                {formatDate(journey.target_purchase_date)}
+              </span>
             </div>
           )}
           {progress?.estimated_days_remaining && (
@@ -126,7 +133,8 @@ function JourneyOverview(props: {
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Overall Progress</span>
             <span className="font-medium">
-              {progress?.completed_steps ?? 0} / {progress?.total_steps ?? journey.steps.length} steps
+              {progress?.completed_steps ?? 0} /{" "}
+              {progress?.total_steps ?? journey.steps.length} steps
             </span>
           </div>
           <ProgressBar
@@ -166,7 +174,13 @@ function JourneyDetailSkeleton() {
 
 /** Default component. Full journey detail view. */
 function JourneyDetail(props: IProps) {
-  const { journey, progress, onTaskToggle, isLoading = false, className } = props
+  const {
+    journey,
+    progress,
+    onTaskToggle,
+    isLoading = false,
+    className,
+  } = props
 
   if (isLoading) {
     return <JourneyDetailSkeleton />
@@ -176,8 +190,9 @@ function JourneyDetail(props: IProps) {
     GERMAN_STATES.find((s) => s.code === journey.property_location)?.name ||
     journey.property_location
   const propertyLabel =
-    PROPERTY_TYPES.find((p) => p.value === journey.property_type)?.label?.split(" ")[0] ||
-    journey.property_type
+    PROPERTY_TYPES.find((p) => p.value === journey.property_type)?.label?.split(
+      " ",
+    )[0] || journey.property_type
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -201,12 +216,17 @@ function JourneyDetail(props: IProps) {
           className={cn(
             "text-sm",
             journey.current_phase === "research" && "bg-blue-100 text-blue-800",
-            journey.current_phase === "preparation" && "bg-purple-100 text-purple-800",
-            journey.current_phase === "buying" && "bg-orange-100 text-orange-800",
-            journey.current_phase === "closing" && "bg-green-100 text-green-800"
+            journey.current_phase === "preparation" &&
+              "bg-purple-100 text-purple-800",
+            journey.current_phase === "buying" &&
+              "bg-orange-100 text-orange-800",
+            journey.current_phase === "closing" &&
+              "bg-green-100 text-green-800",
           )}
         >
-          {journey.current_phase.charAt(0).toUpperCase() + journey.current_phase.slice(1)} Phase
+          {journey.current_phase.charAt(0).toUpperCase() +
+            journey.current_phase.slice(1)}{" "}
+          Phase
         </Badge>
       </div>
 

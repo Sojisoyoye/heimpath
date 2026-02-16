@@ -3,6 +3,7 @@
 Handles generation, storage, and validation of email verification tokens.
 Tokens expire after 24 hours.
 """
+
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import NamedTuple

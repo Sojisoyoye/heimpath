@@ -5,9 +5,8 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import { JourneyList } from "@/components/Journey"
+import { Button } from "@/components/ui/button"
 import { useJourneys } from "@/hooks/queries"
 
 /******************************************************************************

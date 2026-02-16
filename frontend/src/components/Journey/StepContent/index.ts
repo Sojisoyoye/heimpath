@@ -3,5 +3,5 @@
  * Interactive components for journey steps
  */
 
-export { PropertyGoalsForm } from "./PropertyGoalsForm";
-export { MarketInsights } from "./MarketInsights";
+export { MarketInsights } from "./MarketInsights"
+export { PropertyGoalsForm } from "./PropertyGoalsForm"

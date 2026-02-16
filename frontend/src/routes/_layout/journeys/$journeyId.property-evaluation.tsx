@@ -3,11 +3,11 @@
  * Full-page calculator for investment property analysis within a journey
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router"
 
-import { PropertyEvaluationCalculator } from "@/components/Calculators/PropertyEvaluationCalculator";
-import { useJourney } from "@/hooks/queries";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PropertyEvaluationCalculator } from "@/components/Calculators/PropertyEvaluationCalculator"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useJourney } from "@/hooks/queries"
 
 /******************************************************************************
                               Route
@@ -20,7 +20,7 @@ export const Route = createFileRoute(
   head: () => ({
     meta: [{ title: "Property Evaluation Calculator - HeimPath" }],
   }),
-});
+})
 
 /******************************************************************************
                               Components
@@ -45,17 +45,17 @@ function LoadingSkeleton() {
         <Skeleton className="h-[600px] w-full" />
       </div>
     </div>
-  );
+  )
 }
 
 /** Default component. Property evaluation page. */
 function PropertyEvaluationPage() {
-  const { journeyId } = Route.useParams();
+  const { journeyId } = Route.useParams()
 
-  const { data: journey, isLoading } = useJourney(journeyId);
+  const { data: journey, isLoading } = useJourney(journeyId)
 
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return <LoadingSkeleton />
   }
 
   return (
@@ -64,11 +64,11 @@ function PropertyEvaluationPage() {
       initialState={journey?.property_location}
       initialBudget={journey?.budget_euros}
     />
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export default PropertyEvaluationPage;
+export default PropertyEvaluationPage

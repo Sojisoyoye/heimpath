@@ -3,10 +3,9 @@
  * Allows user to select German state for their property search
  */
 
-import { MapPin, Info } from "lucide-react"
-
-import { cn } from "@/common/utils"
+import { Info, MapPin } from "lucide-react"
 import { GERMAN_STATES } from "@/common/constants"
+import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 
 interface IProps {
@@ -35,20 +34,20 @@ function StateOption(props: {
         "flex items-center justify-between gap-2 rounded-lg border-2 p-4 transition-all hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 text-left",
         isSelected
           ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30"
-          : "border-muted"
+          : "border-muted",
       )}
     >
       <div className="flex items-center gap-3">
         <MapPin
           className={cn(
             "h-5 w-5 shrink-0",
-            isSelected ? "text-blue-600" : "text-muted-foreground"
+            isSelected ? "text-blue-600" : "text-muted-foreground",
           )}
         />
         <span
           className={cn(
             "font-medium",
-            isSelected ? "text-blue-600" : "text-foreground"
+            isSelected ? "text-blue-600" : "text-foreground",
           )}
         >
           {state.name}

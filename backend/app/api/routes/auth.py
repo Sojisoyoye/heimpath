@@ -5,37 +5,32 @@ Provides registration and login endpoints with:
 - Rate limiting for login attempts
 - JWT access and refresh tokens
 """
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.api.deps import get_db
+from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import User
-from app.core.config import settings
 from app.schemas.auth import (
     AuthToken,
-    ForgotPasswordRequest,
-    ForgotPasswordResponse,
     LoginRequest,
     LogoutRequest,
     RefreshTokenRequest,
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
-    ResetPasswordRequest,
-    ResetPasswordResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
 from app.services.auth_service import get_auth_service
 from app.services.email_verification_service import get_email_verification_service
-from app.services.password_reset_service import get_password_reset_service
 from app.services.rate_limit_service import get_login_rate_limiter
 from app.utils import (
     generate_email_verification_email,
-    generate_password_reset_email_v2,
     send_email,
 )
 
@@ -128,7 +123,9 @@ def login(
         retry_after = 900  # Default 15 minutes
         if status_info.lockout_expires_at:
             retry_after = int(
-                (status_info.lockout_expires_at - datetime.now(timezone.utc)).total_seconds()
+                (
+                    status_info.lockout_expires_at - datetime.now(timezone.utc)
+                ).total_seconds()
             )
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,

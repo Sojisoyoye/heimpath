@@ -3,6 +3,7 @@
 Implements a sliding window rate limiter to prevent brute force attacks.
 After 5 failed attempts, the account is locked for 15 minutes.
 """
+
 from datetime import datetime, timedelta, timezone
 from typing import NamedTuple
 

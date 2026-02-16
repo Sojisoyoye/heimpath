@@ -3,8 +3,8 @@
  * Displays upgrade options with pricing
  */
 
+import { Building2, Check, Crown, Loader2, Zap } from "lucide-react"
 import { useState } from "react"
-import { Crown, Zap, Building2, Check, Loader2 } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
@@ -114,7 +114,7 @@ function PlanCard(props: {
       className={cn(
         "relative flex flex-col",
         plan.popular && "border-blue-600 border-2",
-        isCurrent && "bg-muted/50"
+        isCurrent && "bg-muted/50",
       )}
     >
       {plan.popular && (
@@ -129,7 +129,7 @@ function PlanCard(props: {
               "h-5 w-5",
               plan.tier === "free" && "text-gray-600",
               plan.tier === "premium" && "text-blue-600",
-              plan.tier === "enterprise" && "text-purple-600"
+              plan.tier === "enterprise" && "text-purple-600",
             )}
           />
           <CardTitle>{plan.label}</CardTitle>
@@ -163,7 +163,7 @@ function PlanCard(props: {
           <Button
             className={cn(
               "w-full",
-              plan.popular && "bg-blue-600 hover:bg-blue-700"
+              plan.popular && "bg-blue-600 hover:bg-blue-700",
             )}
             onClick={onSelect}
             disabled={isLoading}

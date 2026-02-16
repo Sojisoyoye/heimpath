@@ -5,12 +5,13 @@ import {
   Link as RouterLink,
   redirect,
 } from "@tanstack/react-router"
+import { Mail } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Mail } from "lucide-react"
 
 import { LoginService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Form,
   FormControl,
@@ -21,7 +22,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -66,13 +66,14 @@ function SuccessMessage() {
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Check your email</h2>
         <p className="text-sm text-muted-foreground">
-          We've sent a password reset link to your email address.
-          Please check your inbox and follow the instructions.
+          We've sent a password reset link to your email address. Please check
+          your inbox and follow the instructions.
         </p>
       </div>
       <Alert className="mt-4 text-left">
         <AlertDescription className="text-xs">
-          Didn't receive the email? Check your spam folder or try again with a different email.
+          Didn't receive the email? Check your spam folder or try again with a
+          different email.
         </AlertDescription>
       </Alert>
       <RouterLink

@@ -1,4 +1,5 @@
 """User database model."""
+
 from enum import Enum as PyEnum
 
 from sqlalchemy import Boolean, Column, Enum, String

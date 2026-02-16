@@ -5,9 +5,9 @@ import {
   Link as RouterLink,
   redirect,
 } from "@tanstack/react-router"
+import { CheckCircle } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { CheckCircle } from "lucide-react"
 
 import { LoginService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
@@ -87,7 +87,8 @@ function SuccessMessage() {
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Password reset successful</h2>
         <p className="text-sm text-muted-foreground">
-          Your password has been updated. You can now sign in with your new password.
+          Your password has been updated. You can now sign in with your new
+          password.
         </p>
       </div>
       <RouterLink

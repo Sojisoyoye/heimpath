@@ -3,8 +3,8 @@
  * Account deletion with multi-step confirmation
  */
 
-import { useState } from "react"
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react"
+import { useState } from "react"
 
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
@@ -186,7 +186,7 @@ function DeleteAccountModal(props: IProps) {
                       onChange={(e) => setConfirmText(e.target.value)}
                       className={cn(
                         isConfirmValid &&
-                          "border-destructive focus-visible:ring-destructive"
+                          "border-destructive focus-visible:ring-destructive",
                       )}
                     />
                   </div>
