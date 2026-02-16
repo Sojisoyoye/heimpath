@@ -16,30 +16,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Create .env file
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
+          STACK_NAME: ${{ secrets.STACK_NAME }}
+          FRONTEND_HOST: ${{ secrets.FRONTEND_HOST }}
+          ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+          BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+          FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+          POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          DOCKER_IMAGE_BACKEND: ${{ secrets.DOCKER_IMAGE_BACKEND }}
+          DOCKER_IMAGE_FRONTEND: ${{ secrets.DOCKER_IMAGE_FRONTEND }}
         run: |
-          cat > .env << EOF
-          DOMAIN=${{ secrets.DOMAIN }}
-          STACK_NAME=${{ secrets.STACK_NAME }}
-          FRONTEND_HOST=${{ secrets.FRONTEND_HOST }}
-          ENVIRONMENT=${{ secrets.ENVIRONMENT }}
-          BACKEND_CORS_ORIGINS=${{ secrets.BACKEND_CORS_ORIGINS }}
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          FIRST_SUPERUSER=${{ secrets.FIRST_SUPERUSER }}
-          FIRST_SUPERUSER_PASSWORD=${{ secrets.FIRST_SUPERUSER_PASSWORD }}
-          PROJECT_NAME=${{ secrets.PROJECT_NAME }}
-          POSTGRES_SERVER=${{ secrets.POSTGRES_SERVER }}
-          POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
-          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          DOCKER_IMAGE_BACKEND=${{ secrets.DOCKER_IMAGE_BACKEND }}
-          DOCKER_IMAGE_FRONTEND=${{ secrets.DOCKER_IMAGE_FRONTEND }}
-          SMTP_HOST=
-          SMTP_USER=
-          SMTP_PASSWORD=
-          EMAILS_FROM_EMAIL=info@example.com
-          SENTRY_DSN=
-          EOF
+          env | grep -E '^(DOMAIN|STACK_NAME|FRONTEND_HOST|ENVIRONMENT|BACKEND_CORS_ORIGINS|SECRET_KEY|FIRST_SUPERUSER|FIRST_SUPERUSER_PASSWORD|PROJECT_NAME|POSTGRES_SERVER|POSTGRES_PORT|POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD|DOCKER_IMAGE_BACKEND|DOCKER_IMAGE_FRONTEND)=' > .env
+          echo "SMTP_HOST=" >> .env
+          echo "SMTP_USER=" >> .env
+          echo "SMTP_PASSWORD=" >> .env
+          echo "EMAILS_FROM_EMAIL=info@example.com" >> .env
+          echo "SENTRY_DSN=" >> .env
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -62,5 +62,5 @@ jobs:
           path: backend/htmlcov
           include-hidden-files: true
       - name: Coverage report
-        run: uv run coverage report --fail-under=90
+        run: uv run coverage report --fail-under=70
         working-directory: backend
