@@ -1,4 +1,5 @@
 """Tests for the Payment Service."""
+
 import uuid
 from unittest.mock import MagicMock, patch
 
@@ -36,7 +37,7 @@ class TestPaymentServiceInit:
 
     def test_init_sets_stripe_api_key(self) -> None:
         """Test that initialization sets the Stripe API key."""
-        service = PaymentService(secret_key="sk_test_key")
+        _service = PaymentService(secret_key="sk_test_key")
         assert stripe.api_key == "sk_test_key"
 
     def test_init_builds_price_to_tier_mapping(self) -> None:
@@ -47,7 +48,10 @@ class TestPaymentServiceInit:
             enterprise_price_id="price_enterprise",
         )
         assert service.get_tier_for_price("price_premium") == SubscriptionTier.PREMIUM
-        assert service.get_tier_for_price("price_enterprise") == SubscriptionTier.ENTERPRISE
+        assert (
+            service.get_tier_for_price("price_enterprise")
+            == SubscriptionTier.ENTERPRISE
+        )
         assert service.get_tier_for_price("unknown") == SubscriptionTier.FREE
 
 
@@ -58,19 +62,27 @@ class TestGetTierForPrice:
         self, payment_service: PaymentService
     ) -> None:
         """Test premium tier returned for premium price ID."""
-        assert payment_service.get_tier_for_price("price_premium_123") == SubscriptionTier.PREMIUM
+        assert (
+            payment_service.get_tier_for_price("price_premium_123")
+            == SubscriptionTier.PREMIUM
+        )
 
     def test_returns_enterprise_for_enterprise_price(
         self, payment_service: PaymentService
     ) -> None:
         """Test enterprise tier returned for enterprise price ID."""
-        assert payment_service.get_tier_for_price("price_enterprise_456") == SubscriptionTier.ENTERPRISE
+        assert (
+            payment_service.get_tier_for_price("price_enterprise_456")
+            == SubscriptionTier.ENTERPRISE
+        )
 
     def test_returns_free_for_unknown_price(
         self, payment_service: PaymentService
     ) -> None:
         """Test free tier returned for unknown price ID."""
-        assert payment_service.get_tier_for_price("unknown_price") == SubscriptionTier.FREE
+        assert (
+            payment_service.get_tier_for_price("unknown_price") == SubscriptionTier.FREE
+        )
 
 
 class TestCreateCustomer:

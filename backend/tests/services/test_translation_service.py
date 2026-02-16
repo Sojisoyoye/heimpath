@@ -1,5 +1,6 @@
 """Tests for the Translation Service."""
-from unittest.mock import AsyncMock, MagicMock, patch
+
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -8,7 +9,6 @@ from app.services.translation_service import (
     TranslationError,
     TranslationResult,
     TranslationService,
-    TranslationServiceNotConfiguredError,
     get_translation_service,
 )
 
@@ -160,7 +160,11 @@ class TestDetectLanguage:
         ) as mock_request:
             mock_request.return_value = mock_response
 
-            language, confidence, is_supported = await translation_service.detect_language(
+            (
+                language,
+                confidence,
+                is_supported,
+            ) = await translation_service.detect_language(
                 text="Der Kaufvertrag muss notariell beurkundet werden."
             )
 
@@ -187,9 +191,11 @@ class TestDetectLanguage:
         ) as mock_request:
             mock_request.return_value = mock_response
 
-            language, confidence, is_supported = await translation_service.detect_language(
-                text="Unknown language text"
-            )
+            (
+                language,
+                confidence,
+                is_supported,
+            ) = await translation_service.detect_language(text="Unknown language text")
 
         assert language == "xx"
         assert is_supported is False
@@ -267,7 +273,9 @@ class TestTranslateWithWarnings:
 
         assert result.translation is not None
         assert len(result.legal_warnings) >= 1
-        assert any(w.original_term.lower() == "kaufvertrag" for w in result.legal_warnings)
+        assert any(
+            w.original_term.lower() == "kaufvertrag" for w in result.legal_warnings
+        )
 
     @pytest.mark.asyncio
     async def test_sets_requires_review_for_high_risk(
@@ -366,6 +374,7 @@ class TestGetTranslationService:
 
             # Clear any cached service
             import app.services.translation_service as ts_module
+
             ts_module._translation_service = None
             ts_module.get_translation_service.cache_clear()
 
@@ -383,6 +392,7 @@ class TestGetTranslationService:
 
             # Clear any cached service
             import app.services.translation_service as ts_module
+
             ts_module._translation_service = None
             ts_module.get_translation_service.cache_clear()
 

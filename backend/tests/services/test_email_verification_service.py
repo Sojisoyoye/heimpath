@@ -1,4 +1,5 @@
 """Tests for Email Verification Service."""
+
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -89,9 +90,7 @@ class TestEmailVerificationService:
         assert verified.user_id == user_id
         assert verified.email == "test@example.com"
 
-    def test_verify_token_invalid(
-        self, service: EmailVerificationService
-    ) -> None:
+    def test_verify_token_invalid(self, service: EmailVerificationService) -> None:
         """Should return None for invalid token."""
         result = service.verify_token("invalid-token")
 
@@ -152,9 +151,7 @@ class TestEmailVerificationService:
         assert service.verify_token(generated.token) is None
         assert service.consume_token(generated.token) is None
 
-    def test_consume_token_invalid(
-        self, service: EmailVerificationService
-    ) -> None:
+    def test_consume_token_invalid(self, service: EmailVerificationService) -> None:
         """Should return None for invalid token."""
         result = service.consume_token("invalid-token")
 

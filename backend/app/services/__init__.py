@@ -1,4 +1,5 @@
 """Business logic services for HeimPath."""
+
 from app.services.auth_service import (
     AuthService,
     TokenBlacklist,
@@ -11,11 +12,6 @@ from app.services.email_verification_service import (
     VerificationToken,
     get_email_verification_service,
 )
-from app.services.password_reset_service import (
-    PasswordResetService,
-    PasswordResetToken,
-    get_password_reset_service,
-)
 from app.services.journey_service import (
     InvalidStepTransitionError,
     JourneyError,
@@ -23,6 +19,11 @@ from app.services.journey_service import (
     JourneyService,
     StepNotFoundError,
     get_journey_service,
+)
+from app.services.password_reset_service import (
+    PasswordResetService,
+    PasswordResetToken,
+    get_password_reset_service,
 )
 from app.services.payment_service import (
     CheckoutSessionError,

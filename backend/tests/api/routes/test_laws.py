@@ -1,19 +1,18 @@
 """Tests for Legal Knowledge Base API endpoints."""
+
 import uuid
-from datetime import datetime, timezone
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app import crud
 from app.core.config import settings
+from app.models import UserCreate
 from app.models.legal import (
     Law,
-    LawBookmark,
     LawCategory,
     PropertyTypeApplicability,
 )
-from app.models import UserCreate
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -73,7 +72,7 @@ def test_list_laws(client: TestClient, db: Session) -> None:
 def test_list_laws_with_data(client: TestClient, db: Session) -> None:
     """Test listing laws with data."""
     headers, _ = get_auth_headers(client, db)
-    law = create_sample_law(db)
+    create_sample_law(db)
 
     r = client.get(f"{settings.API_V1_STR}/laws/", headers=headers)
 
@@ -86,7 +85,7 @@ def test_list_laws_with_data(client: TestClient, db: Session) -> None:
 def test_list_laws_filter_by_category(client: TestClient, db: Session) -> None:
     """Test filtering laws by category."""
     headers, _ = get_auth_headers(client, db)
-    law = create_sample_law(db)
+    create_sample_law(db)
 
     r = client.get(
         f"{settings.API_V1_STR}/laws/",
@@ -143,7 +142,7 @@ def test_get_categories(client: TestClient, db: Session) -> None:
 def test_search_laws(client: TestClient, db: Session) -> None:
     """Test searching laws."""
     headers, _ = get_auth_headers(client, db)
-    law = create_sample_law(db)
+    create_sample_law(db)
 
     r = client.get(
         f"{settings.API_V1_STR}/laws/search",

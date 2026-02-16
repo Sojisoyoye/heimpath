@@ -1,4 +1,5 @@
 """Tests for the Journey Service."""
+
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -15,7 +16,6 @@ from app.models.journey import (
 )
 from app.schemas.journey import QuestionnaireAnswers
 from app.services.journey_service import (
-    InvalidStepTransitionError,
     JourneyNotFoundError,
     JourneyService,
     StepNotFoundError,
@@ -100,9 +100,12 @@ class TestShouldIncludeStep:
         """Test that mortgage steps are included for mortgage buyers."""
         # Find a step with financing_type condition
         mortgage_step = next(
-            (t for t in journey_service._step_templates
-             if t.conditions and "financing_type" in t.conditions),
-            None
+            (
+                t
+                for t in journey_service._step_templates
+                if t.conditions and "financing_type" in t.conditions
+            ),
+            None,
         )
         if mortgage_step:
             assert journey_service._should_include_step(mortgage_step, sample_answers)
@@ -112,13 +115,19 @@ class TestShouldIncludeStep:
     ) -> None:
         """Test that mortgage steps are excluded for cash buyers."""
         mortgage_step = next(
-            (t for t in journey_service._step_templates
-             if t.conditions and "financing_type" in t.conditions
-             and "cash" not in t.conditions.get("financing_type", [])),
-            None
+            (
+                t
+                for t in journey_service._step_templates
+                if t.conditions
+                and "financing_type" in t.conditions
+                and "cash" not in t.conditions.get("financing_type", [])
+            ),
+            None,
         )
         if mortgage_step:
-            assert not journey_service._should_include_step(mortgage_step, cash_buyer_answers)
+            assert not journey_service._should_include_step(
+                mortgage_step, cash_buyer_answers
+            )
 
 
 class TestGenerateJourney:
@@ -135,7 +144,7 @@ class TestGenerateJourney:
         user_id = uuid.uuid4()
 
         # Mock the journey creation
-        journey = journey_service.generate_journey(
+        _journey = journey_service.generate_journey(
             session=mock_session,
             user_id=user_id,
             title="Test Journey",
@@ -224,9 +233,7 @@ class TestGetStep:
 class TestUpdateStepStatus:
     """Tests for step status updates."""
 
-    def test_updates_step_to_in_progress(
-        self, journey_service: JourneyService
-    ) -> None:
+    def test_updates_step_to_in_progress(self, journey_service: JourneyService) -> None:
         """Test updating step status to in_progress."""
         mock_session = MagicMock()
         mock_step = MagicMock(spec=JourneyStep)
@@ -237,7 +244,7 @@ class TestUpdateStepStatus:
         mock_journey = MagicMock(spec=Journey)
         mock_journey.id = uuid.uuid4()
 
-        result = journey_service.update_step_status(
+        _result = journey_service.update_step_status(
             session=mock_session,
             journey=mock_journey,
             step_id=uuid.uuid4(),
@@ -247,9 +254,7 @@ class TestUpdateStepStatus:
         assert mock_step.status == StepStatus.IN_PROGRESS
         assert mock_step.started_at is not None
 
-    def test_updates_step_to_completed(
-        self, journey_service: JourneyService
-    ) -> None:
+    def test_updates_step_to_completed(self, journey_service: JourneyService) -> None:
         """Test updating step status to completed."""
         mock_session = MagicMock()
         mock_step = MagicMock(spec=JourneyStep)
@@ -310,9 +315,7 @@ class TestGetProgress:
         assert progress["progress_percentage"] == pytest.approx(33.33, rel=0.1)
         assert progress["estimated_days_remaining"] == 17  # 7 + 10
 
-    def test_calculates_phase_breakdown(
-        self, journey_service: JourneyService
-    ) -> None:
+    def test_calculates_phase_breakdown(self, journey_service: JourneyService) -> None:
         """Test that phase breakdown is calculated correctly."""
         mock_session = MagicMock()
 

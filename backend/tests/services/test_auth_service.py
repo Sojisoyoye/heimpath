@@ -1,4 +1,5 @@
 """Tests for JWT Authentication Service."""
+
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -94,7 +95,9 @@ class TestAuthService:
         """Sample user ID for testing."""
         return uuid.uuid4()
 
-    def test_create_access_token(self, auth_service: AuthService, user_id: uuid.UUID) -> None:
+    def test_create_access_token(
+        self, auth_service: AuthService, user_id: uuid.UUID
+    ) -> None:
         """Should create valid access token."""
         token = auth_service.create_access_token(subject=str(user_id))
 
@@ -132,15 +135,15 @@ class TestAuthService:
         now = datetime.now(timezone.utc)
 
         time_diff = exp_time - now
-        assert timedelta(hours=1, minutes=59) < time_diff < timedelta(hours=2, minutes=1)
+        assert (
+            timedelta(hours=1, minutes=59) < time_diff < timedelta(hours=2, minutes=1)
+        )
 
     def test_create_access_token_remember_me(
         self, auth_service: AuthService, user_id: uuid.UUID
     ) -> None:
         """Remember me should create 30-day token."""
-        token = auth_service.create_access_token(
-            subject=str(user_id), remember_me=True
-        )
+        token = auth_service.create_access_token(subject=str(user_id), remember_me=True)
         decoded = auth_service.decode_token(token)
 
         assert decoded is not None

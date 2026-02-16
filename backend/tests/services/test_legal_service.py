@@ -1,4 +1,5 @@
 """Tests for the Legal Service."""
+
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -100,7 +101,9 @@ class TestGetLaw:
     ) -> None:
         """Test that law is returned for valid ID."""
         mock_session = MagicMock()
-        mock_session.exec.return_value.scalars.return_value.first.return_value = sample_law
+        mock_session.exec.return_value.scalars.return_value.first.return_value = (
+            sample_law
+        )
 
         result = legal_service.get_law(mock_session, sample_law.id)
 
@@ -125,7 +128,9 @@ class TestGetLawByCitation:
     ) -> None:
         """Test that law is returned for valid citation."""
         mock_session = MagicMock()
-        mock_session.exec.return_value.scalars.return_value.first.return_value = sample_law
+        mock_session.exec.return_value.scalars.return_value.first.return_value = (
+            sample_law
+        )
 
         result = legal_service.get_law_by_citation(mock_session, "§ 433 BGB")
 
@@ -141,11 +146,11 @@ class TestBookmarks:
         """Test that is_bookmarked returns True when bookmarked."""
         mock_session = MagicMock()
         mock_bookmark = MagicMock(spec=LawBookmark)
-        mock_session.exec.return_value.scalars.return_value.first.return_value = mock_bookmark
-
-        result = legal_service.is_bookmarked(
-            mock_session, uuid.uuid4(), uuid.uuid4()
+        mock_session.exec.return_value.scalars.return_value.first.return_value = (
+            mock_bookmark
         )
+
+        result = legal_service.is_bookmarked(mock_session, uuid.uuid4(), uuid.uuid4())
 
         assert result is True
 
@@ -156,9 +161,7 @@ class TestBookmarks:
         mock_session = MagicMock()
         mock_session.exec.return_value.scalars.return_value.first.return_value = None
 
-        result = legal_service.is_bookmarked(
-            mock_session, uuid.uuid4(), uuid.uuid4()
-        )
+        result = legal_service.is_bookmarked(mock_session, uuid.uuid4(), uuid.uuid4())
 
         assert result is False
 
@@ -172,7 +175,10 @@ class TestBookmarks:
         mock_scalars1.first.return_value = sample_law
         mock_scalars2 = MagicMock()
         mock_scalars2.first.return_value = None
-        mock_session.exec.return_value.scalars.side_effect = [mock_scalars1, mock_scalars2]
+        mock_session.exec.return_value.scalars.side_effect = [
+            mock_scalars1,
+            mock_scalars2,
+        ]
 
         law_id = sample_law.id
         user_id = uuid.uuid4()
@@ -195,24 +201,23 @@ class TestBookmarks:
         mock_scalars1.first.return_value = sample_law
         mock_scalars2 = MagicMock()
         mock_scalars2.first.return_value = mock_bookmark
-        mock_session.exec.return_value.scalars.side_effect = [mock_scalars1, mock_scalars2]
+        mock_session.exec.return_value.scalars.side_effect = [
+            mock_scalars1,
+            mock_scalars2,
+        ]
 
         with pytest.raises(BookmarkAlreadyExistsError):
-            legal_service.create_bookmark(
-                mock_session, sample_law.id, uuid.uuid4()
-            )
+            legal_service.create_bookmark(mock_session, sample_law.id, uuid.uuid4())
 
-    def test_delete_bookmark_success(
-        self, legal_service: LegalService
-    ) -> None:
+    def test_delete_bookmark_success(self, legal_service: LegalService) -> None:
         """Test successful bookmark deletion."""
         mock_session = MagicMock()
         mock_bookmark = MagicMock(spec=LawBookmark)
-        mock_session.exec.return_value.scalars.return_value.first.return_value = mock_bookmark
-
-        legal_service.delete_bookmark(
-            mock_session, uuid.uuid4(), uuid.uuid4()
+        mock_session.exec.return_value.scalars.return_value.first.return_value = (
+            mock_bookmark
         )
+
+        legal_service.delete_bookmark(mock_session, uuid.uuid4(), uuid.uuid4())
 
         mock_session.delete.assert_called_once_with(mock_bookmark)
         mock_session.commit.assert_called_once()
@@ -225,9 +230,7 @@ class TestBookmarks:
         mock_session.exec.return_value.scalars.return_value.first.return_value = None
 
         with pytest.raises(BookmarkNotFoundError):
-            legal_service.delete_bookmark(
-                mock_session, uuid.uuid4(), uuid.uuid4()
-            )
+            legal_service.delete_bookmark(mock_session, uuid.uuid4(), uuid.uuid4())
 
 
 class TestGetUserBookmarks:
@@ -240,7 +243,9 @@ class TestGetUserBookmarks:
         mock_session = MagicMock()
         mock_bookmark = MagicMock(spec=LawBookmark)
         mock_bookmark.law = sample_law
-        mock_session.exec.return_value.scalars.return_value.all.return_value = [mock_bookmark]
+        mock_session.exec.return_value.scalars.return_value.all.return_value = [
+            mock_bookmark
+        ]
 
         result = legal_service.get_user_bookmarks(mock_session, uuid.uuid4())
 
@@ -255,7 +260,9 @@ class TestGetLawsByCategory:
     ) -> None:
         """Test that laws are returned for a category."""
         mock_session = MagicMock()
-        mock_session.exec.return_value.scalars.return_value.all.return_value = [sample_law]
+        mock_session.exec.return_value.scalars.return_value.all.return_value = [
+            sample_law
+        ]
 
         result = legal_service.get_laws_by_category(
             mock_session, LawCategory.BUYING_PROCESS
@@ -272,7 +279,9 @@ class TestGetRelatedLaws:
     ) -> None:
         """Test that related laws are returned."""
         mock_session = MagicMock()
-        mock_session.exec.return_value.scalars.return_value.all.return_value = [sample_law]
+        mock_session.exec.return_value.scalars.return_value.all.return_value = [
+            sample_law
+        ]
 
         result = legal_service.get_related_laws(mock_session, uuid.uuid4())
 

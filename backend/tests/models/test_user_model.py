@@ -1,10 +1,7 @@
 """Tests for User SQLAlchemy model."""
-import uuid
-from datetime import datetime, timezone
 
-import pytest
-
-from app.models import SubscriptionTier, UserV2 as User
+from app.models import SubscriptionTier
+from app.models import UserV2 as User
 
 
 class TestUserModel:

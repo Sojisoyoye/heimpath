@@ -20,7 +20,7 @@ export const GERMAN_STATES = [
   { code: "ST", name: "Sachsen-Anhalt", transferTaxRate: 5.0 },
   { code: "SH", name: "Schleswig-Holstein", transferTaxRate: 6.5 },
   { code: "TH", name: "Thüringen", transferTaxRate: 6.5 },
-] as const;
+] as const
 
 // Property types
 export const PROPERTY_TYPES = [
@@ -29,14 +29,14 @@ export const PROPERTY_TYPES = [
   { value: "multi_family", label: "Multi-family (Mehrfamilienhaus)" },
   { value: "commercial", label: "Commercial (Gewerbeimmobilie)" },
   { value: "land", label: "Land (Grundstück)" },
-] as const;
+] as const
 
 // Financing types
 export const FINANCING_TYPES = [
   { value: "cash", label: "Cash purchase (Barkauf)" },
   { value: "mortgage", label: "Mortgage (Hypothek)" },
   { value: "mixed", label: "Mixed financing" },
-] as const;
+] as const
 
 // Residency status options
 export const RESIDENCY_STATUS_OPTIONS = [
@@ -44,7 +44,7 @@ export const RESIDENCY_STATUS_OPTIONS = [
   { value: "eu_citizen", label: "EU/EEA citizen" },
   { value: "non_eu_resident", label: "Non-EU resident in Germany" },
   { value: "non_resident", label: "Non-resident (living abroad)" },
-] as const;
+] as const
 
 // Journey phases
 export const JOURNEY_PHASES = [
@@ -52,7 +52,7 @@ export const JOURNEY_PHASES = [
   { key: "preparation", label: "Preparation", order: 2 },
   { key: "buying", label: "Buying", order: 3 },
   { key: "closing", label: "Closing", order: 4 },
-] as const;
+] as const
 
 // Law categories
 export const LAW_CATEGORIES = [
@@ -61,7 +61,7 @@ export const LAW_CATEGORIES = [
   { key: "rental_law", label: "Rental & Landlord Law", icon: "Home" },
   { key: "condominium", label: "Condominium Ownership", icon: "Building" },
   { key: "agent_regulations", label: "Agent Regulations", icon: "Users" },
-] as const;
+] as const
 
 // Cost calculation constants
 export const COST_DEFAULTS = {
@@ -69,14 +69,14 @@ export const COST_DEFAULTS = {
   LAND_REGISTRY_FEE_PERCENT: 0.5,
   AGENT_COMMISSION_PERCENT: 3.57, // Buyer's share after Bestellerprinzip
   RENOVATION_ESTIMATE_PERCENT: 5.0, // Estimated renovation costs
-} as const;
+} as const
 
 // Pagination defaults
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
-} as const;
+} as const
 
+export * from "./propertyEvaluation"
 // Re-export property goals constants
-export * from "./propertyGoals";
-export * from "./propertyEvaluation";
+export * from "./propertyGoals"

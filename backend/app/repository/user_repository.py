@@ -1,4 +1,5 @@
 """User repository for database operations."""
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,12 +27,7 @@ class UserRepository(BaseRepository[User]):
 
     async def get_paginated(self, skip: int = 0, limit: int = 100) -> list[User]:
         """Get users with pagination, ordered by created_at desc."""
-        stmt = (
-            select(User)
-            .order_by(User.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-        )
+        stmt = select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

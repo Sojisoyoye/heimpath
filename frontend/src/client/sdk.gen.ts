@@ -3,7 +3,655 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthRegisterData, AuthRegisterResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutData, AuthLogoutResponse, AuthVerifyEmailData, AuthVerifyEmailResponse, AuthResendVerificationData, AuthResendVerificationResponse, CalculatorsGetStateRatesResponse, CalculatorsCompareStatesData, CalculatorsCompareStatesResponse, CalculatorsGetSharedCalculationData, CalculatorsGetSharedCalculationResponse, CalculatorsListCalculationsResponse, CalculatorsSaveCalculationData, CalculatorsSaveCalculationResponse, CalculatorsGetCalculationData, CalculatorsGetCalculationResponse, CalculatorsDeleteCalculationData, CalculatorsDeleteCalculationResponse, CalculatorsCompareRoiScenariosData, CalculatorsCompareRoiScenariosResponse, CalculatorsGetSharedRoiCalculationData, CalculatorsGetSharedRoiCalculationResponse, CalculatorsListRoiCalculationsResponse, CalculatorsSaveRoiCalculationData, CalculatorsSaveRoiCalculationResponse, CalculatorsGetRoiCalculationData, CalculatorsGetRoiCalculationResponse, CalculatorsDeleteRoiCalculationData, CalculatorsDeleteRoiCalculationResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsListDocumentsData, DocumentsListDocumentsResponse, DocumentsGetDocumentData, DocumentsGetDocumentResponse, DocumentsGetDocumentTranslationData, DocumentsGetDocumentTranslationResponse, DocumentsGetDocumentStatusData, DocumentsGetDocumentStatusResponse, FinancingGetSharedAssessmentData, FinancingGetSharedAssessmentResponse, FinancingListAssessmentsResponse, FinancingSaveAssessmentData, FinancingSaveAssessmentResponse, FinancingGetAssessmentData, FinancingGetAssessmentResponse, FinancingDeleteAssessmentData, FinancingDeleteAssessmentResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JourneysCreateJourneyData, JourneysCreateJourneyResponse, JourneysListJourneysData, JourneysListJourneysResponse, JourneysGetJourneyData, JourneysGetJourneyResponse, JourneysUpdateJourneyData, JourneysUpdateJourneyResponse, JourneysDeleteJourneyData, JourneysDeleteJourneyResponse, JourneysGetJourneyProgressData, JourneysGetJourneyProgressResponse, JourneysGetNextStepData, JourneysGetNextStepResponse, JourneysUpdateStepStatusData, JourneysUpdateStepStatusResponse, JourneysUpdateTaskStatusData, JourneysUpdateTaskStatusResponse, JourneysGetPropertyGoalsData, JourneysGetPropertyGoalsResponse, JourneysUpdatePropertyGoalsData, JourneysUpdatePropertyGoalsResponse, LawsListLawsData, LawsListLawsResponse, LawsSearchLawsData, LawsSearchLawsResponse, LawsGetCategoriesResponse, LawsGetLawsForJourneyStepData, LawsGetLawsForJourneyStepResponse, LawsGetBookmarksResponse, LawsGetLawData, LawsGetLawResponse, LawsCreateBookmarkData, LawsCreateBookmarkResponse, LawsDeleteBookmarkData, LawsDeleteBookmarkResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, SubscriptionsGetCurrentSubscriptionResponse, SubscriptionsCreateCheckoutSessionData, SubscriptionsCreateCheckoutSessionResponse, SubscriptionsCreatePortalSessionData, SubscriptionsCreatePortalSessionResponse, SubscriptionsHandleWebhookData, SubscriptionsHandleWebhookResponse, SubscriptionsCancelSubscriptionResponse, TranslationsTranslateTextData, TranslationsTranslateTextResponse, TranslationsDetectLanguageData, TranslationsDetectLanguageResponse, TranslationsBatchTranslateData, TranslationsBatchTranslateResponse, TranslationsGetSupportedLanguagesResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersExportUserDataResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class AuthService {
+    /**
+     * Register
+     * Register a new user account.
+     *
+     * Password requirements:
+     * - Minimum 8 characters
+     * - At least 1 uppercase letter
+     * - At least 1 number
+     *
+     * Returns the created user (without password).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RegisterResponse Successful Response
+     * @throws ApiError
+     */
+    public static register(data: AuthRegisterData): CancelablePromise<AuthRegisterResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/register',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Login
+     * Authenticate user and return JWT tokens.
+     *
+     * Rate limiting: After 5 failed attempts, the account is locked for 15 minutes.
+     *
+     * Returns access token (24h or 30d with remember_me) and refresh token (7d).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns AuthToken Successful Response
+     * @throws ApiError
+     */
+    public static login(data: AuthLoginData): CancelablePromise<AuthLoginResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/login',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Refresh Token
+     * Get new access token using refresh token.
+     *
+     * The refresh token is validated and a new access token is issued.
+     * The same refresh token remains valid until expiration.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns AuthToken Successful Response
+     * @throws ApiError
+     */
+    public static refreshToken(data: AuthRefreshTokenData): CancelablePromise<AuthRefreshTokenResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/refresh',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Logout
+     * Logout by invalidating the refresh token.
+     *
+     * The refresh token is blacklisted and cannot be used again.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static logout(data: AuthLogoutData): CancelablePromise<AuthLogoutResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/logout',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Verify Email
+     * Verify user's email address using verification token.
+     *
+     * The token is consumed after successful verification and cannot be reused.
+     * Tokens expire after 24 hours.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns VerifyEmailResponse Successful Response
+     * @throws ApiError
+     */
+    public static verifyEmail(data: AuthVerifyEmailData): CancelablePromise<AuthVerifyEmailResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/verify-email',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Resend Verification
+     * Resend email verification link.
+     *
+     * Generates a new verification token and sends it to the user's email.
+     * Any previous token for the user is invalidated.
+     *
+     * Note: Always returns success to prevent email enumeration attacks.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns VerifyEmailResponse Successful Response
+     * @throws ApiError
+     */
+    public static resendVerification(data: AuthResendVerificationData): CancelablePromise<AuthResendVerificationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/resend-verification',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CalculatorsService {
+    /**
+     * Get State Rates
+     * Get all German state transfer tax rates and cost defaults.
+     *
+     * No authentication required.
+     * @returns StateRatesResponse Successful Response
+     * @throws ApiError
+     */
+    public static getStateRates(): CancelablePromise<CalculatorsGetStateRatesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/state-rates'
+        });
+    }
+    
+    /**
+     * Compare States
+     * Compare hidden costs across all 16 German states for a given price.
+     *
+     * No authentication required.
+     * @param data The data for the request.
+     * @param data.price Property price in EUR
+     * @param data.includeAgent Include agent commission
+     * @returns StateComparisonResponse Successful Response
+     * @throws ApiError
+     */
+    public static compareStates(data: CalculatorsCompareStatesData): CancelablePromise<CalculatorsCompareStatesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/hidden-costs/compare',
+            query: {
+                price: data.price,
+                include_agent: data.includeAgent
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Shared Calculation
+     * Get a shared calculation by share_id.
+     *
+     * No authentication required.
+     * @param data The data for the request.
+     * @param data.shareId
+     * @returns HiddenCostCalculationResponse Successful Response
+     * @throws ApiError
+     */
+    public static getSharedCalculation(data: CalculatorsGetSharedCalculationData): CancelablePromise<CalculatorsGetSharedCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/hidden-costs/share/{share_id}',
+            path: {
+                share_id: data.shareId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Calculations
+     * Get all saved calculations for the current user.
+     *
+     * Requires authentication.
+     * @returns HiddenCostCalculationListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listCalculations(): CancelablePromise<CalculatorsListCalculationsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/hidden-costs'
+        });
+    }
+    
+    /**
+     * Save Calculation
+     * Calculate and save a hidden cost calculation.
+     *
+     * Requires authentication.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns HiddenCostCalculationResponse Successful Response
+     * @throws ApiError
+     */
+    public static saveCalculation(data: CalculatorsSaveCalculationData): CancelablePromise<CalculatorsSaveCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/calculators/hidden-costs',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Calculation
+     * Get a specific saved calculation by ID.
+     *
+     * Requires authentication and ownership.
+     * @param data The data for the request.
+     * @param data.calcId
+     * @returns HiddenCostCalculationResponse Successful Response
+     * @throws ApiError
+     */
+    public static getCalculation(data: CalculatorsGetCalculationData): CancelablePromise<CalculatorsGetCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/hidden-costs/{calc_id}',
+            path: {
+                calc_id: data.calcId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Calculation
+     * Delete a saved calculation.
+     *
+     * Requires authentication and ownership.
+     * @param data The data for the request.
+     * @param data.calcId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static deleteCalculation(data: CalculatorsDeleteCalculationData): CancelablePromise<CalculatorsDeleteCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/calculators/hidden-costs/{calc_id}',
+            path: {
+                calc_id: data.calcId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Compare Roi Scenarios
+     * Compare 2-4 ROI scenarios side by side.
+     *
+     * No authentication required. Pure calculation, no persistence.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ROICompareResponse Successful Response
+     * @throws ApiError
+     */
+    public static compareRoiScenarios(data: CalculatorsCompareRoiScenariosData): CancelablePromise<CalculatorsCompareRoiScenariosResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/calculators/roi/compare',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Shared Roi Calculation
+     * Get a shared ROI calculation by share_id.
+     *
+     * No authentication required.
+     * @param data The data for the request.
+     * @param data.shareId
+     * @returns ROICalculationResponse Successful Response
+     * @throws ApiError
+     */
+    public static getSharedRoiCalculation(data: CalculatorsGetSharedRoiCalculationData): CancelablePromise<CalculatorsGetSharedRoiCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/roi/share/{share_id}',
+            path: {
+                share_id: data.shareId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Roi Calculations
+     * Get all saved ROI calculations for the current user.
+     *
+     * Requires authentication.
+     * @returns ROICalculationListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listRoiCalculations(): CancelablePromise<CalculatorsListRoiCalculationsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/roi'
+        });
+    }
+    
+    /**
+     * Save Roi Calculation
+     * Calculate and save an ROI analysis.
+     *
+     * Requires authentication.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ROICalculationResponse Successful Response
+     * @throws ApiError
+     */
+    public static saveRoiCalculation(data: CalculatorsSaveRoiCalculationData): CancelablePromise<CalculatorsSaveRoiCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/calculators/roi',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Roi Calculation
+     * Get a specific saved ROI calculation by ID.
+     *
+     * Requires authentication and ownership.
+     * @param data The data for the request.
+     * @param data.calcId
+     * @returns ROICalculationResponse Successful Response
+     * @throws ApiError
+     */
+    public static getRoiCalculation(data: CalculatorsGetRoiCalculationData): CancelablePromise<CalculatorsGetRoiCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/calculators/roi/{calc_id}',
+            path: {
+                calc_id: data.calcId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Roi Calculation
+     * Delete a saved ROI calculation.
+     *
+     * Requires authentication and ownership.
+     * @param data The data for the request.
+     * @param data.calcId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static deleteRoiCalculation(data: CalculatorsDeleteRoiCalculationData): CancelablePromise<CalculatorsDeleteRoiCalculationResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/calculators/roi/{calc_id}',
+            path: {
+                calc_id: data.calcId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class DocumentsService {
+    /**
+     * Upload Document
+     * Upload a German real estate PDF document for translation.
+     *
+     * Accepts PDF files up to 20 MB. The document will be queued for
+     * background processing including text extraction, translation,
+     * clause detection, and risk warnings.
+     *
+     * **Page limits:**
+     * - Free tier: 10 pages
+     * - Premium/Enterprise: 20 pages
+     * @param data The data for the request.
+     * @param data.formData
+     * @returns DocumentUploadResponse Successful Response
+     * @throws ApiError
+     */
+    public static uploadDocument(data: DocumentsUploadDocumentData): CancelablePromise<DocumentsUploadDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/documents/upload',
+            formData: data.formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Documents
+     * Get paginated list of the current user's uploaded documents.
+     * @param data The data for the request.
+     * @param data.page
+     * @param data.pageSize
+     * @returns DocumentListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listDocuments(data: DocumentsListDocumentsData = {}): CancelablePromise<DocumentsListDocumentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/',
+            query: {
+                page: data.page,
+                page_size: data.pageSize
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Document
+     * Get full document details including translation if completed.
+     * @param data The data for the request.
+     * @param data.documentId
+     * @returns DocumentDetailResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDocument(data: DocumentsGetDocumentData): CancelablePromise<DocumentsGetDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{document_id}',
+            path: {
+                document_id: data.documentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Document Translation
+     * Get translation results for a document.
+     *
+     * Returns 409 if the document has not finished processing yet.
+     * @param data The data for the request.
+     * @param data.documentId
+     * @returns DocumentTranslationResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDocumentTranslation(data: DocumentsGetDocumentTranslationData): CancelablePromise<DocumentsGetDocumentTranslationResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{document_id}/translation',
+            path: {
+                document_id: data.documentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Document Status
+     * Lightweight polling endpoint for document processing status.
+     * @param data The data for the request.
+     * @param data.documentId
+     * @returns DocumentStatusResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDocumentStatus(data: DocumentsGetDocumentStatusData): CancelablePromise<DocumentsGetDocumentStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{document_id}/status',
+            path: {
+                document_id: data.documentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class FinancingService {
+    /**
+     * Get Shared Assessment
+     * Get a shared financing assessment by share_id.
+     *
+     * No authentication required.
+     * @param data The data for the request.
+     * @param data.shareId
+     * @returns FinancingAssessmentResponse Successful Response
+     * @throws ApiError
+     */
+    public static getSharedAssessment(data: FinancingGetSharedAssessmentData): CancelablePromise<FinancingGetSharedAssessmentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/financing/eligibility/share/{share_id}',
+            path: {
+                share_id: data.shareId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Assessments
+     * Get all saved financing assessments for the current user.
+     *
+     * Requires authentication.
+     * @returns FinancingAssessmentListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listAssessments(): CancelablePromise<FinancingListAssessmentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/financing/eligibility'
+        });
+    }
+    
+    /**
+     * Save Assessment
+     * Assess financing eligibility and save the result.
+     *
+     * Requires authentication.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns FinancingAssessmentResponse Successful Response
+     * @throws ApiError
+     */
+    public static saveAssessment(data: FinancingSaveAssessmentData): CancelablePromise<FinancingSaveAssessmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/financing/eligibility',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Assessment
+     * Get a specific saved financing assessment by ID.
+     *
+     * Requires authentication and ownership.
+     * @param data The data for the request.
+     * @param data.assessmentId
+     * @returns FinancingAssessmentResponse Successful Response
+     * @throws ApiError
+     */
+    public static getAssessment(data: FinancingGetAssessmentData): CancelablePromise<FinancingGetAssessmentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/financing/eligibility/{assessment_id}',
+            path: {
+                assessment_id: data.assessmentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Assessment
+     * Delete a saved financing assessment.
+     *
+     * Requires authentication and ownership.
+     * @param data The data for the request.
+     * @param data.assessmentId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static deleteAssessment(data: FinancingDeleteAssessmentData): CancelablePromise<FinancingDeleteAssessmentResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/financing/eligibility/{assessment_id}',
+            path: {
+                assessment_id: data.assessmentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class ItemsService {
     /**
@@ -108,6 +756,454 @@ export class ItemsService {
             url: '/api/v1/items/{id}',
             path: {
                 id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class JourneysService {
+    /**
+     * Create Journey
+     * Create a new property buying journey from questionnaire answers.
+     *
+     * The journey will be personalized based on:
+     * - Property type and location
+     * - Financing needs
+     * - First-time buyer status
+     * - German residency status
+     * - Budget and timeline
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns JourneyResponse Successful Response
+     * @throws ApiError
+     */
+    public static createJourney(data: JourneysCreateJourneyData): CancelablePromise<JourneysCreateJourneyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/journeys/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Journeys
+     * List all journeys for the current user.
+     * @param data The data for the request.
+     * @param data.activeOnly
+     * @returns JourneysListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listJourneys(data: JourneysListJourneysData = {}): CancelablePromise<JourneysListJourneysResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/journeys/',
+            query: {
+                active_only: data.activeOnly
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Journey
+     * Get a specific journey with full step and task details.
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @returns JourneyDetailResponse Successful Response
+     * @throws ApiError
+     */
+    public static getJourney(data: JourneysGetJourneyData): CancelablePromise<JourneysGetJourneyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/journeys/{journey_id}',
+            path: {
+                journey_id: data.journeyId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Journey
+     * Update journey metadata.
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @param data.requestBody
+     * @returns JourneyResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateJourney(data: JourneysUpdateJourneyData): CancelablePromise<JourneysUpdateJourneyResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/journeys/{journey_id}',
+            path: {
+                journey_id: data.journeyId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Journey
+     * Delete a journey (soft delete by setting is_active=False).
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteJourney(data: JourneysDeleteJourneyData): CancelablePromise<JourneysDeleteJourneyResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/journeys/{journey_id}',
+            path: {
+                journey_id: data.journeyId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Journey Progress
+     * Get journey progress statistics.
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @returns JourneyProgressResponse Successful Response
+     * @throws ApiError
+     */
+    public static getJourneyProgress(data: JourneysGetJourneyProgressData): CancelablePromise<JourneysGetJourneyProgressResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/journeys/{journey_id}/progress',
+            path: {
+                journey_id: data.journeyId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Next Step
+     * Get the next recommended step for a journey.
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @returns NextStepResponse Successful Response
+     * @throws ApiError
+     */
+    public static getNextStep(data: JourneysGetNextStepData): CancelablePromise<JourneysGetNextStepResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/journeys/{journey_id}/next-step',
+            path: {
+                journey_id: data.journeyId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Step Status
+     * Update a step's status.
+     *
+     * Valid transitions:
+     * - not_started -> in_progress
+     * - in_progress -> completed
+     * - any -> skipped
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @param data.stepId
+     * @param data.requestBody
+     * @returns JourneyStepResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateStepStatus(data: JourneysUpdateStepStatusData): CancelablePromise<JourneysUpdateStepStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/journeys/{journey_id}/steps/{step_id}',
+            path: {
+                journey_id: data.journeyId,
+                step_id: data.stepId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Task Status
+     * Update a task's completion status.
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @param data.stepId
+     * @param data.taskId
+     * @param data.requestBody
+     * @returns JourneyTaskResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateTaskStatus(data: JourneysUpdateTaskStatusData): CancelablePromise<JourneysUpdateTaskStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/journeys/{journey_id}/steps/{step_id}/tasks/{task_id}',
+            path: {
+                journey_id: data.journeyId,
+                step_id: data.stepId,
+                task_id: data.taskId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Property Goals
+     * Get property goals for a journey (Step 1 data).
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @returns PropertyGoals Successful Response
+     * @throws ApiError
+     */
+    public static getPropertyGoals(data: JourneysGetPropertyGoalsData): CancelablePromise<JourneysGetPropertyGoalsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/journeys/{journey_id}/property-goals',
+            path: {
+                journey_id: data.journeyId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Property Goals
+     * Update property goals for a journey (Step 1 data).
+     *
+     * This endpoint allows users to define their property preferences:
+     * - Number of rooms and bathrooms
+     * - Floor preferences
+     * - Must-have features (balcony, parking, etc.)
+     * - Size requirements
+     * - Additional notes
+     * @param data The data for the request.
+     * @param data.journeyId
+     * @param data.requestBody
+     * @returns PropertyGoals Successful Response
+     * @throws ApiError
+     */
+    public static updatePropertyGoals(data: JourneysUpdatePropertyGoalsData): CancelablePromise<JourneysUpdatePropertyGoalsResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/journeys/{journey_id}/property-goals',
+            path: {
+                journey_id: data.journeyId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class LawsService {
+    /**
+     * List Laws
+     * List all laws with optional filtering.
+     *
+     * Filter by:
+     * - category: Law category (buying_process, costs_and_taxes, rental_law, etc.)
+     * - property_type: Property type applicability
+     * - state: German state code for state-specific variations
+     * @param data The data for the request.
+     * @param data.category
+     * @param data.propertyType
+     * @param data.state German state code
+     * @param data.page
+     * @param data.pageSize
+     * @returns LawListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listLaws(data: LawsListLawsData = {}): CancelablePromise<LawsListLawsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/laws/',
+            query: {
+                category: data.category,
+                property_type: data.propertyType,
+                state: data.state,
+                page: data.page,
+                page_size: data.pageSize
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Search Laws
+     * Search laws using full-text search.
+     *
+     * Searches across titles, summaries, and detailed explanations.
+     * Returns results ranked by relevance.
+     * @param data The data for the request.
+     * @param data.q Search query
+     * @param data.limit
+     * @returns LawSearchResponse Successful Response
+     * @throws ApiError
+     */
+    public static searchLaws(data: LawsSearchLawsData): CancelablePromise<LawsSearchLawsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/laws/search',
+            query: {
+                q: data.q,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Categories
+     * Get all law categories with counts.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getCategories(): CancelablePromise<LawsGetCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/laws/categories'
+        });
+    }
+    
+    /**
+     * Get Laws For Journey Step
+     * Get laws relevant to a specific journey step.
+     *
+     * Laws are returned sorted by relevance score (highest first).
+     * @param data The data for the request.
+     * @param data.stepContentKey
+     * @returns JourneyStepLawsResponse Successful Response
+     * @throws ApiError
+     */
+    public static getLawsForJourneyStep(data: LawsGetLawsForJourneyStepData): CancelablePromise<LawsGetLawsForJourneyStepResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/laws/by-journey-step/{step_content_key}',
+            path: {
+                step_content_key: data.stepContentKey
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Bookmarks
+     * Get all bookmarked laws for the current user.
+     * @returns BookmarkListResponse Successful Response
+     * @throws ApiError
+     */
+    public static getBookmarks(): CancelablePromise<LawsGetBookmarksResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/laws/bookmarks'
+        });
+    }
+    
+    /**
+     * Get Law
+     * Get a specific law with full details.
+     *
+     * Includes court rulings, state variations, and related laws.
+     * @param data The data for the request.
+     * @param data.lawId
+     * @returns LawDetailResponse Successful Response
+     * @throws ApiError
+     */
+    public static getLaw(data: LawsGetLawData): CancelablePromise<LawsGetLawResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/laws/{law_id}',
+            path: {
+                law_id: data.lawId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Bookmark
+     * Bookmark a law for later reference.
+     * @param data The data for the request.
+     * @param data.lawId
+     * @param data.requestBody
+     * @returns BookmarkResponse Successful Response
+     * @throws ApiError
+     */
+    public static createBookmark(data: LawsCreateBookmarkData): CancelablePromise<LawsCreateBookmarkResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/laws/{law_id}/bookmark',
+            path: {
+                law_id: data.lawId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Bookmark
+     * Remove a law bookmark.
+     * @param data The data for the request.
+     * @param data.lawId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteBookmark(data: LawsDeleteBookmarkData): CancelablePromise<LawsDeleteBookmarkResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/laws/{law_id}/bookmark',
+            path: {
+                law_id: data.lawId
             },
             errors: {
                 422: 'Validation Error'
@@ -235,6 +1331,220 @@ export class PrivateService {
     }
 }
 
+export class SubscriptionsService {
+    /**
+     * Get Current Subscription
+     * Get the current user's subscription status.
+     *
+     * Returns the subscription tier and status.
+     * @returns SubscriptionResponse Successful Response
+     * @throws ApiError
+     */
+    public static getCurrentSubscription(): CancelablePromise<SubscriptionsGetCurrentSubscriptionResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/subscriptions/current'
+        });
+    }
+    
+    /**
+     * Create Checkout Session
+     * Create a Stripe checkout session for subscription upgrade.
+     *
+     * The user will be redirected to Stripe's hosted checkout page.
+     * After payment, they will be redirected to the success_url or cancel_url.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns CheckoutResponse Successful Response
+     * @throws ApiError
+     */
+    public static createCheckoutSession(data: SubscriptionsCreateCheckoutSessionData): CancelablePromise<SubscriptionsCreateCheckoutSessionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/subscriptions/checkout',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Portal Session
+     * Create a Stripe customer portal session.
+     *
+     * The portal allows users to manage their subscription, update payment
+     * methods, view invoices, and cancel their subscription.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PortalResponse Successful Response
+     * @throws ApiError
+     */
+    public static createPortalSession(data: SubscriptionsCreatePortalSessionData): CancelablePromise<SubscriptionsCreatePortalSessionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/subscriptions/portal',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Handle Webhook
+     * Handle Stripe webhook events.
+     *
+     * This endpoint receives events from Stripe about subscription changes
+     * and updates user subscription tiers accordingly.
+     *
+     * Events handled:
+     * - checkout.session.completed: Activate subscription after payment
+     * - customer.subscription.updated: Update tier on subscription changes
+     * - customer.subscription.deleted: Downgrade to free on cancellation
+     * @param data The data for the request.
+     * @param data.stripeSignature
+     * @returns WebhookResponse Successful Response
+     * @throws ApiError
+     */
+    public static handleWebhook(data: SubscriptionsHandleWebhookData): CancelablePromise<SubscriptionsHandleWebhookResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/subscriptions/webhook',
+            headers: {
+                'Stripe-Signature': data.stripeSignature
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Cancel Subscription
+     * Cancel the current subscription.
+     *
+     * The subscription will be cancelled at the end of the current billing period.
+     * The user will retain access until then.
+     * @returns SubscriptionResponse Successful Response
+     * @throws ApiError
+     */
+    public static cancelSubscription(): CancelablePromise<SubscriptionsCancelSubscriptionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/subscriptions/cancel'
+        });
+    }
+}
+
+export class TranslationsService {
+    /**
+     * Translate Text
+     * Translate text from source to target language.
+     *
+     * Translates the given text and optionally includes warnings for legal
+     * and financial terms that may require professional review.
+     *
+     * **Features:**
+     * - Neural machine translation via Microsoft Azure
+     * - Detection of German legal/financial terms
+     * - Risk level warnings for terms requiring review
+     * - Confidence scores for translation quality
+     *
+     * **Supported Languages:**
+     * - German (de) - primary source language
+     * - English (en) - primary target language
+     * - Plus French, Spanish, Italian, Polish, Turkish, Russian, Arabic, Chinese
+     *
+     * **Rate Limits:**
+     * - Free tier: 2 million characters/month
+     * - Character count included in response for tracking
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns TranslationResponse Successful Response
+     * @throws ApiError
+     */
+    public static translateText(data: TranslationsTranslateTextData): CancelablePromise<TranslationsTranslateTextResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/translations/translate',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Detect Language
+     * Detect the language of given text.
+     *
+     * Returns the detected language code, confidence score, and whether
+     * the language is supported for translation.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns LanguageDetectionResponse Successful Response
+     * @throws ApiError
+     */
+    public static detectLanguage(data: TranslationsDetectLanguageData): CancelablePromise<TranslationsDetectLanguageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/translations/detect',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Batch Translate
+     * Translate multiple texts in a single request.
+     *
+     * More efficient for translating multiple paragraphs or document sections.
+     * Returns individual translations with legal warnings for each text.
+     *
+     * **Limits:**
+     * - Maximum 100 texts per request
+     * - Each text limited to 50,000 characters
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns BatchTranslationResponse Successful Response
+     * @throws ApiError
+     */
+    public static batchTranslate(data: TranslationsBatchTranslateData): CancelablePromise<TranslationsBatchTranslateResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/translations/batch',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Supported Languages
+     * Get list of supported languages for translation.
+     *
+     * Returns all languages that can be used as source or target
+     * for document translation.
+     * @returns SupportedLanguagesResponse Successful Response
+     * @throws ApiError
+     */
+    public static getSupportedLanguages(): CancelablePromise<TranslationsGetSupportedLanguagesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/translations/languages'
+        });
+    }
+}
+
 export class UsersService {
     /**
      * Read Users
@@ -342,6 +1652,24 @@ export class UsersService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Export User Data
+     * Export all user data (GDPR Article 20 - Right to Data Portability).
+     *
+     * Returns all user data in a portable JSON format including:
+     * - User profile information
+     * - Related items/resources
+     * - Account metadata
+     * @returns UserDataExport Successful Response
+     * @throws ApiError
+     */
+    public static exportUserData(): CancelablePromise<UsersExportUserDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/users/me/export'
         });
     }
     

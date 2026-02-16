@@ -9,20 +9,20 @@ export const ROOM_OPTIONS = [
   { value: 3, label: "3 Rooms" },
   { value: 4, label: "4 Rooms" },
   { value: 5, label: "5+ Rooms" },
-] as const;
+] as const
 
 export const BATHROOM_OPTIONS = [
   { value: 1, label: "1 Bathroom" },
   { value: 2, label: "2 Bathrooms" },
   { value: 3, label: "3+ Bathrooms" },
-] as const;
+] as const
 
 export const FLOOR_OPTIONS = [
   { value: "ground", label: "Ground Floor (Erdgeschoss)" },
   { value: "middle", label: "Middle Floors (1-3)" },
   { value: "top", label: "Top Floor (Dachgeschoss)" },
   { value: "any", label: "Any Floor" },
-] as const;
+] as const
 
 export const PROPERTY_FEATURES = [
   { value: "balcony", label: "Balcony / Terrace", icon: "Sun" },
@@ -35,9 +35,13 @@ export const PROPERTY_FEATURES = [
   { value: "renovated", label: "Recently Renovated", icon: "Hammer" },
   { value: "quiet_location", label: "Quiet Location", icon: "Volume2" },
   { value: "good_transport", label: "Good Public Transport", icon: "Train" },
-  { value: "wheelchair_accessible", label: "Wheelchair Accessible", icon: "Accessibility" },
+  {
+    value: "wheelchair_accessible",
+    label: "Wheelchair Accessible",
+    icon: "Accessibility",
+  },
   { value: "pets_allowed", label: "Pets Allowed", icon: "Dog" },
-] as const;
+] as const
 
 export const SIZE_RANGES = [
   { min: 30, max: 50, label: "30-50 m² (Studio/1BR)" },
@@ -45,19 +49,22 @@ export const SIZE_RANGES = [
   { min: 70, max: 100, label: "70-100 m² (Medium Apt)" },
   { min: 100, max: 150, label: "100-150 m² (Large Apt/House)" },
   { min: 150, max: 300, label: "150+ m² (Large House)" },
-] as const;
+] as const
 
 /**
  * Market data constants for Step 2: Market Insights
  * Average prices per sqm by German state (2024 estimates)
  */
-export const MARKET_DATA_BY_STATE: Record<string, {
-  avgPricePerSqm: number;
-  priceRange: { min: number; max: number };
-  agentFeePercent: number;
-  trend: "rising" | "stable" | "falling";
-  hotspots: string[];
-}> = {
+export const MARKET_DATA_BY_STATE: Record<
+  string,
+  {
+    avgPricePerSqm: number
+    priceRange: { min: number; max: number }
+    agentFeePercent: number
+    trend: "rising" | "stable" | "falling"
+    hotspots: string[]
+  }
+> = {
   BW: {
     avgPricePerSqm: 3800,
     priceRange: { min: 2500, max: 6000 },
@@ -170,7 +177,7 @@ export const MARKET_DATA_BY_STATE: Record<string, {
     trend: "stable",
     hotspots: ["Erfurt", "Jena", "Weimar"],
   },
-};
+}
 
 /**
  * Property type price multipliers
@@ -182,4 +189,4 @@ export const PROPERTY_TYPE_MULTIPLIERS: Record<string, number> = {
   multi_family: 1.5,
   commercial: 1.4,
   land: 0.4,
-};
+}

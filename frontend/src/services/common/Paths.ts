@@ -3,7 +3,7 @@
  * All API endpoints should be defined here for consistency
  */
 
-const API_V1 = "/api/v1";
+const API_V1 = "/api/v1"
 
 export const PATHS = {
   // Authentication
@@ -93,4 +93,4 @@ export const PATHS = {
     ACTIVITY: `${API_V1}/dashboard/activity`,
     RECOMMENDATIONS: `${API_V1}/dashboard/recommendations`,
   },
-} as const;
+} as const

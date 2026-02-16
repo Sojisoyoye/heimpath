@@ -1,4 +1,5 @@
 """Tests for Translation API endpoints."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
@@ -17,7 +18,9 @@ def test_translate_text_service_not_configured(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
     """Test translation fails when service is not configured."""
-    with patch("app.api.routes.translations.get_translation_service", return_value=None):
+    with patch(
+        "app.api.routes.translations.get_translation_service", return_value=None
+    ):
         r = client.post(
             f"{settings.API_V1_STR}/translations/translate",
             headers=normal_user_token_headers,
@@ -209,7 +212,9 @@ def test_detect_language_service_not_configured(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
     """Test language detection fails when service is not configured."""
-    with patch("app.api.routes.translations.get_translation_service", return_value=None):
+    with patch(
+        "app.api.routes.translations.get_translation_service", return_value=None
+    ):
         r = client.post(
             f"{settings.API_V1_STR}/translations/detect",
             headers=normal_user_token_headers,

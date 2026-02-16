@@ -53,7 +53,12 @@ export const queryKeys = {
     hiddenCostsShare: (shareId: string) =>
       [...queryKeys.calculators.all, "hiddenCostsShare", shareId] as const,
     stateComparison: (price: number, includeAgent: boolean) =>
-      [...queryKeys.calculators.all, "stateComparison", price, includeAgent] as const,
+      [
+        ...queryKeys.calculators.all,
+        "stateComparison",
+        price,
+        includeAgent,
+      ] as const,
     roi: (id: string) => [...queryKeys.calculators.all, "roi", id] as const,
     roiList: () => [...queryKeys.calculators.all, "roiList"] as const,
     roiShare: (shareId: string) =>
@@ -77,12 +82,10 @@ export const queryKeys = {
     all: ["documents"] as const,
     list: (page?: number) =>
       [...queryKeys.documents.all, "list", page] as const,
-    detail: (id: string) =>
-      [...queryKeys.documents.all, "detail", id] as const,
+    detail: (id: string) => [...queryKeys.documents.all, "detail", id] as const,
     translation: (id: string) =>
       [...queryKeys.documents.all, "translation", id] as const,
-    status: (id: string) =>
-      [...queryKeys.documents.all, "status", id] as const,
+    status: (id: string) => [...queryKeys.documents.all, "status", id] as const,
   },
 
   // Dashboard queries
@@ -93,4 +96,4 @@ export const queryKeys = {
     recommendations: () =>
       [...queryKeys.dashboard.all, "recommendations"] as const,
   },
-} as const;
+} as const

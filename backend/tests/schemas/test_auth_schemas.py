@@ -1,4 +1,5 @@
 """Tests for Authentication Schemas."""
+
 import pytest
 from pydantic import ValidationError
 
@@ -8,7 +9,6 @@ from app.schemas.auth import (
     LogoutRequest,
     RefreshTokenRequest,
     RegisterRequest,
-    RegisterResponse,
     ResendVerificationRequest,
     VerifyEmailRequest,
     VerifyEmailResponse,

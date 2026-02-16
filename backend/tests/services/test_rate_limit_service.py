@@ -1,4 +1,5 @@
 """Tests for Login Rate Limiter Service."""
+
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -50,9 +51,7 @@ class TestLoginRateLimiter:
         assert status.is_locked is False
         assert status.attempts_remaining == 5
 
-    def test_record_single_failed_attempt(
-        self, rate_limiter: LoginRateLimiter
-    ) -> None:
+    def test_record_single_failed_attempt(self, rate_limiter: LoginRateLimiter) -> None:
         """Single failed attempt should decrement remaining attempts."""
         status = rate_limiter.record_failed_attempt("test@example.com")
 
@@ -72,9 +71,7 @@ class TestLoginRateLimiter:
         assert status.is_locked is False
         assert status.attempts_remaining == 2
 
-    def test_lockout_after_max_attempts(
-        self, rate_limiter: LoginRateLimiter
-    ) -> None:
+    def test_lockout_after_max_attempts(self, rate_limiter: LoginRateLimiter) -> None:
         """Should lock after MAX_ATTEMPTS (5) failed attempts."""
         email = "test@example.com"
 
@@ -161,9 +158,7 @@ class TestLoginRateLimiter:
         assert rate_limiter.is_locked(email2) is False
         assert rate_limiter.get_status(email2).attempts_remaining == 5
 
-    def test_reset_clears_lockout(
-        self, rate_limiter: LoginRateLimiter
-    ) -> None:
+    def test_reset_clears_lockout(self, rate_limiter: LoginRateLimiter) -> None:
         """Admin reset should clear lockout."""
         email = "test@example.com"
 

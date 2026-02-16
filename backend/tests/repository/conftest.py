@@ -2,6 +2,7 @@
 
 These tests use mocked sessions - no database connection required.
 """
+
 import pytest
 
 

@@ -525,7 +525,9 @@ def test_delete_user_without_privileges(
 
 
 def test_export_user_data(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,  # noqa: ARG001
 ) -> None:
     """Test GDPR data export returns all required fields."""
     r = client.get(
@@ -565,12 +567,12 @@ def test_export_user_data_with_items(client: TestClient, db: Session) -> None:
     # Create items for the user
     from app.models import ItemCreate
 
-    item1 = crud.create_item(
+    _item1 = crud.create_item(
         session=db,
         item_in=ItemCreate(title="Test Item 1", description="Description 1"),
         owner_id=user.id,
     )
-    item2 = crud.create_item(
+    _item2 = crud.create_item(
         session=db,
         item_in=ItemCreate(title="Test Item 2", description="Description 2"),
         owner_id=user.id,

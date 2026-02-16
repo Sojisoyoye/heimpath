@@ -1,4 +1,5 @@
 """Pydantic request/response schemas."""
+
 from app.schemas.auth import (
     AuthToken,
     ForgotPasswordRequest,
@@ -31,6 +32,18 @@ from app.schemas.journey import (
     PropertyGoalsUpdate,
     QuestionnaireAnswers,
 )
+from app.schemas.translation import (
+    BatchTranslationRequest,
+    BatchTranslationResponse,
+    LanguageDetectionRequest,
+    LanguageDetectionResponse,
+    LegalTermWarning,
+    RiskLevel,
+    SupportedLanguage,
+    TranslationRequest,
+    TranslationResponse,
+    TranslationResult,
+)
 from app.schemas.user import (
     ItemExport,
     Message,
@@ -46,18 +59,6 @@ from app.schemas.user import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
-)
-from app.schemas.translation import (
-    BatchTranslationRequest,
-    BatchTranslationResponse,
-    LanguageDetectionRequest,
-    LanguageDetectionResponse,
-    LegalTermWarning,
-    RiskLevel,
-    SupportedLanguage,
-    TranslationRequest,
-    TranslationResponse,
-    TranslationResult,
 )
 
 __all__ = [

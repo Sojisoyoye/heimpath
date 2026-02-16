@@ -2,6 +2,7 @@
 
 These tests don't require database connection - they test schema validation only.
 """
+
 import pytest
 
 

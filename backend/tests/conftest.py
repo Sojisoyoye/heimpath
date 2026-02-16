@@ -77,7 +77,6 @@ async def async_db(async_session_factory) -> AsyncGenerator[AsyncSession, None]:
 async def async_client() -> AsyncGenerator[AsyncClient, None]:
     """Provide async HTTP client for tests."""
     async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
+        transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         yield client

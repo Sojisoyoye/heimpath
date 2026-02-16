@@ -1,4 +1,5 @@
 """Tests for Password Reset Service."""
+
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -44,9 +45,7 @@ class TestPasswordResetService:
         """Sample user ID for testing."""
         return str(uuid.uuid4())
 
-    def test_generate_token(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_generate_token(self, service: PasswordResetService, user_id: str) -> None:
         """Should generate a reset token."""
         token = service.generate_token(user_id, "test@example.com")
 
@@ -90,9 +89,7 @@ class TestPasswordResetService:
         assert verified.user_id == user_id
         assert verified.email == "test@example.com"
 
-    def test_verify_token_invalid(
-        self, service: PasswordResetService
-    ) -> None:
+    def test_verify_token_invalid(self, service: PasswordResetService) -> None:
         """Should return None for invalid token."""
         result = service.verify_token("invalid-token")
 
@@ -153,9 +150,7 @@ class TestPasswordResetService:
         assert service.verify_token(generated.token) is None
         assert service.consume_token(generated.token) is None
 
-    def test_consume_token_invalid(
-        self, service: PasswordResetService
-    ) -> None:
+    def test_consume_token_invalid(self, service: PasswordResetService) -> None:
         """Should return None for invalid token."""
         result = service.consume_token("invalid-token")
 

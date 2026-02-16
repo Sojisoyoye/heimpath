@@ -1,6 +1,20 @@
 from fastapi import APIRouter
 
-from app.api.routes import auth, calculators, documents, financing, items, journeys, laws, login, private, subscriptions, translations, users, utils
+from app.api.routes import (
+    auth,
+    calculators,
+    documents,
+    financing,
+    items,
+    journeys,
+    laws,
+    login,
+    private,
+    subscriptions,
+    translations,
+    users,
+    utils,
+)
 from app.core.config import settings
 
 api_router = APIRouter()
