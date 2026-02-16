@@ -3,6 +3,7 @@
 Provides translation services for German real estate documents using
 Microsoft Azure Translator API with legal term detection and warnings.
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
@@ -76,7 +77,7 @@ def require_translation_service() -> TranslationService:
 @router.post("/translate", response_model=TranslationResponse)
 async def translate_text(
     request: TranslationRequest,
-    current_user: CurrentUser,
+    current_user: CurrentUser,  # noqa: ARG001
     translation_service: TranslationService = Depends(require_translation_service),
 ) -> TranslationResponse:
     """
@@ -118,7 +119,7 @@ async def translate_text(
 @router.post("/detect", response_model=LanguageDetectionResponse)
 async def detect_language(
     request: LanguageDetectionRequest,
-    current_user: CurrentUser,
+    current_user: CurrentUser,  # noqa: ARG001
     translation_service: TranslationService = Depends(require_translation_service),
 ) -> LanguageDetectionResponse:
     """
@@ -146,7 +147,7 @@ async def detect_language(
 @router.post("/batch", response_model=BatchTranslationResponse)
 async def batch_translate(
     request: BatchTranslationRequest,
-    current_user: CurrentUser,
+    current_user: CurrentUser,  # noqa: ARG001
     translation_service: TranslationService = Depends(require_translation_service),
 ) -> BatchTranslationResponse:
     """
@@ -176,7 +177,7 @@ async def batch_translate(
 
 @router.get("/languages", response_model=SupportedLanguagesResponse)
 async def get_supported_languages(
-    current_user: CurrentUser,
+    current_user: CurrentUser,  # noqa: ARG001
 ) -> SupportedLanguagesResponse:
     """
     Get list of supported languages for translation.
@@ -185,7 +186,9 @@ async def get_supported_languages(
     for document translation.
     """
     languages = [
-        SupportedLanguageInfo(code=lang.value, name=LANGUAGE_NAMES.get(lang.value, lang.value))
+        SupportedLanguageInfo(
+            code=lang.value, name=LANGUAGE_NAMES.get(lang.value, lang.value)
+        )
         for lang in SupportedLanguage
     ]
     return SupportedLanguagesResponse(languages=languages)

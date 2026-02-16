@@ -35,6 +35,10 @@ from app._models_sqlmodel import (
     UserUpdateMe,
 )
 from app.models.base import Base
+from app.models.calculator import HiddenCostCalculation
+from app.models.document import Document, DocumentStatus, DocumentTranslation, DocumentType
+from app.models.financing import FinancingAssessment
+from app.models.roi import ROICalculation
 from app.models.item import Item as ItemV2
 from app.models.journey import (
     FinancingType,
@@ -72,6 +76,13 @@ __all__ = [
     "UserUpdateMe",
     # New SQLAlchemy models
     "Base",
+    "FinancingAssessment",
+    "HiddenCostCalculation",
+    "ROICalculation",
+    "Document",
+    "DocumentStatus",
+    "DocumentTranslation",
+    "DocumentType",
     "FinancingType",
     "ItemV2",
     "Journey",

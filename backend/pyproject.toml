@@ -24,6 +24,7 @@ dependencies = [
     "stripe>=7.0.0",
     "azure-ai-translation-text>=1.0.0",
     "aiohttp>=3.9.0",
+    "pdfplumber>=0.11.0",
 ]
 
 [dependency-groups]

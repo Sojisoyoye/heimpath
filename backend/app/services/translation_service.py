@@ -3,6 +3,7 @@
 Provides document translation for German real estate documents using
 Microsoft Azure Translator API (free tier: 2M chars/month).
 """
+
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -17,6 +18,8 @@ from app.schemas.translation import (
     RiskLevel,
     SupportedLanguage,
     TranslationResponse,
+)
+from app.schemas.translation import (
     TranslationResult as TranslationResultSchema,
 )
 

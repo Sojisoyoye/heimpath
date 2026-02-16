@@ -4,10 +4,10 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router"
-import { Calculator, Euro, TrendingUp } from "lucide-react"
+import { ArrowUpDown, Calculator, Euro, Landmark, TrendingUp } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { HiddenCostsCalculator, ROICalculator } from "@/components/Calculators"
+import { FinancingWizard, HiddenCostsCalculator, ROICalculator, StateComparison } from "@/components/Calculators"
 
 /******************************************************************************
                               Route
@@ -48,6 +48,14 @@ function CalculatorsPage() {
             <TrendingUp className="h-4 w-4" />
             ROI Calculator
           </TabsTrigger>
+          <TabsTrigger value="compare" className="gap-2">
+            <ArrowUpDown className="h-4 w-4" />
+            State Comparison
+          </TabsTrigger>
+          <TabsTrigger value="financing" className="gap-2">
+            <Landmark className="h-4 w-4" />
+            Financing
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -56,6 +64,14 @@ function CalculatorsPage() {
 
         <TabsContent value="roi" className="mt-6">
           <ROICalculator />
+        </TabsContent>
+
+        <TabsContent value="compare" className="mt-6">
+          <StateComparison />
+        </TabsContent>
+
+        <TabsContent value="financing" className="mt-6">
+          <FinancingWizard />
         </TabsContent>
       </Tabs>
     </div>

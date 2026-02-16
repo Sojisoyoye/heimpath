@@ -4,10 +4,13 @@
  */
 
 import { useState, useMemo } from "react"
-import { Calculator, Euro, Info, Download, RefreshCw } from "lucide-react"
+import { Calculator, Euro, Info, Download, RefreshCw, Save, Share2, Trash2, ExternalLink } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { GERMAN_STATES, PROPERTY_TYPES, COST_DEFAULTS } from "@/common/constants"
+import { useSaveCalculation, useDeleteCalculation } from "@/hooks/mutations/useCalculatorMutations"
+import { useUserCalculations } from "@/hooks/queries/useCalculatorQueries"
+import type { HiddenCostCalculationInput } from "@/models/calculator"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -179,6 +182,13 @@ function HiddenCostsCalculator(props: IProps) {
     includeMoving: true,
   })
 
+  const [saveName, setSaveName] = useState("")
+  const [shareUrl, setShareUrl] = useState("")
+
+  const saveCalculation = useSaveCalculation()
+  const deleteCalculation = useDeleteCalculation()
+  const { data: savedCalcs } = useUserCalculations()
+
   const costs = useMemo(() => calculateCosts(inputs), [inputs])
 
   const updateInput = <K extends keyof CalculatorInputs>(
@@ -230,9 +240,42 @@ function HiddenCostsCalculator(props: IProps) {
     URL.revokeObjectURL(url)
   }
 
+  const handleSave = () => {
+    if (!costs) return
+    const input: HiddenCostCalculationInput = {
+      name: saveName || undefined,
+      propertyPrice: costs.propertyPrice,
+      stateCode: inputs.state,
+      propertyType: inputs.propertyType,
+      includeAgent: inputs.includeAgent,
+      renovationLevel: inputs.renovationLevel,
+      includeMoving: inputs.includeMoving,
+    }
+    saveCalculation.mutate(input, {
+      onSuccess: (saved) => {
+        setSaveName("")
+        if (saved.shareId) {
+          const url = `${window.location.origin}/calculators?share=${saved.shareId}`
+          setShareUrl(url)
+        }
+      },
+    })
+  }
+
+  const handleCopyShareUrl = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    deleteCalculation.mutate(id)
+  }
+
   const selectedState = GERMAN_STATES.find((s) => s.code === inputs.state)
 
   return (
+  <>
     <div className={cn("grid gap-6 lg:grid-cols-2", className)}>
       {/* Input Section */}
       <Card>
@@ -477,6 +520,47 @@ function HiddenCostsCalculator(props: IProps) {
                 <Download className="h-4 w-4" />
                 Export Results
               </Button>
+
+              {/* Save Section */}
+              <div className="space-y-2">
+                <Input
+                  placeholder="Name this calculation (optional)"
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                />
+                <Button
+                  onClick={handleSave}
+                  disabled={saveCalculation.isPending}
+                  className="w-full gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {saveCalculation.isPending ? "Saving..." : "Save Calculation"}
+                </Button>
+              </div>
+
+              {/* Share URL */}
+              {shareUrl && (
+                <div className="rounded-lg border p-3 space-y-2">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Share2 className="h-4 w-4" />
+                    Share Link
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      value={shareUrl}
+                      readOnly
+                      className="text-xs"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyShareUrl}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -489,6 +573,85 @@ function HiddenCostsCalculator(props: IProps) {
         </CardContent>
       </Card>
     </div>
+
+    {/* Saved Calculations */}
+    {savedCalcs && savedCalcs.data.length > 0 && (
+      <SavedCalculations
+        calculations={savedCalcs.data}
+        onDelete={handleDelete}
+        isDeleting={deleteCalculation.isPending}
+      />
+    )}
+  </>
+  )
+}
+
+/** Saved calculations list. */
+function SavedCalculations(props: {
+  calculations: { id: string; name?: string; shareId?: string; propertyPrice: number; stateCode: string; totalAdditionalCosts: number; totalCostOfOwnership: number; createdAt: string }[]
+  onDelete: (id: string) => void
+  isDeleting: boolean
+}) {
+  const { calculations, onDelete, isDeleting } = props
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="text-lg">Saved Calculations</CardTitle>
+        <CardDescription>
+          Your previously saved cost calculations
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {calculations.map((calc) => {
+            const stateName = GERMAN_STATES.find((s) => s.code === calc.stateCode)?.name || calc.stateCode
+            return (
+              <div
+                key={calc.id}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">
+                    {calc.name || `${stateName} - ${CURRENCY_FORMATTER.format(calc.propertyPrice)}`}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Total: {CURRENCY_FORMATTER.format(calc.totalCostOfOwnership)}
+                    {" · "}
+                    {new Date(calc.createdAt).toLocaleDateString("de-DE")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 ml-2">
+                  {calc.shareId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const url = `${window.location.origin}/calculators?share=${calc.shareId}`
+                        navigator.clipboard.writeText(url)
+                      }}
+                      title="Copy share link"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(calc.id)}
+                    disabled={isDeleting}
+                    className="text-destructive hover:text-destructive"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

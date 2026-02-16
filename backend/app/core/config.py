@@ -131,6 +131,12 @@ class Settings(BaseSettings):
     def translator_enabled(self) -> bool:
         return bool(self.AZURE_TRANSLATOR_KEY)
 
+    # Document upload settings
+    UPLOAD_DIR: str = "./uploads/documents"
+    MAX_FILE_SIZE_MB: int = 20
+    MAX_PAGES_FREE: int = 10
+    MAX_PAGES_PREMIUM: int = 20
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (

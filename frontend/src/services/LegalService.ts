@@ -35,6 +35,35 @@ interface CategoriesResponse {
   categories: LawCategory[];
 }
 
+/******************************************************************************
+                              Functions
+******************************************************************************/
+
+/** Convert a snake_case string to camelCase. */
+function snakeToCamel(str: string): string {
+  return str.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
+}
+
+/** Recursively convert all object keys from snake_case to camelCase. */
+function transformKeys<T>(obj: unknown): T {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => transformKeys(item)) as T;
+  }
+  if (obj !== null && typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj as Record<string, unknown>).map(([key, value]) => [
+        snakeToCamel(key),
+        transformKeys(value),
+      ]),
+    ) as T;
+  }
+  return obj as T;
+}
+
+/******************************************************************************
+                              Service
+******************************************************************************/
+
 class LegalServiceClass {
   /**
    * Get paginated list of laws with optional filters
@@ -48,21 +77,23 @@ class LegalServiceClass {
     params.append("page_size", String(filters?.pageSize ?? 20));
 
     const url = `${PATHS.LAWS.LIST}?${params.toString()}`;
-    const response = await request<LawListResponse>(OpenAPI, {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url,
     });
-    return { data: response.data, total: response.total };
+    const transformed = transformKeys<LawListResponse>(response);
+    return { data: transformed.data, total: transformed.total };
   }
 
   /**
    * Get a specific law by ID
    */
   async getLaw(lawId: string): Promise<LawDetail> {
-    return request<LawDetail>(OpenAPI, {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.DETAIL(lawId),
     });
+    return transformKeys<LawDetail>(response);
   }
 
   /**
@@ -74,32 +105,35 @@ class LegalServiceClass {
       page: String(page),
       page_size: String(pageSize),
     });
-    return request<LawSearchResult>(OpenAPI, {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: `${PATHS.LAWS.SEARCH}?${params.toString()}`,
     });
+    return transformKeys<LawSearchResult>(response);
   }
 
   /**
    * Get law categories
    */
   async getCategories(): Promise<CategoriesResponse> {
-    return request<CategoriesResponse>(OpenAPI, {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.CATEGORIES,
     });
+    return transformKeys<CategoriesResponse>(response);
   }
 
   /**
    * Bookmark a law
    */
   async createBookmark(lawId: string, notes?: string): Promise<BookmarkResponse> {
-    return request<BookmarkResponse>(OpenAPI, {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
       url: PATHS.LAWS.BOOKMARK(lawId),
       body: { notes },
       mediaType: "application/json",
     });
+    return transformKeys<BookmarkResponse>(response);
   }
 
   /**
@@ -116,20 +150,22 @@ class LegalServiceClass {
    * Get user's bookmarked laws
    */
   async getBookmarks(): Promise<BookmarkListResponse> {
-    return request<BookmarkListResponse>(OpenAPI, {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.BOOKMARKS,
     });
+    return transformKeys<BookmarkListResponse>(response);
   }
 
   /**
    * Get laws relevant to a journey step
    */
   async getLawsByJourneyStep(stepKey: string): Promise<{ data: LawSummary[] }> {
-    return request<{ data: LawSummary[]; step_content_key: string }>(OpenAPI, {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.BY_JOURNEY_STEP(stepKey),
     });
+    return transformKeys<{ data: LawSummary[] }>(response);
   }
 }
 

@@ -5,8 +5,8 @@
 
 export type LawCategoryType =
   | "buying_process"
-  | "costs_taxes"
-  | "rental_landlord"
+  | "costs_and_taxes"
+  | "rental_law"
   | "condominium"
   | "agent_regulations";
 
@@ -26,18 +26,22 @@ export interface LawCategory {
 
 export interface CourtRuling {
   id: string;
+  courtName: string;
   caseNumber: string;
-  court: string;
-  date: string;
+  rulingDate: string;
+  title: string;
   summary: string;
-  implication: string;
+  significance?: string;
+  sourceUrl?: string;
 }
 
 export interface StateVariation {
   id: string;
   stateCode: string;
   stateName: string;
-  variation: string;
+  variationTitle: string;
+  variationValue?: string;
+  variationDescription: string;
   effectiveDate?: string;
 }
 
@@ -61,7 +65,7 @@ export interface LawDetail extends LawSummary {
   landlordImplications?: string;
   tenantImplications?: string;
   originalTextDe?: string;
-  lastAmendedDate?: string;
+  lastAmended?: string;
   courtRulings: CourtRuling[];
   stateVariations: StateVariation[];
   relatedLaws: LawSummary[];

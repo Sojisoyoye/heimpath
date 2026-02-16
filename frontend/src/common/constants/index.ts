@@ -57,8 +57,8 @@ export const JOURNEY_PHASES = [
 // Law categories
 export const LAW_CATEGORIES = [
   { key: "buying_process", label: "Buying Process", icon: "FileText" },
-  { key: "costs_taxes", label: "Costs & Taxes", icon: "Calculator" },
-  { key: "rental_landlord", label: "Rental & Landlord Law", icon: "Home" },
+  { key: "costs_and_taxes", label: "Costs & Taxes", icon: "Calculator" },
+  { key: "rental_law", label: "Rental & Landlord Law", icon: "Home" },
   { key: "condominium", label: "Condominium Ownership", icon: "Building" },
   { key: "agent_regulations", label: "Agent Regulations", icon: "Users" },
 ] as const;

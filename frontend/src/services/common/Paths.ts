@@ -63,10 +63,28 @@ export const PATHS = {
       `${API_V1}/calculators/hidden-costs/${id}`,
     HIDDEN_COSTS_SHARE: (shareId: string) =>
       `${API_V1}/calculators/hidden-costs/share/${shareId}`,
+    HIDDEN_COSTS_COMPARE: `${API_V1}/calculators/hidden-costs/compare`,
     STATE_RATES: `${API_V1}/calculators/state-rates`,
     ROI: `${API_V1}/calculators/roi`,
     ROI_DETAIL: (id: string) => `${API_V1}/calculators/roi/${id}`,
     ROI_COMPARE: `${API_V1}/calculators/roi/compare`,
+  },
+
+  // Financing
+  FINANCING: {
+    ELIGIBILITY: `${API_V1}/financing/eligibility`,
+    ELIGIBILITY_DETAIL: (id: string) => `${API_V1}/financing/eligibility/${id}`,
+    ELIGIBILITY_SHARE: (shareId: string) =>
+      `${API_V1}/financing/eligibility/share/${shareId}`,
+  },
+
+  // Documents
+  DOCUMENTS: {
+    LIST: `${API_V1}/documents`,
+    UPLOAD: `${API_V1}/documents/upload`,
+    DETAIL: (id: string) => `${API_V1}/documents/${id}`,
+    TRANSLATION: (id: string) => `${API_V1}/documents/${id}/translation`,
+    STATUS: (id: string) => `${API_V1}/documents/${id}/status`,
   },
 
   // Dashboard

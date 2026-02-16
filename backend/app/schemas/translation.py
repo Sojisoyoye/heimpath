@@ -1,4 +1,5 @@
 """Translation request/response schemas."""
+
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -102,7 +103,9 @@ class TranslationResult(BaseModel):
 
     original_text: str = Field(..., description="Original text")
     translated_text: str = Field(..., description="Translated text")
-    source_language: str = Field(..., description="Detected or specified source language")
+    source_language: str = Field(
+        ..., description="Detected or specified source language"
+    )
     target_language: str = Field(..., description="Target language")
     confidence: float = Field(
         ...,
@@ -161,9 +164,7 @@ class LanguageDetectionRequest(BaseModel):
 
     model_config = ConfigDict(
         json_schema_extra={
-            "example": {
-                "text": "Der Kaufvertrag muss notariell beurkundet werden."
-            }
+            "example": {"text": "Der Kaufvertrag muss notariell beurkundet werden."}
         }
     )
 
