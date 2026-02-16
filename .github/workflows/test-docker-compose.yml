@@ -41,7 +41,7 @@ jobs:
           echo "SMTP_PASSWORD=" >> .env
           echo "EMAILS_FROM_EMAIL=info@example.com" >> .env
           echo "SENTRY_DSN=" >> .env
-      - run: docker compose build
+      - run: docker compose build backend frontend
       - run: docker compose down -v --remove-orphans
       - run: docker compose up -d --wait backend frontend adminer
       - name: Test backend is up
