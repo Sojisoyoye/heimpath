@@ -9,7 +9,7 @@ test("Password Recovery title is visible", async ({ page }) => {
   await page.goto("/recover-password")
 
   await expect(
-    page.getByRole("heading", { name: "Password Recovery" }),
+    page.getByRole("heading", { name: "Forgot your password?" }),
   ).toBeVisible()
 })
 
