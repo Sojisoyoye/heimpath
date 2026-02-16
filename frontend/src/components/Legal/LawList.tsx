@@ -3,16 +3,16 @@
  * Paginated listing of laws with filters
  */
 
+import { Loader2, Scale } from "lucide-react"
 import { useState } from "react"
-import { Scale, Loader2 } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLaws } from "@/hooks/queries"
+import type { LawCategoryType, LawFilter } from "@/models/legal"
 import { CategoryFilter } from "./CategoryFilter"
 import { LawCard } from "./LawCard"
-import type { LawCategoryType, LawFilter } from "@/models/legal"
 
 interface IProps {
   initialCategory?: LawCategoryType
@@ -111,58 +111,57 @@ function LawList(props: IProps) {
 
       {isLoading && <LawListSkeleton count={pageSize} />}
 
-      {!isLoading && !error && data && (
-        <>
-          {data.data.length === 0 ? (
-            <EmptyState category={filter.category} />
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing {data.data.length} of {data.total} laws
-                  {isFetching && (
-                    <Loader2 className="ml-2 inline h-4 w-4 animate-spin" />
-                  )}
-                </p>
-              </div>
+      {!isLoading &&
+        !error &&
+        data &&
+        (data.data.length === 0 ? (
+          <EmptyState category={filter.category} />
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {data.data.length} of {data.total} laws
+                {isFetching && (
+                  <Loader2 className="ml-2 inline h-4 w-4 animate-spin" />
+                )}
+              </p>
+            </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {data.data.map((law) => (
-                  <LawCard
-                    key={law.id}
-                    law={law}
-                    showCategory={!filter.category}
-                  />
-                ))}
-              </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {data.data.map((law) => (
+                <LawCard
+                  key={law.id}
+                  law={law}
+                  showCategory={!filter.category}
+                />
+              ))}
+            </div>
 
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(filter.page! - 1)}
-                    disabled={filter.page === 1 || isFetching}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {filter.page} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(filter.page! + 1)}
-                    disabled={filter.page === totalPages || isFetching}
-                  >
-                    Next
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </>
-      )}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(filter.page! - 1)}
+                  disabled={filter.page === 1 || isFetching}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {filter.page} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(filter.page! + 1)}
+                  disabled={filter.page === totalPages || isFetching}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
+        ))}
     </div>
   )
 }

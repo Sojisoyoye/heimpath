@@ -6,33 +6,33 @@
  * after adding new law endpoints to regenerate the typed client.
  */
 
-import { OpenAPI } from "@/client";
-import { request } from "@/client/core/request";
-import { PATHS } from "./common/Paths";
+import { OpenAPI } from "@/client"
+import { request } from "@/client/core/request"
 import type {
-  LawSummary,
-  LawDetail,
-  LawSearchResult,
-  LawCategory,
   BookmarkResponse,
+  LawCategory,
+  LawDetail,
   LawFilter,
-} from "@/models/legal";
+  LawSearchResult,
+  LawSummary,
+} from "@/models/legal"
+import { PATHS } from "./common/Paths"
 
 interface LawListResponse {
-  data: LawSummary[];
-  total: number;
-  page: number;
-  pageSize: number;
-  count: number;
+  data: LawSummary[]
+  total: number
+  page: number
+  pageSize: number
+  count: number
 }
 
 interface BookmarkListResponse {
-  data: BookmarkResponse[];
-  count: number;
+  data: BookmarkResponse[]
+  count: number
 }
 
 interface CategoriesResponse {
-  categories: LawCategory[];
+  categories: LawCategory[]
 }
 
 /******************************************************************************
@@ -41,13 +41,13 @@ interface CategoriesResponse {
 
 /** Convert a snake_case string to camelCase. */
 function snakeToCamel(str: string): string {
-  return str.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
+  return str.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
 }
 
 /** Recursively convert all object keys from snake_case to camelCase. */
 function transformKeys<T>(obj: unknown): T {
   if (Array.isArray(obj)) {
-    return obj.map((item) => transformKeys(item)) as T;
+    return obj.map((item) => transformKeys(item)) as T
   }
   if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
@@ -55,9 +55,9 @@ function transformKeys<T>(obj: unknown): T {
         snakeToCamel(key),
         transformKeys(value),
       ]),
-    ) as T;
+    ) as T
   }
-  return obj as T;
+  return obj as T
 }
 
 /******************************************************************************
@@ -68,21 +68,24 @@ class LegalServiceClass {
   /**
    * Get paginated list of laws with optional filters
    */
-  async getLaws(filters?: LawFilter): Promise<{ data: LawSummary[]; total: number }> {
-    const params = new URLSearchParams();
-    if (filters?.category) params.append("category", filters.category);
-    if (filters?.propertyType) params.append("property_type", filters.propertyType);
-    if (filters?.state) params.append("state", filters.state);
-    params.append("page", String(filters?.page ?? 1));
-    params.append("page_size", String(filters?.pageSize ?? 20));
+  async getLaws(
+    filters?: LawFilter,
+  ): Promise<{ data: LawSummary[]; total: number }> {
+    const params = new URLSearchParams()
+    if (filters?.category) params.append("category", filters.category)
+    if (filters?.propertyType)
+      params.append("property_type", filters.propertyType)
+    if (filters?.state) params.append("state", filters.state)
+    params.append("page", String(filters?.page ?? 1))
+    params.append("page_size", String(filters?.pageSize ?? 20))
 
-    const url = `${PATHS.LAWS.LIST}?${params.toString()}`;
+    const url = `${PATHS.LAWS.LIST}?${params.toString()}`
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url,
-    });
-    const transformed = transformKeys<LawListResponse>(response);
-    return { data: transformed.data, total: transformed.total };
+    })
+    const transformed = transformKeys<LawListResponse>(response)
+    return { data: transformed.data, total: transformed.total }
   }
 
   /**
@@ -92,24 +95,28 @@ class LegalServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.DETAIL(lawId),
-    });
-    return transformKeys<LawDetail>(response);
+    })
+    return transformKeys<LawDetail>(response)
   }
 
   /**
    * Search laws by query
    */
-  async searchLaws(query: string, page = 1, pageSize = 20): Promise<LawSearchResult> {
+  async searchLaws(
+    query: string,
+    page = 1,
+    pageSize = 20,
+  ): Promise<LawSearchResult> {
     const params = new URLSearchParams({
       q: query,
       page: String(page),
       page_size: String(pageSize),
-    });
+    })
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: `${PATHS.LAWS.SEARCH}?${params.toString()}`,
-    });
-    return transformKeys<LawSearchResult>(response);
+    })
+    return transformKeys<LawSearchResult>(response)
   }
 
   /**
@@ -119,21 +126,24 @@ class LegalServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.CATEGORIES,
-    });
-    return transformKeys<CategoriesResponse>(response);
+    })
+    return transformKeys<CategoriesResponse>(response)
   }
 
   /**
    * Bookmark a law
    */
-  async createBookmark(lawId: string, notes?: string): Promise<BookmarkResponse> {
+  async createBookmark(
+    lawId: string,
+    notes?: string,
+  ): Promise<BookmarkResponse> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
       url: PATHS.LAWS.BOOKMARK(lawId),
       body: { notes },
       mediaType: "application/json",
-    });
-    return transformKeys<BookmarkResponse>(response);
+    })
+    return transformKeys<BookmarkResponse>(response)
   }
 
   /**
@@ -143,7 +153,7 @@ class LegalServiceClass {
     await request<{ message: string }>(OpenAPI, {
       method: "DELETE",
       url: PATHS.LAWS.BOOKMARK(lawId),
-    });
+    })
   }
 
   /**
@@ -153,8 +163,8 @@ class LegalServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.BOOKMARKS,
-    });
-    return transformKeys<BookmarkListResponse>(response);
+    })
+    return transformKeys<BookmarkListResponse>(response)
   }
 
   /**
@@ -164,9 +174,9 @@ class LegalServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.LAWS.BY_JOURNEY_STEP(stepKey),
-    });
-    return transformKeys<{ data: LawSummary[] }>(response);
+    })
+    return transformKeys<{ data: LawSummary[] }>(response)
   }
 }
 
-export const LegalService = new LegalServiceClass();
+export const LegalService = new LegalServiceClass()

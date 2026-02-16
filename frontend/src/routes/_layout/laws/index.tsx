@@ -3,13 +3,12 @@
  * Browse and search German property laws
  */
 
-import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Scale, Search, Bookmark } from "lucide-react"
-
+import { Bookmark, Scale, Search } from "lucide-react"
+import { useState } from "react"
+import { LawList, LawSearch } from "@/components/Legal"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LawList, LawSearch } from "@/components/Legal"
 
 /******************************************************************************
                               Route

@@ -3,6 +3,7 @@
 Provides endpoints for hidden cost calculations and ROI analysis,
 including saving, sharing, and comparing scenarios.
 """
+
 import uuid
 
 from fastapi import APIRouter, Depends, Query, status
@@ -26,8 +27,7 @@ from app.schemas.roi import (
     ROICompareResponse,
     ROICompareResultItem,
 )
-from app.services import calculator_service
-from app.services import roi_service
+from app.services import calculator_service, roi_service
 
 router = APIRouter(prefix="/calculators", tags=["calculators"])
 
@@ -63,7 +63,9 @@ def compare_states(
     )
 
 
-@router.get("/hidden-costs/share/{share_id}", response_model=HiddenCostCalculationResponse)
+@router.get(
+    "/hidden-costs/share/{share_id}", response_model=HiddenCostCalculationResponse
+)
 def get_shared_calculation(
     share_id: str,
     session: Session = Depends(get_db),
@@ -112,8 +114,7 @@ def list_calculations(
     """
     calculations = calculator_service.list_user_calculations(session, current_user.id)
     summaries = [
-        HiddenCostCalculationSummary.model_validate(calc)
-        for calc in calculations
+        HiddenCostCalculationSummary.model_validate(calc) for calc in calculations
     ]
     return HiddenCostCalculationListResponse(
         data=summaries,
@@ -220,10 +221,7 @@ def list_roi_calculations(
     Requires authentication.
     """
     calculations = roi_service.list_user_calculations(session, current_user.id)
-    summaries = [
-        ROICalculationSummary.model_validate(calc)
-        for calc in calculations
-    ]
+    summaries = [ROICalculationSummary.model_validate(calc) for calc in calculations]
     return ROICalculationListResponse(
         data=summaries,
         count=len(summaries),

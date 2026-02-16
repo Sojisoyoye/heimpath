@@ -3,25 +3,19 @@
  * Inputs for allocable and non-allocable property management costs
  */
 
-import { Receipt } from "lucide-react";
-
-import { cn } from "@/common/utils";
-import { SECTION_COLORS } from "@/common/constants/propertyEvaluation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { OperatingCostsInputs } from "../types";
+import { Receipt } from "lucide-react"
+import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
+import { cn } from "@/common/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { OperatingCostsInputs } from "../types"
 
 interface IProps {
-  values: OperatingCostsInputs;
-  coldRentMonthly: number;
-  onChange: (updates: Partial<OperatingCostsInputs>) => void;
-  className?: string;
+  values: OperatingCostsInputs
+  coldRentMonthly: number
+  onChange: (updates: Partial<OperatingCostsInputs>) => void
+  className?: string
 }
 
 /******************************************************************************
@@ -32,7 +26,7 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 2,
-});
+})
 
 /******************************************************************************
                               Components
@@ -40,22 +34,22 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
 
 /** Default component. Operating costs section. */
 function OperatingCostsSection(props: IProps) {
-  const { values, coldRentMonthly, onChange, className } = props;
+  const { values, coldRentMonthly, onChange, className } = props
 
   const handleNumberChange = (
     field: keyof OperatingCostsInputs,
-    value: string
+    value: string,
   ) => {
-    const num = parseFloat(value) || 0;
-    onChange({ [field]: num });
-  };
+    const num = parseFloat(value) || 0
+    onChange({ [field]: num })
+  }
 
   // Derive display values
-  const totalAllocable = values.hausgeldAllocable + values.propertyTaxMonthly;
-  const totalNonAllocable = values.hausgeldNonAllocable + values.reservesPortion;
-  const overallHausgeld = totalAllocable + totalNonAllocable;
+  const totalAllocable = values.hausgeldAllocable + values.propertyTaxMonthly
+  const totalNonAllocable = values.hausgeldNonAllocable + values.reservesPortion
+  const overallHausgeld = totalAllocable + totalNonAllocable
   const nonAllocablePercentOfRent =
-    coldRentMonthly > 0 ? (totalNonAllocable / coldRentMonthly) * 100 : 0;
+    coldRentMonthly > 0 ? (totalNonAllocable / coldRentMonthly) * 100 : 0
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -176,9 +170,7 @@ function OperatingCostsSection(props: IProps) {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reservesPortion">
-                Reserves (EUR/month)
-              </Label>
+              <Label htmlFor="reservesPortion">Reserves (EUR/month)</Label>
               <Input
                 id="reservesPortion"
                 type="number"
@@ -206,11 +198,11 @@ function OperatingCostsSection(props: IProps) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export { OperatingCostsSection };
+export { OperatingCostsSection }

@@ -3,6 +3,7 @@
 Provides endpoints for financing eligibility assessments,
 including saving, sharing, listing, and deleting.
 """
+
 import uuid
 
 from fastapi import APIRouter, Depends, status
@@ -68,10 +69,7 @@ def list_assessments(
     Requires authentication.
     """
     assessments = financing_service.list_user_assessments(session, current_user.id)
-    summaries = [
-        FinancingAssessmentSummary.model_validate(a)
-        for a in assessments
-    ]
+    summaries = [FinancingAssessmentSummary.model_validate(a) for a in assessments]
     return FinancingAssessmentListResponse(
         data=summaries,
         count=len(summaries),
@@ -89,7 +87,9 @@ def get_assessment(
 
     Requires authentication and ownership.
     """
-    assessment = financing_service.get_assessment(session, assessment_id, current_user.id)
+    assessment = financing_service.get_assessment(
+        session, assessment_id, current_user.id
+    )
     return FinancingAssessmentResponse.model_validate(assessment)
 
 

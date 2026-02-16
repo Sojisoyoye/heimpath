@@ -3,11 +3,10 @@
  * Compares hidden costs across all 16 German states for a given property price
  */
 
-import { useState } from "react"
 import { ArrowUpDown, Euro, TrendingDown, TrendingUp } from "lucide-react"
+import { useState } from "react"
 
 import { cn } from "@/common/utils"
-import { useStateComparison } from "@/hooks/queries/useCalculatorQueries"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useStateComparison } from "@/hooks/queries/useCalculatorQueries"
 
 interface IProps {
   className?: string
@@ -44,7 +44,7 @@ function StateComparison(props: IProps) {
   const { className, initialPrice = 0, initialIncludeAgent = true } = props
 
   const [priceInput, setPriceInput] = useState(
-    initialPrice > 0 ? String(initialPrice) : ""
+    initialPrice > 0 ? String(initialPrice) : "",
   )
   const [includeAgent, setIncludeAgent] = useState(initialIncludeAgent)
 
@@ -86,7 +86,7 @@ function StateComparison(props: IProps) {
                   placeholder="Enter property price"
                   value={
                     priceInput
-                      ? parseInt(priceInput).toLocaleString("de-DE")
+                      ? parseInt(priceInput, 10).toLocaleString("de-DE")
                       : ""
                   }
                   onChange={handlePriceChange}
@@ -156,7 +156,9 @@ function StateComparison(props: IProps) {
                     <tr className="border-b text-left">
                       <th className="pb-3 font-medium">State</th>
                       <th className="pb-3 font-medium text-right">Tax Rate</th>
-                      <th className="pb-3 font-medium text-right">Transfer Tax</th>
+                      <th className="pb-3 font-medium text-right">
+                        Transfer Tax
+                      </th>
                       <th className="pb-3 font-medium text-right">Notary</th>
                       <th className="pb-3 font-medium text-right">Registry</th>
                       {includeAgent && (
@@ -176,11 +178,13 @@ function StateComparison(props: IProps) {
                           className={cn(
                             "border-b last:border-0",
                             isCheapest && "bg-green-50 dark:bg-green-950/20",
-                            isMostExpensive && "bg-red-50 dark:bg-red-950/20"
+                            isMostExpensive && "bg-red-50 dark:bg-red-950/20",
                           )}
                         >
                           <td className="py-3 font-medium">{item.stateName}</td>
-                          <td className="py-3 text-right">{item.transferTaxRate}%</td>
+                          <td className="py-3 text-right">
+                            {item.transferTaxRate}%
+                          </td>
                           <td className="py-3 text-right">
                             {CURRENCY_FORMATTER.format(item.transferTax)}
                           </td>

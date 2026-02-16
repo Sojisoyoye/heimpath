@@ -3,9 +3,8 @@
  * Handles all API calls related to hidden cost calculations
  */
 
-import { OpenAPI } from "@/client";
-import { request } from "@/client/core/request";
-import { PATHS } from "./common/Paths";
+import { OpenAPI } from "@/client"
+import { request } from "@/client/core/request"
 import type {
   FinancingAssessment,
   FinancingAssessmentInput,
@@ -18,7 +17,8 @@ import type {
   ROICalculationSummary,
   StateComparisonResponse,
   StateRatesResponse,
-} from "@/models/calculator";
+} from "@/models/calculator"
+import { PATHS } from "./common/Paths"
 
 /******************************************************************************
                               Functions
@@ -26,18 +26,18 @@ import type {
 
 /** Convert a snake_case string to camelCase. */
 function snakeToCamel(str: string): string {
-  return str.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
+  return str.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
 }
 
 /** Convert a camelCase string to snake_case. */
 function camelToSnake(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
 }
 
 /** Recursively convert all object keys from snake_case to camelCase. */
 function transformKeys<T>(obj: unknown): T {
   if (Array.isArray(obj)) {
-    return obj.map((item) => transformKeys(item)) as T;
+    return obj.map((item) => transformKeys(item)) as T
   }
   if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
@@ -45,15 +45,15 @@ function transformKeys<T>(obj: unknown): T {
         snakeToCamel(key),
         transformKeys(value),
       ]),
-    ) as T;
+    ) as T
   }
-  return obj as T;
+  return obj as T
 }
 
 /** Recursively convert all object keys from camelCase to snake_case. */
 function transformKeysToSnake(obj: unknown): unknown {
   if (Array.isArray(obj)) {
-    return obj.map((item) => transformKeysToSnake(item));
+    return obj.map((item) => transformKeysToSnake(item))
   }
   if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
@@ -61,9 +61,9 @@ function transformKeysToSnake(obj: unknown): unknown {
         camelToSnake(key),
         transformKeysToSnake(value),
       ]),
-    );
+    )
   }
-  return obj;
+  return obj
 }
 
 /******************************************************************************
@@ -78,21 +78,23 @@ class CalculatorServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.CALCULATORS.STATE_RATES,
-    });
-    return transformKeys<StateRatesResponse>(response);
+    })
+    return transformKeys<StateRatesResponse>(response)
   }
 
   /**
    * Save a hidden cost calculation
    */
-  async saveCalculation(input: HiddenCostCalculationInput): Promise<HiddenCostCalculation> {
+  async saveCalculation(
+    input: HiddenCostCalculationInput,
+  ): Promise<HiddenCostCalculation> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
       url: PATHS.CALCULATORS.HIDDEN_COSTS,
       body: transformKeysToSnake(input),
       mediaType: "application/json",
-    });
-    return transformKeys<HiddenCostCalculation>(response);
+    })
+    return transformKeys<HiddenCostCalculation>(response)
   }
 
   /**
@@ -102,8 +104,8 @@ class CalculatorServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.CALCULATORS.HIDDEN_COSTS_DETAIL(id),
-    });
-    return transformKeys<HiddenCostCalculation>(response);
+    })
+    return transformKeys<HiddenCostCalculation>(response)
   }
 
   /**
@@ -113,19 +115,25 @@ class CalculatorServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.CALCULATORS.HIDDEN_COSTS_SHARE(shareId),
-    });
-    return transformKeys<HiddenCostCalculation>(response);
+    })
+    return transformKeys<HiddenCostCalculation>(response)
   }
 
   /**
    * Get all saved calculations for the current user
    */
-  async getUserCalculations(): Promise<{ data: HiddenCostCalculationSummary[]; count: number }> {
+  async getUserCalculations(): Promise<{
+    data: HiddenCostCalculationSummary[]
+    count: number
+  }> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.CALCULATORS.HIDDEN_COSTS,
-    });
-    return transformKeys<{ data: HiddenCostCalculationSummary[]; count: number }>(response);
+    })
+    return transformKeys<{
+      data: HiddenCostCalculationSummary[]
+      count: number
+    }>(response)
   }
 
   /**
@@ -135,22 +143,25 @@ class CalculatorServiceClass {
     await request<void>(OpenAPI, {
       method: "DELETE",
       url: PATHS.CALCULATORS.HIDDEN_COSTS_DETAIL(id),
-    });
+    })
   }
 
   /**
    * Compare hidden costs across all German states
    */
-  async compareStates(price: number, includeAgent: boolean): Promise<StateComparisonResponse> {
+  async compareStates(
+    price: number,
+    includeAgent: boolean,
+  ): Promise<StateComparisonResponse> {
     const params = new URLSearchParams({
       price: String(price),
       include_agent: String(includeAgent),
-    });
+    })
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: `${PATHS.CALCULATORS.HIDDEN_COSTS_COMPARE}?${params.toString()}`,
-    });
-    return transformKeys<StateComparisonResponse>(response);
+    })
+    return transformKeys<StateComparisonResponse>(response)
   }
 
   // -------------------------------------------------------------------------
@@ -160,14 +171,16 @@ class CalculatorServiceClass {
   /**
    * Save an ROI calculation
    */
-  async saveROICalculation(input: ROICalculationInput): Promise<ROICalculation> {
+  async saveROICalculation(
+    input: ROICalculationInput,
+  ): Promise<ROICalculation> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
       url: PATHS.CALCULATORS.ROI,
       body: transformKeysToSnake(input),
       mediaType: "application/json",
-    });
-    return transformKeys<ROICalculation>(response);
+    })
+    return transformKeys<ROICalculation>(response)
   }
 
   /**
@@ -177,8 +190,8 @@ class CalculatorServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.CALCULATORS.ROI_DETAIL(id),
-    });
-    return transformKeys<ROICalculation>(response);
+    })
+    return transformKeys<ROICalculation>(response)
   }
 
   /**
@@ -188,19 +201,24 @@ class CalculatorServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: `${PATHS.CALCULATORS.ROI}/share/${shareId}`,
-    });
-    return transformKeys<ROICalculation>(response);
+    })
+    return transformKeys<ROICalculation>(response)
   }
 
   /**
    * Get all saved ROI calculations for the current user
    */
-  async getUserROICalculations(): Promise<{ data: ROICalculationSummary[]; count: number }> {
+  async getUserROICalculations(): Promise<{
+    data: ROICalculationSummary[]
+    count: number
+  }> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.CALCULATORS.ROI,
-    });
-    return transformKeys<{ data: ROICalculationSummary[]; count: number }>(response);
+    })
+    return transformKeys<{ data: ROICalculationSummary[]; count: number }>(
+      response,
+    )
   }
 
   /**
@@ -210,20 +228,22 @@ class CalculatorServiceClass {
     await request<void>(OpenAPI, {
       method: "DELETE",
       url: PATHS.CALCULATORS.ROI_DETAIL(id),
-    });
+    })
   }
 
   /**
    * Compare multiple ROI scenarios
    */
-  async compareROIScenarios(scenarios: ROICalculationInput[]): Promise<{ scenarios: Record<string, unknown>[] }> {
+  async compareROIScenarios(
+    scenarios: ROICalculationInput[],
+  ): Promise<{ scenarios: Record<string, unknown>[] }> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
       url: PATHS.CALCULATORS.ROI_COMPARE,
       body: transformKeysToSnake({ scenarios }),
       mediaType: "application/json",
-    });
-    return transformKeys<{ scenarios: Record<string, unknown>[] }>(response);
+    })
+    return transformKeys<{ scenarios: Record<string, unknown>[] }>(response)
   }
   // -------------------------------------------------------------------------
   // Financing Eligibility
@@ -232,14 +252,16 @@ class CalculatorServiceClass {
   /**
    * Save a financing eligibility assessment
    */
-  async saveFinancingAssessment(input: FinancingAssessmentInput): Promise<FinancingAssessment> {
+  async saveFinancingAssessment(
+    input: FinancingAssessmentInput,
+  ): Promise<FinancingAssessment> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
       url: PATHS.FINANCING.ELIGIBILITY,
       body: transformKeysToSnake(input),
       mediaType: "application/json",
-    });
-    return transformKeys<FinancingAssessment>(response);
+    })
+    return transformKeys<FinancingAssessment>(response)
   }
 
   /**
@@ -249,8 +271,8 @@ class CalculatorServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.FINANCING.ELIGIBILITY_DETAIL(id),
-    });
-    return transformKeys<FinancingAssessment>(response);
+    })
+    return transformKeys<FinancingAssessment>(response)
   }
 
   /**
@@ -260,19 +282,24 @@ class CalculatorServiceClass {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.FINANCING.ELIGIBILITY_SHARE(shareId),
-    });
-    return transformKeys<FinancingAssessment>(response);
+    })
+    return transformKeys<FinancingAssessment>(response)
   }
 
   /**
    * Get all saved financing assessments for the current user
    */
-  async getUserFinancingAssessments(): Promise<{ data: FinancingAssessmentSummary[]; count: number }> {
+  async getUserFinancingAssessments(): Promise<{
+    data: FinancingAssessmentSummary[]
+    count: number
+  }> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: PATHS.FINANCING.ELIGIBILITY,
-    });
-    return transformKeys<{ data: FinancingAssessmentSummary[]; count: number }>(response);
+    })
+    return transformKeys<{ data: FinancingAssessmentSummary[]; count: number }>(
+      response,
+    )
   }
 
   /**
@@ -282,8 +309,8 @@ class CalculatorServiceClass {
     await request<void>(OpenAPI, {
       method: "DELETE",
       url: PATHS.FINANCING.ELIGIBILITY_DETAIL(id),
-    });
+    })
   }
 }
 
-export const CalculatorService = new CalculatorServiceClass();
+export const CalculatorService = new CalculatorServiceClass()

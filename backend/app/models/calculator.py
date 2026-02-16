@@ -1,5 +1,4 @@
 """Hidden cost calculation database model."""
-import uuid
 
 from sqlalchemy import Boolean, Column, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID

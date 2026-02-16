@@ -5,9 +5,8 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import { BookmarksList } from "@/components/Legal"
+import { Button } from "@/components/ui/button"
 
 /******************************************************************************
                               Route

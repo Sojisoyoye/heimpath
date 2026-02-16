@@ -1,4 +1,5 @@
 """Hidden cost calculator request/response schemas."""
+
 from datetime import datetime
 from typing import Literal
 
@@ -33,7 +34,9 @@ class HiddenCostCalculationCreate(BaseModel):
 
     name: str | None = Field(None, max_length=255)
     property_price: float = Field(..., gt=0, description="Property price in EUR")
-    state_code: str = Field(..., min_length=2, max_length=2, description="German state code")
+    state_code: str = Field(
+        ..., min_length=2, max_length=2, description="German state code"
+    )
     property_type: str = Field(..., max_length=50)
     include_agent: bool = True
     renovation_level: Literal["none", "light", "medium", "full"] = "none"

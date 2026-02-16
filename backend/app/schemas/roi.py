@@ -1,4 +1,5 @@
 """ROI calculator request/response schemas."""
+
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -8,13 +9,23 @@ class ROICalculationCreate(BaseModel):
     """Request to create/calculate an ROI analysis."""
 
     name: str | None = Field(None, max_length=255)
-    purchase_price: float = Field(..., gt=0, description="Property purchase price in EUR")
+    purchase_price: float = Field(
+        ..., gt=0, description="Property purchase price in EUR"
+    )
     down_payment: float = Field(..., ge=0, description="Down payment in EUR")
     monthly_rent: float = Field(..., gt=0, description="Monthly rental income in EUR")
-    monthly_expenses: float = Field(..., ge=0, description="Monthly operating expenses in EUR")
-    annual_appreciation: float = Field(..., ge=0, le=100, description="Expected annual appreciation %")
-    vacancy_rate: float = Field(..., ge=0, le=100, description="Expected vacancy rate %")
-    mortgage_rate: float = Field(..., ge=0, le=100, description="Annual mortgage interest rate %")
+    monthly_expenses: float = Field(
+        ..., ge=0, description="Monthly operating expenses in EUR"
+    )
+    annual_appreciation: float = Field(
+        ..., ge=0, le=100, description="Expected annual appreciation %"
+    )
+    vacancy_rate: float = Field(
+        ..., ge=0, le=100, description="Expected vacancy rate %"
+    )
+    mortgage_rate: float = Field(
+        ..., ge=0, le=100, description="Annual mortgage interest rate %"
+    )
     mortgage_term: int = Field(..., ge=5, le=40, description="Mortgage term in years")
 
 

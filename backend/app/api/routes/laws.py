@@ -2,6 +2,7 @@
 
 Provides endpoints for browsing, searching, and bookmarking German real estate laws.
 """
+
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -14,16 +15,15 @@ from app.schemas.legal import (
     BookmarkCreate,
     BookmarkListResponse,
     BookmarkResponse,
+    CourtRulingResponse,
     JourneyStepLawResponse,
     JourneyStepLawsResponse,
     LawDetailResponse,
     LawFilter,
     LawListResponse,
-    LawResponse,
     LawSearchResponse,
     LawSearchResult,
     LawSummary,
-    CourtRulingResponse,
     StateVariationResponse,
 )
 from app.services.legal_service import (
@@ -148,7 +148,9 @@ def _get_category_description(category: LawCategory) -> str:
     return descriptions.get(category, "")
 
 
-@router.get("/by-journey-step/{step_content_key}", response_model=JourneyStepLawsResponse)
+@router.get(
+    "/by-journey-step/{step_content_key}", response_model=JourneyStepLawsResponse
+)
 def get_laws_for_journey_step(
     step_content_key: str,
     session: Session = Depends(get_db),

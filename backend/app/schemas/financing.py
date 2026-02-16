@@ -1,4 +1,5 @@
 """Financing eligibility assessment request/response schemas."""
+
 from datetime import datetime
 from typing import Literal
 
@@ -28,7 +29,11 @@ class FinancingAssessmentCreate(BaseModel):
         "excellent", "good", "satisfactory", "adequate", "poor", "unknown"
     ] = Field(..., description="SCHUFA credit rating category")
     residency_status: Literal[
-        "german_citizen", "eu_citizen", "permanent_resident", "temporary_resident", "non_eu"
+        "german_citizen",
+        "eu_citizen",
+        "permanent_resident",
+        "temporary_resident",
+        "non_eu",
     ] = Field(..., description="Residency status in Germany")
 
 

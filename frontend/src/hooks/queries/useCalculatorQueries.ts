@@ -3,9 +3,9 @@
  * React Query hooks for hidden cost calculator data fetching
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { CalculatorService } from "@/services/CalculatorService";
-import { queryKeys } from "@/query/queryKeys";
+import { useQuery } from "@tanstack/react-query"
+import { queryKeys } from "@/query/queryKeys"
+import { CalculatorService } from "@/services/CalculatorService"
 
 /**
  * Get all German state transfer tax rates
@@ -15,7 +15,7 @@ export function useStateRates() {
     queryKey: queryKeys.calculators.stateRates(),
     queryFn: () => CalculatorService.getStateRates(),
     staleTime: 30 * 60 * 1000, // Rates rarely change
-  });
+  })
 }
 
 /**
@@ -26,7 +26,7 @@ export function useHiddenCostCalculation(id: string) {
     queryKey: queryKeys.calculators.hiddenCosts(id),
     queryFn: () => CalculatorService.getCalculation(id),
     enabled: !!id,
-  });
+  })
 }
 
 /**
@@ -37,7 +37,7 @@ export function useHiddenCostByShareId(shareId: string) {
     queryKey: queryKeys.calculators.hiddenCostsShare(shareId),
     queryFn: () => CalculatorService.getByShareId(shareId),
     enabled: !!shareId,
-  });
+  })
 }
 
 /**
@@ -47,7 +47,7 @@ export function useUserCalculations() {
   return useQuery({
     queryKey: queryKeys.calculators.hiddenCostsList(),
     queryFn: () => CalculatorService.getUserCalculations(),
-  });
+  })
 }
 
 /**
@@ -58,7 +58,7 @@ export function useStateComparison(price: number, includeAgent: boolean) {
     queryKey: queryKeys.calculators.stateComparison(price, includeAgent),
     queryFn: () => CalculatorService.compareStates(price, includeAgent),
     enabled: price > 0,
-  });
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +73,7 @@ export function useROICalculation(id: string) {
     queryKey: queryKeys.calculators.roi(id),
     queryFn: () => CalculatorService.getROICalculation(id),
     enabled: !!id,
-  });
+  })
 }
 
 /**
@@ -84,7 +84,7 @@ export function useROIByShareId(shareId: string) {
     queryKey: queryKeys.calculators.roiShare(shareId),
     queryFn: () => CalculatorService.getROIByShareId(shareId),
     enabled: !!shareId,
-  });
+  })
 }
 
 /**
@@ -94,7 +94,7 @@ export function useUserROICalculations() {
   return useQuery({
     queryKey: queryKeys.calculators.roiList(),
     queryFn: () => CalculatorService.getUserROICalculations(),
-  });
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -109,7 +109,7 @@ export function useFinancingAssessment(id: string) {
     queryKey: queryKeys.financing.eligibility(id),
     queryFn: () => CalculatorService.getFinancingAssessment(id),
     enabled: !!id,
-  });
+  })
 }
 
 /**
@@ -120,7 +120,7 @@ export function useFinancingByShareId(shareId: string) {
     queryKey: queryKeys.financing.eligibilityShare(shareId),
     queryFn: () => CalculatorService.getFinancingByShareId(shareId),
     enabled: !!shareId,
-  });
+  })
 }
 
 /**
@@ -130,5 +130,5 @@ export function useUserFinancingAssessments() {
   return useQuery({
     queryKey: queryKeys.financing.eligibilityList(),
     queryFn: () => CalculatorService.getUserFinancingAssessments(),
-  });
+  })
 }

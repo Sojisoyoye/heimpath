@@ -3,14 +3,20 @@
  * Calculates rental investment returns, investment grade, and 10-year projections
  */
 
-import { useState, useMemo } from "react"
-import { TrendingUp, Euro, Info, Download, RefreshCw, Save, Share2, Trash2, ExternalLink } from "lucide-react"
+import {
+  Download,
+  Euro,
+  ExternalLink,
+  Info,
+  RefreshCw,
+  Save,
+  Share2,
+  Trash2,
+  TrendingUp,
+} from "lucide-react"
+import { useMemo, useState } from "react"
 
 import { cn } from "@/common/utils"
-import { useSaveROICalculation, useDeleteROICalculation } from "@/hooks/mutations/useCalculatorMutations"
-import { useUserROICalculations } from "@/hooks/queries/useCalculatorQueries"
-import useCustomToast from "@/hooks/useCustomToast"
-import type { ROICalculationInput, ROICalculationSummary } from "@/models/calculator"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -22,6 +28,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import {
+  useDeleteROICalculation,
+  useSaveROICalculation,
+} from "@/hooks/mutations/useCalculatorMutations"
+import { useUserROICalculations } from "@/hooks/queries/useCalculatorQueries"
+import useCustomToast from "@/hooks/useCustomToast"
+import type {
+  ROICalculationInput,
+  ROICalculationSummary,
+} from "@/models/calculator"
 
 interface IProps {
   className?: string
@@ -86,9 +102,11 @@ const PERCENT_FORMATTER = new Intl.NumberFormat("de-DE", {
 })
 
 const GRADE_COLORS: Record<string, string> = {
-  Excellent: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  Excellent:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   Good: "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-400",
-  Moderate: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  Moderate:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   Poor: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
   "Very Poor": "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 }
@@ -107,7 +125,7 @@ function parseNumber(value: string): number {
 function calculateMortgagePayment(
   principal: number,
   annualRate: number,
-  termYears: number
+  termYears: number,
 ): number {
   if (principal <= 0 || annualRate <= 0 || termYears <= 0) return 0
 
@@ -115,8 +133,8 @@ function calculateMortgagePayment(
   const numPayments = termYears * 12
 
   return (
-    (principal * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
-    (Math.pow(1 + monthlyRate, numPayments) - 1)
+    (principal * monthlyRate * (1 + monthlyRate) ** numPayments) /
+    ((1 + monthlyRate) ** numPayments - 1)
   )
 }
 
@@ -184,7 +202,11 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
 
   // Financing
   const loanAmount = purchasePrice - downPayment
-  const monthlyMortgage = calculateMortgagePayment(loanAmount, mortgageRate, mortgageTerm)
+  const monthlyMortgage = calculateMortgagePayment(
+    loanAmount,
+    mortgageRate,
+    mortgageTerm,
+  )
   const monthlyRate = mortgageRate / 100 / 12
 
   // Annual income
@@ -207,13 +229,15 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
   const cocPct = cashOnCashReturn * 100
   const vacancyPct = parseNumber(inputs.vacancyRate)
 
-  const investmentGrade = Math.round(
-    (scoreGrossYield(grossYieldPct) * 0.25 +
-      scoreCapRate(capRatePct) * 0.25 +
-      scoreCashOnCash(cocPct) * 0.25 +
-      scoreCashFlow(annualCashFlow) * 0.15 +
-      scoreVacancy(vacancyPct) * 0.10) * 10
-  ) / 10
+  const investmentGrade =
+    Math.round(
+      (scoreGrossYield(grossYieldPct) * 0.25 +
+        scoreCapRate(capRatePct) * 0.25 +
+        scoreCashOnCash(cocPct) * 0.25 +
+        scoreCashFlow(annualCashFlow) * 0.15 +
+        scoreVacancy(vacancyPct) * 0.1) *
+        10,
+    ) / 10
 
   const investmentGradeLabel = gradeLabel(investmentGrade)
 
@@ -223,7 +247,7 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
   let remainingBalance = loanAmount
 
   for (let year = 1; year <= 10; year++) {
-    const propertyValue = purchasePrice * Math.pow(1 + annualAppreciation, year)
+    const propertyValue = purchasePrice * (1 + annualAppreciation) ** year
 
     // Track mortgage principal paydown
     for (let m = 0; m < 12; m++) {
@@ -235,7 +259,7 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
 
     const equity = propertyValue - remainingBalance
 
-    const yearCashFlow = annualCashFlow * Math.pow(1.02, year - 1)
+    const yearCashFlow = annualCashFlow * 1.02 ** (year - 1)
     cumulativeCashFlow += yearCashFlow
 
     const appreciation = propertyValue - purchasePrice
@@ -271,16 +295,20 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
 ******************************************************************************/
 
 /** Investment grade badge. */
-function GradeBadge(props: { grade: number; label: string; size?: "sm" | "md" }) {
+function GradeBadge(props: {
+  grade: number
+  label: string
+  size?: "sm" | "md"
+}) {
   const { grade, label, size = "md" } = props
-  const colorClass = GRADE_COLORS[label] || GRADE_COLORS["Moderate"]
+  const colorClass = GRADE_COLORS[label] || GRADE_COLORS.Moderate
 
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full font-semibold",
         colorClass,
-        size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm"
+        size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm",
       )}
     >
       {grade.toFixed(1)}/10 {label}
@@ -301,9 +329,12 @@ function MetricCard(props: {
     <div
       className={cn(
         "rounded-lg border p-4",
-        variant === "success" && "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30",
-        variant === "warning" && "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30",
-        variant === "danger" && "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30"
+        variant === "success" &&
+          "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30",
+        variant === "warning" &&
+          "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30",
+        variant === "danger" &&
+          "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30",
       )}
     >
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -312,7 +343,7 @@ function MetricCard(props: {
           "text-2xl font-bold",
           variant === "success" && "text-green-600",
           variant === "warning" && "text-amber-600",
-          variant === "danger" && "text-red-600"
+          variant === "danger" && "text-red-600",
         )}
       >
         {value}
@@ -333,15 +364,28 @@ function ProjectionRow(props: {
   totalReturn: number
   totalReturnPercent: number
 }) {
-  const { year, propertyValue, equity, cumulativeCashFlow, totalReturn, totalReturnPercent } = props
+  const {
+    year,
+    propertyValue,
+    equity,
+    cumulativeCashFlow,
+    totalReturn,
+    totalReturnPercent,
+  } = props
 
   return (
     <tr className="border-b">
       <td className="py-2 font-medium">Year {year}</td>
-      <td className="py-2 text-right">{CURRENCY_FORMATTER.format(propertyValue)}</td>
+      <td className="py-2 text-right">
+        {CURRENCY_FORMATTER.format(propertyValue)}
+      </td>
       <td className="py-2 text-right">{CURRENCY_FORMATTER.format(equity)}</td>
-      <td className="py-2 text-right">{CURRENCY_FORMATTER.format(cumulativeCashFlow)}</td>
-      <td className="py-2 text-right">{CURRENCY_FORMATTER.format(totalReturn)}</td>
+      <td className="py-2 text-right">
+        {CURRENCY_FORMATTER.format(cumulativeCashFlow)}
+      </td>
+      <td className="py-2 text-right">
+        {CURRENCY_FORMATTER.format(totalReturn)}
+      </td>
       <td className="py-2 text-right font-medium text-green-600">
         {PERCENT_FORMATTER.format(totalReturnPercent)}
       </td>
@@ -361,9 +405,7 @@ function SavedROICalculations(props: {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Saved ROI Calculations</CardTitle>
-        <CardDescription>
-          Your previously saved ROI analyses
-        </CardDescription>
+        <CardDescription>Your previously saved ROI analyses</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -453,7 +495,7 @@ function ROICalculator(props: IProps) {
 
   const handlePriceInput = (
     key: keyof CalculatorInputs,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const value = e.target.value.replace(/[^\d]/g, "")
     updateInput(key, value)
@@ -574,7 +616,9 @@ function ROICalculator(props: IProps) {
                       placeholder="500,000"
                       value={
                         inputs.purchasePrice
-                          ? parseInt(inputs.purchasePrice).toLocaleString("de-DE")
+                          ? parseInt(inputs.purchasePrice, 10).toLocaleString(
+                              "de-DE",
+                            )
                           : ""
                       }
                       onChange={(e) => handlePriceInput("purchasePrice", e)}
@@ -593,7 +637,9 @@ function ROICalculator(props: IProps) {
                       placeholder="100,000"
                       value={
                         inputs.downPayment
-                          ? parseInt(inputs.downPayment).toLocaleString("de-DE")
+                          ? parseInt(inputs.downPayment, 10).toLocaleString(
+                              "de-DE",
+                            )
                           : ""
                       }
                       onChange={(e) => handlePriceInput("downPayment", e)}
@@ -621,7 +667,9 @@ function ROICalculator(props: IProps) {
                       placeholder="1,500"
                       value={
                         inputs.monthlyRent
-                          ? parseInt(inputs.monthlyRent).toLocaleString("de-DE")
+                          ? parseInt(inputs.monthlyRent, 10).toLocaleString(
+                              "de-DE",
+                            )
                           : ""
                       }
                       onChange={(e) => handlePriceInput("monthlyRent", e)}
@@ -640,7 +688,9 @@ function ROICalculator(props: IProps) {
                       placeholder="300"
                       value={
                         inputs.monthlyExpenses
-                          ? parseInt(inputs.monthlyExpenses).toLocaleString("de-DE")
+                          ? parseInt(inputs.monthlyExpenses, 10).toLocaleString(
+                              "de-DE",
+                            )
                           : ""
                       }
                       onChange={(e) => handlePriceInput("monthlyExpenses", e)}
@@ -692,7 +742,9 @@ function ROICalculator(props: IProps) {
                     max="15"
                     step="0.1"
                     value={inputs.mortgageRate}
-                    onChange={(e) => updateInput("mortgageRate", e.target.value)}
+                    onChange={(e) =>
+                      updateInput("mortgageRate", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -703,7 +755,9 @@ function ROICalculator(props: IProps) {
                     min="5"
                     max="40"
                     value={inputs.mortgageTerm}
-                    onChange={(e) => updateInput("mortgageTerm", e.target.value)}
+                    onChange={(e) =>
+                      updateInput("mortgageTerm", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -771,19 +825,24 @@ function ROICalculator(props: IProps) {
                   <div className="rounded-lg border p-4 space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Gross Rental Income</span>
-                      <span>{CURRENCY_FORMATTER.format(results.grossRentalIncome)}</span>
+                      <span>
+                        {CURRENCY_FORMATTER.format(results.grossRentalIncome)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-muted-foreground">
                       <span>- Operating Expenses</span>
                       <span>
                         {CURRENCY_FORMATTER.format(
-                          results.grossRentalIncome - results.netOperatingIncome
+                          results.grossRentalIncome -
+                            results.netOperatingIncome,
                         )}
                       </span>
                     </div>
                     <div className="flex justify-between font-medium border-t pt-2">
                       <span>Net Operating Income</span>
-                      <span>{CURRENCY_FORMATTER.format(results.netOperatingIncome)}</span>
+                      <span>
+                        {CURRENCY_FORMATTER.format(results.netOperatingIncome)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -822,11 +881,7 @@ function ROICalculator(props: IProps) {
                       Share Link
                     </p>
                     <div className="flex gap-2">
-                      <Input
-                        value={shareUrl}
-                        readOnly
-                        className="text-xs"
-                      />
+                      <Input value={shareUrl} readOnly className="text-xs" />
                       <Button
                         variant="outline"
                         size="sm"
@@ -866,10 +921,16 @@ function ROICalculator(props: IProps) {
                 <thead>
                   <tr className="border-b text-muted-foreground">
                     <th className="py-2 text-left font-medium">Year</th>
-                    <th className="py-2 text-right font-medium">Property Value</th>
+                    <th className="py-2 text-right font-medium">
+                      Property Value
+                    </th>
                     <th className="py-2 text-right font-medium">Equity</th>
-                    <th className="py-2 text-right font-medium">Cumulative Cash Flow</th>
-                    <th className="py-2 text-right font-medium">Total Return</th>
+                    <th className="py-2 text-right font-medium">
+                      Cumulative Cash Flow
+                    </th>
+                    <th className="py-2 text-right font-medium">
+                      Total Return
+                    </th>
                     <th className="py-2 text-right font-medium">ROI</th>
                   </tr>
                 </thead>

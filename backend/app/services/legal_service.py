@@ -1,8 +1,6 @@
 """Legal Knowledge Base service."""
+
 import uuid
-from datetime import datetime, timezone
-from functools import lru_cache
-from typing import Optional
 
 from sqlalchemy import func, or_, select, text
 from sqlmodel import Session
@@ -75,6 +73,7 @@ class LegalService:
         if filters.state:
             # Join with state variations to filter by state
             from app.models.legal import StateVariation
+
             query = query.join(
                 StateVariation,
                 Law.id == StateVariation.law_id,
@@ -96,7 +95,7 @@ class LegalService:
         self,
         session: Session,
         law_id: uuid.UUID,
-        user_id: Optional[uuid.UUID] = None,
+        user_id: uuid.UUID | None = None,
     ) -> Law:
         """
         Get a law by ID.
@@ -174,10 +173,7 @@ class LegalService:
             LIMIT :limit
         """)
 
-        result = session.execute(
-            search_query,
-            {"query": query_text, "limit": limit}
-        )
+        result = session.execute(search_query, {"query": query_text, "limit": limit})
 
         # Fetch full law objects
         laws_with_scores = []
@@ -238,7 +234,7 @@ class LegalService:
         session: Session,
         law_id: uuid.UUID,
         user_id: uuid.UUID,
-        notes: Optional[str] = None,
+        notes: str | None = None,
     ) -> LawBookmark:
         """
         Bookmark a law for a user.
@@ -364,16 +360,12 @@ class LegalService:
         Returns:
             List of laws
         """
-        query = (
-            select(Law)
-            .where(Law.category == category.value)
-            .order_by(Law.citation)
-        )
+        query = select(Law).where(Law.category == category.value).order_by(Law.citation)
         return list(session.exec(query).scalars().all())
 
 
 # Singleton pattern
-_legal_service: Optional[LegalService] = None
+_legal_service: LegalService | None = None
 
 
 def get_legal_service() -> LegalService:

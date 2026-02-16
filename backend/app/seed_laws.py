@@ -207,7 +207,6 @@ LAWS: list[dict] = [
             "with notarization when you are certain about the sale."
         ),
     },
-
     # ── costs_and_taxes ────────────────────────────────────────────────
     {
         "citation": "§ 1 GrEStG",
@@ -354,7 +353,6 @@ LAWS: list[dict] = [
             "or energy-efficient renovations (Sonder-AfA). Consult a Steuerberater for optimization."
         ),
     },
-
     # ── rental_law ─────────────────────────────────────────────────────
     {
         "citation": "§ 535 BGB",
@@ -508,7 +506,6 @@ LAWS: list[dict] = [
             "seek immediate legal advice. You may be entitled to a hardship defense."
         ),
     },
-
     # ── condominium ────────────────────────────────────────────────────
     {
         "citation": "§ 1 WEG",
@@ -625,7 +622,6 @@ LAWS: list[dict] = [
             "may be deterred by contentious communities."
         ),
     },
-
     # ── agent_regulations ──────────────────────────────────────────────
     {
         "citation": "§ 656a BGB",
@@ -838,22 +834,102 @@ COURT_RULINGS: list[dict] = [
 # ---------------------------------------------------------------------------
 
 STATE_VARIATIONS: list[dict] = [
-    {"state_code": "BW", "state_name": "Baden-Württemberg", "rate": "5.0%", "description": "Baden-Württemberg applies a real estate transfer tax rate of 5.0%, effective since November 2011."},
-    {"state_code": "BY", "state_name": "Bayern", "rate": "3.5%", "description": "Bavaria has the lowest transfer tax rate in Germany at 3.5%, unchanged since the federal baseline. Bavaria has never raised the rate above the federal minimum."},
-    {"state_code": "BE", "state_name": "Berlin", "rate": "6.0%", "description": "Berlin applies a transfer tax rate of 6.0%, effective since January 2014."},
-    {"state_code": "BB", "state_name": "Brandenburg", "rate": "6.5%", "description": "Brandenburg applies the maximum transfer tax rate of 6.5%, effective since July 2015."},
-    {"state_code": "HB", "state_name": "Bremen", "rate": "5.0%", "description": "Bremen applies a transfer tax rate of 5.0%, effective since January 2014."},
-    {"state_code": "HH", "state_name": "Hamburg", "rate": "5.5%", "description": "Hamburg applies a transfer tax rate of 5.5%, effective since January 2023."},
-    {"state_code": "HE", "state_name": "Hessen", "rate": "6.0%", "description": "Hessen applies a transfer tax rate of 6.0%, effective since August 2014."},
-    {"state_code": "MV", "state_name": "Mecklenburg-Vorpommern", "rate": "6.0%", "description": "Mecklenburg-Vorpommern applies a transfer tax rate of 6.0%, effective since July 2019."},
-    {"state_code": "NI", "state_name": "Niedersachsen", "rate": "5.0%", "description": "Lower Saxony applies a transfer tax rate of 5.0%, effective since January 2014."},
-    {"state_code": "NW", "state_name": "Nordrhein-Westfalen", "rate": "6.5%", "description": "North Rhine-Westphalia applies the maximum transfer tax rate of 6.5%, effective since January 2015."},
-    {"state_code": "RP", "state_name": "Rheinland-Pfalz", "rate": "5.0%", "description": "Rhineland-Palatinate applies a transfer tax rate of 5.0%, effective since March 2012."},
-    {"state_code": "SL", "state_name": "Saarland", "rate": "6.5%", "description": "Saarland applies the maximum transfer tax rate of 6.5%, effective since January 2015."},
-    {"state_code": "SN", "state_name": "Sachsen", "rate": "5.5%", "description": "Saxony applies a transfer tax rate of 5.5%, effective since January 2023."},
-    {"state_code": "ST", "state_name": "Sachsen-Anhalt", "rate": "5.0%", "description": "Saxony-Anhalt applies a transfer tax rate of 5.0%, effective since March 2012."},
-    {"state_code": "SH", "state_name": "Schleswig-Holstein", "rate": "6.5%", "description": "Schleswig-Holstein applies the maximum transfer tax rate of 6.5%, effective since January 2014."},
-    {"state_code": "TH", "state_name": "Thüringen", "rate": "6.5%", "description": "Thuringia applies the maximum transfer tax rate of 6.5%, effective since January 2017."},
+    {
+        "state_code": "BW",
+        "state_name": "Baden-Württemberg",
+        "rate": "5.0%",
+        "description": "Baden-Württemberg applies a real estate transfer tax rate of 5.0%, effective since November 2011.",
+    },
+    {
+        "state_code": "BY",
+        "state_name": "Bayern",
+        "rate": "3.5%",
+        "description": "Bavaria has the lowest transfer tax rate in Germany at 3.5%, unchanged since the federal baseline. Bavaria has never raised the rate above the federal minimum.",
+    },
+    {
+        "state_code": "BE",
+        "state_name": "Berlin",
+        "rate": "6.0%",
+        "description": "Berlin applies a transfer tax rate of 6.0%, effective since January 2014.",
+    },
+    {
+        "state_code": "BB",
+        "state_name": "Brandenburg",
+        "rate": "6.5%",
+        "description": "Brandenburg applies the maximum transfer tax rate of 6.5%, effective since July 2015.",
+    },
+    {
+        "state_code": "HB",
+        "state_name": "Bremen",
+        "rate": "5.0%",
+        "description": "Bremen applies a transfer tax rate of 5.0%, effective since January 2014.",
+    },
+    {
+        "state_code": "HH",
+        "state_name": "Hamburg",
+        "rate": "5.5%",
+        "description": "Hamburg applies a transfer tax rate of 5.5%, effective since January 2023.",
+    },
+    {
+        "state_code": "HE",
+        "state_name": "Hessen",
+        "rate": "6.0%",
+        "description": "Hessen applies a transfer tax rate of 6.0%, effective since August 2014.",
+    },
+    {
+        "state_code": "MV",
+        "state_name": "Mecklenburg-Vorpommern",
+        "rate": "6.0%",
+        "description": "Mecklenburg-Vorpommern applies a transfer tax rate of 6.0%, effective since July 2019.",
+    },
+    {
+        "state_code": "NI",
+        "state_name": "Niedersachsen",
+        "rate": "5.0%",
+        "description": "Lower Saxony applies a transfer tax rate of 5.0%, effective since January 2014.",
+    },
+    {
+        "state_code": "NW",
+        "state_name": "Nordrhein-Westfalen",
+        "rate": "6.5%",
+        "description": "North Rhine-Westphalia applies the maximum transfer tax rate of 6.5%, effective since January 2015.",
+    },
+    {
+        "state_code": "RP",
+        "state_name": "Rheinland-Pfalz",
+        "rate": "5.0%",
+        "description": "Rhineland-Palatinate applies a transfer tax rate of 5.0%, effective since March 2012.",
+    },
+    {
+        "state_code": "SL",
+        "state_name": "Saarland",
+        "rate": "6.5%",
+        "description": "Saarland applies the maximum transfer tax rate of 6.5%, effective since January 2015.",
+    },
+    {
+        "state_code": "SN",
+        "state_name": "Sachsen",
+        "rate": "5.5%",
+        "description": "Saxony applies a transfer tax rate of 5.5%, effective since January 2023.",
+    },
+    {
+        "state_code": "ST",
+        "state_name": "Sachsen-Anhalt",
+        "rate": "5.0%",
+        "description": "Saxony-Anhalt applies a transfer tax rate of 5.0%, effective since March 2012.",
+    },
+    {
+        "state_code": "SH",
+        "state_name": "Schleswig-Holstein",
+        "rate": "6.5%",
+        "description": "Schleswig-Holstein applies the maximum transfer tax rate of 6.5%, effective since January 2014.",
+    },
+    {
+        "state_code": "TH",
+        "state_name": "Thüringen",
+        "rate": "6.5%",
+        "description": "Thuringia applies the maximum transfer tax rate of 6.5%, effective since January 2017.",
+    },
 ]
 
 
@@ -861,12 +937,12 @@ STATE_VARIATIONS: list[dict] = [
 # Seed function
 # ---------------------------------------------------------------------------
 
+
 def seed_laws(session: Session) -> None:
     """Seed German real estate laws, court rulings, and state variations.
 
     Idempotent: skips laws that already exist (matched by citation).
     """
-    from sqlmodel import text as sql_text
 
     inserted_count = 0
     skipped_count = 0
@@ -960,7 +1036,10 @@ def seed_laws(session: Session) -> None:
             session.add(variation)
             variation_inserted += 1
     else:
-        logger.warning("Transfer tax law (%s) not found, skipping state variations", transfer_tax_citation)
+        logger.warning(
+            "Transfer tax law (%s) not found, skipping state variations",
+            transfer_tax_citation,
+        )
 
     logger.info("State variations: inserted=%d", variation_inserted)
 

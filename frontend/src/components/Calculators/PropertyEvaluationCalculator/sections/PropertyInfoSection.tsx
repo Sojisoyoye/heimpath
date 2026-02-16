@@ -3,24 +3,18 @@
  * Inputs for address, size, price, and transaction fees
  */
 
-import { Home } from "lucide-react";
-
-import { cn } from "@/common/utils";
-import { SECTION_COLORS } from "@/common/constants/propertyEvaluation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { PropertyInfoInputs } from "../types";
+import { Home } from "lucide-react"
+import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
+import { cn } from "@/common/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { PropertyInfoInputs } from "../types"
 
 interface IProps {
-  values: PropertyInfoInputs;
-  onChange: (updates: Partial<PropertyInfoInputs>) => void;
-  className?: string;
+  values: PropertyInfoInputs
+  onChange: (updates: Partial<PropertyInfoInputs>) => void
+  className?: string
 }
 
 /******************************************************************************
@@ -31,7 +25,7 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 0,
-});
+})
 
 /******************************************************************************
                               Components
@@ -39,48 +33,46 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
 
 /** Format number with thousand separators. */
 function formatNumber(value: number): string {
-  if (value === 0) return "";
-  return value.toLocaleString("de-DE");
+  if (value === 0) return ""
+  return value.toLocaleString("de-DE")
 }
 
 /** Parse number from formatted string. */
 function parseNumber(value: string): number {
-  const cleaned = value.replace(/[^\d]/g, "");
-  return cleaned ? parseInt(cleaned, 10) : 0;
+  const cleaned = value.replace(/[^\d]/g, "")
+  return cleaned ? parseInt(cleaned, 10) : 0
 }
 
 /** Default component. Property information section. */
 function PropertyInfoSection(props: IProps) {
-  const { values, onChange, className } = props;
+  const { values, onChange, className } = props
 
   const handleNumberChange = (
     field: keyof PropertyInfoInputs,
-    value: string
+    value: string,
   ) => {
-    onChange({ [field]: parseNumber(value) });
-  };
+    onChange({ [field]: parseNumber(value) })
+  }
 
   const handlePercentChange = (
     field: keyof PropertyInfoInputs,
-    value: string
+    value: string,
   ) => {
-    const num = parseFloat(value) || 0;
-    onChange({ [field]: num });
-  };
+    const num = parseFloat(value) || 0
+    onChange({ [field]: num })
+  }
 
   const pricePerSqm =
-    values.squareMeters > 0
-      ? values.purchasePrice / values.squareMeters
-      : 0;
+    values.squareMeters > 0 ? values.purchasePrice / values.squareMeters : 0
 
   const totalIncidentalPercent =
     values.brokerFeePercent +
     values.notaryFeePercent +
     values.landRegistryFeePercent +
-    values.transferTaxPercent;
+    values.transferTaxPercent
 
   const totalIncidentalCosts =
-    values.purchasePrice * (totalIncidentalPercent / 100);
+    values.purchasePrice * (totalIncidentalPercent / 100)
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -117,7 +109,9 @@ function PropertyInfoSection(props: IProps) {
               min="0"
               placeholder="e.g., 25.7"
               value={values.squareMeters || ""}
-              onChange={(e) => handlePercentChange("squareMeters", e.target.value)}
+              onChange={(e) =>
+                handlePercentChange("squareMeters", e.target.value)
+              }
             />
           </div>
           <div className="space-y-2">
@@ -128,7 +122,9 @@ function PropertyInfoSection(props: IProps) {
               inputMode="numeric"
               placeholder="e.g., 240,000"
               value={formatNumber(values.purchasePrice)}
-              onChange={(e) => handleNumberChange("purchasePrice", e.target.value)}
+              onChange={(e) =>
+                handleNumberChange("purchasePrice", e.target.value)
+              }
             />
           </div>
         </div>
@@ -225,11 +221,11 @@ function PropertyInfoSection(props: IProps) {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export { PropertyInfoSection };
+export { PropertyInfoSection }

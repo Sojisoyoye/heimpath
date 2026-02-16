@@ -3,6 +3,7 @@
 Handles scoring, likelihood assessment, loan estimates,
 advisory generation, and CRUD operations for saved assessments.
 """
+
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -13,10 +14,10 @@ from sqlmodel import Session, select
 from app.models.financing import FinancingAssessment
 from app.schemas.financing import FinancingAssessmentCreate
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ScoreBreakdown:
@@ -159,6 +160,7 @@ def _likelihood_label(score: float) -> str:
 # Estimate functions
 # ---------------------------------------------------------------------------
 
+
 def _estimate_max_loan(monthly_income: float, monthly_debt: float) -> float:
     """Estimate maximum loan amount.
 
@@ -209,9 +211,9 @@ def _estimate_ltv(available_dp: float, max_loan: float) -> float:
 # Advisory builders
 # ---------------------------------------------------------------------------
 
+
 def _build_strengths(
     scores: ScoreBreakdown,
-    inputs: FinancingAssessmentCreate,
 ) -> list[str]:
     """Build list of strength messages for high-scoring factors."""
     strengths = []
@@ -232,7 +234,6 @@ def _build_strengths(
 
 def _build_improvements(
     scores: ScoreBreakdown,
-    inputs: FinancingAssessmentCreate,
 ) -> list[str]:
     """Build actionable improvement advice for weak factors."""
     improvements = []
@@ -281,17 +282,21 @@ def _build_document_checklist(inputs: FinancingAssessmentCreate) -> list[str]:
     ]
 
     if inputs.employment_status in ("self_employed", "freelance"):
-        docs.extend([
-            "Business financial statements — last 3 years (BWA + Bilanz)",
-            "Tax advisor confirmation letter (Steuerberater-Bescheinigung)",
-            "Business registration certificate (Gewerbeanmeldung)",
-        ])
+        docs.extend(
+            [
+                "Business financial statements — last 3 years (BWA + Bilanz)",
+                "Tax advisor confirmation letter (Steuerberater-Bescheinigung)",
+                "Business registration certificate (Gewerbeanmeldung)",
+            ]
+        )
 
     if inputs.residency_status in ("temporary_resident", "non_eu"):
-        docs.extend([
-            "Residence permit (Aufenthaltstitel)",
-            "Registration certificate (Meldebescheinigung)",
-        ])
+        docs.extend(
+            [
+                "Residence permit (Aufenthaltstitel)",
+                "Registration certificate (Meldebescheinigung)",
+            ]
+        )
 
     if inputs.residency_status == "eu_citizen":
         docs.append("EU registration certificate (Freizügigkeitsbescheinigung)")
@@ -306,6 +311,7 @@ def _build_document_checklist(inputs: FinancingAssessmentCreate) -> list[str]:
 # Main assessment (pure calculation)
 # ---------------------------------------------------------------------------
 
+
 def assess(inputs: FinancingAssessmentCreate) -> AssessmentResult:
     """Run full financing eligibility assessment.
 
@@ -317,7 +323,9 @@ def assess(inputs: FinancingAssessmentCreate) -> AssessmentResult:
     """
     scores = ScoreBreakdown(
         employment=_score_employment(inputs.employment_status),
-        income_ratio=_score_income_ratio(inputs.monthly_net_income, inputs.monthly_debt),
+        income_ratio=_score_income_ratio(
+            inputs.monthly_net_income, inputs.monthly_debt
+        ),
         down_payment=_score_down_payment(inputs.available_down_payment),
         schufa=_score_schufa(inputs.schufa_rating),
         residency=_score_residency(inputs.residency_status),
@@ -349,8 +357,8 @@ def assess(inputs: FinancingAssessmentCreate) -> AssessmentResult:
         expected_rate_min=rate_min,
         expected_rate_max=rate_max,
         ltv_ratio=ltv,
-        strengths=_build_strengths(scores, inputs),
-        improvements=_build_improvements(scores, inputs),
+        strengths=_build_strengths(scores),
+        improvements=_build_improvements(scores),
         document_checklist=_build_document_checklist(inputs),
     )
 
@@ -358,6 +366,7 @@ def assess(inputs: FinancingAssessmentCreate) -> AssessmentResult:
 # ---------------------------------------------------------------------------
 # CRUD operations
 # ---------------------------------------------------------------------------
+
 
 def save_assessment(
     session: Session,

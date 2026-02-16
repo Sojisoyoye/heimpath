@@ -3,6 +3,7 @@
 Handles ROI calculations, investment grading, 10-year projections,
 and CRUD operations for saved ROI calculations.
 """
+
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -13,10 +14,10 @@ from sqlmodel import Session, select
 from app.models.roi import ROICalculation
 from app.schemas.roi import ROICalculationCreate
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ROIBreakdown:
@@ -37,6 +38,7 @@ class ROIBreakdown:
 # ---------------------------------------------------------------------------
 # Calculation helpers
 # ---------------------------------------------------------------------------
+
 
 def calculate_mortgage_payment(
     principal: float,
@@ -59,9 +61,9 @@ def calculate_mortgage_payment(
     monthly_rate = annual_rate / 100 / 12
     num_payments = term_years * 12
 
-    return (
-        principal * monthly_rate * (1 + monthly_rate) ** num_payments
-    ) / ((1 + monthly_rate) ** num_payments - 1)
+    return (principal * monthly_rate * (1 + monthly_rate) ** num_payments) / (
+        (1 + monthly_rate) ** num_payments - 1
+    )
 
 
 def _score_gross_yield(gross_yield_pct: float) -> float:
@@ -151,7 +153,9 @@ def calculate_roi(inputs: ROICalculationCreate) -> ROIBreakdown:
 
     # Financing
     loan_amount = purchase_price - down_payment
-    monthly_mortgage = calculate_mortgage_payment(loan_amount, mortgage_rate, mortgage_term)
+    monthly_mortgage = calculate_mortgage_payment(
+        loan_amount, mortgage_rate, mortgage_term
+    )
 
     # Annual income
     gross_rental_income = monthly_rent * 12
@@ -248,14 +252,16 @@ def calculate_projections(
         total_return = appreciation + cumulative_cash_flow
         total_return_percent = total_return / down_payment if down_payment > 0 else 0.0
 
-        projections.append({
-            "year": year,
-            "property_value": round(property_value, 2),
-            "equity": round(equity, 2),
-            "cumulative_cash_flow": round(cumulative_cash_flow, 2),
-            "total_return": round(total_return, 2),
-            "total_return_percent": round(total_return_percent, 4),
-        })
+        projections.append(
+            {
+                "year": year,
+                "property_value": round(property_value, 2),
+                "equity": round(equity, 2),
+                "cumulative_cash_flow": round(cumulative_cash_flow, 2),
+                "total_return": round(total_return, 2),
+                "total_return_percent": round(total_return_percent, 4),
+            }
+        )
 
     return projections
 
@@ -263,6 +269,7 @@ def calculate_projections(
 # ---------------------------------------------------------------------------
 # CRUD operations
 # ---------------------------------------------------------------------------
+
 
 def save_calculation(
     session: Session,
@@ -357,9 +364,7 @@ def get_by_share_id(session: Session, share_id: str) -> ROICalculation:
     Raises:
         HTTPException: If not found.
     """
-    statement = select(ROICalculation).where(
-        ROICalculation.share_id == share_id
-    )
+    statement = select(ROICalculation).where(ROICalculation.share_id == share_id)
     calculation = session.exec(statement).first()
     if not calculation:
         raise HTTPException(
@@ -427,21 +432,23 @@ def compare_scenarios(
         projections = calculate_projections(
             inputs, breakdown.annual_cash_flow, breakdown.monthly_mortgage_payment
         )
-        results.append({
-            "name": inputs.name,
-            "purchase_price": inputs.purchase_price,
-            "down_payment": inputs.down_payment,
-            "monthly_rent": inputs.monthly_rent,
-            "gross_rental_income": breakdown.gross_rental_income,
-            "net_operating_income": breakdown.net_operating_income,
-            "annual_cash_flow": breakdown.annual_cash_flow,
-            "monthly_mortgage_payment": breakdown.monthly_mortgage_payment,
-            "gross_yield": breakdown.gross_yield,
-            "net_yield": breakdown.net_yield,
-            "cap_rate": breakdown.cap_rate,
-            "cash_on_cash_return": breakdown.cash_on_cash_return,
-            "investment_grade": breakdown.investment_grade,
-            "investment_grade_label": breakdown.investment_grade_label,
-            "projections": projections,
-        })
+        results.append(
+            {
+                "name": inputs.name,
+                "purchase_price": inputs.purchase_price,
+                "down_payment": inputs.down_payment,
+                "monthly_rent": inputs.monthly_rent,
+                "gross_rental_income": breakdown.gross_rental_income,
+                "net_operating_income": breakdown.net_operating_income,
+                "annual_cash_flow": breakdown.annual_cash_flow,
+                "monthly_mortgage_payment": breakdown.monthly_mortgage_payment,
+                "gross_yield": breakdown.gross_yield,
+                "net_yield": breakdown.net_yield,
+                "cap_rate": breakdown.cap_rate,
+                "cash_on_cash_return": breakdown.cash_on_cash_return,
+                "investment_grade": breakdown.investment_grade,
+                "investment_grade_label": breakdown.investment_grade_label,
+                "projections": projections,
+            }
+        )
     return results

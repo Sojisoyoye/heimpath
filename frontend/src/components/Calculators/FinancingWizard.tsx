@@ -3,32 +3,22 @@
  * Assesses mortgage likelihood for foreign buyers in Germany
  */
 
-import { useState, useMemo } from "react"
 import {
-  Landmark,
-  Euro,
+  AlertTriangle,
+  CheckCircle2,
   Download,
+  Euro,
+  ExternalLink,
+  FileText,
+  Landmark,
   RefreshCw,
   Save,
   Share2,
   Trash2,
-  ExternalLink,
-  CheckCircle2,
-  AlertTriangle,
-  FileText,
 } from "lucide-react"
+import { useMemo, useState } from "react"
 
 import { cn } from "@/common/utils"
-import { useSaveFinancingAssessment, useDeleteFinancingAssessment } from "@/hooks/mutations/useCalculatorMutations"
-import { useUserFinancingAssessments } from "@/hooks/queries/useCalculatorQueries"
-import useCustomToast from "@/hooks/useCustomToast"
-import type {
-  EmploymentStatus,
-  FinancingAssessmentInput,
-  FinancingAssessmentSummary,
-  FinancingResidencyStatus,
-  SchufaRating,
-} from "@/models/calculator"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -39,7 +29,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import {
   Select,
   SelectContent,
@@ -47,6 +36,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import {
+  useDeleteFinancingAssessment,
+  useSaveFinancingAssessment,
+} from "@/hooks/mutations/useCalculatorMutations"
+import { useUserFinancingAssessments } from "@/hooks/queries/useCalculatorQueries"
+import useCustomToast from "@/hooks/useCustomToast"
+import type {
+  EmploymentStatus,
+  FinancingAssessmentInput,
+  FinancingAssessmentSummary,
+  FinancingResidencyStatus,
+  SchufaRating,
+} from "@/models/calculator"
 
 interface IProps {
   className?: string
@@ -118,18 +121,20 @@ const SCHUFA_OPTIONS: { value: SchufaRating; label: string }[] = [
   { value: "unknown", label: "Unknown / Not yet obtained" },
 ]
 
-const RESIDENCY_OPTIONS: { value: FinancingResidencyStatus; label: string }[] = [
-  { value: "german_citizen", label: "German Citizen" },
-  { value: "eu_citizen", label: "EU Citizen" },
-  { value: "permanent_resident", label: "Permanent Resident" },
-  { value: "temporary_resident", label: "Temporary Resident" },
-  { value: "non_eu", label: "Non-EU Resident" },
-]
+const RESIDENCY_OPTIONS: { value: FinancingResidencyStatus; label: string }[] =
+  [
+    { value: "german_citizen", label: "German Citizen" },
+    { value: "eu_citizen", label: "EU Citizen" },
+    { value: "permanent_resident", label: "Permanent Resident" },
+    { value: "temporary_resident", label: "Temporary Resident" },
+    { value: "non_eu", label: "Non-EU Resident" },
+  ]
 
 const LIKELIHOOD_COLORS: Record<string, string> = {
   High: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   Good: "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-400",
-  Moderate: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  Moderate:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   Low: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
   "Very Low": "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 }
@@ -172,9 +177,9 @@ function scoreIncomeRatio(income: number, debt: number): number {
 
 function scoreDownPayment(dp: number): number {
   const pct = dp / ASSUMED_PROPERTY_PRICE
-  if (pct >= 0.30) return 20
-  if (pct >= 0.20) return 16
-  if (pct >= 0.10) return 12
+  if (pct >= 0.3) return 20
+  if (pct >= 0.2) return 16
+  if (pct >= 0.1) return 12
   if (pct >= 0.05) return 6
   return 2
 }
@@ -224,11 +229,18 @@ function estimateMaxLoan(income: number, debt: number): number {
   return Math.round(disposable * 100)
 }
 
-function recommendedDpPercent(residency: FinancingResidencyStatus, schufa: SchufaRating): number {
+function recommendedDpPercent(
+  residency: FinancingResidencyStatus,
+  schufa: SchufaRating,
+): number {
   let base = 20
   if (residency === "non_eu" || residency === "temporary_resident") base += 10
   if (schufa === "poor" || schufa === "unknown") base += 5
-  if (residency === "german_citizen" && (schufa === "excellent" || schufa === "good")) base = 15
+  if (
+    residency === "german_citizen" &&
+    (schufa === "excellent" || schufa === "good")
+  )
+    base = 15
   return Math.min(base, 40)
 }
 
@@ -241,41 +253,75 @@ function estimateRateRange(totalScore: number): [number, number] {
 }
 
 function buildStrengths(
-  scores: Pick<AssessmentResults, "employmentScore" | "incomeRatioScore" | "downPaymentScore" | "schufaScore" | "residencyScore" | "yearsBonusScore">
+  scores: Pick<
+    AssessmentResults,
+    | "employmentScore"
+    | "incomeRatioScore"
+    | "downPaymentScore"
+    | "schufaScore"
+    | "residencyScore"
+    | "yearsBonusScore"
+  >,
 ): string[] {
   const strengths: string[] = []
-  if (scores.employmentScore >= 16) strengths.push("Stable employment type is highly valued by German banks")
-  if (scores.incomeRatioScore >= 16) strengths.push("Healthy debt-to-income ratio well within bank limits")
-  if (scores.downPaymentScore >= 16) strengths.push("Strong down payment reduces risk and improves loan terms")
-  if (scores.schufaScore >= 12) strengths.push("Good SCHUFA credit rating strengthens your application")
-  if (scores.residencyScore >= 11) strengths.push("Residency status provides favorable lending conditions")
-  if (scores.yearsBonusScore >= 8) strengths.push("Long employment tenure demonstrates financial stability")
+  if (scores.employmentScore >= 16)
+    strengths.push("Stable employment type is highly valued by German banks")
+  if (scores.incomeRatioScore >= 16)
+    strengths.push("Healthy debt-to-income ratio well within bank limits")
+  if (scores.downPaymentScore >= 16)
+    strengths.push("Strong down payment reduces risk and improves loan terms")
+  if (scores.schufaScore >= 12)
+    strengths.push("Good SCHUFA credit rating strengthens your application")
+  if (scores.residencyScore >= 11)
+    strengths.push("Residency status provides favorable lending conditions")
+  if (scores.yearsBonusScore >= 8)
+    strengths.push("Long employment tenure demonstrates financial stability")
   return strengths
 }
 
 function buildImprovements(
-  scores: Pick<AssessmentResults, "employmentScore" | "incomeRatioScore" | "downPaymentScore" | "schufaScore" | "residencyScore" | "yearsBonusScore">
+  scores: Pick<
+    AssessmentResults,
+    | "employmentScore"
+    | "incomeRatioScore"
+    | "downPaymentScore"
+    | "schufaScore"
+    | "residencyScore"
+    | "yearsBonusScore"
+  >,
 ): string[] {
   const improvements: string[] = []
   if (scores.employmentScore < 12)
-    improvements.push("Consider securing permanent employment before applying — banks prefer unbefristete Arbeitsverträge")
+    improvements.push(
+      "Consider securing permanent employment before applying — banks prefer unbefristete Arbeitsverträge",
+    )
   if (scores.incomeRatioScore < 12)
-    improvements.push("Reduce monthly debt obligations to improve your debt-to-income ratio below 35%")
+    improvements.push(
+      "Reduce monthly debt obligations to improve your debt-to-income ratio below 35%",
+    )
   if (scores.downPaymentScore < 12)
-    improvements.push("Save for a larger down payment — aim for at least 20% of property price to unlock better rates")
+    improvements.push(
+      "Save for a larger down payment — aim for at least 20% of property price to unlock better rates",
+    )
   if (scores.schufaScore < 9)
-    improvements.push("Improve your SCHUFA score by paying debts on time and closing unused credit accounts")
+    improvements.push(
+      "Improve your SCHUFA score by paying debts on time and closing unused credit accounts",
+    )
   if (scores.residencyScore < 11)
-    improvements.push("Apply for permanent residency (Niederlassungserlaubnis) to improve lending eligibility")
+    improvements.push(
+      "Apply for permanent residency (Niederlassungserlaubnis) to improve lending eligibility",
+    )
   if (scores.yearsBonusScore < 6)
-    improvements.push("Wait until you have at least 2 years at your current employer — banks value employment stability")
+    improvements.push(
+      "Wait until you have at least 2 years at your current employer — banks value employment stability",
+    )
   return improvements
 }
 
 function buildDocumentChecklist(
   employmentStatus: EmploymentStatus,
   residencyStatus: FinancingResidencyStatus,
-  hasDownPayment: boolean
+  hasDownPayment: boolean,
 ): string[] {
   const docs = [
     "Valid passport or ID (Personalausweis)",
@@ -285,17 +331,23 @@ function buildDocumentChecklist(
     "Employment contract (Arbeitsvertrag)",
     "Tax returns — last 2 years (Steuerbescheide)",
   ]
-  if (employmentStatus === "self_employed" || employmentStatus === "freelance") {
+  if (
+    employmentStatus === "self_employed" ||
+    employmentStatus === "freelance"
+  ) {
     docs.push(
       "Business financial statements — last 3 years (BWA + Bilanz)",
       "Tax advisor confirmation letter (Steuerberater-Bescheinigung)",
-      "Business registration certificate (Gewerbeanmeldung)"
+      "Business registration certificate (Gewerbeanmeldung)",
     )
   }
-  if (residencyStatus === "temporary_resident" || residencyStatus === "non_eu") {
+  if (
+    residencyStatus === "temporary_resident" ||
+    residencyStatus === "non_eu"
+  ) {
     docs.push(
       "Residence permit (Aufenthaltstitel)",
-      "Registration certificate (Meldebescheinigung)"
+      "Registration certificate (Meldebescheinigung)",
     )
   }
   if (residencyStatus === "eu_citizen") {
@@ -308,7 +360,12 @@ function buildDocumentChecklist(
 }
 
 function calculateAssessment(inputs: WizardInputs): AssessmentResults | null {
-  if (!inputs.employmentStatus || !inputs.schufaRating || !inputs.residencyStatus) return null
+  if (
+    !inputs.employmentStatus ||
+    !inputs.schufaRating ||
+    !inputs.residencyStatus
+  )
+    return null
   const income = parseNumber(inputs.monthlyNetIncome)
   if (income <= 0) return null
 
@@ -323,18 +380,35 @@ function calculateAssessment(inputs: WizardInputs): AssessmentResults | null {
   const residencyScore = scoreResidency(inputs.residencyStatus)
   const yearsBonusScore = scoreEmploymentYears(years)
 
-  const totalScore = Math.round(
-    (employmentScore + incomeRatioScore + downPaymentScore + schufaScore + residencyScore + yearsBonusScore) * 10
-  ) / 10
+  const totalScore =
+    Math.round(
+      (employmentScore +
+        incomeRatioScore +
+        downPaymentScore +
+        schufaScore +
+        residencyScore +
+        yearsBonusScore) *
+        10,
+    ) / 10
 
   const label = likelihoodLabel(totalScore)
   const maxLoan = estimateMaxLoan(income, debt)
-  const recDp = recommendedDpPercent(inputs.residencyStatus, inputs.schufaRating)
+  const recDp = recommendedDpPercent(
+    inputs.residencyStatus,
+    inputs.schufaRating,
+  )
   const [rateMin, rateMax] = estimateRateRange(totalScore)
   const ltvTotal = dp + maxLoan
   const ltv = ltvTotal > 0 ? maxLoan / ltvTotal : 0
 
-  const scores = { employmentScore, incomeRatioScore, downPaymentScore, schufaScore, residencyScore, yearsBonusScore }
+  const scores = {
+    employmentScore,
+    incomeRatioScore,
+    downPaymentScore,
+    schufaScore,
+    residencyScore,
+    yearsBonusScore,
+  }
 
   return {
     ...scores,
@@ -347,7 +421,11 @@ function calculateAssessment(inputs: WizardInputs): AssessmentResults | null {
     ltvRatio: ltv,
     strengths: buildStrengths(scores),
     improvements: buildImprovements(scores),
-    documentChecklist: buildDocumentChecklist(inputs.employmentStatus, inputs.residencyStatus, dp > 0),
+    documentChecklist: buildDocumentChecklist(
+      inputs.employmentStatus,
+      inputs.residencyStatus,
+      dp > 0,
+    ),
   }
 }
 
@@ -356,16 +434,20 @@ function calculateAssessment(inputs: WizardInputs): AssessmentResults | null {
 ******************************************************************************/
 
 /** Likelihood badge showing score and label. */
-function LikelihoodBadge(props: { score: number; label: string; size?: "sm" | "md" }) {
+function LikelihoodBadge(props: {
+  score: number
+  label: string
+  size?: "sm" | "md"
+}) {
   const { score, label, size = "md" } = props
-  const colorClass = LIKELIHOOD_COLORS[label] || LIKELIHOOD_COLORS["Moderate"]
+  const colorClass = LIKELIHOOD_COLORS[label] || LIKELIHOOD_COLORS.Moderate
 
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full font-semibold",
         colorClass,
-        size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm"
+        size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm",
       )}
     >
       {score.toFixed(1)}/100 {label}
@@ -377,13 +459,20 @@ function LikelihoodBadge(props: { score: number; label: string; size?: "sm" | "m
 function ScoreBar(props: { label: string; score: number; maxScore: number }) {
   const { label, score, maxScore } = props
   const pct = maxScore > 0 ? (score / maxScore) * 100 : 0
-  const barColor = pct >= 70 ? SCORE_BAR_COLORS.high : pct >= 40 ? SCORE_BAR_COLORS.medium : SCORE_BAR_COLORS.low
+  const barColor =
+    pct >= 70
+      ? SCORE_BAR_COLORS.high
+      : pct >= 40
+        ? SCORE_BAR_COLORS.medium
+        : SCORE_BAR_COLORS.low
 
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-sm">
         <span>{label}</span>
-        <span className="font-medium">{score}/{maxScore}</span>
+        <span className="font-medium">
+          {score}/{maxScore}
+        </span>
       </div>
       <div className="h-2 rounded-full bg-muted overflow-hidden">
         <div
@@ -407,7 +496,9 @@ function SavedAssessments(props: {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Saved Assessments</CardTitle>
-        <CardDescription>Your previously saved financing assessments</CardDescription>
+        <CardDescription>
+          Your previously saved financing assessments
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -419,9 +510,14 @@ function SavedAssessments(props: {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium truncate">
-                    {a.name || `Assessment — ${CURRENCY_FORMATTER.format(a.maxLoanEstimate)} max loan`}
+                    {a.name ||
+                      `Assessment — ${CURRENCY_FORMATTER.format(a.maxLoanEstimate)} max loan`}
                   </p>
-                  <LikelihoodBadge score={a.totalScore} label={a.likelihoodLabel} size="sm" />
+                  <LikelihoodBadge
+                    score={a.totalScore}
+                    label={a.likelihoodLabel}
+                    size="sm"
+                  />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {new Date(a.createdAt).toLocaleDateString("de-DE")}
@@ -484,7 +580,10 @@ function FinancingWizard(props: IProps) {
 
   const results = useMemo(() => calculateAssessment(inputs), [inputs])
 
-  const handlePriceInput = (key: keyof WizardInputs, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePriceInput = (
+    key: keyof WizardInputs,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const value = e.target.value.replace(/[^\d]/g, "")
     setInputs((prev) => ({ ...prev, [key]: value }))
   }
@@ -505,7 +604,9 @@ function FinancingWizard(props: IProps) {
   const handleExport = () => {
     if (!results) return
     const data = { inputs, results, generatedAt: new Date().toISOString() }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
@@ -517,7 +618,13 @@ function FinancingWizard(props: IProps) {
   }
 
   const handleSave = () => {
-    if (!results || !inputs.employmentStatus || !inputs.schufaRating || !inputs.residencyStatus) return
+    if (
+      !results ||
+      !inputs.employmentStatus ||
+      !inputs.schufaRating ||
+      !inputs.residencyStatus
+    )
+      return
     const input: FinancingAssessmentInput = {
       name: saveName || undefined,
       employmentStatus: inputs.employmentStatus,
@@ -573,14 +680,19 @@ function FinancingWizard(props: IProps) {
           <CardContent className="space-y-6">
             {/* Employment */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">Employment</h4>
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Employment
+              </h4>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Employment Status</Label>
                   <Select
                     value={inputs.employmentStatus}
                     onValueChange={(v) =>
-                      setInputs((prev) => ({ ...prev, employmentStatus: v as EmploymentStatus }))
+                      setInputs((prev) => ({
+                        ...prev,
+                        employmentStatus: v as EmploymentStatus,
+                      }))
                     }
                   >
                     <SelectTrigger className="w-full">
@@ -605,7 +717,10 @@ function FinancingWizard(props: IProps) {
                     placeholder="e.g. 3"
                     value={inputs.employmentYears}
                     onChange={(e) =>
-                      setInputs((prev) => ({ ...prev, employmentYears: e.target.value }))
+                      setInputs((prev) => ({
+                        ...prev,
+                        employmentYears: e.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -614,7 +729,9 @@ function FinancingWizard(props: IProps) {
 
             {/* Income & Debt */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">Income & Debt</h4>
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Income & Debt
+              </h4>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="monthlyNetIncome">Monthly Net Income</Label>
@@ -627,7 +744,10 @@ function FinancingWizard(props: IProps) {
                       placeholder="4,000"
                       value={
                         inputs.monthlyNetIncome
-                          ? parseInt(inputs.monthlyNetIncome).toLocaleString("de-DE")
+                          ? parseInt(
+                              inputs.monthlyNetIncome,
+                              10,
+                            ).toLocaleString("de-DE")
                           : ""
                       }
                       onChange={(e) => handlePriceInput("monthlyNetIncome", e)}
@@ -646,7 +766,9 @@ function FinancingWizard(props: IProps) {
                       placeholder="500"
                       value={
                         inputs.monthlyDebt
-                          ? parseInt(inputs.monthlyDebt).toLocaleString("de-DE")
+                          ? parseInt(inputs.monthlyDebt, 10).toLocaleString(
+                              "de-DE",
+                            )
                           : ""
                       }
                       onChange={(e) => handlePriceInput("monthlyDebt", e)}
@@ -659,9 +781,13 @@ function FinancingWizard(props: IProps) {
 
             {/* Down Payment */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">Down Payment</h4>
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Down Payment
+              </h4>
               <div className="space-y-2">
-                <Label htmlFor="availableDownPayment">Available Down Payment</Label>
+                <Label htmlFor="availableDownPayment">
+                  Available Down Payment
+                </Label>
                 <div className="relative">
                   <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -671,10 +797,15 @@ function FinancingWizard(props: IProps) {
                     placeholder="60,000"
                     value={
                       inputs.availableDownPayment
-                        ? parseInt(inputs.availableDownPayment).toLocaleString("de-DE")
+                        ? parseInt(
+                            inputs.availableDownPayment,
+                            10,
+                          ).toLocaleString("de-DE")
                         : ""
                     }
-                    onChange={(e) => handlePriceInput("availableDownPayment", e)}
+                    onChange={(e) =>
+                      handlePriceInput("availableDownPayment", e)
+                    }
                     className="pl-9"
                   />
                 </div>
@@ -683,14 +814,19 @@ function FinancingWizard(props: IProps) {
 
             {/* Credit & Residency */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">Credit & Residency</h4>
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Credit & Residency
+              </h4>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>SCHUFA Rating</Label>
                   <Select
                     value={inputs.schufaRating}
                     onValueChange={(v) =>
-                      setInputs((prev) => ({ ...prev, schufaRating: v as SchufaRating }))
+                      setInputs((prev) => ({
+                        ...prev,
+                        schufaRating: v as SchufaRating,
+                      }))
                     }
                   >
                     <SelectTrigger className="w-full">
@@ -710,7 +846,10 @@ function FinancingWizard(props: IProps) {
                   <Select
                     value={inputs.residencyStatus}
                     onValueChange={(v) =>
-                      setInputs((prev) => ({ ...prev, residencyStatus: v as FinancingResidencyStatus }))
+                      setInputs((prev) => ({
+                        ...prev,
+                        residencyStatus: v as FinancingResidencyStatus,
+                      }))
                     }
                   >
                     <SelectTrigger className="w-full">
@@ -743,10 +882,15 @@ function FinancingWizard(props: IProps) {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
                 <CardTitle>Assessment Results</CardTitle>
-                <CardDescription>Mortgage likelihood and recommendations</CardDescription>
+                <CardDescription>
+                  Mortgage likelihood and recommendations
+                </CardDescription>
               </div>
               {results && (
-                <LikelihoodBadge score={results.totalScore} label={results.likelihoodLabel} />
+                <LikelihoodBadge
+                  score={results.totalScore}
+                  label={results.likelihoodLabel}
+                />
               )}
             </div>
           </CardHeader>
@@ -756,12 +900,36 @@ function FinancingWizard(props: IProps) {
                 {/* Score Breakdown */}
                 <div className="space-y-3">
                   <h4 className="font-medium text-sm">Score Breakdown</h4>
-                  <ScoreBar label="Employment Type" score={results.employmentScore} maxScore={20} />
-                  <ScoreBar label="Debt-to-Income" score={results.incomeRatioScore} maxScore={20} />
-                  <ScoreBar label="Down Payment" score={results.downPaymentScore} maxScore={20} />
-                  <ScoreBar label="SCHUFA Rating" score={results.schufaScore} maxScore={15} />
-                  <ScoreBar label="Residency Status" score={results.residencyScore} maxScore={15} />
-                  <ScoreBar label="Employment Tenure" score={results.yearsBonusScore} maxScore={10} />
+                  <ScoreBar
+                    label="Employment Type"
+                    score={results.employmentScore}
+                    maxScore={20}
+                  />
+                  <ScoreBar
+                    label="Debt-to-Income"
+                    score={results.incomeRatioScore}
+                    maxScore={20}
+                  />
+                  <ScoreBar
+                    label="Down Payment"
+                    score={results.downPaymentScore}
+                    maxScore={20}
+                  />
+                  <ScoreBar
+                    label="SCHUFA Rating"
+                    score={results.schufaScore}
+                    maxScore={15}
+                  />
+                  <ScoreBar
+                    label="Residency Status"
+                    score={results.residencyScore}
+                    maxScore={15}
+                  />
+                  <ScoreBar
+                    label="Employment Tenure"
+                    score={results.yearsBonusScore}
+                    maxScore={10}
+                  />
                 </div>
 
                 <Separator />
@@ -771,20 +939,36 @@ function FinancingWizard(props: IProps) {
                   <h4 className="font-medium text-sm">Loan Estimates</h4>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-lg border p-3">
-                      <p className="text-sm text-muted-foreground">Max Loan Estimate</p>
-                      <p className="text-xl font-bold">{CURRENCY_FORMATTER.format(results.maxLoanEstimate)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Max Loan Estimate
+                      </p>
+                      <p className="text-xl font-bold">
+                        {CURRENCY_FORMATTER.format(results.maxLoanEstimate)}
+                      </p>
                     </div>
                     <div className="rounded-lg border p-3">
-                      <p className="text-sm text-muted-foreground">Recommended Down Payment</p>
-                      <p className="text-xl font-bold">{results.recommendedDownPaymentPercent}%</p>
+                      <p className="text-sm text-muted-foreground">
+                        Recommended Down Payment
+                      </p>
+                      <p className="text-xl font-bold">
+                        {results.recommendedDownPaymentPercent}%
+                      </p>
                     </div>
                     <div className="rounded-lg border p-3">
-                      <p className="text-sm text-muted-foreground">Expected Rate Range</p>
-                      <p className="text-xl font-bold">{results.expectedRateMin}% – {results.expectedRateMax}%</p>
+                      <p className="text-sm text-muted-foreground">
+                        Expected Rate Range
+                      </p>
+                      <p className="text-xl font-bold">
+                        {results.expectedRateMin}% – {results.expectedRateMax}%
+                      </p>
                     </div>
                     <div className="rounded-lg border p-3">
-                      <p className="text-sm text-muted-foreground">Loan-to-Value Ratio</p>
-                      <p className="text-xl font-bold">{(results.ltvRatio * 100).toFixed(1)}%</p>
+                      <p className="text-sm text-muted-foreground">
+                        Loan-to-Value Ratio
+                      </p>
+                      <p className="text-xl font-bold">
+                        {(results.ltvRatio * 100).toFixed(1)}%
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -848,7 +1032,11 @@ function FinancingWizard(props: IProps) {
                 <Separator />
 
                 {/* Actions */}
-                <Button onClick={handleExport} variant="outline" className="w-full gap-2">
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  className="w-full gap-2"
+                >
                   <Download className="h-4 w-4" />
                   Export Results
                 </Button>
@@ -877,7 +1065,11 @@ function FinancingWizard(props: IProps) {
                     </p>
                     <div className="flex gap-2">
                       <Input value={shareUrl} readOnly className="text-xs" />
-                      <Button variant="outline" size="sm" onClick={handleCopyShareUrl}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyShareUrl}
+                      >
                         Copy
                       </Button>
                     </div>

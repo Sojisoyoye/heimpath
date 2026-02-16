@@ -3,6 +3,7 @@
 Handles cost calculations, state rate lookups, state comparisons,
 and CRUD operations for saved calculations.
 """
+
 import secrets
 import uuid
 
@@ -16,7 +17,6 @@ from app.schemas.calculator import (
     StateComparisonItem,
     StateRate,
 )
-
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -60,6 +60,7 @@ MOVING_COST_ESTIMATE = 3000.0
 # ---------------------------------------------------------------------------
 # Calculation helpers
 # ---------------------------------------------------------------------------
+
 
 class CostBreakdown:
     """Intermediate result of a cost calculation."""
@@ -119,7 +120,9 @@ def calculate(inputs: HiddenCostCalculationCreate) -> CostBreakdown:
         if inputs.include_agent
         else 0.0
     )
-    renovation_estimate = price * RENOVATION_MULTIPLIERS.get(inputs.renovation_level, 0.0)
+    renovation_estimate = price * RENOVATION_MULTIPLIERS.get(
+        inputs.renovation_level, 0.0
+    )
     moving_costs = MOVING_COST_ESTIMATE if inputs.include_moving else 0.0
 
     return CostBreakdown(
@@ -136,6 +139,7 @@ def calculate(inputs: HiddenCostCalculationCreate) -> CostBreakdown:
 # Query helpers
 # ---------------------------------------------------------------------------
 
+
 def get_state_rates() -> list[StateRate]:
     """Return all 16 German states with their transfer tax rates."""
     return [
@@ -144,7 +148,9 @@ def get_state_rates() -> list[StateRate]:
     ]
 
 
-def compare_states(property_price: float, include_agent: bool) -> list[StateComparisonItem]:
+def compare_states(
+    property_price: float, include_agent: bool
+) -> list[StateComparisonItem]:
     """Compare costs across all states for a given price.
 
     Args:
@@ -187,6 +193,7 @@ def compare_states(property_price: float, include_agent: bool) -> list[StateComp
 # CRUD operations
 # ---------------------------------------------------------------------------
 
+
 def save_calculation(
     session: Session,
     user_id: uuid.UUID,
@@ -204,7 +211,9 @@ def save_calculation(
     """
     breakdown = calculate(inputs)
     total_cost_of_ownership = inputs.property_price + breakdown.total_additional_costs
-    additional_cost_percentage = (breakdown.total_additional_costs / inputs.property_price) * 100
+    additional_cost_percentage = (
+        breakdown.total_additional_costs / inputs.property_price
+    ) * 100
 
     calculation = HiddenCostCalculation(
         user_id=user_id,
