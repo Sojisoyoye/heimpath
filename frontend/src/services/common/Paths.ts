@@ -96,6 +96,15 @@ export const PATHS = {
     DELETE: (id: string) => `${API_V1}/notifications/${id}`,
   },
 
+  // Articles (Content Library)
+  ARTICLES: {
+    LIST: `${API_V1}/articles`,
+    SEARCH: `${API_V1}/articles/search`,
+    DETAIL: (slug: string) => `${API_V1}/articles/${slug}`,
+    CATEGORIES: `${API_V1}/articles/categories`,
+    RATE: (slug: string) => `${API_V1}/articles/${slug}/rate`,
+  },
+
   // Dashboard
   DASHBOARD: {
     OVERVIEW: `${API_V1}/dashboard`,

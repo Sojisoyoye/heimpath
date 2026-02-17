@@ -102,6 +102,18 @@ export const queryKeys = {
     preferences: () => [...queryKeys.notifications.all, "preferences"] as const,
   },
 
+  // Article queries
+  articles: {
+    all: ["articles"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.articles.all, "list", filters] as const,
+    detail: (slug: string) =>
+      [...queryKeys.articles.all, "detail", slug] as const,
+    search: (query: string) =>
+      [...queryKeys.articles.all, "search", query] as const,
+    categories: () => [...queryKeys.articles.all, "categories"] as const,
+  },
+
   // Dashboard queries
   dashboard: {
     all: ["dashboard"] as const,

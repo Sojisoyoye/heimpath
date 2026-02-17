@@ -35,6 +35,13 @@ from app._models_sqlmodel import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.models.article import (
+    Article,
+    ArticleCategory,
+    ArticleRating,
+    ArticleStatus,
+    DifficultyLevel,
+)
 from app.models.base import Base
 from app.models.calculator import HiddenCostCalculation
 from app.models.document import (
@@ -86,7 +93,12 @@ __all__ = [
     "UserUpdate",
     "UserUpdateMe",
     # New SQLAlchemy models
+    "Article",
+    "ArticleCategory",
+    "ArticleRating",
+    "ArticleStatus",
     "Base",
+    "DifficultyLevel",
     "FinancingAssessment",
     "HiddenCostCalculation",
     "Notification",

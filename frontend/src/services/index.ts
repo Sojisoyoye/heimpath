@@ -2,6 +2,7 @@
  * Services index
  */
 
+export { ArticleService } from "./ArticleService"
 export { CalculatorService } from "./CalculatorService"
 export {
   clearAuthToken,

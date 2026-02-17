@@ -2,6 +2,7 @@
  * Query hooks index
  */
 
+export * from "./useArticleQueries"
 export * from "./useCalculatorQueries"
 export * from "./useDashboardQueries"
 export * from "./useDocumentQueries"
