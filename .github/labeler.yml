@@ -1,0 +1,41 @@
+feature:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/app/**"
+          - "frontend/src/**"
+
+bug:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/app/**"
+          - "frontend/src/**"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+internal:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - "scripts/**"
+          - "docker-compose*"
+          - "Dockerfile*"
+          - ".pre-commit-config.yaml"
+          - "pyproject.toml"
+          - "package.json"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/app/api/deps.py"
+          - "backend/app/core/security.py"
+          - "backend/app/services/auth_service.py"
+
+refactor:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/app/**"
+          - "frontend/src/**"
