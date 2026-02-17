@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     auth,
     calculators,
+    dashboard,
     documents,
     financing,
     items,
@@ -30,6 +31,7 @@ api_router.include_router(translations.router)
 api_router.include_router(documents.router)
 api_router.include_router(calculators.router)
 api_router.include_router(financing.router)
+api_router.include_router(dashboard.router)
 
 
 if settings.ENVIRONMENT == "local":

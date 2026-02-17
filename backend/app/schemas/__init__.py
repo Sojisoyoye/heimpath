@@ -15,6 +15,15 @@ from app.schemas.auth import (
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
+from app.schemas.dashboard import (
+    ActivityItem,
+    ActivityType,
+    BookmarkedLawSummary,
+    DashboardOverviewResponse,
+    JourneyOverview,
+    SavedCalculationSummary,
+    SavedDocumentSummary,
+)
 from app.schemas.journey import (
     JourneyCreate,
     JourneyDetailResponse,
@@ -62,11 +71,16 @@ from app.schemas.user import (
 )
 
 __all__ = [
+    "ActivityItem",
+    "ActivityType",
     "AuthToken",
+    "BookmarkedLawSummary",
+    "DashboardOverviewResponse",
     "ForgotPasswordRequest",
     "ForgotPasswordResponse",
     "ItemExport",
     "JourneyCreate",
+    "JourneyOverview",
     "JourneyDetailResponse",
     "JourneyProgressResponse",
     "JourneyResponse",
@@ -88,6 +102,8 @@ __all__ = [
     "RefreshTokenRequest",
     "RegisterRequest",
     "RegisterResponse",
+    "SavedCalculationSummary",
+    "SavedDocumentSummary",
     "ResendVerificationRequest",
     "ResetPasswordRequest",
     "ResetPasswordResponse",

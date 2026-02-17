@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
-
+import DashboardPage from "@/components/Dashboard/DashboardPage"
+import { useDashboardOverview } from "@/hooks/queries/useDashboardQueries"
 import useAuth from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout/")({
@@ -7,7 +8,7 @@ export const Route = createFileRoute("/_layout/")({
   head: () => ({
     meta: [
       {
-        title: "Dashboard - FastAPI Cloud",
+        title: "Dashboard - HeimPath",
       },
     ],
   }),
@@ -15,17 +16,9 @@ export const Route = createFileRoute("/_layout/")({
 
 function Dashboard() {
   const { user: currentUser } = useAuth()
+  const { data, isLoading } = useDashboardOverview()
 
-  return (
-    <div>
-      <div>
-        <h1 className="text-2xl truncate max-w-sm">
-          Hi, {currentUser?.full_name || currentUser?.email} 👋
-        </h1>
-        <p className="text-muted-foreground">
-          Welcome back, nice to see you again!!!
-        </p>
-      </div>
-    </div>
-  )
+  const userName = currentUser?.full_name || currentUser?.email || "there"
+
+  return <DashboardPage data={data} isLoading={isLoading} userName={userName} />
 }
