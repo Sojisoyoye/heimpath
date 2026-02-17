@@ -16,3 +16,4 @@ jobs:
         with:
           project-url: https://github.com/users/Sojisoyoye/projects/1
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+        continue-on-error: true
