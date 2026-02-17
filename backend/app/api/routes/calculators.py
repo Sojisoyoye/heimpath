@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
 from app.api.deps import CurrentUser, get_db
+from app.models.notification import NotificationType
 from app.schemas.calculator import (
     HiddenCostCalculationCreate,
     HiddenCostCalculationListResponse,
@@ -27,7 +28,7 @@ from app.schemas.roi import (
     ROICompareResponse,
     ROICompareResultItem,
 )
-from app.services import calculator_service, roi_service
+from app.services import calculator_service, notification_service, roi_service
 
 router = APIRouter(prefix="/calculators", tags=["calculators"])
 
@@ -99,6 +100,16 @@ def save_calculation(
         user_id=current_user.id,
         inputs=request,
     )
+
+    notification_service.create_notification(
+        session,
+        user_id=current_user.id,
+        type=NotificationType.CALCULATION_SAVED,
+        title="Calculation Saved",
+        message=f"Your hidden cost calculation for {request.state} has been saved.",
+        action_url=f"/calculators/hidden-costs/{calculation.id}",
+    )
+
     return HiddenCostCalculationResponse.model_validate(calculation)
 
 
@@ -207,6 +218,16 @@ def save_roi_calculation(
         user_id=current_user.id,
         inputs=request,
     )
+
+    notification_service.create_notification(
+        session,
+        user_id=current_user.id,
+        type=NotificationType.CALCULATION_SAVED,
+        title="ROI Calculation Saved",
+        message="Your ROI analysis has been saved.",
+        action_url=f"/calculators/roi/{calculation.id}",
+    )
+
     return ROICalculationResponse.model_validate(calculation)
 
 

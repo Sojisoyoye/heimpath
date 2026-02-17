@@ -11,6 +11,7 @@ from sqlmodel import Session
 from app.api.deps import CurrentUser, get_db
 from app.models import Message
 from app.models.legal import LawCategory, PropertyTypeApplicability
+from app.models.notification import NotificationType
 from app.schemas.legal import (
     BookmarkCreate,
     BookmarkListResponse,
@@ -26,6 +27,7 @@ from app.schemas.legal import (
     LawSummary,
     StateVariationResponse,
 )
+from app.services import notification_service
 from app.services.legal_service import (
     BookmarkAlreadyExistsError,
     BookmarkNotFoundError,
@@ -351,6 +353,15 @@ def create_bookmark(
 
     # Refresh to load law relationship
     session.refresh(bookmark)
+
+    notification_service.create_notification(
+        session,
+        user_id=current_user.id,
+        type=NotificationType.LAW_BOOKMARKED,
+        title="Law Bookmarked",
+        message=f'You bookmarked "{bookmark.law.title_en}".',
+        action_url=f"/laws/{law_id}",
+    )
 
     return BookmarkResponse(
         id=bookmark.id,

@@ -370,6 +370,26 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
 
             logger.info("Document %s processed successfully", document_id)
 
+            # Send notification about completed translation
+            try:
+                from sqlmodel import Session as SyncSession
+
+                from app.core.db import engine as sync_engine
+                from app.models.notification import NotificationType
+                from app.services import notification_service
+
+                with SyncSession(sync_engine) as sync_session:
+                    notification_service.create_notification(
+                        sync_session,
+                        user_id=document.user_id,
+                        type=NotificationType.DOCUMENT_TRANSLATED,
+                        title="Document Translated",
+                        message=f'Your document "{document.original_filename}" has been translated.',
+                        action_url=f"/documents/{document_id}",
+                    )
+            except Exception:
+                logger.exception("Failed to send document translation notification")
+
         except Exception as e:
             logger.exception("Failed to process document %s", document_id)
             # Mark as failed

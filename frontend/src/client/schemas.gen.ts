@@ -2839,6 +2839,137 @@ export const NextStepResponseSchema = {
     description: 'Schema for next recommended step.'
 } as const;
 
+export const NotificationListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/NotificationResponse'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        },
+        unread_count: {
+            type: 'integer',
+            title: 'Unread Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count', 'unread_count'],
+    title: 'NotificationListResponse',
+    description: 'Paginated list of notifications.'
+} as const;
+
+export const NotificationPreferenceItemSchema = {
+    properties: {
+        notification_type: {
+            '$ref': '#/components/schemas/NotificationType'
+        },
+        is_in_app_enabled: {
+            type: 'boolean',
+            title: 'Is In App Enabled',
+            default: true
+        },
+        is_email_enabled: {
+            type: 'boolean',
+            title: 'Is Email Enabled',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['notification_type'],
+    title: 'NotificationPreferenceItem',
+    description: 'Single notification preference.'
+} as const;
+
+export const NotificationPreferencesResponseSchema = {
+    properties: {
+        preferences: {
+            items: {
+                '$ref': '#/components/schemas/NotificationPreferenceItem'
+            },
+            type: 'array',
+            title: 'Preferences'
+        }
+    },
+    type: 'object',
+    required: ['preferences'],
+    title: 'NotificationPreferencesResponse',
+    description: 'Full notification preferences response.'
+} as const;
+
+export const NotificationPreferencesUpdateSchema = {
+    properties: {
+        preferences: {
+            items: {
+                '$ref': '#/components/schemas/NotificationPreferenceItem'
+            },
+            type: 'array',
+            minItems: 1,
+            title: 'Preferences'
+        }
+    },
+    type: 'object',
+    required: ['preferences'],
+    title: 'NotificationPreferencesUpdate',
+    description: 'Request body to update notification preferences.'
+} as const;
+
+export const NotificationResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        type: {
+            '$ref': '#/components/schemas/NotificationType'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        is_read: {
+            type: 'boolean',
+            title: 'Is Read'
+        },
+        action_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Action Url'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'type', 'title', 'message', 'is_read', 'created_at'],
+    title: 'NotificationResponse',
+    description: 'Single notification response.'
+} as const;
+
+export const NotificationTypeSchema = {
+    type: 'string',
+    enum: ['step_completed', 'document_translated', 'calculation_saved', 'law_bookmarked', 'journey_deadline', 'payment_reminder', 'subscription_expiring', 'system_announcement'],
+    title: 'NotificationType',
+    description: 'Types of notifications.'
+} as const;
+
 export const PortalRequestSchema = {
     properties: {
         return_url: {

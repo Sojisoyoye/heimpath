@@ -10,6 +10,7 @@ from app.api.routes import (
     journeys,
     laws,
     login,
+    notifications,
     private,
     subscriptions,
     translations,
@@ -32,6 +33,7 @@ api_router.include_router(documents.router)
 api_router.include_router(calculators.router)
 api_router.include_router(financing.router)
 api_router.include_router(dashboard.router)
+api_router.include_router(notifications.router)
 
 
 if settings.ENVIRONMENT == "local":

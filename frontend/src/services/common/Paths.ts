@@ -87,6 +87,15 @@ export const PATHS = {
     STATUS: (id: string) => `${API_V1}/documents/${id}/status`,
   },
 
+  // Notifications
+  NOTIFICATIONS: {
+    LIST: `${API_V1}/notifications`,
+    MARK_ALL_READ: `${API_V1}/notifications/mark-all-read`,
+    PREFERENCES: `${API_V1}/notifications/preferences`,
+    READ: (id: string) => `${API_V1}/notifications/${id}/read`,
+    DELETE: (id: string) => `${API_V1}/notifications/${id}`,
+  },
+
   // Dashboard
   DASHBOARD: {
     OVERVIEW: `${API_V1}/dashboard`,

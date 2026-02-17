@@ -855,6 +855,56 @@ export type NextStepResponse = {
 };
 
 /**
+ * Paginated list of notifications.
+ */
+export type NotificationListResponse = {
+    data: Array<NotificationResponse>;
+    count: number;
+    unread_count: number;
+};
+
+/**
+ * Single notification preference.
+ */
+export type NotificationPreferenceItem = {
+    notification_type: NotificationType;
+    is_in_app_enabled?: boolean;
+    is_email_enabled?: boolean;
+};
+
+/**
+ * Full notification preferences response.
+ */
+export type NotificationPreferencesResponse = {
+    preferences: Array<NotificationPreferenceItem>;
+};
+
+/**
+ * Request body to update notification preferences.
+ */
+export type NotificationPreferencesUpdate = {
+    preferences: Array<NotificationPreferenceItem>;
+};
+
+/**
+ * Single notification response.
+ */
+export type NotificationResponse = {
+    id: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    is_read: boolean;
+    action_url?: (string | null);
+    created_at: string;
+};
+
+/**
+ * Types of notifications.
+ */
+export type NotificationType = 'step_completed' | 'document_translated' | 'calculation_saved' | 'law_bookmarked' | 'journey_deadline' | 'payment_reminder' | 'subscription_expiring' | 'system_announcement';
+
+/**
  * Request to create a customer portal session.
  */
 export type PortalRequest = {
@@ -1770,6 +1820,36 @@ export type LoginRecoverPasswordHtmlContentData = {
 };
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
+
+export type NotificationsListNotificationsData = {
+    limit?: number;
+    offset?: number;
+    unreadOnly?: boolean;
+};
+
+export type NotificationsListNotificationsResponse = (NotificationListResponse);
+
+export type NotificationsMarkAllNotificationsReadResponse = (Message);
+
+export type NotificationsGetNotificationPreferencesResponse = (NotificationPreferencesResponse);
+
+export type NotificationsUpdateNotificationPreferencesData = {
+    requestBody: NotificationPreferencesUpdate;
+};
+
+export type NotificationsUpdateNotificationPreferencesResponse = (NotificationPreferencesResponse);
+
+export type NotificationsMarkNotificationReadData = {
+    notificationId: string;
+};
+
+export type NotificationsMarkNotificationReadResponse = (NotificationResponse);
+
+export type NotificationsDeleteNotificationData = {
+    notificationId: string;
+};
+
+export type NotificationsDeleteNotificationResponse = (void);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;

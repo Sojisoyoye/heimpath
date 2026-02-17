@@ -54,6 +54,11 @@ from app.models.journey import (
     PropertyType,
     StepStatus,
 )
+from app.models.notification import (
+    Notification,
+    NotificationPreference,
+    NotificationType,
+)
 from app.models.roi import ROICalculation
 from app.models.user import User as UserV2
 
@@ -84,6 +89,9 @@ __all__ = [
     "Base",
     "FinancingAssessment",
     "HiddenCostCalculation",
+    "Notification",
+    "NotificationPreference",
+    "NotificationType",
     "ROICalculation",
     "Document",
     "DocumentStatus",
