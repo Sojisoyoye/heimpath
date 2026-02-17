@@ -3,10 +3,9 @@
  * Filter laws by category
  */
 
-import { FileText, Calculator, Home, Building, Users } from "lucide-react"
-
-import { cn } from "@/common/utils"
+import { Building, Calculator, FileText, Home, Users } from "lucide-react"
 import { LAW_CATEGORIES } from "@/common/constants"
+import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { LawCategoryType } from "@/models/legal"
@@ -51,7 +50,7 @@ function CategoryButton(props: {
       onClick={onClick}
       className={cn(
         "justify-start gap-2",
-        isSelected && "bg-blue-600 hover:bg-blue-700"
+        isSelected && "bg-blue-600 hover:bg-blue-700",
       )}
     >
       <Icon className="h-4 w-4" />
@@ -91,7 +90,7 @@ function CategoryFilter(props: IProps) {
       className={cn(
         "flex gap-2",
         variant === "vertical" ? "flex-col" : "flex-wrap",
-        className
+        className,
       )}
     >
       {variant === "horizontal" && (

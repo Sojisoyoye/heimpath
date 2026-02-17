@@ -4,11 +4,10 @@
  */
 
 import { Euro, Info } from "lucide-react"
-
+import { COST_DEFAULTS } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { COST_DEFAULTS } from "@/common/constants"
 
 interface IProps {
   budgetMin?: number
@@ -38,13 +37,13 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
 function parseCurrency(value: string): number | undefined {
   const cleaned = value.replace(/[^\d]/g, "")
   const num = parseInt(cleaned, 10)
-  return isNaN(num) ? undefined : num
+  return Number.isNaN(num) ? undefined : num
 }
 
 /** Calculate additional costs. */
 function calculateAdditionalCosts(
   propertyPrice: number,
-  transferTaxRate: number
+  transferTaxRate: number,
 ): {
   transferTax: number
   notaryFee: number
@@ -183,7 +182,10 @@ function BudgetInput(props: IProps) {
       </div>
 
       {budgetMax && budgetMax > 0 && (
-        <CostBreakdown budgetMax={budgetMax} transferTaxRate={transferTaxRate} />
+        <CostBreakdown
+          budgetMax={budgetMax}
+          transferTaxRate={transferTaxRate}
+        />
       )}
 
       {budgetMin && budgetMax && budgetMin > budgetMax && (

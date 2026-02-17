@@ -2,5 +2,7 @@
  * Query hooks index
  */
 
-export * from "./useJourneyQueries";
-export * from "./useLegalQueries";
+export * from "./useCalculatorQueries"
+export * from "./useDocumentQueries"
+export * from "./useJourneyQueries"
+export * from "./useLegalQueries"

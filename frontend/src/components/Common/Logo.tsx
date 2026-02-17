@@ -19,7 +19,7 @@ function LogoIcon(props: { className?: string }) {
     <div
       className={cn(
         "flex items-center justify-center rounded-lg bg-blue-600 text-white",
-        props.className
+        props.className,
       )}
     >
       <Home className="h-4 w-4" />

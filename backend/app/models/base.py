@@ -1,4 +1,5 @@
 """Base model class and common mixins for SQLAlchemy models."""
+
 import uuid
 from datetime import datetime, timezone
 

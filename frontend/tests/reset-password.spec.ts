@@ -5,11 +5,11 @@ import { logInUser, signUpNewUser } from "./utils/user"
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
-test("Password Recovery title is visible", async ({ page }) => {
+test("Forgot your password title is visible", async ({ page }) => {
   await page.goto("/recover-password")
 
   await expect(
-    page.getByRole("heading", { name: "Password Recovery" }),
+    page.getByRole("heading", { name: "Forgot your password?" }),
   ).toBeVisible()
 })
 
@@ -21,10 +21,12 @@ test("Input is visible, empty and editable", async ({ page }) => {
   await expect(page.getByTestId("email-input")).toBeEditable()
 })
 
-test("Continue button is visible", async ({ page }) => {
+test("Send Reset Link button is visible", async ({ page }) => {
   await page.goto("/recover-password")
 
-  await expect(page.getByRole("button", { name: "Continue" })).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "Send Reset Link" }),
+  ).toBeVisible()
 })
 
 test("User can reset password successfully using the link", async ({
@@ -42,7 +44,7 @@ test("User can reset password successfully using the link", async ({
   await page.goto("/recover-password")
   await page.getByTestId("email-input").fill(email)
 
-  await page.getByRole("button", { name: "Continue" }).click()
+  await page.getByRole("button", { name: "Send Reset Link" }).click()
 
   const emailData = await findLastEmail({
     request,
@@ -97,7 +99,7 @@ test("Weak new password validation", async ({ page, request }) => {
 
   await page.goto("/recover-password")
   await page.getByTestId("email-input").fill(email)
-  await page.getByRole("button", { name: "Continue" }).click()
+  await page.getByRole("button", { name: "Send Reset Link" }).click()
 
   const emailData = await findLastEmail({
     request,

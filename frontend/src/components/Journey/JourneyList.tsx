@@ -4,13 +4,13 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { Plus, Compass } from "lucide-react"
+import { Compass, Plus } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { JourneyCard } from "./JourneyCard"
 import type { JourneyPublic } from "@/models/journey"
+import { JourneyCard } from "./JourneyCard"
 
 interface IProps {
   journeys: JourneyPublic[]
@@ -29,7 +29,9 @@ function EmptyState() {
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
         <Compass className="h-8 w-8 text-blue-600" />
       </div>
-      <h3 className="mt-4 text-lg font-semibold">Start Your Property Journey</h3>
+      <h3 className="mt-4 text-lg font-semibold">
+        Start Your Property Journey
+      </h3>
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
         Create your first property journey to get personalized guidance through
         the German real estate buying process.
@@ -71,7 +73,9 @@ function JourneyList(props: IProps) {
 
   if (isLoading) {
     return (
-      <div className={cn("grid gap-6 md:grid-cols-2 lg:grid-cols-3", className)}>
+      <div
+        className={cn("grid gap-6 md:grid-cols-2 lg:grid-cols-3", className)}
+      >
         {Array.from({ length: 3 }).map((_, i) => (
           <JourneyCardSkeleton key={i} />
         ))}

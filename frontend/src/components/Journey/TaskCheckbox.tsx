@@ -32,7 +32,7 @@ function TaskCheckbox(props: IProps) {
         "flex items-start gap-3 rounded-lg border p-3 transition-colors",
         task.is_completed && "bg-muted/50",
         !disabled && "hover:bg-muted/30",
-        className
+        className,
       )}
     >
       <Checkbox
@@ -47,7 +47,7 @@ function TaskCheckbox(props: IProps) {
         className={cn(
           "flex-1 cursor-pointer text-sm leading-relaxed",
           task.is_completed && "text-muted-foreground line-through",
-          disabled && "cursor-not-allowed"
+          disabled && "cursor-not-allowed",
         )}
       >
         {task.title}

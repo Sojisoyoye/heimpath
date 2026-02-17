@@ -5,12 +5,12 @@ Provides Stripe-based subscription management including:
 - Managing subscriptions via customer portal
 - Processing Stripe webhooks
 """
+
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, HttpUrl
 from sqlmodel import Session, select
 
 from app.api.deps import CurrentUser, get_db
-from app.core.config import settings
 from app.models import SubscriptionTier, User
 from app.services.payment_service import (
     CheckoutSessionError,
@@ -97,7 +97,9 @@ def get_current_subscription(
     return SubscriptionResponse(
         tier=current_user.subscription_tier,
         stripe_customer_id=getattr(current_user, "stripe_customer_id", None),
-        status="active" if current_user.subscription_tier != SubscriptionTier.FREE else None,
+        status="active"
+        if current_user.subscription_tier != SubscriptionTier.FREE
+        else None,
     )
 
 
@@ -232,7 +234,7 @@ async def handle_webhook(
     elif webhook_event.event_type == WebhookEventType.SUBSCRIPTION_UPDATED.value:
         # Subscription changed - update tier based on price
         if webhook_event.customer_id and webhook_event.price_id:
-            new_tier = payment_service.get_tier_for_price(webhook_event.price_id)
+            _new_tier = payment_service.get_tier_for_price(webhook_event.price_id)
             statement = select(User)  # Would need stripe_customer_id on User model
             # For now, we rely on checkout metadata
             # In production, store stripe_customer_id on User
@@ -250,7 +252,7 @@ async def handle_webhook(
 async def cancel_subscription(
     current_user: CurrentUser,
     session: Session = Depends(get_db),
-    payment_service: PaymentService = Depends(require_payment_service),
+    payment_service: PaymentService = Depends(require_payment_service),  # noqa: ARG001
 ) -> SubscriptionResponse:
     """
     Cancel the current subscription.

@@ -48,7 +48,8 @@ function EmptyState() {
       </div>
       <h3 className="mt-4 text-lg font-semibold">No bookmarks yet</h3>
       <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-        Save laws you want to reference later by clicking the bookmark icon on any law.
+        Save laws you want to reference later by clicking the bookmark icon on
+        any law.
       </p>
       <Button asChild className="mt-4">
         <Link to="/laws">
@@ -93,28 +94,27 @@ function BookmarksList(props: IProps) {
 
       {isLoading && <BookmarksListSkeleton />}
 
-      {!isLoading && !error && data && (
-        <>
-          {data.data.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground">
-                {data.count} bookmarked law{data.count !== 1 ? "s" : ""}
-              </p>
+      {!isLoading &&
+        !error &&
+        data &&
+        (data.data.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {data.count} bookmarked law{data.count !== 1 ? "s" : ""}
+            </p>
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {data.data.map((bookmark) => (
-                  <LawCard
-                    key={bookmark.id}
-                    law={{ ...bookmark.law, isBookmarked: true }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </>
-      )}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {data.data.map((bookmark) => (
+                <LawCard
+                  key={bookmark.id}
+                  law={{ ...bookmark.law, isBookmarked: true }}
+                />
+              ))}
+            </div>
+          </>
+        ))}
     </div>
   )
 }

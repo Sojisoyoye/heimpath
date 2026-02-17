@@ -2,13 +2,13 @@
  * Property Evaluation Calculator index
  */
 
-export { PropertyEvaluationCalculator } from "./PropertyEvaluationCalculator";
+export { PropertyEvaluationCalculator } from "./PropertyEvaluationCalculator"
 export type {
+  EvaluationResults,
+  FinancingInputs,
+  OperatingCostsInputs,
+  PropertyEvaluationCalculatorProps,
   PropertyEvaluationState,
   PropertyInfoInputs,
   RentInputs,
-  OperatingCostsInputs,
-  FinancingInputs,
-  EvaluationResults,
-  PropertyEvaluationCalculatorProps,
-} from "./types";
+} from "./types"

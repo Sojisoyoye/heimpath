@@ -1,14 +1,14 @@
 """Legal Knowledge Base schemas for API requests and responses."""
+
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.legal import LawCategory, PropertyTypeApplicability
 
-
 # --- Court Ruling Schemas ---
+
 
 class CourtRulingBase(BaseModel):
     """Base schema for court rulings."""
@@ -18,8 +18,8 @@ class CourtRulingBase(BaseModel):
     ruling_date: datetime
     title: str
     summary: str
-    significance: Optional[str] = None
-    source_url: Optional[str] = None
+    significance: str | None = None
+    source_url: str | None = None
 
 
 class CourtRulingResponse(CourtRulingBase):
@@ -32,15 +32,16 @@ class CourtRulingResponse(CourtRulingBase):
 
 # --- State Variation Schemas ---
 
+
 class StateVariationBase(BaseModel):
     """Base schema for state variations."""
 
     state_code: str = Field(..., max_length=2)
     state_name: str
     variation_title: str
-    variation_value: Optional[str] = None
+    variation_value: str | None = None
     variation_description: str
-    effective_date: Optional[datetime] = None
+    effective_date: datetime | None = None
 
 
 class StateVariationResponse(StateVariationBase):
@@ -52,6 +53,7 @@ class StateVariationResponse(StateVariationBase):
 
 
 # --- Law Schemas ---
+
 
 class LawSummary(BaseModel):
     """Summary view of a law for list responses."""
@@ -80,15 +82,15 @@ class LawResponse(BaseModel):
     one_line_summary: str
     short_summary: str
     detailed_explanation: str
-    real_world_example: Optional[str] = None
-    common_disputes: Optional[str] = None
-    buyer_implications: Optional[str] = None
-    seller_implications: Optional[str] = None
-    landlord_implications: Optional[str] = None
-    tenant_implications: Optional[str] = None
-    original_text_de: Optional[str] = None
-    last_amended: Optional[datetime] = None
-    change_history: Optional[str] = None
+    real_world_example: str | None = None
+    common_disputes: str | None = None
+    buyer_implications: str | None = None
+    seller_implications: str | None = None
+    landlord_implications: str | None = None
+    tenant_implications: str | None = None
+    original_text_de: str | None = None
+    last_amended: datetime | None = None
+    change_history: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -138,10 +140,11 @@ class LawSearchResponse(BaseModel):
 
 # --- Bookmark Schemas ---
 
+
 class BookmarkCreate(BaseModel):
     """Request schema for creating a bookmark."""
 
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class BookmarkResponse(BaseModel):
@@ -151,7 +154,7 @@ class BookmarkResponse(BaseModel):
 
     id: uuid.UUID
     law_id: uuid.UUID
-    notes: Optional[str] = None
+    notes: str | None = None
     created_at: datetime
     law: LawSummary
 
@@ -165,6 +168,7 @@ class BookmarkListResponse(BaseModel):
 
 # --- Law Create/Update Schemas (for admin) ---
 
+
 class LawCreate(BaseModel):
     """Request schema for creating a law."""
 
@@ -176,49 +180,51 @@ class LawCreate(BaseModel):
     one_line_summary: str = Field(..., max_length=280)
     short_summary: str
     detailed_explanation: str
-    real_world_example: Optional[str] = None
-    common_disputes: Optional[str] = None
-    buyer_implications: Optional[str] = None
-    seller_implications: Optional[str] = None
-    landlord_implications: Optional[str] = None
-    tenant_implications: Optional[str] = None
-    original_text_de: Optional[str] = None
-    last_amended: Optional[datetime] = None
+    real_world_example: str | None = None
+    common_disputes: str | None = None
+    buyer_implications: str | None = None
+    seller_implications: str | None = None
+    landlord_implications: str | None = None
+    tenant_implications: str | None = None
+    original_text_de: str | None = None
+    last_amended: datetime | None = None
 
 
 class LawUpdate(BaseModel):
     """Request schema for updating a law."""
 
-    title_de: Optional[str] = None
-    title_en: Optional[str] = None
-    category: Optional[LawCategory] = None
-    property_type: Optional[PropertyTypeApplicability] = None
-    one_line_summary: Optional[str] = None
-    short_summary: Optional[str] = None
-    detailed_explanation: Optional[str] = None
-    real_world_example: Optional[str] = None
-    common_disputes: Optional[str] = None
-    buyer_implications: Optional[str] = None
-    seller_implications: Optional[str] = None
-    landlord_implications: Optional[str] = None
-    tenant_implications: Optional[str] = None
-    original_text_de: Optional[str] = None
-    last_amended: Optional[datetime] = None
+    title_de: str | None = None
+    title_en: str | None = None
+    category: LawCategory | None = None
+    property_type: PropertyTypeApplicability | None = None
+    one_line_summary: str | None = None
+    short_summary: str | None = None
+    detailed_explanation: str | None = None
+    real_world_example: str | None = None
+    common_disputes: str | None = None
+    buyer_implications: str | None = None
+    seller_implications: str | None = None
+    landlord_implications: str | None = None
+    tenant_implications: str | None = None
+    original_text_de: str | None = None
+    last_amended: datetime | None = None
 
 
 # --- Filter Schemas ---
 
+
 class LawFilter(BaseModel):
     """Filter parameters for law queries."""
 
-    category: Optional[LawCategory] = None
-    property_type: Optional[PropertyTypeApplicability] = None
-    state: Optional[str] = Field(None, max_length=2, description="German state code")
+    category: LawCategory | None = None
+    property_type: PropertyTypeApplicability | None = None
+    state: str | None = Field(None, max_length=2, description="German state code")
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
 
 
 # --- Journey Step Law Link ---
+
 
 class JourneyStepLawResponse(BaseModel):
     """Response for laws linked to a journey step."""

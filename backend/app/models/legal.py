@@ -1,11 +1,8 @@
 """Legal Knowledge Base database models."""
-import uuid
-from datetime import datetime
+
 from enum import Enum as PyEnum
-from typing import Optional
 
 from sqlalchemy import (
-    Boolean,
     Column,
     DateTime,
     ForeignKey,
@@ -13,9 +10,9 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    func,
 )
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum, TSVECTOR, UUID
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import TSVECTOR, UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -43,12 +40,22 @@ class PropertyTypeApplicability(str, PyEnum):
 
 # PostgreSQL enum definitions (created by migration)
 _law_category_enum = PgEnum(
-    'buying_process', 'costs_and_taxes', 'rental_law', 'condominium', 'agent_regulations',
-    name='lawcategory', create_type=False
+    "buying_process",
+    "costs_and_taxes",
+    "rental_law",
+    "condominium",
+    "agent_regulations",
+    name="lawcategory",
+    create_type=False,
 )
 _property_applicability_enum = PgEnum(
-    'all', 'apartment', 'house', 'land', 'commercial',
-    name='propertyapplicability', create_type=False
+    "all",
+    "apartment",
+    "house",
+    "land",
+    "commercial",
+    name="propertyapplicability",
+    create_type=False,
 )
 
 
@@ -62,13 +69,19 @@ class Law(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "law"
 
     # Core identifiers
-    citation = Column(String(100), nullable=False, unique=True, index=True)  # e.g., "§ 433 BGB"
+    citation = Column(
+        String(100), nullable=False, unique=True, index=True
+    )  # e.g., "§ 433 BGB"
     title_de = Column(String(500), nullable=False)  # Original German title
     title_en = Column(String(500), nullable=False)  # English translation
 
     # Category and applicability
     category = Column(_law_category_enum, nullable=False, index=True)
-    property_type = Column(_property_applicability_enum, default=PropertyTypeApplicability.ALL.value, nullable=False)
+    property_type = Column(
+        _property_applicability_enum,
+        default=PropertyTypeApplicability.ALL.value,
+        nullable=False,
+    )
 
     # Summaries
     one_line_summary = Column(String(280), nullable=False)  # Twitter-length summary
@@ -115,7 +128,7 @@ class Law(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Index for full-text search
     __table_args__ = (
-        Index('ix_law_search_vector', 'search_vector', postgresql_using='gin'),
+        Index("ix_law_search_vector", "search_vector", postgresql_using="gin"),
     )
 
 
@@ -138,7 +151,9 @@ class RelatedLaw(Base):
         ForeignKey("law.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    relationship_type = Column(String(50), nullable=True)  # e.g., "supplements", "modifies", "supersedes"
+    relationship_type = Column(
+        String(50), nullable=True
+    )  # e.g., "supplements", "modifies", "supersedes"
 
 
 class CourtRuling(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -189,7 +204,9 @@ class StateVariation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # State details
-    state_code = Column(String(2), nullable=False)  # German state code (e.g., "BY" for Bavaria)
+    state_code = Column(
+        String(2), nullable=False
+    )  # German state code (e.g., "BY" for Bavaria)
     state_name = Column(String(100), nullable=False)  # Full state name
 
     # Variation content
@@ -203,7 +220,7 @@ class StateVariation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Unique constraint on law + state
     __table_args__ = (
-        Index('ix_state_variation_law_state', 'law_id', 'state_code', unique=True),
+        Index("ix_state_variation_law_state", "law_id", "state_code", unique=True),
     )
 
 
@@ -239,7 +256,7 @@ class LawBookmark(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Unique constraint on user + law
     __table_args__ = (
-        Index('ix_law_bookmark_user_law', 'user_id', 'law_id', unique=True),
+        Index("ix_law_bookmark_user_law", "user_id", "law_id", unique=True),
     )
 
 
@@ -262,7 +279,9 @@ class LawJourneyStepLink(Base):
         nullable=False,
         primary_key=True,
     )
-    relevance_score = Column(Integer, default=50, nullable=False)  # 0-100, higher = more relevant
+    relevance_score = Column(
+        Integer, default=50, nullable=False
+    )  # 0-100, higher = more relevant
 
     # Relationship
     law = relationship("Law", back_populates="journey_step_links")

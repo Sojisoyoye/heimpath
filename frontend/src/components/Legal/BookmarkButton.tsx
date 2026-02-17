@@ -49,21 +49,17 @@ function BookmarkButton(props: IProps) {
       disabled={isPending}
       className={cn(
         isBookmarked && "text-yellow-600 hover:text-yellow-700",
-        className
+        className,
       )}
       title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
     >
       {isPending ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <Bookmark
-          className={cn("h-4 w-4", isBookmarked && "fill-current")}
-        />
+        <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
       )}
       {showLabel && (
-        <span className="ml-2">
-          {isBookmarked ? "Bookmarked" : "Bookmark"}
-        </span>
+        <span className="ml-2">{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
       )}
     </Button>
   )

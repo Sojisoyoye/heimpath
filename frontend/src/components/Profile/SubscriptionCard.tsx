@@ -3,11 +3,17 @@
  * Displays current subscription plan and status
  */
 
-import { Crown, Zap, Building2, Check } from "lucide-react"
+import { Building2, Check, Crown, Zap } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import type { SubscriptionTier } from "@/models/user"
 
 interface IProps {
@@ -59,7 +65,8 @@ const TIER_CONFIG: Record<
     label: "Enterprise Plan",
     icon: Building2,
     description: "For agencies and property professionals",
-    color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
+    color:
+      "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
     features: [
       "Everything in Premium",
       "Team collaboration",
@@ -89,7 +96,7 @@ function SubscriptionCard(props: IProps) {
           "absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-20",
           tier === "free" && "bg-gray-400",
           tier === "premium" && "bg-blue-400",
-          tier === "enterprise" && "bg-purple-400"
+          tier === "enterprise" && "bg-purple-400",
         )}
       />
       <CardHeader>

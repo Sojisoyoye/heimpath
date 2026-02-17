@@ -6,23 +6,23 @@
  * after adding new journey endpoints to regenerate the typed client.
  */
 
-import { OpenAPI } from "@/client";
-import { request } from "@/client/core/request";
-import { PATHS } from "./common/Paths";
+import { OpenAPI } from "@/client"
+import { request } from "@/client/core/request"
 import type {
   JourneyCreate,
-  JourneyPublic,
   JourneyProgress,
+  JourneyPublic,
   JourneyStepUpdate,
   JourneyTaskUpdate,
   NextStepRecommendation,
   PropertyGoals,
   PropertyGoalsUpdate,
-} from "@/models/journey";
+} from "@/models/journey"
+import { PATHS } from "./common/Paths"
 
 interface JourneyListResponse {
-  data: JourneyPublic[];
-  count: number;
+  data: JourneyPublic[]
+  count: number
 }
 
 class JourneyServiceClass {
@@ -33,8 +33,8 @@ class JourneyServiceClass {
     const response = await request<JourneyListResponse>(OpenAPI, {
       method: "GET",
       url: PATHS.JOURNEYS.LIST,
-    });
-    return response.data;
+    })
+    return response.data
   }
 
   /**
@@ -44,7 +44,7 @@ class JourneyServiceClass {
     return request<JourneyPublic>(OpenAPI, {
       method: "GET",
       url: PATHS.JOURNEYS.DETAIL(journeyId),
-    });
+    })
   }
 
   /**
@@ -56,7 +56,7 @@ class JourneyServiceClass {
       url: PATHS.JOURNEYS.CREATE,
       body: data,
       mediaType: "application/json",
-    });
+    })
   }
 
   /**
@@ -66,7 +66,7 @@ class JourneyServiceClass {
     return request<JourneyProgress>(OpenAPI, {
       method: "GET",
       url: PATHS.JOURNEYS.PROGRESS(journeyId),
-    });
+    })
   }
 
   /**
@@ -76,7 +76,7 @@ class JourneyServiceClass {
     return request<NextStepRecommendation>(OpenAPI, {
       method: "GET",
       url: PATHS.JOURNEYS.NEXT_STEP(journeyId),
-    });
+    })
   }
 
   /**
@@ -85,14 +85,14 @@ class JourneyServiceClass {
   async updateStep(
     journeyId: string,
     stepId: string,
-    data: JourneyStepUpdate
+    data: JourneyStepUpdate,
   ): Promise<void> {
     await request<void>(OpenAPI, {
       method: "PATCH",
       url: PATHS.JOURNEYS.UPDATE_STEP(journeyId, stepId),
       body: data,
       mediaType: "application/json",
-    });
+    })
   }
 
   /**
@@ -102,14 +102,14 @@ class JourneyServiceClass {
     journeyId: string,
     stepId: string,
     taskId: string,
-    data: JourneyTaskUpdate
+    data: JourneyTaskUpdate,
   ): Promise<void> {
     await request<void>(OpenAPI, {
       method: "PATCH",
       url: PATHS.JOURNEYS.UPDATE_TASK(journeyId, stepId, taskId),
       body: data,
       mediaType: "application/json",
-    });
+    })
   }
 
   /**
@@ -119,7 +119,7 @@ class JourneyServiceClass {
     return request<PropertyGoals>(OpenAPI, {
       method: "GET",
       url: PATHS.JOURNEYS.PROPERTY_GOALS(journeyId),
-    });
+    })
   }
 
   /**
@@ -127,15 +127,15 @@ class JourneyServiceClass {
    */
   async updatePropertyGoals(
     journeyId: string,
-    data: PropertyGoalsUpdate
+    data: PropertyGoalsUpdate,
   ): Promise<PropertyGoals> {
     return request<PropertyGoals>(OpenAPI, {
       method: "PATCH",
       url: PATHS.JOURNEYS.PROPERTY_GOALS(journeyId),
       body: data,
       mediaType: "application/json",
-    });
+    })
   }
 }
 
-export const JourneyService = new JourneyServiceClass();
+export const JourneyService = new JourneyServiceClass()

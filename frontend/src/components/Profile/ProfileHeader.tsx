@@ -3,7 +3,7 @@
  * Displays user profile summary with avatar and subscription status
  */
 
-import { Crown, Zap, Building2, Mail, Calendar, Globe } from "lucide-react"
+import { Building2, Calendar, Crown, Globe, Mail, Zap } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -42,7 +42,8 @@ const TIER_CONFIG: Record<
   enterprise: {
     label: "Enterprise",
     icon: Building2,
-    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-400",
+    color:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-400",
   },
 }
 

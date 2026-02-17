@@ -124,7 +124,9 @@ def verify_password_reset_token(token: str) -> str | None:
 
 
 def generate_email_verification_email(
-    email_to: str, token: str, valid_hours: int = 24
+    email_to: str,  # noqa: ARG001
+    token: str,
+    valid_hours: int = 24,
 ) -> EmailData:
     """Generate email verification email content.
 
@@ -177,7 +179,9 @@ def generate_email_verification_email(
 
 
 def generate_password_reset_email_v2(
-    email_to: str, token: str, valid_hours: int = 1
+    email_to: str,  # noqa: ARG001
+    token: str,
+    valid_hours: int = 1,
 ) -> EmailData:
     """Generate password reset email content for new auth system.
 

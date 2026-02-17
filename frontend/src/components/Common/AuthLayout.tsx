@@ -1,4 +1,4 @@
-import { Home, Scale, Calculator, FileText } from "lucide-react"
+import { Calculator, FileText, Home, Scale } from "lucide-react"
 
 import { Appearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -40,7 +40,11 @@ const FEATURES = [
 ******************************************************************************/
 
 /** Feature item displayed in the sidebar. */
-function FeatureItem(props: { icon: typeof Home; title: string; description: string }) {
+function FeatureItem(props: {
+  icon: typeof Home
+  title: string
+  description: string
+}) {
   const { icon: Icon, title, description } = props
   return (
     <div className="flex items-start gap-3">

@@ -3,6 +3,7 @@
 Provides journey generation, progression, and management for the
 guided property buying process.
 """
+
 import json
 import uuid
 from dataclasses import dataclass
@@ -10,15 +11,13 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from typing import Any
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, select
 
 from app.models.journey import (
-    FinancingType,
     Journey,
     JourneyPhase,
     JourneyStep,
     JourneyTask,
-    PropertyType,
     StepStatus,
 )
 from app.schemas.journey import QuestionnaireAnswers
@@ -106,10 +105,16 @@ STEP_TEMPLATES: list[StepTemplate] = [
         content_key="buying_costs",
         prerequisites=[2],
         tasks=[
-            {"title": "Calculate Grunderwerbsteuer (property transfer tax)", "is_required": True},
+            {
+                "title": "Calculate Grunderwerbsteuer (property transfer tax)",
+                "is_required": True,
+            },
             {"title": "Estimate notary fees (1.5-2%)", "is_required": True},
             {"title": "Factor in land registry fees (0.5%)", "is_required": True},
-            {"title": "Budget for agent commission if applicable", "is_required": False},
+            {
+                "title": "Budget for agent commission if applicable",
+                "is_required": False,
+            },
         ],
         estimated_costs={
             "grunderwerbsteuer": "3.5-6.5% (varies by state)",
@@ -144,9 +149,15 @@ STEP_TEMPLATES: list[StepTemplate] = [
         content_key="mortgage_preapproval",
         prerequisites=[4],
         tasks=[
-            {"title": "Compare mortgage offers from multiple banks", "is_required": True},
+            {
+                "title": "Compare mortgage offers from multiple banks",
+                "is_required": True,
+            },
             {"title": "Submit mortgage application", "is_required": True},
-            {"title": "Receive Finanzierungsbestätigung (financing confirmation)", "is_required": True},
+            {
+                "title": "Receive Finanzierungsbestätigung (financing confirmation)",
+                "is_required": True,
+            },
         ],
         conditions={"financing_type": ["mortgage", "mixed"]},
         related_laws=["BGB §488-505 (Darlehensvertrag)"],
@@ -163,7 +174,10 @@ STEP_TEMPLATES: list[StepTemplate] = [
             {"title": "Obtain proof of identity (passport/ID)", "is_required": True},
             {"title": "Get proof of address in Germany", "is_required": True},
             {"title": "Prepare bank statements", "is_required": True},
-            {"title": "Gather employment contract/proof of income", "is_required": True},
+            {
+                "title": "Gather employment contract/proof of income",
+                "is_required": True,
+            },
         ],
         conditions={"has_german_residency": False},
     ),
@@ -192,8 +206,14 @@ STEP_TEMPLATES: list[StepTemplate] = [
         content_key="due_diligence",
         prerequisites=[7],
         tasks=[
-            {"title": "Request Grundbuchauszug (land registry extract)", "is_required": True},
-            {"title": "Review Energieausweis (energy certificate)", "is_required": True},
+            {
+                "title": "Request Grundbuchauszug (land registry extract)",
+                "is_required": True,
+            },
+            {
+                "title": "Review Energieausweis (energy certificate)",
+                "is_required": True,
+            },
             {"title": "Check for encumbrances or easements", "is_required": True},
             {"title": "Verify building permits and compliance", "is_required": True},
             {"title": "Consider hiring a property surveyor", "is_required": False},
@@ -271,7 +291,10 @@ STEP_TEMPLATES: list[StepTemplate] = [
         content_key="payment",
         prerequisites=[12],
         tasks=[
-            {"title": "Wait for Auflassungsvormerkung (priority notice)", "is_required": True},
+            {
+                "title": "Wait for Auflassungsvormerkung (priority notice)",
+                "is_required": True,
+            },
             {"title": "Receive payment request from notary", "is_required": True},
             {"title": "Transfer purchase price", "is_required": True},
             {"title": "Confirm receipt with notary", "is_required": True},
@@ -289,7 +312,10 @@ STEP_TEMPLATES: list[StepTemplate] = [
         tasks=[
             {"title": "Receive tax assessment from Finanzamt", "is_required": True},
             {"title": "Pay Grunderwerbsteuer", "is_required": True},
-            {"title": "Receive Unbedenklichkeitsbescheinigung (tax clearance)", "is_required": True},
+            {
+                "title": "Receive Unbedenklichkeitsbescheinigung (tax clearance)",
+                "is_required": True,
+            },
         ],
         related_laws=["GrEStG (Grunderwerbsteuergesetz)"],
     ),
@@ -415,8 +441,12 @@ class JourneyService:
                 estimated_duration_days=template.estimated_duration_days,
                 content_key=template.content_key,
                 prerequisites=prerequisites,
-                related_laws=json.dumps(template.related_laws) if template.related_laws else None,
-                estimated_costs=json.dumps(template.estimated_costs) if template.estimated_costs else None,
+                related_laws=json.dumps(template.related_laws)
+                if template.related_laws
+                else None,
+                estimated_costs=json.dumps(template.estimated_costs)
+                if template.estimated_costs
+                else None,
             )
             session.add(step)
             session.flush()
@@ -672,11 +702,17 @@ class JourneyService:
             phase_steps = [s for s in steps if s.phase == phase]
             phases[phase.value] = {
                 "total": len(phase_steps),
-                "completed": sum(1 for s in phase_steps if s.status == StepStatus.COMPLETED),
+                "completed": sum(
+                    1 for s in phase_steps if s.status == StepStatus.COMPLETED
+                ),
             }
 
         # Estimate remaining days
-        remaining_steps = [s for s in steps if s.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED)]
+        remaining_steps = [
+            s
+            for s in steps
+            if s.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED)
+        ]
         estimated_days = sum(s.estimated_duration_days or 0 for s in remaining_steps)
 
         return {
@@ -685,7 +721,9 @@ class JourneyService:
             "completed_steps": completed_steps,
             "current_step_number": journey.current_step_number,
             "current_phase": journey.current_phase,
-            "progress_percentage": (completed_steps / total_steps * 100) if total_steps > 0 else 0,
+            "progress_percentage": (completed_steps / total_steps * 100)
+            if total_steps > 0
+            else 0,
             "estimated_days_remaining": estimated_days if estimated_days > 0 else None,
             "phases": phases,
         }

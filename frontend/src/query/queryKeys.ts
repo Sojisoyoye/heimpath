@@ -48,8 +48,44 @@ export const queryKeys = {
     all: ["calculators"] as const,
     hiddenCosts: (id: string) =>
       [...queryKeys.calculators.all, "hiddenCosts", id] as const,
+    hiddenCostsList: () =>
+      [...queryKeys.calculators.all, "hiddenCostsList"] as const,
+    hiddenCostsShare: (shareId: string) =>
+      [...queryKeys.calculators.all, "hiddenCostsShare", shareId] as const,
+    stateComparison: (price: number, includeAgent: boolean) =>
+      [
+        ...queryKeys.calculators.all,
+        "stateComparison",
+        price,
+        includeAgent,
+      ] as const,
     roi: (id: string) => [...queryKeys.calculators.all, "roi", id] as const,
+    roiList: () => [...queryKeys.calculators.all, "roiList"] as const,
+    roiShare: (shareId: string) =>
+      [...queryKeys.calculators.all, "roiShare", shareId] as const,
     stateRates: () => [...queryKeys.calculators.all, "stateRates"] as const,
+  },
+
+  // Financing queries
+  financing: {
+    all: ["financing"] as const,
+    eligibility: (id: string) =>
+      [...queryKeys.financing.all, "eligibility", id] as const,
+    eligibilityList: () =>
+      [...queryKeys.financing.all, "eligibilityList"] as const,
+    eligibilityShare: (shareId: string) =>
+      [...queryKeys.financing.all, "eligibilityShare", shareId] as const,
+  },
+
+  // Document queries
+  documents: {
+    all: ["documents"] as const,
+    list: (page?: number) =>
+      [...queryKeys.documents.all, "list", page] as const,
+    detail: (id: string) => [...queryKeys.documents.all, "detail", id] as const,
+    translation: (id: string) =>
+      [...queryKeys.documents.all, "translation", id] as const,
+    status: (id: string) => [...queryKeys.documents.all, "status", id] as const,
   },
 
   // Dashboard queries
@@ -60,4 +96,4 @@ export const queryKeys = {
     recommendations: () =>
       [...queryKeys.dashboard.all, "recommendations"] as const,
   },
-} as const;
+} as const

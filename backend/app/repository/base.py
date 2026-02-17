@@ -1,4 +1,5 @@
 """Base repository with common CRUD operations."""
+
 import uuid
 from typing import Generic, TypeVar
 

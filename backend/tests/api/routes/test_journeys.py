@@ -1,6 +1,6 @@
 """Tests for Journey API endpoints."""
+
 import uuid
-from datetime import datetime, timezone
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session
@@ -36,7 +36,7 @@ def create_journey(client: TestClient, headers: dict[str, str]) -> dict:
             "is_first_time_buyer": True,
             "has_german_residency": True,
             "budget_euros": 300000,
-        }
+        },
     }
     r = client.post(
         f"{settings.API_V1_STR}/journeys/",
@@ -60,7 +60,7 @@ def test_create_journey(client: TestClient, db: Session) -> None:
             "has_german_residency": True,
             "budget_euros": 350000,
             "target_purchase_date": "2026-12-31T00:00:00Z",
-        }
+        },
     }
 
     r = client.post(
@@ -92,7 +92,7 @@ def test_create_journey_unauthenticated(client: TestClient) -> None:
             "financing_type": "cash",
             "is_first_time_buyer": True,
             "has_german_residency": True,
-        }
+        },
     }
 
     r = client.post(f"{settings.API_V1_STR}/journeys/", json=journey_data)
@@ -114,7 +114,7 @@ def test_create_journey_cash_buyer_excludes_mortgage_steps(
             "is_first_time_buyer": False,
             "has_german_residency": True,
             "budget_euros": 500000,
-        }
+        },
     }
 
     r = client.post(
@@ -326,9 +326,7 @@ def test_delete_journey(client: TestClient, db: Session) -> None:
     assert journey_id not in journey_ids
 
 
-def test_cannot_access_other_users_journey(
-    client: TestClient, db: Session
-) -> None:
+def test_cannot_access_other_users_journey(client: TestClient, db: Session) -> None:
     """Test that users cannot access other users' journeys."""
     # Create journey as user 1
     headers1, _ = get_auth_headers(client, db)
@@ -360,7 +358,7 @@ def test_journey_with_non_resident_includes_document_prep(
             "is_first_time_buyer": True,
             "has_german_residency": False,
             "budget_euros": 400000,
-        }
+        },
     }
 
     r = client.post(

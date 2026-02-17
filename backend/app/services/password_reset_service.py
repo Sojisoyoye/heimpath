@@ -3,6 +3,7 @@
 Handles generation, storage, and validation of password reset tokens.
 Tokens expire after 1 hour for security.
 """
+
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import NamedTuple

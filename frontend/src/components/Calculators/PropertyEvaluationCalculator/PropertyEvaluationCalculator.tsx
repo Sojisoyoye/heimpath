@@ -3,36 +3,35 @@
  * Full-page calculator for investment property analysis
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft, RefreshCw, Download } from "lucide-react";
-
-import { cn } from "@/common/utils";
-import { GERMAN_STATES } from "@/common/constants";
-import { EVALUATION_DEFAULTS } from "@/common/constants/propertyEvaluation";
-import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router"
+import { ArrowLeft, Download, RefreshCw } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { GERMAN_STATES } from "@/common/constants"
+import { EVALUATION_DEFAULTS } from "@/common/constants/propertyEvaluation"
+import { cn } from "@/common/utils"
+import { Button } from "@/components/ui/button"
 import {
+  EvaluationSection,
+  FinancingSection,
+  OperatingCostsSection,
   PropertyInfoSection,
   RentSection,
-  OperatingCostsSection,
-  FinancingSection,
-  EvaluationSection,
-} from "./sections";
-import { usePropertyEvaluation } from "./usePropertyEvaluation";
+} from "./sections"
 import type {
+  FinancingInputs,
+  OperatingCostsInputs,
+  PropertyEvaluationCalculatorProps,
   PropertyEvaluationState,
   PropertyInfoInputs,
   RentInputs,
-  OperatingCostsInputs,
-  FinancingInputs,
-  PropertyEvaluationCalculatorProps,
-} from "./types";
+} from "./types"
+import { usePropertyEvaluation } from "./usePropertyEvaluation"
 
 /******************************************************************************
                               Constants
 ******************************************************************************/
 
-const STORAGE_KEY_PREFIX = "property-evaluation-";
+const STORAGE_KEY_PREFIX = "property-evaluation-"
 
 /******************************************************************************
                               Functions
@@ -40,17 +39,17 @@ const STORAGE_KEY_PREFIX = "property-evaluation-";
 
 /** Get transfer tax rate for a German state. */
 function getTransferTaxRate(stateCode?: string): number {
-  if (!stateCode) return 5.0;
-  const state = GERMAN_STATES.find((s) => s.code === stateCode);
-  return state?.transferTaxRate || 5.0;
+  if (!stateCode) return 5.0
+  const state = GERMAN_STATES.find((s) => s.code === stateCode)
+  return state?.transferTaxRate || 5.0
 }
 
 /** Create initial state with defaults. */
 function createInitialState(
   initialStateCode?: string,
-  initialBudget?: number
+  initialBudget?: number,
 ): PropertyEvaluationState {
-  const transferTax = getTransferTaxRate(initialStateCode);
+  const transferTax = getTransferTaxRate(initialStateCode)
 
   return {
     propertyInfo: {
@@ -84,23 +83,23 @@ function createInitialState(
       interestRatePercent: EVALUATION_DEFAULTS.INTEREST_RATE_PERCENT,
       repaymentRatePercent: EVALUATION_DEFAULTS.REPAYMENT_RATE_PERCENT,
     },
-  };
+  }
 }
 
 /** Load state from localStorage. */
 function loadFromStorage(
   journeyId?: string,
   initialStateCode?: string,
-  initialBudget?: number
+  initialBudget?: number,
 ): PropertyEvaluationState {
   if (!journeyId) {
-    return createInitialState(initialStateCode, initialBudget);
+    return createInitialState(initialStateCode, initialBudget)
   }
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY_PREFIX + journeyId);
+    const stored = localStorage.getItem(STORAGE_KEY_PREFIX + journeyId)
     if (stored) {
-      const parsed = JSON.parse(stored);
+      const parsed = JSON.parse(stored)
       // Validate new structure by checking for a key unique to the new format
       if (
         parsed?.operatingCosts &&
@@ -108,22 +107,25 @@ function loadFromStorage(
         parsed?.rent &&
         !("allocableCostsPerSqm" in parsed.rent)
       ) {
-        return parsed as PropertyEvaluationState;
+        return parsed as PropertyEvaluationState
       }
       // Old format detected: discard and use fresh defaults
-      localStorage.removeItem(STORAGE_KEY_PREFIX + journeyId);
+      localStorage.removeItem(STORAGE_KEY_PREFIX + journeyId)
     }
   } catch {
     // Ignore parse errors
   }
 
-  return createInitialState(initialStateCode, initialBudget);
+  return createInitialState(initialStateCode, initialBudget)
 }
 
 /** Save state to localStorage. */
-function saveToStorage(journeyId: string, state: PropertyEvaluationState): void {
+function saveToStorage(
+  journeyId: string,
+  state: PropertyEvaluationState,
+): void {
   try {
-    localStorage.setItem(STORAGE_KEY_PREFIX + journeyId, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY_PREFIX + journeyId, JSON.stringify(state))
   } catch {
     // Ignore storage errors
   }
@@ -134,95 +136,102 @@ function saveToStorage(journeyId: string, state: PropertyEvaluationState): void 
 ******************************************************************************/
 
 /** Default component. Property evaluation calculator. */
-function PropertyEvaluationCalculator(props: PropertyEvaluationCalculatorProps) {
-  const { journeyId, initialState, initialBudget, className } = props;
+function PropertyEvaluationCalculator(
+  props: PropertyEvaluationCalculatorProps,
+) {
+  const { journeyId, initialState, initialBudget, className } = props
 
   const [state, setState] = useState<PropertyEvaluationState>(() =>
-    loadFromStorage(journeyId, initialState, initialBudget)
-  );
+    loadFromStorage(journeyId, initialState, initialBudget),
+  )
 
-  const { results } = usePropertyEvaluation(state);
+  const { results } = usePropertyEvaluation(state)
 
   // Save to localStorage when state changes
   useEffect(() => {
     if (journeyId) {
-      saveToStorage(journeyId, state);
+      saveToStorage(journeyId, state)
     }
-  }, [journeyId, state]);
+  }, [journeyId, state])
 
-  const updatePropertyInfo = useCallback((updates: Partial<PropertyInfoInputs>) => {
-    setState((prev) => ({
-      ...prev,
-      propertyInfo: { ...prev.propertyInfo, ...updates },
-    }));
-  }, []);
+  const updatePropertyInfo = useCallback(
+    (updates: Partial<PropertyInfoInputs>) => {
+      setState((prev) => ({
+        ...prev,
+        propertyInfo: { ...prev.propertyInfo, ...updates },
+      }))
+    },
+    [],
+  )
 
   const updateRent = useCallback((updates: Partial<RentInputs>) => {
     setState((prev) => ({
       ...prev,
       rent: { ...prev.rent, ...updates },
-    }));
-  }, []);
+    }))
+  }, [])
 
-  const updateOperatingCosts = useCallback((updates: Partial<OperatingCostsInputs>) => {
-    setState((prev) => ({
-      ...prev,
-      operatingCosts: { ...prev.operatingCosts, ...updates },
-    }));
-  }, []);
+  const updateOperatingCosts = useCallback(
+    (updates: Partial<OperatingCostsInputs>) => {
+      setState((prev) => ({
+        ...prev,
+        operatingCosts: { ...prev.operatingCosts, ...updates },
+      }))
+    },
+    [],
+  )
 
   const updateFinancing = useCallback((updates: Partial<FinancingInputs>) => {
     setState((prev) => ({
       ...prev,
       financing: { ...prev.financing, ...updates },
-    }));
-  }, []);
+    }))
+  }, [])
 
   const handleReset = () => {
-    const newState = createInitialState(initialState, initialBudget);
-    setState(newState);
+    const newState = createInitialState(initialState, initialBudget)
+    setState(newState)
     if (journeyId) {
-      saveToStorage(journeyId, newState);
+      saveToStorage(journeyId, newState)
     }
-  };
+  }
 
   const handleExport = () => {
-    if (!results) return;
+    if (!results) return
 
     const data = {
       inputs: state,
       results,
       generatedAt: new Date().toISOString(),
-    };
+    }
 
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `property-evaluation-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `property-evaluation-${Date.now()}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   // Compute total allocable costs for RentSection display
   const totalAllocableCosts =
     state.operatingCosts.hausgeldAllocable +
-    state.operatingCosts.propertyTaxMonthly;
+    state.operatingCosts.propertyTaxMonthly
 
   // Calculate total investment for financing section
   const totalIncidentalCostsPercent =
     state.propertyInfo.brokerFeePercent +
     state.propertyInfo.notaryFeePercent +
     state.propertyInfo.landRegistryFeePercent +
-    state.propertyInfo.transferTaxPercent;
+    state.propertyInfo.transferTaxPercent
 
   const totalInvestment =
-    state.propertyInfo.purchasePrice *
-    (1 + totalIncidentalCostsPercent / 100);
+    state.propertyInfo.purchasePrice * (1 + totalIncidentalCostsPercent / 100)
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -292,11 +301,11 @@ function PropertyEvaluationCalculator(props: PropertyEvaluationCalculatorProps) 
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export { PropertyEvaluationCalculator };
+export { PropertyEvaluationCalculator }

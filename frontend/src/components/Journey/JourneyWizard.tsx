@@ -3,28 +3,27 @@
  * Multi-step wizard for creating a new property journey
  */
 
-import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react"
-
-import { cn } from "@/common/utils"
+import { useState } from "react"
 import { GERMAN_STATES } from "@/common/constants"
+import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { WizardStepIndicator } from "./WizardStepIndicator"
-import { PropertyTypeSelector } from "./PropertyTypeSelector"
-import { LocationSelector } from "./LocationSelector"
-import { FinancingSelector } from "./FinancingSelector"
-import { BudgetInput } from "./BudgetInput"
-import { TimelineSelector } from "./TimelineSelector"
-import { ResidencySelector } from "./ResidencySelector"
 import { useCreateJourney } from "@/hooks/mutations"
 import type {
-  PropertyType,
   FinancingType,
-  ResidencyStatus,
   JourneyCreate,
+  PropertyType,
+  ResidencyStatus,
 } from "@/models/journey"
+import { BudgetInput } from "./BudgetInput"
+import { FinancingSelector } from "./FinancingSelector"
+import { LocationSelector } from "./LocationSelector"
+import { PropertyTypeSelector } from "./PropertyTypeSelector"
+import { ResidencySelector } from "./ResidencySelector"
+import { TimelineSelector } from "./TimelineSelector"
+import { WizardStepIndicator } from "./WizardStepIndicator"
 
 interface IProps {
   className?: string
@@ -242,7 +241,10 @@ function JourneyWizard(props: IProps) {
 
     try {
       const newJourney = await createJourneyMutation.mutateAsync(journeyData)
-      navigate({ to: "/journeys/$journeyId", params: { journeyId: newJourney.id } })
+      navigate({
+        to: "/journeys/$journeyId",
+        params: { journeyId: newJourney.id },
+      })
     } catch {
       // Error is handled by React Query
     }

@@ -3,10 +3,9 @@
  * Allows user to select financing type for their property purchase
  */
 
-import { Banknote, Building2, Percent, Info } from "lucide-react"
-
-import { cn } from "@/common/utils"
+import { Banknote, Building2, Info, Percent } from "lucide-react"
 import { FINANCING_TYPES } from "@/common/constants"
+import { cn } from "@/common/utils"
 import type { FinancingType } from "@/models/journey"
 
 interface IProps {
@@ -55,20 +54,20 @@ function FinancingOption(props: {
         "flex flex-col items-start gap-3 rounded-lg border-2 p-6 transition-all hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 text-left",
         isSelected
           ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30"
-          : "border-muted"
+          : "border-muted",
       )}
     >
       <div className="flex items-center gap-3">
         <Icon
           className={cn(
             "h-8 w-8",
-            isSelected ? "text-blue-600" : "text-muted-foreground"
+            isSelected ? "text-blue-600" : "text-muted-foreground",
           )}
         />
         <span
           className={cn(
             "text-lg font-medium",
-            isSelected ? "text-blue-600" : "text-foreground"
+            isSelected ? "text-blue-600" : "text-foreground",
           )}
         >
           {type.label}

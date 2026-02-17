@@ -5,22 +5,21 @@
 
 import { Link } from "@tanstack/react-router"
 import {
-  ArrowLeft,
-  Scale,
-  Gavel,
-  MapPin,
-  Link2,
   AlertTriangle,
+  ArrowLeft,
+  Building,
+  Calendar,
+  FileText,
+  Gavel,
+  Home,
+  Link2,
+  MapPin,
+  Scale,
   User,
   Users,
-  Building,
-  Home,
-  FileText,
-  Calendar,
 } from "lucide-react"
-
+import { GERMAN_STATES, LAW_CATEGORIES } from "@/common/constants"
 import { cn } from "@/common/utils"
-import { LAW_CATEGORIES, GERMAN_STATES } from "@/common/constants"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,9 +32,9 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { LawDetail as LawDetailType } from "@/models/legal"
 import { BookmarkButton } from "./BookmarkButton"
 import { LawCard } from "./LawCard"
-import type { LawDetail as LawDetailType } from "@/models/legal"
 
 interface IProps {
   law: LawDetailType
@@ -69,7 +68,9 @@ function LawDetailSkeleton() {
 }
 
 /** Court rulings section. */
-function CourtRulingsSection(props: { rulings: LawDetailType["courtRulings"] }) {
+function CourtRulingsSection(props: {
+  rulings: LawDetailType["courtRulings"]
+}) {
   const { rulings } = props
 
   if (rulings.length === 0) {
@@ -89,13 +90,13 @@ function CourtRulingsSection(props: { rulings: LawDetailType["courtRulings"] }) 
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Gavel className="h-4 w-4 text-muted-foreground" />
-                  {ruling.court}
+                  {ruling.courtName}
                 </CardTitle>
                 <CardDescription className="flex items-center gap-2 mt-1">
                   <span className="font-mono">{ruling.caseNumber}</span>
                   <span>•</span>
                   <span>
-                    {new Date(ruling.date).toLocaleDateString("en-US", {
+                    {new Date(ruling.rulingDate).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
@@ -111,10 +112,10 @@ function CourtRulingsSection(props: { rulings: LawDetailType["courtRulings"] }) 
               <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                  Implication
+                  Significance
                 </p>
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  {ruling.implication}
+                  {ruling.significance}
                 </p>
               </div>
             </div>
@@ -160,7 +161,7 @@ function StateVariationsSection(props: {
               )}
             </CardHeader>
             <CardContent>
-              <p className="text-sm">{variation.variation}</p>
+              <p className="text-sm">{variation.variationDescription}</p>
             </CardContent>
           </Card>
         )
@@ -245,10 +246,9 @@ function LawDetail(props: IProps) {
               {law.citation}
             </Badge>
             <Badge variant="secondary">{categoryLabel}</Badge>
-            {law.lastAmendedDate && (
+            {law.lastAmended && (
               <span className="text-xs text-muted-foreground">
-                Last amended:{" "}
-                {new Date(law.lastAmendedDate).toLocaleDateString()}
+                Last amended: {new Date(law.lastAmended).toLocaleDateString()}
               </span>
             )}
           </div>

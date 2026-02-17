@@ -4,7 +4,14 @@
  */
 
 import { useNavigate } from "@tanstack/react-router"
-import { ChevronDown, ChevronRight, Check, Clock, Circle, Calculator } from "lucide-react"
+import {
+  Calculator,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  Clock,
+} from "lucide-react"
 import { useState } from "react"
 
 import { cn } from "@/common/utils"
@@ -17,11 +24,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { TaskCheckbox } from "./TaskCheckbox"
+import type {
+  JourneyStep,
+  PropertyGoals,
+  PropertyType,
+  StepStatus,
+} from "@/models/journey"
 import { ProgressBar } from "./ProgressBar"
-import { PropertyGoalsForm } from "./StepContent/PropertyGoalsForm"
 import { MarketInsights } from "./StepContent/MarketInsights"
-import type { JourneyStep, StepStatus, PropertyGoals, PropertyType } from "@/models/journey"
+import { PropertyGoalsForm } from "./StepContent/PropertyGoalsForm"
+import { TaskCheckbox } from "./TaskCheckbox"
 
 interface IProps {
   step: JourneyStep
@@ -43,7 +55,11 @@ interface IProps {
 
 const STATUS_CONFIG: Record<
   StepStatus,
-  { label: string; icon: typeof Check; variant: "default" | "secondary" | "outline" }
+  {
+    label: string
+    icon: typeof Check
+    variant: "default" | "secondary" | "outline"
+  }
 > = {
   not_started: {
     label: "Not Started",
@@ -69,9 +85,12 @@ const STATUS_CONFIG: Record<
 
 const PHASE_COLORS: Record<string, string> = {
   research: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  preparation: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  buying: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  closing: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  preparation:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  buying:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  closing:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
 }
 
 /******************************************************************************
@@ -112,7 +131,8 @@ function StepCard(props: IProps) {
 
   const completedTasks = step.tasks.filter((t) => t.is_completed).length
   const totalTasks = step.tasks.length
-  const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+  const progressPercent =
+    totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
 
   const handleTaskToggle = (taskId: string, isCompleted: boolean) => {
     onTaskToggle(step.id, taskId, isCompleted)
@@ -124,7 +144,7 @@ function StepCard(props: IProps) {
         "transition-all",
         isActive && "ring-2 ring-blue-600 ring-offset-2",
         step.status === "completed" && "opacity-75",
-        className
+        className,
       )}
     >
       <CardHeader className="pb-3">
@@ -153,7 +173,9 @@ function StepCard(props: IProps) {
               <span className="text-muted-foreground">
                 {completedTasks} of {totalTasks} tasks completed
               </span>
-              <span className="font-medium">{Math.round(progressPercent)}%</span>
+              <span className="font-medium">
+                {Math.round(progressPercent)}%
+              </span>
             </div>
             <ProgressBar value={progressPercent} size="sm" />
           </div>
@@ -184,7 +206,9 @@ function StepCard(props: IProps) {
                     key={task.id}
                     task={task}
                     onToggle={handleTaskToggle}
-                    disabled={step.status === "completed" || step.status === "skipped"}
+                    disabled={
+                      step.status === "completed" || step.status === "skipped"
+                    }
                   />
                 ))}
               </div>
@@ -221,10 +245,12 @@ function StepCard(props: IProps) {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => navigate({
-              to: "/journeys/$journeyId/property-evaluation",
-              params: { journeyId },
-            })}
+            onClick={() =>
+              navigate({
+                to: "/journeys/$journeyId/property-evaluation",
+                params: { journeyId },
+              })
+            }
           >
             <Calculator className="h-4 w-4" />
             Property Evaluation Calculator

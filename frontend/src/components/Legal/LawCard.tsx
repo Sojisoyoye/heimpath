@@ -4,14 +4,13 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { Scale, Building, Home, Store, MapPin } from "lucide-react"
-
-import { cn } from "@/common/utils"
+import { Building, Home, MapPin, Scale, Store } from "lucide-react"
 import { LAW_CATEGORIES } from "@/common/constants"
+import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookmarkButton } from "./BookmarkButton"
 import type { LawSummary, PropertyTypeApplicability } from "@/models/legal"
+import { BookmarkButton } from "./BookmarkButton"
 
 interface IProps {
   law: LawSummary
@@ -40,11 +39,16 @@ const PROPERTY_TYPE_LABELS: Record<PropertyTypeApplicability, string> = {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  buying_process: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  costs_taxes: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  rental_landlord: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  condominium: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  agent_regulations: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400",
+  buying_process:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  costs_and_taxes:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  rental_law:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  condominium:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  agent_regulations:
+    "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400",
 }
 
 /******************************************************************************
@@ -60,12 +64,7 @@ function LawCard(props: IProps) {
   const PropertyIcon = PROPERTY_TYPE_ICONS[law.propertyType]
 
   return (
-    <Card
-      className={cn(
-        "transition-shadow hover:shadow-md group",
-        className
-      )}
-    >
+    <Card className={cn("transition-shadow hover:shadow-md group", className)}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 space-y-1">

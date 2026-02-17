@@ -1,4 +1,5 @@
 """Authentication request/response schemas."""
+
 import re
 import uuid
 from datetime import datetime

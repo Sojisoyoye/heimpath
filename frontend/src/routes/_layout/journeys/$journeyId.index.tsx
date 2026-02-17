@@ -38,7 +38,7 @@ function JourneyDetailPage() {
   const handleTaskToggle = (
     stepId: string,
     taskId: string,
-    isCompleted: boolean
+    isCompleted: boolean,
   ) => {
     console.log("Toggle task:", { stepId, taskId, isCompleted })
   }
@@ -59,7 +59,9 @@ function JourneyDetailPage() {
   }
 
   if (isLoadingJourney || !journey) {
-    return <JourneyDetail journey={{} as any} onTaskToggle={() => {}} isLoading />
+    return (
+      <JourneyDetail journey={{} as any} onTaskToggle={() => {}} isLoading />
+    )
   }
 
   return (

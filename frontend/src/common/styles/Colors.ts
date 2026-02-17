@@ -42,7 +42,7 @@ const Base = {
     Default: "#a855f7",
     Dark: "#7e22ce",
   },
-} as const;
+} as const
 
 const Colors = {
   // Background colors
@@ -98,6 +98,6 @@ const Colors = {
     Completed: Base.Green.Default,
     Skipped: Base.Grey.Light,
   },
-} as const;
+} as const
 
-export default Colors;
+export default Colors

@@ -2,6 +2,7 @@
 
 These tests don't require database connection - they test service logic only.
 """
+
 import pytest
 
 

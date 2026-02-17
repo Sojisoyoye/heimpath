@@ -3,12 +3,12 @@
  * Search interface for laws
  */
 
-import { useState, useEffect } from "react"
-import { Search, X, Loader2 } from "lucide-react"
+import { Loader2, Search, X } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { cn } from "@/common/utils"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useLawSearch } from "@/hooks/queries"
 import { LawCard } from "./LawCard"
 

@@ -43,7 +43,7 @@ function StepDot(props: {
               "border-blue-600 bg-blue-600 text-white",
             !isCurrent &&
               !isCompleted &&
-              "border-muted-foreground/30 bg-background text-muted-foreground"
+              "border-muted-foreground/30 bg-background text-muted-foreground",
           )}
         >
           {isCompleted ? <Check className="h-5 w-5" /> : step.id}
@@ -53,7 +53,7 @@ function StepDot(props: {
             "mt-2 text-xs font-medium text-center max-w-[80px]",
             isCurrent && "text-foreground",
             isCompleted && "text-green-600",
-            !isCurrent && !isCompleted && "text-muted-foreground"
+            !isCurrent && !isCompleted && "text-muted-foreground",
           )}
         >
           {step.title}
@@ -64,7 +64,7 @@ function StepDot(props: {
         <div
           className={cn(
             "mx-2 h-0.5 w-12 sm:w-16",
-            isCompleted ? "bg-green-600" : "bg-muted-foreground/30"
+            isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
           )}
         />
       )}

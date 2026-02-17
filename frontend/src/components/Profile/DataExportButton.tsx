@@ -3,8 +3,8 @@
  * GDPR-compliant data export functionality
  */
 
+import { Check, Download, FileJson, Info, Loader2 } from "lucide-react"
 import { useState } from "react"
-import { Download, Loader2, FileJson, Check, Info } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
@@ -35,11 +35,20 @@ interface IProps {
 ******************************************************************************/
 
 const EXPORTED_DATA_TYPES = [
-  { label: "Profile information", description: "Your account details and preferences" },
-  { label: "Journey data", description: "All your property buying journeys and progress" },
+  {
+    label: "Profile information",
+    description: "Your account details and preferences",
+  },
+  {
+    label: "Journey data",
+    description: "All your property buying journeys and progress",
+  },
   { label: "Bookmarks", description: "Saved laws and articles" },
   { label: "Calculations", description: "Saved calculator results" },
-  { label: "Activity history", description: "Your usage and interaction history" },
+  {
+    label: "Activity history",
+    description: "Your usage and interaction history",
+  },
 ]
 
 /******************************************************************************

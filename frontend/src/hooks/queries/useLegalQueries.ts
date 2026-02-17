@@ -3,19 +3,21 @@
  * React Query hooks for legal knowledge base data fetching
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { LegalService } from "@/services/LegalService";
-import { queryKeys } from "@/query/queryKeys";
-import type { LawFilter } from "@/models/legal";
+import { useQuery } from "@tanstack/react-query"
+import type { LawFilter } from "@/models/legal"
+import { queryKeys } from "@/query/queryKeys"
+import { LegalService } from "@/services/LegalService"
 
 /**
  * Get paginated list of laws with filters
  */
 export function useLaws(filters?: LawFilter) {
   return useQuery({
-    queryKey: queryKeys.laws.list(filters as Record<string, unknown> | undefined),
+    queryKey: queryKeys.laws.list(
+      filters as Record<string, unknown> | undefined,
+    ),
     queryFn: () => LegalService.getLaws(filters),
-  });
+  })
 }
 
 /**
@@ -26,7 +28,7 @@ export function useLaw(lawId: string) {
     queryKey: queryKeys.laws.detail(lawId),
     queryFn: () => LegalService.getLaw(lawId),
     enabled: !!lawId,
-  });
+  })
 }
 
 /**
@@ -37,7 +39,7 @@ export function useLawSearch(query: string, page = 1, pageSize = 20) {
     queryKey: queryKeys.laws.search(query),
     queryFn: () => LegalService.searchLaws(query, page, pageSize),
     enabled: query.length >= 2,
-  });
+  })
 }
 
 /**
@@ -48,7 +50,7 @@ export function useLawCategories() {
     queryKey: queryKeys.laws.categories(),
     queryFn: () => LegalService.getCategories(),
     staleTime: 30 * 60 * 1000, // Categories rarely change
-  });
+  })
 }
 
 /**
@@ -58,7 +60,7 @@ export function useBookmarks() {
   return useQuery({
     queryKey: queryKeys.laws.bookmarks(),
     queryFn: () => LegalService.getBookmarks(),
-  });
+  })
 }
 
 /**
@@ -69,5 +71,5 @@ export function useLawsByJourneyStep(stepKey: string) {
     queryKey: queryKeys.laws.byJourneyStep(stepKey),
     queryFn: () => LegalService.getLawsByJourneyStep(stepKey),
     enabled: !!stepKey,
-  });
+  })
 }

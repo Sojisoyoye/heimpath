@@ -1,4 +1,5 @@
 """Tests for UserRepository data access layer."""
+
 import uuid
 from unittest.mock import AsyncMock, MagicMock
 

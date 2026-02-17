@@ -3,26 +3,20 @@
  * Inputs for rental income, depreciation, tax settings, and forecast assumptions
  */
 
-import { Banknote } from "lucide-react";
-
-import { cn } from "@/common/utils";
-import { SECTION_COLORS } from "@/common/constants/propertyEvaluation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { RentInputs } from "../types";
+import { Banknote } from "lucide-react"
+import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
+import { cn } from "@/common/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { RentInputs } from "../types"
 
 interface IProps {
-  values: RentInputs;
-  squareMeters: number;
-  totalAllocableCosts: number;
-  onChange: (updates: Partial<RentInputs>) => void;
-  className?: string;
+  values: RentInputs
+  squareMeters: number
+  totalAllocableCosts: number
+  onChange: (updates: Partial<RentInputs>) => void
+  className?: string
 }
 
 /******************************************************************************
@@ -33,7 +27,7 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 2,
-});
+})
 
 /******************************************************************************
                               Components
@@ -41,16 +35,16 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
 
 /** Default component. Rent, Taxes, Forecast section. */
 function RentSection(props: IProps) {
-  const { values, squareMeters, totalAllocableCosts, onChange, className } = props;
+  const { values, squareMeters, totalAllocableCosts, onChange, className } =
+    props
 
   const handleNumberChange = (field: keyof RentInputs, value: string) => {
-    const num = parseFloat(value) || 0;
-    onChange({ [field]: num });
-  };
+    const num = parseFloat(value) || 0
+    onChange({ [field]: num })
+  }
 
-  const coldRentMonthly =
-    values.rentPerSqm * squareMeters + values.parkingRent;
-  const warmRentMonthly = coldRentMonthly + totalAllocableCosts;
+  const coldRentMonthly = values.rentPerSqm * squareMeters + values.parkingRent
+  const warmRentMonthly = coldRentMonthly + totalAllocableCosts
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -87,7 +81,9 @@ function RentSection(props: IProps) {
               min="0"
               placeholder="e.g., 50"
               value={values.parkingRent || ""}
-              onChange={(e) => handleNumberChange("parkingRent", e.target.value)}
+              onChange={(e) =>
+                handleNumberChange("parkingRent", e.target.value)
+              }
             />
           </div>
         </div>
@@ -226,7 +222,9 @@ function RentSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="equityInterest">Interest on Equity p.a. (%)</Label>
+              <Label htmlFor="equityInterest">
+                Interest on Equity p.a. (%)
+              </Label>
               <Input
                 id="equityInterest"
                 type="number"
@@ -243,11 +241,11 @@ function RentSection(props: IProps) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export { RentSection };
+export { RentSection }

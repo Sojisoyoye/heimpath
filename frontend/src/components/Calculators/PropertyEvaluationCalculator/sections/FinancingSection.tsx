@@ -3,26 +3,20 @@
  * Inputs for loan settings
  */
 
-import { Landmark } from "lucide-react";
-
-import { cn } from "@/common/utils";
-import { SECTION_COLORS } from "@/common/constants/propertyEvaluation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { FinancingInputs } from "../types";
+import { Landmark } from "lucide-react"
+import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
+import { cn } from "@/common/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { FinancingInputs } from "../types"
 
 interface IProps {
-  values: FinancingInputs;
-  purchasePrice: number;
-  totalInvestment: number;
-  onChange: (updates: Partial<FinancingInputs>) => void;
-  className?: string;
+  values: FinancingInputs
+  purchasePrice: number
+  totalInvestment: number
+  onChange: (updates: Partial<FinancingInputs>) => void
+  className?: string
 }
 
 /******************************************************************************
@@ -33,7 +27,7 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 2,
-});
+})
 
 /******************************************************************************
                               Components
@@ -41,19 +35,20 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
 
 /** Default component. Financing section. */
 function FinancingSection(props: IProps) {
-  const { values, purchasePrice, totalInvestment, onChange, className } = props;
+  const { values, purchasePrice, totalInvestment, onChange, className } = props
 
   const handleNumberChange = (field: keyof FinancingInputs, value: string) => {
-    const num = parseFloat(value) || 0;
-    onChange({ [field]: num });
-  };
+    const num = parseFloat(value) || 0
+    onChange({ [field]: num })
+  }
 
   // Loan is % of purchase price, equity covers the rest of total investment
-  const loanAmount = purchasePrice * (values.loanPercent / 100);
-  const equityAmount = totalInvestment - loanAmount;
-  const monthlyInterest = loanAmount * (values.interestRatePercent / 100) / 12;
-  const monthlyRepayment = loanAmount * (values.repaymentRatePercent / 100) / 12;
-  const debtServiceMonthly = monthlyInterest + monthlyRepayment;
+  const loanAmount = purchasePrice * (values.loanPercent / 100)
+  const equityAmount = totalInvestment - loanAmount
+  const monthlyInterest = (loanAmount * (values.interestRatePercent / 100)) / 12
+  const monthlyRepayment =
+    (loanAmount * (values.repaymentRatePercent / 100)) / 12
+  const debtServiceMonthly = monthlyInterest + monthlyRepayment
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -79,7 +74,9 @@ function FinancingSection(props: IProps) {
               max="100"
               placeholder="e.g., 100"
               value={values.loanPercent || ""}
-              onChange={(e) => handleNumberChange("loanPercent", e.target.value)}
+              onChange={(e) =>
+                handleNumberChange("loanPercent", e.target.value)
+              }
             />
           </div>
           <div className="space-y-2">
@@ -98,7 +95,9 @@ function FinancingSection(props: IProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="repaymentRate">Initial Repayment / Acquittance (%)</Label>
+            <Label htmlFor="repaymentRate">
+              Initial Repayment / Acquittance (%)
+            </Label>
             <Input
               id="repaymentRate"
               type="number"
@@ -124,7 +123,9 @@ function FinancingSection(props: IProps) {
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Own Capital / Equity</span>
+              <span className="text-muted-foreground">
+                Own Capital / Equity
+              </span>
               <span className="font-medium">
                 {CURRENCY_FORMATTER.format(equityAmount)}
               </span>
@@ -142,7 +143,9 @@ function FinancingSection(props: IProps) {
               </span>
             </div>
             <div className="flex justify-between text-sm border-t pt-2 mt-2">
-              <span className="text-muted-foreground">Debt Service per Month</span>
+              <span className="text-muted-foreground">
+                Debt Service per Month
+              </span>
               <span className="font-medium text-purple-600 dark:text-purple-400">
                 {CURRENCY_FORMATTER.format(debtServiceMonthly)}
               </span>
@@ -151,11 +154,11 @@ function FinancingSection(props: IProps) {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export { FinancingSection };
+export { FinancingSection }

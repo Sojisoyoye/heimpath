@@ -1,4 +1,5 @@
 """Tests for Subscription API endpoints."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
@@ -9,7 +10,6 @@ from app.core.config import settings
 from app.models import SubscriptionTier, UserCreate
 from app.services.payment_service import (
     CheckoutSessionResult,
-    PortalSessionResult,
     WebhookVerificationError,
 )
 from tests.utils.utils import random_email, random_lower_string
@@ -208,9 +208,7 @@ def test_webhook_invalid_signature(client: TestClient) -> None:
         assert "Invalid signature" in r.json()["detail"]
 
 
-def test_get_current_subscription_premium_user(
-    client: TestClient, db: Session
-) -> None:
+def test_get_current_subscription_premium_user(client: TestClient, db: Session) -> None:
     """Test getting subscription status for premium tier user."""
     # Create a user with premium subscription
     username = random_email()

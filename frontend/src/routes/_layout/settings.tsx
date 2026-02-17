@@ -4,18 +4,17 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router"
-import { Settings, User, Crown, Shield } from "lucide-react"
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import ChangePassword from "@/components/UserSettings/ChangePassword"
-import UserInformation from "@/components/UserSettings/UserInformation"
+import { Crown, Settings, Shield, User } from "lucide-react"
 import {
+  DataExportButton,
+  DeleteAccountModal,
   ProfileHeader,
   SubscriptionCard,
   SubscriptionUpgrade,
-  DataExportButton,
-  DeleteAccountModal,
 } from "@/components/Profile"
+import ChangePassword from "@/components/UserSettings/ChangePassword"
+import UserInformation from "@/components/UserSettings/UserInformation"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
 
 /******************************************************************************
@@ -87,9 +86,7 @@ function SecurityTab() {
     <div className="space-y-6">
       <ChangePassword />
       <DataExportButton />
-      {user && (
-        <DeleteAccountModal email={user.email} />
-      )}
+      {user && <DeleteAccountModal email={user.email} />}
     </div>
   )
 }

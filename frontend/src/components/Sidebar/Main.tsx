@@ -40,7 +40,8 @@ export function Main({ items }: MainProps) {
             const isActive =
               item.path === "/"
                 ? currentPath === "/"
-                : currentPath === item.path || currentPath.startsWith(`${item.path}/`)
+                : currentPath === item.path ||
+                  currentPath.startsWith(`${item.path}/`)
 
             return (
               <SidebarMenuItem key={item.title}>

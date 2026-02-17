@@ -5,9 +5,8 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import { JourneyWizard } from "@/components/Journey"
+import { Button } from "@/components/ui/button"
 
 /******************************************************************************
                               Route
@@ -37,7 +36,8 @@ function NewJourneyPage() {
         <div>
           <h1 className="text-2xl font-bold">Create New Journey</h1>
           <p className="text-muted-foreground">
-            Answer a few questions to get your personalized property buying guide
+            Answer a few questions to get your personalized property buying
+            guide
           </p>
         </div>
       </div>

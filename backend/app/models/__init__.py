@@ -10,6 +10,7 @@ New Code:
 Legacy Code:
 - Existing imports from app.models continue to work
 """
+
 from sqlmodel import SQLModel
 
 from app._models_sqlmodel import (
@@ -35,6 +36,14 @@ from app._models_sqlmodel import (
     UserUpdateMe,
 )
 from app.models.base import Base
+from app.models.calculator import HiddenCostCalculation
+from app.models.document import (
+    Document,
+    DocumentStatus,
+    DocumentTranslation,
+    DocumentType,
+)
+from app.models.financing import FinancingAssessment
 from app.models.item import Item as ItemV2
 from app.models.journey import (
     FinancingType,
@@ -45,6 +54,7 @@ from app.models.journey import (
     PropertyType,
     StepStatus,
 )
+from app.models.roi import ROICalculation
 from app.models.user import User as UserV2
 
 __all__ = [
@@ -72,6 +82,13 @@ __all__ = [
     "UserUpdateMe",
     # New SQLAlchemy models
     "Base",
+    "FinancingAssessment",
+    "HiddenCostCalculation",
+    "ROICalculation",
+    "Document",
+    "DocumentStatus",
+    "DocumentTranslation",
+    "DocumentType",
     "FinancingType",
     "ItemV2",
     "Journey",

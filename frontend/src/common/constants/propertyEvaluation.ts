@@ -36,12 +36,15 @@ export const EVALUATION_DEFAULTS = {
   // Rent defaults
   RENT_PER_SQM: 12.0,
   PARKING_RENT: 50,
-} as const;
+} as const
 
 export const SECTION_COLORS = {
-  propertyInfo: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400",
+  propertyInfo:
+    "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400",
   rent: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400",
-  operatingCosts: "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400",
-  financing: "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400",
+  operatingCosts:
+    "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400",
+  financing:
+    "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400",
   evaluation: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400",
-} as const;
+} as const

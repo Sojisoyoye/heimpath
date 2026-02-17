@@ -3,22 +3,16 @@
  * Displays calculated results: yields, cashflow, tax, and return on equity
  */
 
-import { TrendingUp, TrendingDown, Calculator, Info } from "lucide-react";
-
-import { cn } from "@/common/utils";
-import { SECTION_COLORS } from "@/common/constants/propertyEvaluation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import type { EvaluationResults } from "../types";
+import { Calculator, Info, TrendingDown, TrendingUp } from "lucide-react"
+import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
+import { cn } from "@/common/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import type { EvaluationResults } from "../types"
 
 interface IProps {
-  results: EvaluationResults | null;
-  className?: string;
+  results: EvaluationResults | null
+  className?: string
 }
 
 /******************************************************************************
@@ -29,13 +23,13 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 2,
-});
+})
 
 const PERCENT_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "percent",
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
-});
+})
 
 /******************************************************************************
                               Components
@@ -43,18 +37,18 @@ const PERCENT_FORMATTER = new Intl.NumberFormat("de-DE", {
 
 /** Line item display. */
 function ResultLine(props: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-  info?: string;
+  label: string
+  value: string
+  highlight?: boolean
+  info?: string
 }) {
-  const { label, value, highlight, info } = props;
+  const { label, value, highlight, info } = props
 
   return (
     <div
       className={cn(
         "flex items-center justify-between py-1",
-        highlight && "font-semibold"
+        highlight && "font-semibold",
       )}
     >
       <div className="flex items-center gap-1 text-sm">
@@ -67,7 +61,7 @@ function ResultLine(props: {
       </div>
       <span className={cn("text-sm", highlight && "text-base")}>{value}</span>
     </div>
-  );
+  )
 }
 
 /** Empty state when no results. */
@@ -79,12 +73,12 @@ function EmptyState() {
         Enter property details to see the evaluation
       </p>
     </div>
-  );
+  )
 }
 
 /** Default component. Evaluation results section. */
 function EvaluationSection(props: IProps) {
-  const { results, className } = props;
+  const { results, className } = props
 
   if (!results) {
     return (
@@ -99,10 +93,10 @@ function EvaluationSection(props: IProps) {
           <EmptyState />
         </CardContent>
       </Card>
-    );
+    )
   }
 
-  const CashflowIcon = results.isPositiveCashflow ? TrendingUp : TrendingDown;
+  const CashflowIcon = results.isPositiveCashflow ? TrendingUp : TrendingDown
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -119,14 +113,14 @@ function EvaluationSection(props: IProps) {
             "rounded-lg p-4 border-2",
             results.isPositiveCashflow
               ? "bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-700"
-              : "bg-red-50 border-red-300 dark:bg-red-950/30 dark:border-red-700"
+              : "bg-red-50 border-red-300 dark:bg-red-950/30 dark:border-red-700",
           )}
         >
           <div className="flex items-center gap-2 mb-2">
             <CashflowIcon
               className={cn(
                 "h-5 w-5",
-                results.isPositiveCashflow ? "text-green-600" : "text-red-600"
+                results.isPositiveCashflow ? "text-green-600" : "text-red-600",
               )}
             />
             <span className="text-sm font-medium">Cashflow after Taxes</span>
@@ -136,7 +130,7 @@ function EvaluationSection(props: IProps) {
               "text-2xl font-bold",
               results.isPositiveCashflow
                 ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
+                : "text-red-600 dark:text-red-400",
             )}
           >
             {CURRENCY_FORMATTER.format(results.cashflowAfterTax)} / month
@@ -268,18 +262,18 @@ function EvaluationSection(props: IProps) {
           <ResultLine
             label="Without Appreciation"
             value={PERCENT_FORMATTER.format(
-              results.returnOnEquityWithoutAppreciation / 100
+              results.returnOnEquityWithoutAppreciation / 100,
             )}
             info="Annual cashflow / Equity"
           />
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /******************************************************************************
                               Export
 ******************************************************************************/
 
-export { EvaluationSection };
+export { EvaluationSection }

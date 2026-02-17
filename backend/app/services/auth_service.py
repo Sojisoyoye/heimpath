@@ -3,10 +3,10 @@
 Provides JWT token generation, validation, and blacklisting for user authentication.
 Supports access tokens, refresh tokens, and "remember me" functionality.
 """
+
 import uuid
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from functools import lru_cache
 from typing import Any
 
 import jwt
