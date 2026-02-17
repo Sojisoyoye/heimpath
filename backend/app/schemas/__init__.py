@@ -1,5 +1,17 @@
 """Pydantic request/response schemas."""
 
+from app.schemas.article import (
+    ArticleCategoryInfo,
+    ArticleCreateRequest,
+    ArticleDetailResponse,
+    ArticleListResponse,
+    ArticleRatingRequest,
+    ArticleRatingResponse,
+    ArticleSearchResponse,
+    ArticleSearchResult,
+    ArticleSummary,
+    ArticleUpdateRequest,
+)
 from app.schemas.auth import (
     AuthToken,
     ForgotPasswordRequest,
@@ -79,6 +91,16 @@ from app.schemas.user import (
 
 __all__ = [
     "ActivityItem",
+    "ArticleCategoryInfo",
+    "ArticleCreateRequest",
+    "ArticleDetailResponse",
+    "ArticleListResponse",
+    "ArticleRatingRequest",
+    "ArticleRatingResponse",
+    "ArticleSearchResponse",
+    "ArticleSearchResult",
+    "ArticleSummary",
+    "ArticleUpdateRequest",
     "ActivityType",
     "AuthToken",
     "BookmarkedLawSummary",

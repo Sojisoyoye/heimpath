@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    articles,
     auth,
     calculators,
     dashboard,
@@ -34,6 +35,7 @@ api_router.include_router(calculators.router)
 api_router.include_router(financing.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(notifications.router)
+api_router.include_router(articles.router)
 
 
 if settings.ENVIRONMENT == "local":

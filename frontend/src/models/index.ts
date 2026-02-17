@@ -3,6 +3,7 @@
  * Re-export all domain models
  */
 
+export * from "./article"
 export * from "./calculator"
 export * from "./dashboard"
 export * from "./journey"

@@ -1,4 +1,12 @@
-import { Calculator, Compass, FileText, Home, Scale, Users } from "lucide-react"
+import {
+  BookOpen,
+  Calculator,
+  Compass,
+  FileText,
+  Home,
+  Scale,
+  Users,
+} from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -18,6 +26,7 @@ const baseItems: Item[] = [
   { icon: FileText, title: "Documents", path: "/documents" },
   { icon: Scale, title: "Laws", path: "/laws" },
   { icon: Calculator, title: "Calculators", path: "/calculators" },
+  { icon: BookOpen, title: "Articles", path: "/articles" },
 ]
 
 export function AppSidebar() {

@@ -17,6 +17,158 @@ export type ActivityItem = {
 export type ActivityType = 'journey_started' | 'step_completed' | 'document_uploaded' | 'calculation_saved' | 'roi_calculated' | 'financing_assessed' | 'law_bookmarked';
 
 /**
+ * Categories for content library articles.
+ */
+export type ArticleCategory = 'buying_process' | 'costs_and_taxes' | 'regulations' | 'common_pitfalls';
+
+/**
+ * Category with article count.
+ */
+export type ArticleCategoryInfo = {
+    key: string;
+    name: string;
+    description: string;
+    article_count: number;
+};
+
+/**
+ * Request schema for creating an article.
+ */
+export type ArticleCreateRequest = {
+    title: string;
+    slug: string;
+    meta_description: string;
+    category: ArticleCategory;
+    difficulty_level: DifficultyLevel;
+    excerpt: string;
+    content: string;
+    key_takeaways?: Array<(string)>;
+    author_name: string;
+    related_law_ids?: Array<(string)>;
+    related_calculator_types?: Array<(string)>;
+    status?: ArticleStatus;
+};
+
+/**
+ * Full detail response for an article.
+ */
+export type ArticleDetailResponse = {
+    id: string;
+    slug: string;
+    title: string;
+    meta_description: string;
+    category: ArticleCategory;
+    difficulty_level: DifficultyLevel;
+    status: ArticleStatus;
+    excerpt: string;
+    content: string;
+    key_takeaways?: Array<(string)>;
+    reading_time_minutes: number;
+    view_count: number;
+    author_name: string;
+    related_law_ids?: Array<(string)>;
+    related_calculator_types?: Array<(string)>;
+    created_at: string;
+    updated_at: string;
+    helpful_count?: number;
+    not_helpful_count?: number;
+    user_rating?: (boolean | null);
+    related_articles?: Array<ArticleSummary>;
+};
+
+/**
+ * Paginated list of articles.
+ */
+export type ArticleListResponse = {
+    data: Array<ArticleSummary>;
+    count: number;
+    total: number;
+    page: number;
+    page_size: number;
+};
+
+/**
+ * Request schema for rating an article.
+ */
+export type ArticleRatingRequest = {
+    is_helpful: boolean;
+};
+
+/**
+ * Response schema for article rating stats.
+ */
+export type ArticleRatingResponse = {
+    helpful_count: number;
+    not_helpful_count: number;
+    user_rating?: (boolean | null);
+};
+
+/**
+ * Search results response.
+ */
+export type ArticleSearchResponse = {
+    data: Array<ArticleSearchResult>;
+    count: number;
+    query: string;
+};
+
+/**
+ * Search result with relevance score.
+ */
+export type ArticleSearchResult = {
+    id: string;
+    slug: string;
+    title: string;
+    category: ArticleCategory;
+    difficulty_level: DifficultyLevel;
+    excerpt: string;
+    reading_time_minutes: number;
+    view_count: number;
+    author_name: string;
+    created_at: string;
+    relevance_score: number;
+};
+
+/**
+ * Publication status for articles.
+ */
+export type ArticleStatus = 'draft' | 'published' | 'archived';
+
+/**
+ * Summary view of an article for list responses.
+ */
+export type ArticleSummary = {
+    id: string;
+    slug: string;
+    title: string;
+    category: ArticleCategory;
+    difficulty_level: DifficultyLevel;
+    excerpt: string;
+    reading_time_minutes: number;
+    view_count: number;
+    author_name: string;
+    created_at: string;
+};
+
+/**
+ * Request schema for updating an article. All fields optional.
+ */
+export type ArticleUpdateRequest = {
+    title?: (string | null);
+    slug?: (string | null);
+    meta_description?: (string | null);
+    category?: (ArticleCategory | null);
+    difficulty_level?: (DifficultyLevel | null);
+    excerpt?: (string | null);
+    content?: (string | null);
+    key_takeaways?: (Array<(string)> | null);
+    author_name?: (string | null);
+    related_law_ids?: (Array<(string)> | null);
+    related_calculator_types?: (Array<(string)> | null);
+    status?: (ArticleStatus | null);
+};
+
+/**
  * JWT token response with access and refresh tokens.
  */
 export type AuthToken = {
@@ -186,6 +338,11 @@ export type DetectedClause = {
      */
     risk_level: string;
 };
+
+/**
+ * Difficulty level for articles.
+ */
+export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 /**
  * Full document detail with optional translation.
@@ -1467,6 +1624,59 @@ export type VerifyEmailResponse = {
 export type WebhookResponse = {
     received: boolean;
 };
+
+export type ArticlesListArticlesData = {
+    category?: (ArticleCategory | null);
+    difficultyLevel?: (DifficultyLevel | null);
+    page?: number;
+    pageSize?: number;
+};
+
+export type ArticlesListArticlesResponse = (ArticleListResponse);
+
+export type ArticlesCreateArticleData = {
+    requestBody: ArticleCreateRequest;
+};
+
+export type ArticlesCreateArticleResponse = (ArticleDetailResponse);
+
+export type ArticlesSearchArticlesData = {
+    limit?: number;
+    /**
+     * Search query
+     */
+    q: string;
+};
+
+export type ArticlesSearchArticlesResponse = (ArticleSearchResponse);
+
+export type ArticlesGetCategoriesResponse = (Array<ArticleCategoryInfo>);
+
+export type ArticlesGetArticleData = {
+    slug: string;
+};
+
+export type ArticlesGetArticleResponse = (ArticleDetailResponse);
+
+export type ArticlesRateArticleData = {
+    requestBody: ArticleRatingRequest;
+    slug: string;
+};
+
+export type ArticlesRateArticleResponse = (ArticleRatingResponse);
+
+export type ArticlesUpdateArticleData = {
+    articleId: string;
+    requestBody: ArticleUpdateRequest;
+};
+
+export type ArticlesUpdateArticleResponse = (ArticleDetailResponse);
+
+export type ArticlesDeleteArticleData = {
+    articleId: string;
+};
+
+export type ArticlesDeleteArticleResponse = (void);
 
 export type AuthRegisterData = {
     requestBody: RegisterRequest;

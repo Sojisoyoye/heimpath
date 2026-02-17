@@ -37,6 +37,584 @@ export const ActivityTypeSchema = {
     description: 'Types of user activity tracked on the dashboard.'
 } as const;
 
+export const ArticleCategorySchema = {
+    type: 'string',
+    enum: ['buying_process', 'costs_and_taxes', 'regulations', 'common_pitfalls'],
+    title: 'ArticleCategory',
+    description: 'Categories for content library articles.'
+} as const;
+
+export const ArticleCategoryInfoSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        article_count: {
+            type: 'integer',
+            title: 'Article Count'
+        }
+    },
+    type: 'object',
+    required: ['key', 'name', 'description', 'article_count'],
+    title: 'ArticleCategoryInfo',
+    description: 'Category with article count.'
+} as const;
+
+export const ArticleCreateRequestSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            maxLength: 500,
+            title: 'Title'
+        },
+        slug: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Slug'
+        },
+        meta_description: {
+            type: 'string',
+            maxLength: 320,
+            title: 'Meta Description'
+        },
+        category: {
+            '$ref': '#/components/schemas/ArticleCategory'
+        },
+        difficulty_level: {
+            '$ref': '#/components/schemas/DifficultyLevel'
+        },
+        excerpt: {
+            type: 'string',
+            title: 'Excerpt'
+        },
+        content: {
+            type: 'string',
+            title: 'Content'
+        },
+        key_takeaways: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Key Takeaways',
+            default: []
+        },
+        author_name: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Author Name'
+        },
+        related_law_ids: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Related Law Ids',
+            default: []
+        },
+        related_calculator_types: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Related Calculator Types',
+            default: []
+        },
+        status: {
+            '$ref': '#/components/schemas/ArticleStatus',
+            default: 'draft'
+        }
+    },
+    type: 'object',
+    required: ['title', 'slug', 'meta_description', 'category', 'difficulty_level', 'excerpt', 'content', 'author_name'],
+    title: 'ArticleCreateRequest',
+    description: 'Request schema for creating an article.'
+} as const;
+
+export const ArticleDetailResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        slug: {
+            type: 'string',
+            title: 'Slug'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        meta_description: {
+            type: 'string',
+            title: 'Meta Description'
+        },
+        category: {
+            '$ref': '#/components/schemas/ArticleCategory'
+        },
+        difficulty_level: {
+            '$ref': '#/components/schemas/DifficultyLevel'
+        },
+        status: {
+            '$ref': '#/components/schemas/ArticleStatus'
+        },
+        excerpt: {
+            type: 'string',
+            title: 'Excerpt'
+        },
+        content: {
+            type: 'string',
+            title: 'Content'
+        },
+        key_takeaways: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Key Takeaways',
+            default: []
+        },
+        reading_time_minutes: {
+            type: 'integer',
+            title: 'Reading Time Minutes'
+        },
+        view_count: {
+            type: 'integer',
+            title: 'View Count'
+        },
+        author_name: {
+            type: 'string',
+            title: 'Author Name'
+        },
+        related_law_ids: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Related Law Ids',
+            default: []
+        },
+        related_calculator_types: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Related Calculator Types',
+            default: []
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        },
+        helpful_count: {
+            type: 'integer',
+            title: 'Helpful Count',
+            default: 0
+        },
+        not_helpful_count: {
+            type: 'integer',
+            title: 'Not Helpful Count',
+            default: 0
+        },
+        user_rating: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'User Rating'
+        },
+        related_articles: {
+            items: {
+                '$ref': '#/components/schemas/ArticleSummary'
+            },
+            type: 'array',
+            title: 'Related Articles',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'slug', 'title', 'meta_description', 'category', 'difficulty_level', 'status', 'excerpt', 'content', 'reading_time_minutes', 'view_count', 'author_name', 'created_at', 'updated_at'],
+    title: 'ArticleDetailResponse',
+    description: 'Full detail response for an article.'
+} as const;
+
+export const ArticleListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ArticleSummary'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count', 'total', 'page', 'page_size'],
+    title: 'ArticleListResponse',
+    description: 'Paginated list of articles.'
+} as const;
+
+export const ArticleRatingRequestSchema = {
+    properties: {
+        is_helpful: {
+            type: 'boolean',
+            title: 'Is Helpful'
+        }
+    },
+    type: 'object',
+    required: ['is_helpful'],
+    title: 'ArticleRatingRequest',
+    description: 'Request schema for rating an article.'
+} as const;
+
+export const ArticleRatingResponseSchema = {
+    properties: {
+        helpful_count: {
+            type: 'integer',
+            title: 'Helpful Count'
+        },
+        not_helpful_count: {
+            type: 'integer',
+            title: 'Not Helpful Count'
+        },
+        user_rating: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'User Rating'
+        }
+    },
+    type: 'object',
+    required: ['helpful_count', 'not_helpful_count'],
+    title: 'ArticleRatingResponse',
+    description: 'Response schema for article rating stats.'
+} as const;
+
+export const ArticleSearchResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ArticleSearchResult'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        },
+        query: {
+            type: 'string',
+            title: 'Query'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count', 'query'],
+    title: 'ArticleSearchResponse',
+    description: 'Search results response.'
+} as const;
+
+export const ArticleSearchResultSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        slug: {
+            type: 'string',
+            title: 'Slug'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        category: {
+            '$ref': '#/components/schemas/ArticleCategory'
+        },
+        difficulty_level: {
+            '$ref': '#/components/schemas/DifficultyLevel'
+        },
+        excerpt: {
+            type: 'string',
+            title: 'Excerpt'
+        },
+        reading_time_minutes: {
+            type: 'integer',
+            title: 'Reading Time Minutes'
+        },
+        view_count: {
+            type: 'integer',
+            title: 'View Count'
+        },
+        author_name: {
+            type: 'string',
+            title: 'Author Name'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        relevance_score: {
+            type: 'number',
+            minimum: 0,
+            title: 'Relevance Score'
+        }
+    },
+    type: 'object',
+    required: ['id', 'slug', 'title', 'category', 'difficulty_level', 'excerpt', 'reading_time_minutes', 'view_count', 'author_name', 'created_at', 'relevance_score'],
+    title: 'ArticleSearchResult',
+    description: 'Search result with relevance score.'
+} as const;
+
+export const ArticleStatusSchema = {
+    type: 'string',
+    enum: ['draft', 'published', 'archived'],
+    title: 'ArticleStatus',
+    description: 'Publication status for articles.'
+} as const;
+
+export const ArticleSummarySchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        slug: {
+            type: 'string',
+            title: 'Slug'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        category: {
+            '$ref': '#/components/schemas/ArticleCategory'
+        },
+        difficulty_level: {
+            '$ref': '#/components/schemas/DifficultyLevel'
+        },
+        excerpt: {
+            type: 'string',
+            title: 'Excerpt'
+        },
+        reading_time_minutes: {
+            type: 'integer',
+            title: 'Reading Time Minutes'
+        },
+        view_count: {
+            type: 'integer',
+            title: 'View Count'
+        },
+        author_name: {
+            type: 'string',
+            title: 'Author Name'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'slug', 'title', 'category', 'difficulty_level', 'excerpt', 'reading_time_minutes', 'view_count', 'author_name', 'created_at'],
+    title: 'ArticleSummary',
+    description: 'Summary view of an article for list responses.'
+} as const;
+
+export const ArticleUpdateRequestSchema = {
+    properties: {
+        title: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        slug: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Slug'
+        },
+        meta_description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 320
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Meta Description'
+        },
+        category: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ArticleCategory'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        difficulty_level: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/DifficultyLevel'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        excerpt: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Excerpt'
+        },
+        content: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Content'
+        },
+        key_takeaways: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Key Takeaways'
+        },
+        author_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Author Name'
+        },
+        related_law_ids: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Related Law Ids'
+        },
+        related_calculator_types: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Related Calculator Types'
+        },
+        status: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ArticleStatus'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    title: 'ArticleUpdateRequest',
+    description: 'Request schema for updating an article. All fields optional.'
+} as const;
+
 export const AuthTokenSchema = {
     properties: {
         access_token: {
@@ -525,6 +1103,13 @@ export const DetectedClauseSchema = {
     required: ['clause_type', 'original_text', 'translated_text', 'page_number', 'risk_level'],
     title: 'DetectedClause',
     description: 'A legal clause detected in the document.'
+} as const;
+
+export const DifficultyLevelSchema = {
+    type: 'string',
+    enum: ['beginner', 'intermediate', 'advanced'],
+    title: 'DifficultyLevel',
+    description: 'Difficulty level for articles.'
 } as const;
 
 export const DocumentDetailResponseSchema = {
