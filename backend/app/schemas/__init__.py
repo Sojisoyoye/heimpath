@@ -41,6 +41,13 @@ from app.schemas.journey import (
     PropertyGoalsUpdate,
     QuestionnaireAnswers,
 )
+from app.schemas.notification import (
+    NotificationListResponse,
+    NotificationPreferenceItem,
+    NotificationPreferencesResponse,
+    NotificationPreferencesUpdate,
+    NotificationResponse,
+)
 from app.schemas.translation import (
     BatchTranslationRequest,
     BatchTranslationResponse,
@@ -91,6 +98,11 @@ __all__ = [
     "JourneyTaskResponse",
     "JourneyTaskUpdate",
     "JourneyUpdate",
+    "NotificationListResponse",
+    "NotificationPreferenceItem",
+    "NotificationPreferencesResponse",
+    "NotificationPreferencesUpdate",
+    "NotificationResponse",
     "LoginRequest",
     "LogoutRequest",
     "Message",

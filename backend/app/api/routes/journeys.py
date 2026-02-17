@@ -10,6 +10,7 @@ from sqlmodel import Session
 
 from app.api.deps import CurrentUser, get_db
 from app.models import Message
+from app.models.notification import NotificationType
 from app.schemas.journey import (
     JourneyCreate,
     JourneyDetailResponse,
@@ -26,6 +27,7 @@ from app.schemas.journey import (
     PropertyGoals,
     PropertyGoalsUpdate,
 )
+from app.services import notification_service
 from app.services.journey_service import (
     InvalidStepTransitionError,
     JourneyNotFoundError,
@@ -440,6 +442,17 @@ def update_step_status(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
+        )
+
+    # Send notification when step is completed
+    if request.status == "completed":
+        notification_service.create_notification(
+            session,
+            user_id=current_user.id,
+            type=NotificationType.STEP_COMPLETED,
+            title="Step Completed",
+            message=f'You completed "{step.title}" in your property journey.',
+            action_url=f"/journeys/{journey_id}",
         )
 
     tasks = [

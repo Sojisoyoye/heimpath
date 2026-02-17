@@ -88,6 +88,20 @@ export const queryKeys = {
     status: (id: string) => [...queryKeys.documents.all, "status", id] as const,
   },
 
+  // Notification queries
+  notifications: {
+    all: ["notifications"] as const,
+    list: (limit?: number, offset?: number, unreadOnly?: boolean) =>
+      [
+        ...queryKeys.notifications.all,
+        "list",
+        limit,
+        offset,
+        unreadOnly,
+      ] as const,
+    preferences: () => [...queryKeys.notifications.all, "preferences"] as const,
+  },
+
   // Dashboard queries
   dashboard: {
     all: ["dashboard"] as const,
