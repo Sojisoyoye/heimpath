@@ -16,13 +16,14 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_PREFIX: ghcr.io/${{ github.repository }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set image prefix
+        id: meta
+        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
       - name: Log in to Azure
         uses: azure/login@v2
@@ -37,7 +38,7 @@ jobs:
             az containerapp job start \
               --name heimpath-migrate-prod \
               --resource-group rg-heimpath-prod \
-              --image ${{ env.IMAGE_PREFIX }}/backend:${{ inputs.image_tag }} \
+              --image ${{ steps.meta.outputs.prefix }}/backend:${{ inputs.image_tag }} \
               --registry-server ghcr.io \
               --registry-username ${{ github.actor }} \
               --registry-password ${{ secrets.GITHUB_TOKEN }}
@@ -50,7 +51,7 @@ jobs:
             az containerapp update \
               --name heimpath-backend-prod \
               --resource-group rg-heimpath-prod \
-              --image ${{ env.IMAGE_PREFIX }}/backend:${{ inputs.image_tag }}
+              --image ${{ steps.meta.outputs.prefix }}/backend:${{ inputs.image_tag }}
 
       - name: Deploy frontend
         uses: azure/cli@v2
@@ -60,4 +61,4 @@ jobs:
             az containerapp update \
               --name heimpath-frontend-prod \
               --resource-group rg-heimpath-prod \
-              --image ${{ env.IMAGE_PREFIX }}/frontend:${{ inputs.image_tag }}
+              --image ${{ steps.meta.outputs.prefix }}/frontend:${{ inputs.image_tag }}

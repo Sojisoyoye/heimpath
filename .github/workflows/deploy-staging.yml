@@ -13,13 +13,15 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: staging
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_PREFIX: ghcr.io/${{ github.repository }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set image prefix and tag
+        id: meta
+        run: |
+          echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=staging-$(echo $GITHUB_SHA | head -c 7)" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -28,10 +30,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set image tag
-        id: tag
-        run: echo "tag=staging-$(echo $GITHUB_SHA | head -c 7)" >> "$GITHUB_OUTPUT"
-
       - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
@@ -39,8 +37,8 @@ jobs:
           file: backend/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}/backend:${{ steps.tag.outputs.tag }}
-            ${{ env.IMAGE_PREFIX }}/backend:staging-latest
+            ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.prefix }}/backend:staging-latest
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
@@ -52,8 +50,8 @@ jobs:
             VITE_API_URL=https://api.staging.${{ vars.DOMAIN }}
             VITE_SENTRY_DSN=${{ vars.FRONTEND_SENTRY_DSN }}
           tags: |
-            ${{ env.IMAGE_PREFIX }}/frontend:${{ steps.tag.outputs.tag }}
-            ${{ env.IMAGE_PREFIX }}/frontend:staging-latest
+            ${{ steps.meta.outputs.prefix }}/frontend:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.prefix }}/frontend:staging-latest
 
       - name: Log in to Azure
         uses: azure/login@v2
@@ -68,7 +66,7 @@ jobs:
             az containerapp job start \
               --name heimpath-migrate-staging \
               --resource-group rg-heimpath-staging \
-              --image ${{ env.IMAGE_PREFIX }}/backend:${{ steps.tag.outputs.tag }} \
+              --image ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }} \
               --registry-server ghcr.io \
               --registry-username ${{ github.actor }} \
               --registry-password ${{ secrets.GITHUB_TOKEN }}
@@ -81,7 +79,7 @@ jobs:
             az containerapp update \
               --name heimpath-backend-staging \
               --resource-group rg-heimpath-staging \
-              --image ${{ env.IMAGE_PREFIX }}/backend:${{ steps.tag.outputs.tag }}
+              --image ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }}
 
       - name: Deploy frontend
         uses: azure/cli@v2
@@ -91,4 +89,4 @@ jobs:
             az containerapp update \
               --name heimpath-frontend-staging \
               --resource-group rg-heimpath-staging \
-              --image ${{ env.IMAGE_PREFIX }}/frontend:${{ steps.tag.outputs.tag }}
+              --image ${{ steps.meta.outputs.prefix }}/frontend:${{ steps.meta.outputs.tag }}
