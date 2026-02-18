@@ -37,11 +37,7 @@ jobs:
           inlineScript: |
             az containerapp job start \
               --name heimpath-migrate-prod \
-              --resource-group rg-heimpath-prod \
-              --image ${{ steps.meta.outputs.prefix }}/backend:${{ inputs.image_tag }} \
-              --registry-server ghcr.io \
-              --registry-username ${{ github.actor }} \
-              --registry-password ${{ secrets.GITHUB_TOKEN }}
+              --resource-group rg-heimpath-prod
 
       - name: Deploy backend
         uses: azure/cli@v2

@@ -65,11 +65,7 @@ jobs:
           inlineScript: |
             az containerapp job start \
               --name heimpath-migrate-staging \
-              --resource-group rg-heimpath-staging \
-              --image ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }} \
-              --registry-server ghcr.io \
-              --registry-username ${{ github.actor }} \
-              --registry-password ${{ secrets.GITHUB_TOKEN }}
+              --resource-group rg-heimpath-staging
 
       - name: Deploy backend
         uses: azure/cli@v2
