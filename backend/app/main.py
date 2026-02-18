@@ -2,6 +2,7 @@ import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
@@ -29,5 +30,9 @@ if settings.all_cors_origins:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+# Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For) from Azure Container Apps
+if settings.ENVIRONMENT != "local":
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
