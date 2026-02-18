@@ -47,7 +47,7 @@ jobs:
           file: frontend/Dockerfile
           push: true
           build-args: |
-            VITE_API_URL=https://api.staging.${{ vars.DOMAIN }}
+            VITE_API_URL=${{ vars.API_URL }}
             VITE_SENTRY_DSN=${{ vars.FRONTEND_SENTRY_DSN }}
           tags: |
             ${{ steps.meta.outputs.prefix }}/frontend:${{ steps.meta.outputs.tag }}
