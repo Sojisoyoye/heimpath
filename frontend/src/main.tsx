@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
@@ -8,6 +9,14 @@ import { queryClient } from "./query/client"
 import { initializeApiClient } from "./services"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"
+
+// Initialize Sentry monitoring
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    environment: import.meta.env.MODE,
+  })
+}
 
 // Initialize API client with base URL and token handler
 initializeApiClient()
