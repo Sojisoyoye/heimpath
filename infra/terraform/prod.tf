@@ -89,7 +89,7 @@ resource "azurerm_container_app" "prod_backend" {
 
       env {
         name  = "ENVIRONMENT"
-        value = "prod"
+        value = "production"
       }
 
       env {
@@ -294,7 +294,7 @@ resource "azurerm_container_app_job" "prod_migration" {
 
       env {
         name  = "ENVIRONMENT"
-        value = "prod"
+        value = "production"
       }
 
       env {
