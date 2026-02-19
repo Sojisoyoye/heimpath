@@ -16,6 +16,7 @@ from app.models.journey import (
 )
 from app.schemas.journey import QuestionnaireAnswers
 from app.services.journey_service import (
+    STEP_TEMPLATES,
     JourneyNotFoundError,
     JourneyService,
     StepNotFoundError,
@@ -340,3 +341,70 @@ class TestGetProgress:
 
         assert progress["phases"]["research"]["total"] == 2
         assert progress["phases"]["research"]["completed"] == 1
+
+
+class TestStepTemplates:
+    """Tests for step template ordering and content."""
+
+    def test_step_templates_total_count(self) -> None:
+        """Test that there are 17 step templates."""
+        assert len(STEP_TEMPLATES) == 17
+
+    def test_find_property_is_step_3(self) -> None:
+        """Test that Find a Property (property_search) is step 3."""
+        template = STEP_TEMPLATES[2]  # 0-indexed
+        assert template.step_number == 3
+        assert template.content_key == "property_search"
+        assert template.phase == JourneyPhase.RESEARCH
+
+    def test_property_evaluation_template_exists(self) -> None:
+        """Test that property_evaluation template exists with correct attributes."""
+        template = next(
+            (t for t in STEP_TEMPLATES if t.content_key == "property_evaluation"),
+            None,
+        )
+        assert template is not None
+        assert template.step_number == 4
+        assert template.phase == JourneyPhase.RESEARCH
+        assert template.prerequisites == [3]
+        assert len(template.tasks) == 4
+        assert template.conditions is None
+
+    def test_mortgage_comparison_template_exists(self) -> None:
+        """Test that mortgage_comparison template exists with conditions."""
+        template = next(
+            (t for t in STEP_TEMPLATES if t.content_key == "mortgage_comparison"),
+            None,
+        )
+        assert template is not None
+        assert template.step_number == 8
+        assert template.phase == JourneyPhase.PREPARATION
+        assert template.prerequisites == [7]
+        assert template.conditions == {"financing_type": ["mortgage", "mixed"]}
+        assert len(template.tasks) == 4
+
+    def test_mortgage_comparison_excluded_for_cash_buyer(
+        self, journey_service: JourneyService, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that mortgage_comparison is excluded for cash buyers."""
+        template = next(
+            (t for t in STEP_TEMPLATES if t.content_key == "mortgage_comparison"),
+            None,
+        )
+        assert template is not None
+        assert not journey_service._should_include_step(template, cash_buyer_answers)
+
+    def test_research_phase_steps_order(self) -> None:
+        """Test that steps 1-5 are RESEARCH phase with correct content_keys."""
+        expected = [
+            (1, "research_goals"),
+            (2, "market_research"),
+            (3, "property_search"),
+            (4, "property_evaluation"),
+            (5, "buying_costs"),
+        ]
+        research_steps = [t for t in STEP_TEMPLATES if t.phase == JourneyPhase.RESEARCH]
+        assert len(research_steps) == 5
+        for template, (expected_num, expected_key) in zip(research_steps, expected, strict=True):
+            assert template.step_number == expected_num
+            assert template.content_key == expected_key

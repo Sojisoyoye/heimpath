@@ -1,6 +1,6 @@
 /**
  * Market Insights Component
- * Shows market data for Step 2: Understand the German Property Market
+ * Shows market data for the "Understand the German Property Market" step
  */
 
 import {

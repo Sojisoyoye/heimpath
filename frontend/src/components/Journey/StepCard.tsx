@@ -210,8 +210,8 @@ function StepCard(props: IProps) {
         </>
       )}
 
-      {/* Step 1: Property Goals Form */}
-      {step.step_number === 1 && (
+      {/* Property Goals Form */}
+      {step.content_key === "research_goals" && (
         <div className="px-6 pb-4">
           <PropertyGoalsForm
             journeyId={journeyId}
@@ -220,8 +220,8 @@ function StepCard(props: IProps) {
         </div>
       )}
 
-      {/* Step 2: Market Insights */}
-      {step.step_number === 2 && (
+      {/* Market Insights */}
+      {step.content_key === "market_research" && (
         <div className="px-6 pb-4">
           <MarketInsights
             propertyLocation={propertyLocation}
@@ -232,8 +232,8 @@ function StepCard(props: IProps) {
         </div>
       )}
 
-      {/* Property Evaluation Calculator button for Step 3 */}
-      {step.step_number === 3 && (
+      {/* Property Evaluation Calculator */}
+      {step.content_key === "buying_costs" && (
         <div className="px-6 pb-4">
           <Button
             variant="outline"
