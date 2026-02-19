@@ -5,7 +5,7 @@
 
 import { Link } from "@tanstack/react-router"
 import { ArrowRight, Calendar, Home, MapPin } from "lucide-react"
-import { GERMAN_STATES, PROPERTY_TYPES } from "@/common/constants"
+import { GERMAN_STATES, PHASE_COLORS, PROPERTY_TYPES } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -30,12 +30,6 @@ interface IProps {
                               Constants
 ******************************************************************************/
 
-const PHASE_LABELS: Record<string, string> = {
-  research: "Research",
-  preparation: "Preparation",
-  buying: "Buying",
-  closing: "Closing",
-}
 
 /******************************************************************************
                               Components
@@ -88,17 +82,12 @@ function JourneyCard(props: IProps) {
             variant="secondary"
             className={cn(
               "shrink-0",
-              journey.current_phase === "research" &&
-                "bg-blue-100 text-blue-800",
-              journey.current_phase === "preparation" &&
-                "bg-purple-100 text-purple-800",
-              journey.current_phase === "buying" &&
-                "bg-orange-100 text-orange-800",
-              journey.current_phase === "closing" &&
-                "bg-green-100 text-green-800",
+              PHASE_COLORS[journey.current_phase],
             )}
           >
-            {PHASE_LABELS[journey.current_phase]}
+            {journey.current_phase.charAt(0).toUpperCase() +
+              journey.current_phase.slice(1)}{" "}
+            Phase
           </Badge>
         </div>
       </CardHeader>

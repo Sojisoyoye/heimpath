@@ -54,6 +54,17 @@ export const JOURNEY_PHASES = [
   { key: "closing", label: "Closing", order: 4 },
 ] as const
 
+// Journey phase colors (used for phase badges across components)
+export const PHASE_COLORS: Record<string, string> = {
+  research: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  preparation:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  buying:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  closing:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+}
+
 // Law categories
 export const LAW_CATEGORIES = [
   { key: "buying_process", label: "Buying Process", icon: "FileText" },

@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, Home, MapPin, Wallet } from "lucide-react"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
+  PHASE_COLORS,
   PROPERTY_TYPES,
 } from "@/common/constants"
 import { cn } from "@/common/utils"
@@ -212,13 +213,7 @@ function JourneyDetail(props: IProps) {
               variant="secondary"
               className={cn(
                 "shrink-0 text-sm",
-                journey.current_phase === "research" && "bg-blue-100 text-blue-800",
-                journey.current_phase === "preparation" &&
-                  "bg-purple-100 text-purple-800",
-                journey.current_phase === "buying" &&
-                  "bg-orange-100 text-orange-800",
-                journey.current_phase === "closing" &&
-                  "bg-green-100 text-green-800",
+                PHASE_COLORS[journey.current_phase],
               )}
             >
               {journey.current_phase.charAt(0).toUpperCase() +
