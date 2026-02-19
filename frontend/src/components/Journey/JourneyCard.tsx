@@ -30,7 +30,6 @@ interface IProps {
                               Constants
 ******************************************************************************/
 
-
 /******************************************************************************
                               Components
 ******************************************************************************/
@@ -80,10 +79,7 @@ function JourneyCard(props: IProps) {
           </div>
           <Badge
             variant="secondary"
-            className={cn(
-              "shrink-0",
-              PHASE_COLORS[journey.current_phase],
-            )}
+            className={cn("shrink-0", PHASE_COLORS[journey.current_phase])}
           >
             {journey.current_phase.charAt(0).toUpperCase() +
               journey.current_phase.slice(1)}{" "}
