@@ -18,3 +18,7 @@ backend/uploads/
 *.tfstate
 *.tfstate.backup
 *.tfplan
+
+.coverage
+.coverage/
+*.log
