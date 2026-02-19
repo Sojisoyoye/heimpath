@@ -1,15 +1,10 @@
+# ──────────────────────────────────────────────
+# Shared variables
+# ──────────────────────────────────────────────
+
 variable "subscription_id" {
   description = "Azure subscription ID"
   type        = string
-}
-
-variable "environment" {
-  description = "Environment name (staging or prod)"
-  type        = string
-  validation {
-    condition     = contains(["staging", "prod"], var.environment)
-    error_message = "Environment must be 'staging' or 'prod'."
-  }
 }
 
 variable "location" {
@@ -18,20 +13,18 @@ variable "location" {
   default     = "germanywestcentral"
 }
 
-# Container images
-variable "backend_image" {
-  description = "Backend container image (GHCR)"
+variable "domain" {
+  description = "Custom domain (e.g., heimpath.com)"
   type        = string
-  default     = "ghcr.io/sojisoyoye/heimpath/backend:latest"
+  default     = "heimpath.com"
 }
 
-variable "frontend_image" {
-  description = "Frontend container image (GHCR)"
+variable "project_name" {
+  description = "Project name for the app"
   type        = string
-  default     = "ghcr.io/sojisoyoye/heimpath/frontend:latest"
+  default     = "HeimPath"
 }
 
-# GHCR credentials
 variable "ghcr_username" {
   description = "GitHub Container Registry username"
   type        = string
@@ -43,140 +36,282 @@ variable "ghcr_password" {
   sensitive   = true
 }
 
-# Backend environment — PostgreSQL (individual fields for Pydantic Settings)
-variable "postgres_server" {
-  description = "PostgreSQL host (e.g., ep-xxx.germanywestcentral.azure.neon.tech)"
+# ──────────────────────────────────────────────
+# Staging variables
+# ──────────────────────────────────────────────
+
+variable "staging_backend_image" {
+  description = "Staging backend container image"
+  type        = string
+  default     = "ghcr.io/sojisoyoye/heimpath/backend:staging-latest"
+}
+
+variable "staging_frontend_image" {
+  description = "Staging frontend container image"
+  type        = string
+  default     = "ghcr.io/sojisoyoye/heimpath/frontend:staging-latest"
+}
+
+variable "staging_postgres_server" {
+  description = "Staging PostgreSQL host"
   type        = string
 }
 
-variable "postgres_port" {
-  description = "PostgreSQL port"
+variable "staging_postgres_port" {
+  description = "Staging PostgreSQL port"
   type        = number
   default     = 5432
 }
 
-variable "postgres_user" {
-  description = "PostgreSQL user"
+variable "staging_postgres_user" {
+  description = "Staging PostgreSQL user"
   type        = string
 }
 
-variable "postgres_password" {
-  description = "PostgreSQL password"
+variable "staging_postgres_password" {
+  description = "Staging PostgreSQL password"
   type        = string
   sensitive   = true
 }
 
-variable "postgres_db" {
-  description = "PostgreSQL database name"
+variable "staging_postgres_db" {
+  description = "Staging PostgreSQL database name"
   type        = string
   default     = "neondb"
 }
 
-variable "project_name" {
-  description = "Project name for the app"
-  type        = string
-  default     = "HeimPath"
-}
-
-variable "secret_key" {
-  description = "Application secret key"
+variable "staging_secret_key" {
+  description = "Staging application secret key"
   type        = string
   sensitive   = true
 }
 
-variable "first_superuser" {
-  description = "First superuser email"
+variable "staging_first_superuser" {
+  description = "Staging first superuser email"
   type        = string
 }
 
-variable "first_superuser_password" {
-  description = "First superuser password"
+variable "staging_first_superuser_password" {
+  description = "Staging first superuser password"
   type        = string
   sensitive   = true
 }
 
-variable "sentry_dsn" {
-  description = "Sentry DSN for backend"
+variable "staging_sentry_dsn" {
+  description = "Staging Sentry DSN for backend"
   type        = string
   default     = ""
 }
 
-variable "frontend_sentry_dsn" {
-  description = "Sentry DSN for frontend"
+variable "staging_frontend_sentry_dsn" {
+  description = "Staging Sentry DSN for frontend"
   type        = string
   default     = ""
 }
 
-# Domain
-variable "domain" {
-  description = "Custom domain (e.g., heimpath.com)"
+variable "staging_frontend_subdomain" {
+  description = "Staging frontend subdomain"
   type        = string
-  default     = "heimpath.com"
+  default     = "staging"
 }
 
-variable "frontend_subdomain" {
-  description = "Frontend subdomain (www for prod, staging for staging)"
+variable "staging_backend_subdomain" {
+  description = "Staging backend subdomain"
   type        = string
+  default     = "api.staging"
 }
 
-variable "backend_subdomain" {
-  description = "Backend subdomain (api for prod, api.staging for staging)"
+variable "staging_frontend_url" {
+  description = "Staging frontend URL for CORS"
   type        = string
+  default     = "https://staging.heimpath.com"
 }
 
-# Scaling
-variable "backend_min_replicas" {
-  description = "Minimum backend replicas"
+variable "staging_backend_min_replicas" {
+  description = "Staging minimum backend replicas"
   type        = number
   default     = 0
 }
 
-variable "backend_max_replicas" {
-  description = "Maximum backend replicas"
+variable "staging_backend_max_replicas" {
+  description = "Staging maximum backend replicas"
   type        = number
   default     = 1
 }
 
-variable "frontend_min_replicas" {
-  description = "Minimum frontend replicas"
+variable "staging_frontend_min_replicas" {
+  description = "Staging minimum frontend replicas"
   type        = number
   default     = 0
 }
 
-variable "frontend_max_replicas" {
-  description = "Maximum frontend replicas"
+variable "staging_frontend_max_replicas" {
+  description = "Staging maximum frontend replicas"
   type        = number
   default     = 1
 }
 
-# CORS
-variable "frontend_url" {
-  description = "Frontend URL for CORS (e.g., https://www.heimpath.com)"
-  type        = string
-}
-
-# SMTP (optional)
-variable "smtp_host" {
-  description = "SMTP host"
+variable "staging_smtp_host" {
+  description = "Staging SMTP host"
   type        = string
   default     = ""
 }
 
-variable "smtp_user" {
-  description = "SMTP user"
+variable "staging_smtp_user" {
+  description = "Staging SMTP user"
   type        = string
   default     = ""
 }
 
-variable "smtp_password" {
-  description = "SMTP password"
+variable "staging_smtp_password" {
+  description = "Staging SMTP password"
   type        = string
   sensitive   = true
   default     = ""
 }
 
-variable "emails_from_email" {
-  description = "Sender email address"
+variable "staging_emails_from_email" {
+  description = "Staging sender email address"
+  type        = string
+  default     = ""
+}
+
+# ──────────────────────────────────────────────
+# Production variables
+# ──────────────────────────────────────────────
+
+variable "prod_backend_image" {
+  description = "Production backend container image"
+  type        = string
+  default     = "ghcr.io/sojisoyoye/heimpath/backend:latest"
+}
+
+variable "prod_frontend_image" {
+  description = "Production frontend container image"
+  type        = string
+  default     = "ghcr.io/sojisoyoye/heimpath/frontend:latest"
+}
+
+variable "prod_postgres_server" {
+  description = "Production PostgreSQL host"
+  type        = string
+}
+
+variable "prod_postgres_port" {
+  description = "Production PostgreSQL port"
+  type        = number
+  default     = 5432
+}
+
+variable "prod_postgres_user" {
+  description = "Production PostgreSQL user"
+  type        = string
+}
+
+variable "prod_postgres_password" {
+  description = "Production PostgreSQL password"
+  type        = string
+  sensitive   = true
+}
+
+variable "prod_postgres_db" {
+  description = "Production PostgreSQL database name"
+  type        = string
+  default     = "neondb"
+}
+
+variable "prod_secret_key" {
+  description = "Production application secret key"
+  type        = string
+  sensitive   = true
+}
+
+variable "prod_first_superuser" {
+  description = "Production first superuser email"
+  type        = string
+}
+
+variable "prod_first_superuser_password" {
+  description = "Production first superuser password"
+  type        = string
+  sensitive   = true
+}
+
+variable "prod_sentry_dsn" {
+  description = "Production Sentry DSN for backend"
+  type        = string
+  default     = ""
+}
+
+variable "prod_frontend_sentry_dsn" {
+  description = "Production Sentry DSN for frontend"
+  type        = string
+  default     = ""
+}
+
+variable "prod_frontend_subdomain" {
+  description = "Production frontend subdomain"
+  type        = string
+  default     = "www"
+}
+
+variable "prod_backend_subdomain" {
+  description = "Production backend subdomain"
+  type        = string
+  default     = "api"
+}
+
+variable "prod_frontend_url" {
+  description = "Production frontend URL for CORS"
+  type        = string
+  default     = "https://www.heimpath.com"
+}
+
+variable "prod_backend_min_replicas" {
+  description = "Production minimum backend replicas"
+  type        = number
+  default     = 1
+}
+
+variable "prod_backend_max_replicas" {
+  description = "Production maximum backend replicas"
+  type        = number
+  default     = 2
+}
+
+variable "prod_frontend_min_replicas" {
+  description = "Production minimum frontend replicas"
+  type        = number
+  default     = 1
+}
+
+variable "prod_frontend_max_replicas" {
+  description = "Production maximum frontend replicas"
+  type        = number
+  default     = 2
+}
+
+variable "prod_smtp_host" {
+  description = "Production SMTP host"
+  type        = string
+  default     = ""
+}
+
+variable "prod_smtp_user" {
+  description = "Production SMTP user"
+  type        = string
+  default     = ""
+}
+
+variable "prod_smtp_password" {
+  description = "Production SMTP password"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "prod_emails_from_email" {
+  description = "Production sender email address"
   type        = string
   default     = ""
 }
