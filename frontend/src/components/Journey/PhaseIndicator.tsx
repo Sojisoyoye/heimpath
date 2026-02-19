@@ -33,7 +33,9 @@ function PhaseStep(props: {
     <div
       className={cn(
         "flex items-center",
-        variant === "horizontal" ? "flex-1" : "flex-col",
+        variant === "horizontal"
+          ? "flex-col sm:flex-1 sm:flex-row"
+          : "flex-col",
       )}
     >
       <div className="flex items-center gap-2">
@@ -66,7 +68,7 @@ function PhaseStep(props: {
       {!isLast && variant === "horizontal" && (
         <div
           className={cn(
-            "mx-2 h-0.5 flex-1",
+            "mt-2 mb-2 w-0.5 h-8 sm:mt-0 sm:mb-0 sm:mx-2 sm:w-auto sm:h-0.5 sm:flex-1",
             isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
           )}
         />
@@ -101,7 +103,9 @@ function PhaseIndicator(props: IProps) {
     <div
       className={cn(
         "flex",
-        variant === "horizontal" ? "flex-row items-center" : "flex-col",
+        variant === "horizontal"
+          ? "flex-col sm:flex-row sm:items-center"
+          : "flex-col",
         className,
       )}
     >

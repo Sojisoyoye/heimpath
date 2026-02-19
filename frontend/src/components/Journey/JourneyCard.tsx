@@ -31,10 +31,10 @@ interface IProps {
 ******************************************************************************/
 
 const PHASE_LABELS: Record<string, string> = {
-  research: "Research Phase",
-  preparation: "Preparation Phase",
-  buying: "Buying Phase",
-  closing: "Closing Phase",
+  research: "Research",
+  preparation: "Preparation",
+  buying: "Buying",
+  closing: "Closing",
 }
 
 /******************************************************************************
@@ -68,18 +68,18 @@ function JourneyCard(props: IProps) {
   return (
     <Card className={cn("transition-all hover:shadow-md", className)}>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="text-xl">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0 flex-1 space-y-1">
+            <CardTitle className="text-lg sm:text-xl">
               {propertyLabel?.split(" ")[0]} in {stateName}
             </CardTitle>
-            <CardDescription className="flex items-center gap-4">
+            <CardDescription className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
                 {stateName}
               </span>
               <span className="flex items-center gap-1">
-                <Home className="h-3.5 w-3.5" />
+                <Home className="h-3.5 w-3.5 shrink-0" />
                 {propertyLabel?.split(" ")[0]}
               </span>
             </CardDescription>
@@ -87,6 +87,7 @@ function JourneyCard(props: IProps) {
           <Badge
             variant="secondary"
             className={cn(
+              "shrink-0",
               journey.current_phase === "research" &&
                 "bg-blue-100 text-blue-800",
               journey.current_phase === "preparation" &&
@@ -113,7 +114,7 @@ function JourneyCard(props: IProps) {
           <ProgressBar value={percentComplete} size="md" />
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" />
             Started {formatDate(journey.started_at)}

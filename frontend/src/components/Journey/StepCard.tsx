@@ -148,7 +148,7 @@ function StepCard(props: IProps) {
       )}
     >
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
               <Badge
@@ -161,10 +161,12 @@ function StepCard(props: IProps) {
                 Step {step.step_number}
               </span>
             </div>
-            <CardTitle className="text-lg">{step.title}</CardTitle>
+            <CardTitle className="text-base sm:text-lg">{step.title}</CardTitle>
             <CardDescription>{step.description}</CardDescription>
           </div>
-          <StatusBadge status={step.status} />
+          <div className="self-start">
+            <StatusBadge status={step.status} />
+          </div>
         </div>
 
         {totalTasks > 0 && (
