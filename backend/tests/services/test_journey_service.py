@@ -405,6 +405,6 @@ class TestStepTemplates:
         ]
         research_steps = [t for t in STEP_TEMPLATES if t.phase == JourneyPhase.RESEARCH]
         assert len(research_steps) == 5
-        for template, (expected_num, expected_key) in zip(research_steps, expected):
+        for template, (expected_num, expected_key) in zip(research_steps, expected, strict=True):
             assert template.step_number == expected_num
             assert template.content_key == expected_key
