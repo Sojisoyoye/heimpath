@@ -26,19 +26,11 @@ import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
-/******************************************************************************
-                              Constants
-******************************************************************************/
-
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
 })
 
 type FormData = z.infer<typeof formSchema>
-
-/******************************************************************************
-                              Route
-******************************************************************************/
 
 export const Route = createFileRoute("/recover-password")({
   component: RecoverPassword,
@@ -52,11 +44,6 @@ export const Route = createFileRoute("/recover-password")({
   }),
 })
 
-/******************************************************************************
-                              Components
-******************************************************************************/
-
-/** Success message after email is sent. */
 function SuccessMessage() {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
@@ -86,7 +73,6 @@ function SuccessMessage() {
   )
 }
 
-/** Default component. Password recovery page. */
 function RecoverPassword() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -179,9 +165,5 @@ function RecoverPassword() {
     </AuthLayout>
   )
 }
-
-/******************************************************************************
-                              Export
-******************************************************************************/
 
 export default RecoverPassword

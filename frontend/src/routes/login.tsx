@@ -22,10 +22,6 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
-/******************************************************************************
-                              Constants
-******************************************************************************/
-
 const formSchema = z.object({
   username: z.string().email({ message: "Please enter a valid email address" }),
   password: z
@@ -35,10 +31,6 @@ const formSchema = z.object({
 }) satisfies z.ZodType<AccessToken>
 
 type FormData = z.infer<typeof formSchema>
-
-/******************************************************************************
-                              Route
-******************************************************************************/
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -52,11 +44,6 @@ export const Route = createFileRoute("/login")({
   }),
 })
 
-/******************************************************************************
-                              Components
-******************************************************************************/
-
-/** Default component. Login page. */
 function Login() {
   const { loginMutation } = useAuth()
   const form = useForm<FormData>({
@@ -146,7 +133,7 @@ function Login() {
           </div>
 
           <div className="text-center text-sm text-muted-foreground">
-            New to HeimPath?{" "}
+            New to HeimPath?
             <RouterLink
               to="/signup"
               className="font-medium text-foreground underline underline-offset-4 hover:text-blue-600"
@@ -159,9 +146,5 @@ function Login() {
     </AuthLayout>
   )
 }
-
-/******************************************************************************
-                              Export
-******************************************************************************/
 
 export default Login
