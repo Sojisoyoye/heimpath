@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
+import { PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -83,16 +84,6 @@ const STATUS_CONFIG: Record<
   },
 }
 
-const PHASE_COLORS: Record<string, string> = {
-  research: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  preparation:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  buying:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  closing:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-}
-
 /******************************************************************************
                               Components
 ******************************************************************************/
@@ -148,7 +139,7 @@ function StepCard(props: IProps) {
       )}
     >
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
               <Badge
@@ -161,10 +152,12 @@ function StepCard(props: IProps) {
                 Step {step.step_number}
               </span>
             </div>
-            <CardTitle className="text-lg">{step.title}</CardTitle>
+            <CardTitle className="text-base sm:text-lg">{step.title}</CardTitle>
             <CardDescription>{step.description}</CardDescription>
           </div>
-          <StatusBadge status={step.status} />
+          <div className="self-start">
+            <StatusBadge status={step.status} />
+          </div>
         </div>
 
         {totalTasks > 0 && (

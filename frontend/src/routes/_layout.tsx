@@ -26,7 +26,7 @@ function Layout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 bg-background px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-2">
             <NotificationBell />

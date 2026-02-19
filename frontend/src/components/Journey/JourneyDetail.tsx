@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, Home, MapPin, Wallet } from "lucide-react"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
+  PHASE_COLORS,
   PROPERTY_TYPES,
 } from "@/common/constants"
 import { cn } from "@/common/utils"
@@ -197,37 +198,33 @@ function JourneyDetail(props: IProps) {
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex items-start gap-3 sm:gap-4">
+        <Button variant="ghost" size="icon" className="shrink-0" asChild>
           <Link to="/journeys">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">
-            {propertyLabel} in {stateName}
-          </h1>
-          <p className="text-muted-foreground">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <h1 className="text-xl font-bold sm:text-2xl">
+              {propertyLabel} in {stateName}
+            </h1>
+            <Badge
+              variant="secondary"
+              className={cn(
+                "shrink-0 text-sm",
+                PHASE_COLORS[journey.current_phase],
+              )}
+            >
+              {journey.current_phase.charAt(0).toUpperCase() +
+                journey.current_phase.slice(1)}{" "}
+              Phase
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground sm:text-base">
             Your personalized property buying journey
           </p>
         </div>
-        <Badge
-          variant="secondary"
-          className={cn(
-            "text-sm",
-            journey.current_phase === "research" && "bg-blue-100 text-blue-800",
-            journey.current_phase === "preparation" &&
-              "bg-purple-100 text-purple-800",
-            journey.current_phase === "buying" &&
-              "bg-orange-100 text-orange-800",
-            journey.current_phase === "closing" &&
-              "bg-green-100 text-green-800",
-          )}
-        >
-          {journey.current_phase.charAt(0).toUpperCase() +
-            journey.current_phase.slice(1)}{" "}
-          Phase
-        </Badge>
       </div>
 
       {/* Phase indicator */}
@@ -256,8 +253,8 @@ function JourneyDetail(props: IProps) {
           ))}
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
+        {/* Sidebar — comes first on mobile via order-first, natural order on desktop */}
+        <div className="order-first lg:order-none space-y-6">
           <JourneyOverview journey={journey} progress={progress} />
         </div>
       </div>
