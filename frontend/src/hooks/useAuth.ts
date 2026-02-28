@@ -15,7 +15,7 @@ const isLoggedIn = () => {
   return localStorage.getItem("access_token") !== null
 }
 
-const useAuth = () => {
+const useAuth = (redirectTo?: string) => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
@@ -30,7 +30,7 @@ const useAuth = () => {
     mutationFn: (data: UserRegister) =>
       UsersService.registerUser({ requestBody: data }),
     onSuccess: () => {
-      navigate({ to: "/login" })
+      navigate({ to: "/login", search: redirectTo ? { redirect: redirectTo } : {} })
     },
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
@@ -48,14 +48,18 @@ const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: () => {
-      navigate({ to: "/" })
+      if (redirectTo) {
+        window.location.href = redirectTo
+        return
+      }
+      navigate({ to: "/dashboard" })
     },
     onError: handleError.bind(showErrorToast),
   })
 
   const logout = () => {
     localStorage.removeItem("access_token")
-    navigate({ to: "/login" })
+    navigate({ to: "/" })
   }
 
   return {

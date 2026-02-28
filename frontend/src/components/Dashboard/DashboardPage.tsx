@@ -12,6 +12,7 @@ import {
   FileText,
   MapIcon,
   Plus,
+  TrendingUp,
   Upload,
 } from "lucide-react"
 
@@ -201,6 +202,28 @@ function EmptyJourneyCard() {
   )
 }
 
+/** CTA card for property evaluation calculator. */
+function PropertyEvaluationCta() {
+  return (
+    <Card className="border-dashed">
+      <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+        <TrendingUp className="mb-4 h-12 w-12 text-muted-foreground" />
+        <h3 className="text-lg font-semibold">Evaluate a Property</h3>
+        <p className="mb-6 max-w-sm text-sm text-muted-foreground">
+          Found a property? Estimate your monthly costs, cashflow, and return on
+          investment instantly.
+        </p>
+        <Button asChild>
+          <Link to="/calculators" search={{ tab: "property-evaluation" }}>
+            <ArrowRight className="mr-2 h-4 w-4" />
+            Evaluate Now
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 /** Quick action buttons grid. */
 function QuickActions(props: { journeyId?: string }) {
   const actions = [
@@ -215,6 +238,12 @@ function QuickActions(props: { journeyId?: string }) {
       icon: Calculator,
       to: "/calculators" as const,
       color: "text-orange-600",
+    },
+    {
+      label: "Evaluate Property",
+      icon: TrendingUp,
+      to: "/calculators" as const,
+      color: "text-teal-600",
     },
     {
       label: "Browse Laws",
@@ -495,6 +524,8 @@ function DashboardPage(props: IProps) {
           ) : (
             <EmptyJourneyCard />
           )}
+
+          <PropertyEvaluationCta />
 
           <SavedItemsSection
             documents={data.recentDocuments}

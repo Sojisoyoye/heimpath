@@ -107,12 +107,10 @@ function loadFromStorage(
   initialStateCode?: string,
   initialBudget?: number,
 ): PropertyEvaluationState {
-  if (!journeyId) {
-    return createInitialState(initialStateCode, initialBudget)
-  }
+  const storageKey = STORAGE_KEY_PREFIX + (journeyId || "standalone")
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY_PREFIX + journeyId)
+    const stored = localStorage.getItem(storageKey)
     if (stored) {
       const parsed = JSON.parse(stored)
       // Validate new structure by checking for a key unique to the new format
@@ -125,7 +123,7 @@ function loadFromStorage(
         return parsed as PropertyEvaluationState
       }
       // Old format detected: discard and use fresh defaults
-      localStorage.removeItem(STORAGE_KEY_PREFIX + journeyId)
+      localStorage.removeItem(storageKey)
     }
   } catch {
     // Ignore parse errors
@@ -223,12 +221,12 @@ function PropertyEvaluationCalculator(
   const deleteEvaluation = useDeletePropertyEvaluation()
   const { data: savedEvals } = useUserPropertyEvaluations()
 
+  const storageKey = journeyId || "standalone"
+
   // Save to localStorage when state changes
   useEffect(() => {
-    if (journeyId) {
-      saveToStorage(journeyId, state)
-    }
-  }, [journeyId, state])
+    saveToStorage(storageKey, state)
+  }, [storageKey, state])
 
   const updatePropertyInfo = useCallback(
     (updates: Partial<PropertyInfoInputs>) => {
@@ -267,9 +265,7 @@ function PropertyEvaluationCalculator(
   const handleReset = () => {
     const newState = createInitialState(initialState, initialBudget)
     setState(newState)
-    if (journeyId) {
-      saveToStorage(journeyId, newState)
-    }
+    saveToStorage(storageKey, newState)
   }
 
   const handleExport = () => {
@@ -339,14 +335,16 @@ function PropertyEvaluationCalculator(
     <div className={cn("space-y-6", className)}>
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link
-            to={journeyId ? "/journeys/$journeyId" : "/calculators"}
-            params={journeyId ? { journeyId } : {}}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
+        {journeyId && (
+          <Button variant="ghost" size="icon" asChild>
+            <Link
+              to="/journeys/$journeyId"
+              params={{ journeyId }}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+        )}
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Property Evaluation Calculator</h1>
           <p className="text-muted-foreground">

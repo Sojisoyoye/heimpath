@@ -36,7 +36,7 @@ export const Route = createFileRoute("/recover-password")({
   component: RecoverPassword,
   beforeLoad: async () => {
     if (isLoggedIn()) {
-      throw redirect({ to: "/" })
+      throw redirect({ to: "/dashboard" })
     }
   },
   head: () => ({

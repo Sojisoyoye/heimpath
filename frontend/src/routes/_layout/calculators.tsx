@@ -7,6 +7,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import {
   ArrowUpDown,
   Calculator,
+  ClipboardList,
   Euro,
   Landmark,
   TrendingUp,
@@ -14,6 +15,7 @@ import {
 import {
   FinancingWizard,
   HiddenCostsCalculator,
+  PropertyEvaluationCalculator,
   ROICalculator,
   StateComparison,
 } from "@/components/Calculators"
@@ -25,6 +27,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const Route = createFileRoute("/_layout/calculators")({
   component: CalculatorsPage,
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: (search.tab as string) || undefined,
+  }),
   head: () => ({
     meta: [{ title: "Calculators - HeimPath" }],
   }),
@@ -36,6 +41,8 @@ export const Route = createFileRoute("/_layout/calculators")({
 
 /** Default component. Calculators page with tabs. */
 function CalculatorsPage() {
+  const { tab } = Route.useSearch()
+
   return (
     <div className="space-y-6">
       <div>
@@ -48,7 +55,7 @@ function CalculatorsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="costs">
+      <Tabs defaultValue={tab || "costs"}>
         <TabsList>
           <TabsTrigger value="costs" className="gap-2">
             <Euro className="h-4 w-4" />
@@ -66,6 +73,10 @@ function CalculatorsPage() {
             <Landmark className="h-4 w-4" />
             Financing
           </TabsTrigger>
+          <TabsTrigger value="property-evaluation" className="gap-2">
+            <ClipboardList className="h-4 w-4" />
+            Property Evaluation
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -82,6 +93,10 @@ function CalculatorsPage() {
 
         <TabsContent value="financing" className="mt-6">
           <FinancingWizard />
+        </TabsContent>
+
+        <TabsContent value="property-evaluation" className="mt-6">
+          <PropertyEvaluationCalculator />
         </TabsContent>
       </Tabs>
     </div>

@@ -63,9 +63,12 @@ type FormData = z.infer<typeof formSchema>
 
 export const Route = createFileRoute("/signup")({
   component: SignUp,
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+    redirect: (search.redirect as string) || undefined,
+  }),
   beforeLoad: async () => {
     if (isLoggedIn()) {
-      throw redirect({ to: "/" })
+      throw redirect({ to: "/dashboard" })
     }
   },
   head: () => ({
@@ -79,7 +82,8 @@ export const Route = createFileRoute("/signup")({
 
 /** Default component. Sign up page. */
 function SignUp() {
-  const { signUpMutation } = useAuth()
+  const { redirect: redirectTo } = Route.useSearch()
+  const { signUpMutation } = useAuth(redirectTo)
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",

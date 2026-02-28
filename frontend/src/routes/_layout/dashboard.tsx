@@ -3,7 +3,7 @@ import DashboardPage from "@/components/Dashboard/DashboardPage"
 import { useDashboardOverview } from "@/hooks/queries/useDashboardQueries"
 import useAuth from "@/hooks/useAuth"
 
-export const Route = createFileRoute("/_layout/")({
+export const Route = createFileRoute("/_layout/dashboard")({
   component: Dashboard,
   head: () => ({
     meta: [
