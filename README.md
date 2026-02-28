@@ -2,6 +2,14 @@
 
 HeimPath is a comprehensive platform helping foreign investors and immigrants navigate the German property buying process. The platform combines guided journeys, legal knowledge, document translation, and financial calculators to make property buying in Germany accessible and transparent.
 
+## Environments
+
+| Environment | URL | Deploys from |
+|-------------|-----|--------------|
+| Production | https://heimpath.com | Manual (`workflow_dispatch` with image tag) |
+| Staging | https://staging.heimpath.com | Automatic on push to `main` |
+| Local | http://localhost:5173 (frontend), http://localhost:8000 (backend) | `docker compose up` |
+
 ## Features
 
 ### Core Features
@@ -11,6 +19,7 @@ HeimPath is a comprehensive platform helping foreign investors and immigrants na
   - 15+ customizable steps based on user profile
   - Task tracking and progress monitoring
   - Personalization based on property type, financing, residency status
+  - Journey deletion with confirmation
 
 - **Legal Knowledge Base** - Comprehensive database of 50+ German real estate laws
   - Laws translated and explained in plain English
@@ -20,11 +29,19 @@ HeimPath is a comprehensive platform helping foreign investors and immigrants na
   - Bookmark functionality for quick reference
   - Laws automatically surfaced at relevant journey steps
 
-- **Document Translation** - AI-powered translation of German legal documents (Coming Soon)
+- **Financial Calculators**
+  - Property Evaluation calculator with investment analysis
+  - Hidden costs calculator
+  - ROI calculator
+  - Financing eligibility checker
+
+- **Document Translation** - AI-powered translation of German legal documents
   - Risk warnings for legal/financial terms
   - Confidence scores for translations
 
-- **Financial Calculators** - Hidden costs calculator, ROI calculator, financing eligibility (Coming Soon)
+- **Dashboard** - Overview of active journeys, recent activity, and recommendations
+
+- **Notification System** - In-app notifications with read/unread tracking and preferences
 
 ### Technical Features
 
@@ -46,22 +63,27 @@ HeimPath is a comprehensive platform helping foreign investors and immigrants na
 - **SQLModel/SQLAlchemy** - Python ORM
 - **Pydantic** - Data validation and settings management
 - **Alembic** - Database migrations
-- **Pytest** - Testing framework (271+ tests)
+- **Pytest** - Testing framework
 
 ### Frontend
 - **React** - Frontend library
 - **TypeScript** - Type-safe JavaScript
+- **TanStack Router** - Type-safe routing
+- **TanStack Query** - Server state management
 - **Tailwind CSS** - Utility-first CSS framework
 - **Vite** - Fast build tool
 
 ### Infrastructure
-- **Docker Compose** - Container orchestration
+- **Azure Container Apps** - Cloud hosting (staging and production)
+- **Docker Compose** - Local development and container orchestration
 - **Traefik** - Reverse proxy with automatic HTTPS
+- **GHCR** - Container image registry
 - **GitHub Actions** - CI/CD pipelines
+- **Sentry** - Error monitoring (optional)
 
 ### Integrations
 - **Stripe** - Payment processing
-- **DeepL** - Document translation (planned)
+- **Azure Translator** - Document translation
 
 ## Getting Started
 
@@ -75,7 +97,7 @@ HeimPath is a comprehensive platform helping foreign investors and immigrants na
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-org/heimpath.git
+git clone https://github.com/Sojisoyoye/heimpath.git
 cd heimpath
 ```
 
@@ -101,12 +123,41 @@ Key environment variables to configure:
 
 | Variable | Description |
 |----------|-------------|
+| `DOMAIN` | Domain for Traefik routing (default: `localhost`) |
+| `FRONTEND_HOST` | Frontend URL for email links |
+| `ENVIRONMENT` | `local`, `staging`, or `production` |
 | `SECRET_KEY` | JWT secret key |
 | `POSTGRES_PASSWORD` | Database password |
 | `FIRST_SUPERUSER` | Admin email |
 | `FIRST_SUPERUSER_PASSWORD` | Admin password |
 | `STRIPE_SECRET_KEY` | Stripe API key (optional) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret (optional) |
+| `SENTRY_DSN` | Sentry DSN for error tracking (optional) |
+| `AZURE_TRANSLATOR_KEY` | Azure Translator API key (optional) |
+| `AZURE_TRANSLATOR_REGION` | Azure Translator region (optional) |
+
+See `.env.example` for the full list.
+
+## CI/CD
+
+### Pipelines
+
+| Workflow | Trigger | Description |
+|----------|---------|-------------|
+| **Test Backend** | Push to `main`, PRs | Runs backend test suite |
+| **Pre-commit** | PRs | Linting and formatting checks |
+| **Playwright** | PRs | End-to-end tests |
+| **Security Scan** | PRs | Dependency vulnerability scanning |
+| **Deploy Staging** | Push to `main` | Builds images, runs migrations, deploys to staging |
+| **Deploy Production** | Manual trigger | Deploys a staging-tested image tag to production |
+
+### Deployment Flow
+
+1. Push to `main` triggers staging deployment automatically
+2. Images are built and pushed to GHCR with tag `staging-<commit-sha>`
+3. Database migrations run via Azure Container Apps job
+4. Backend and frontend containers are updated on Azure Container Apps
+5. After verifying staging, manually trigger production deployment with the tested image tag
 
 ## API Overview
 
@@ -125,9 +176,11 @@ Key environment variables to configure:
 - `POST /api/v1/journeys/` - Create new journey
 - `GET /api/v1/journeys/` - List user journeys
 - `GET /api/v1/journeys/{id}` - Get journey details
+- `DELETE /api/v1/journeys/{id}` - Delete a journey (soft delete)
 - `GET /api/v1/journeys/{id}/progress` - Get journey progress
 - `GET /api/v1/journeys/{id}/next-step` - Get next recommended step
 - `PATCH /api/v1/journeys/{id}/steps/{step_id}` - Update step status
+- `PATCH /api/v1/journeys/{id}/steps/{step_id}/tasks/{task_id}` - Toggle task completion
 
 ### Legal Knowledge Base
 - `GET /api/v1/laws/` - List laws with filtering
@@ -136,6 +189,16 @@ Key environment variables to configure:
 - `GET /api/v1/laws/categories` - List law categories
 - `POST /api/v1/laws/{id}/bookmark` - Bookmark a law
 - `GET /api/v1/laws/bookmarks` - Get user bookmarks
+
+### Calculators
+- `POST /api/v1/calculators/hidden-costs` - Calculate hidden costs
+- `POST /api/v1/calculators/roi` - Calculate ROI
+- `POST /api/v1/calculators/property-evaluations` - Evaluate property
+
+### Dashboard
+- `GET /api/v1/dashboard` - Dashboard overview
+- `GET /api/v1/dashboard/activity` - Recent activity
+- `GET /api/v1/dashboard/recommendations` - Personalized recommendations
 
 ### Subscriptions
 - `GET /api/v1/subscriptions/current` - Get current subscription
@@ -146,23 +209,29 @@ Key environment variables to configure:
 
 ```
 heimpath/
+├── .github/workflows/      # CI/CD pipelines
 ├── backend/
 │   ├── app/
-│   │   ├── api/           # API routes
-│   │   ├── models/        # Database models
-│   │   ├── schemas/       # Pydantic schemas
-│   │   ├── services/      # Business logic
-│   │   ├── repository/    # Data access layer
-│   │   └── core/          # Configuration
-│   ├── tests/             # Test suite
-│   └── alembic/           # Database migrations
+│   │   ├── api/             # API routes
+│   │   ├── models/          # Database models
+│   │   ├── schemas/         # Pydantic schemas
+│   │   ├── services/        # Business logic
+│   │   ├── repository/      # Data access layer
+│   │   └── core/            # Configuration
+│   ├── tests/               # Test suite
+│   └── alembic/             # Database migrations
 ├── frontend/
 │   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── services/      # API client
-│   │   └── hooks/         # Custom hooks
-│   └── tests/             # Frontend tests
-└── docker-compose.yml
+│   │   ├── components/      # React components
+│   │   ├── hooks/           # Custom hooks (queries + mutations)
+│   │   ├── models/          # TypeScript models
+│   │   ├── routes/          # TanStack Router pages
+│   │   ├── services/        # API service layer
+│   │   └── query/           # Query key factory
+│   └── tests/               # E2E tests (Playwright)
+├── compose.yml              # Docker Compose (local + deployment)
+├── compose.override.yml     # Local development overrides
+└── compose.traefik.yml      # Traefik reverse proxy config
 ```
 
 ## Development
@@ -173,8 +242,8 @@ heimpath/
 # Backend tests
 docker compose exec backend pytest -v
 
-# Frontend tests
-cd frontend && npm test
+# Frontend E2E tests
+cd frontend && bunx playwright test
 ```
 
 ### Database Migrations
@@ -187,25 +256,22 @@ docker compose exec backend alembic revision --autogenerate -m "Description"
 docker compose exec backend alembic upgrade head
 ```
 
+### Generate Frontend API Client
+
+```bash
+# Automatic (requires backend venv active)
+bash ./scripts/generate-client.sh
+
+# Manual
+cd frontend && bun run generate-client
+```
+
 ### Code Quality
 
-The project follows strict coding standards:
-- Python: PEP 8, type hints required
-- TypeScript: Strict mode enabled
-- Tests required for all new features
-
-## Roadmap
-
-- [x] User authentication and authorization
-- [x] Guided property journeys
-- [x] Legal knowledge base with search
-- [x] Stripe subscription integration
-- [ ] Document translation with DeepL
-- [ ] Hidden costs calculator
-- [ ] ROI calculator
-- [ ] Financing eligibility checker
-- [ ] User dashboard
-- [ ] Notification system
+The project uses pre-commit hooks and CI checks:
+- **Python**: Ruff (linting + formatting), type hints required
+- **TypeScript**: Biome (linting + formatting), strict mode enabled
+- **Commit messages**: Conventional commits enforced via commitlint
 
 ## License
 

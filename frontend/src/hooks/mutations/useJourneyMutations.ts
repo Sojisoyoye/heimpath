@@ -30,6 +30,23 @@ export function useCreateJourney() {
 }
 
 /**
+ * Delete a journey
+ */
+export function useDeleteJourney() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (journeyId: string) => JourneyService.deleteJourney(journeyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.journeys.all })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboard.overview(),
+      })
+    },
+  })
+}
+
+/**
  * Update a journey step status
  */
 export function useUpdateStep(journeyId: string) {

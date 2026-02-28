@@ -15,6 +15,7 @@ import { JourneyCard } from "./JourneyCard"
 interface IProps {
   journeys: JourneyPublic[]
   isLoading?: boolean
+  onDelete?: (id: string) => void
   className?: string
 }
 
@@ -69,7 +70,7 @@ function JourneyCardSkeleton() {
 
 /** Default component. List of journey cards. */
 function JourneyList(props: IProps) {
-  const { journeys, isLoading = false, className } = props
+  const { journeys, isLoading = false, onDelete, className } = props
 
   if (isLoading) {
     return (
@@ -90,7 +91,7 @@ function JourneyList(props: IProps) {
   return (
     <div className={cn("grid gap-6 md:grid-cols-2 lg:grid-cols-3", className)}>
       {journeys.map((journey) => (
-        <JourneyCard key={journey.id} journey={journey} />
+        <JourneyCard key={journey.id} journey={journey} onDelete={onDelete} />
       ))}
     </div>
   )
