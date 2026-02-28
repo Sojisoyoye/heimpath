@@ -123,6 +123,16 @@ class JourneyServiceClass {
   }
 
   /**
+   * Delete a journey
+   */
+  async deleteJourney(journeyId: string): Promise<void> {
+    await request<void>(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.JOURNEYS.DETAIL(journeyId),
+    })
+  }
+
+  /**
    * Update property goals for a journey (Step 1)
    */
   async updatePropertyGoals(

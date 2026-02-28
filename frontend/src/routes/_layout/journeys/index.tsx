@@ -5,9 +5,12 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
-import { JourneyList } from "@/components/Journey"
+import { useState } from "react"
+import { DeleteJourneyDialog, JourneyList } from "@/components/Journey"
 import { Button } from "@/components/ui/button"
+import { useDeleteJourney } from "@/hooks/mutations/useJourneyMutations"
 import { useJourneys } from "@/hooks/queries"
+import useCustomToast from "@/hooks/useCustomToast"
 
 /******************************************************************************
                               Route
@@ -27,6 +30,22 @@ export const Route = createFileRoute("/_layout/journeys/")({
 /** Default component. Journeys list page. */
 function JourneysPage() {
   const { data: journeys = [], isLoading, error } = useJourneys()
+  const deleteJourney = useDeleteJourney()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return
+    deleteJourney.mutate(deleteId, {
+      onSuccess: () => {
+        showSuccessToast("Journey deleted successfully")
+        setDeleteId(null)
+      },
+      onError: () => {
+        showErrorToast("Failed to delete journey. Please try again.")
+      },
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -52,8 +71,21 @@ function JourneysPage() {
           </p>
         </div>
       ) : (
-        <JourneyList journeys={journeys} isLoading={isLoading} />
+        <JourneyList
+          journeys={journeys}
+          isLoading={isLoading}
+          onDelete={setDeleteId}
+        />
       )}
+
+      <DeleteJourneyDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteId(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        isPending={deleteJourney.isPending}
+      />
     </div>
   )
 }

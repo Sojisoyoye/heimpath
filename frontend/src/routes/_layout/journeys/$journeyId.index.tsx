@@ -3,11 +3,16 @@
  * Displays a single journey with all steps
  */
 
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useState } from "react"
 
-import { JourneyDetail } from "@/components/Journey"
-import { useUpdateTask } from "@/hooks/mutations/useJourneyMutations"
+import { DeleteJourneyDialog, JourneyDetail } from "@/components/Journey"
+import {
+  useDeleteJourney,
+  useUpdateTask,
+} from "@/hooks/mutations/useJourneyMutations"
 import { useJourney, useJourneyProgress } from "@/hooks/queries"
+import useCustomToast from "@/hooks/useCustomToast"
 
 /******************************************************************************
                               Route
@@ -27,6 +32,7 @@ export const Route = createFileRoute("/_layout/journeys/$journeyId/")({
 /** Default component. Journey detail page. */
 function JourneyDetailPage() {
   const { journeyId } = Route.useParams()
+  const navigate = useNavigate()
 
   const {
     data: journey,
@@ -36,6 +42,9 @@ function JourneyDetailPage() {
 
   const { data: progress } = useJourneyProgress(journeyId)
   const updateTask = useUpdateTask(journeyId)
+  const deleteJourney = useDeleteJourney()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleTaskToggle = (
     stepId: string,
@@ -43,6 +52,18 @@ function JourneyDetailPage() {
     isCompleted: boolean,
   ) => {
     updateTask.mutate({ stepId, taskId, data: { is_completed: isCompleted } })
+  }
+
+  const handleDeleteConfirm = () => {
+    deleteJourney.mutate(journeyId, {
+      onSuccess: () => {
+        showSuccessToast("Journey deleted successfully")
+        navigate({ to: "/journeys" })
+      },
+      onError: () => {
+        showErrorToast("Failed to delete journey. Please try again.")
+      },
+    })
   }
 
   if (journeyError) {
@@ -67,11 +88,20 @@ function JourneyDetailPage() {
   }
 
   return (
-    <JourneyDetail
-      journey={journey}
-      progress={progress}
-      onTaskToggle={handleTaskToggle}
-    />
+    <>
+      <JourneyDetail
+        journey={journey}
+        progress={progress}
+        onTaskToggle={handleTaskToggle}
+        onDelete={() => setShowDeleteDialog(true)}
+      />
+      <DeleteJourneyDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDeleteConfirm}
+        isPending={deleteJourney.isPending}
+      />
+    </>
   )
 }
 

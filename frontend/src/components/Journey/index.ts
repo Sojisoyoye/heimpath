@@ -3,6 +3,7 @@
  */
 
 export { BudgetInput } from "./BudgetInput"
+export { DeleteJourneyDialog } from "./DeleteJourneyDialog"
 export { FinancingSelector } from "./FinancingSelector"
 // Dashboard components
 export { JourneyCard } from "./JourneyCard"

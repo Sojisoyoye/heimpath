@@ -4,7 +4,7 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, Calendar, Home, MapPin, Wallet } from "lucide-react"
+import { ArrowLeft, Calendar, Home, MapPin, Trash2, Wallet } from "lucide-react"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
@@ -27,6 +27,7 @@ interface IProps {
   journey: JourneyPublic
   progress?: JourneyProgress
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
+  onDelete?: () => void
   isLoading?: boolean
   className?: string
 }
@@ -163,6 +164,7 @@ function JourneyDetail(props: IProps) {
     journey,
     progress,
     onTaskToggle,
+    onDelete,
     isLoading = false,
     className,
   } = props
@@ -193,17 +195,30 @@ function JourneyDetail(props: IProps) {
             <h1 className="text-xl font-bold sm:text-2xl">
               {propertyLabel} in {stateName}
             </h1>
-            <Badge
-              variant="secondary"
-              className={cn(
-                "shrink-0 text-sm",
-                PHASE_COLORS[journey.current_phase],
+            <div className="flex shrink-0 items-center gap-1">
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Delete journey"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={onDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               )}
-            >
-              {journey.current_phase.charAt(0).toUpperCase() +
-                journey.current_phase.slice(1)}{" "}
-              Phase
-            </Badge>
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "shrink-0 text-sm",
+                  PHASE_COLORS[journey.current_phase],
+                )}
+              >
+                {journey.current_phase.charAt(0).toUpperCase() +
+                  journey.current_phase.slice(1)}{" "}
+                Phase
+              </Badge>
+            </div>
           </div>
           <p className="text-sm text-muted-foreground sm:text-base">
             Your personalized property buying journey
