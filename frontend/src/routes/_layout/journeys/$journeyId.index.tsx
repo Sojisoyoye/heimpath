@@ -6,6 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { JourneyDetail } from "@/components/Journey"
+import { useUpdateTask } from "@/hooks/mutations/useJourneyMutations"
 import { useJourney, useJourneyProgress } from "@/hooks/queries"
 
 /******************************************************************************
@@ -34,13 +35,14 @@ function JourneyDetailPage() {
   } = useJourney(journeyId)
 
   const { data: progress } = useJourneyProgress(journeyId)
+  const updateTask = useUpdateTask(journeyId)
 
   const handleTaskToggle = (
     stepId: string,
     taskId: string,
     isCompleted: boolean,
   ) => {
-    console.log("Toggle task:", { stepId, taskId, isCompleted })
+    updateTask.mutate({ stepId, taskId, data: { is_completed: isCompleted } })
   }
 
   if (journeyError) {

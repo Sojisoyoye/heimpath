@@ -11,13 +11,14 @@ import {
   PHASE_COLORS,
   PROPERTY_TYPES,
 } from "@/common/constants"
-import { cn } from "@/common/utils"
+import { cn, formatDate, formatEur } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { JourneyProgress, JourneyPublic } from "@/models/journey"
+import { JourneyProvider } from "./JourneyContext"
 import { PhaseIndicator } from "./PhaseIndicator"
 import { ProgressBar } from "./ProgressBar"
 import { StepCard } from "./StepCard"
@@ -51,23 +52,6 @@ function JourneyOverview(props: {
     FINANCING_TYPES.find((f) => f.value === journey.financing_type)?.label ||
     journey.financing_type
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "Not set"
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    })
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("de-DE", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -94,7 +78,7 @@ function JourneyOverview(props: {
             <div className="flex items-start gap-2 text-sm">
               <span className="text-muted-foreground">Budget:</span>
               <span className="font-medium">
-                {formatCurrency(journey.budget_euros)}
+                {formatEur(journey.budget_euros)}
               </span>
             </div>
           )}
@@ -234,30 +218,26 @@ function JourneyDetail(props: IProps) {
       />
 
       {/* Main content */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Steps list */}
-        <div className="lg:col-span-2 space-y-4">
-          {journey.steps.map((step) => (
-            <StepCard
-              key={step.id}
-              step={step}
-              journeyId={journey.id}
-              onTaskToggle={onTaskToggle}
-              isActive={step.step_number === journey.current_step_number}
-              defaultExpanded={step.step_number === journey.current_step_number}
-              propertyLocation={journey.property_location}
-              propertyType={journey.property_type}
-              budgetEuros={journey.budget_euros}
-              propertyGoals={journey.property_goals}
-            />
-          ))}
-        </div>
+      <JourneyProvider journey={journey}>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Steps list */}
+          <div className="lg:col-span-2 space-y-4">
+            {journey.steps.map((step) => (
+              <StepCard
+                key={step.id}
+                step={step}
+                isActive={step.step_number === journey.current_step_number}
+                onTaskToggle={onTaskToggle}
+              />
+            ))}
+          </div>
 
-        {/* Sidebar — comes first on mobile via order-first, natural order on desktop */}
-        <div className="order-first lg:order-none space-y-6">
-          <JourneyOverview journey={journey} progress={progress} />
+          {/* Sidebar — comes first on mobile via order-first, natural order on desktop */}
+          <div className="order-first lg:order-none space-y-6">
+            <JourneyOverview journey={journey} progress={progress} />
+          </div>
         </div>
-      </div>
+      </JourneyProvider>
     </div>
   )
 }

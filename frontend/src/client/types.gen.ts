@@ -1094,6 +1094,54 @@ export type ProjectionYear = {
     total_return_percent: number;
 };
 
+export type PropertyEvaluationCreate = {
+    name?: (string | null);
+    journey_step_id?: (string | null);
+    /**
+     * Full PropertyEvaluationState from frontend
+     */
+    inputs: {
+        [key: string]: unknown;
+    };
+};
+
+export type PropertyEvaluationListResponse = {
+    data: Array<PropertyEvaluationSummary>;
+    count: number;
+};
+
+export type PropertyEvaluationResponse = {
+    id: string;
+    name?: (string | null);
+    share_id?: (string | null);
+    journey_step_id?: (string | null);
+    purchase_price: number;
+    square_meters: number;
+    state_code?: (string | null);
+    cashflow_after_tax: number;
+    gross_rental_yield: number;
+    return_on_equity: number;
+    is_positive_cashflow: boolean;
+    inputs: {
+        [key: string]: unknown;
+    };
+    results: {
+        [key: string]: unknown;
+    };
+    created_at: string;
+};
+
+export type PropertyEvaluationSummary = {
+    id: string;
+    name?: (string | null);
+    share_id?: (string | null);
+    purchase_price: number;
+    cashflow_after_tax: number;
+    gross_rental_yield: number;
+    is_positive_cashflow: boolean;
+    created_at: string;
+};
+
 /**
  * Property goals and preferences from Step 1.
  */
@@ -1786,6 +1834,38 @@ export type CalculatorsDeleteRoiCalculationData = {
 };
 
 export type CalculatorsDeleteRoiCalculationResponse = (void);
+
+export type CalculatorsGetSharedPropertyEvaluationData = {
+    shareId: string;
+};
+
+export type CalculatorsGetSharedPropertyEvaluationResponse = (PropertyEvaluationResponse);
+
+export type CalculatorsListStepPropertyEvaluationsData = {
+    stepId: string;
+};
+
+export type CalculatorsListStepPropertyEvaluationsResponse = (PropertyEvaluationListResponse);
+
+export type CalculatorsListPropertyEvaluationsResponse = (PropertyEvaluationListResponse);
+
+export type CalculatorsSavePropertyEvaluationData = {
+    requestBody: PropertyEvaluationCreate;
+};
+
+export type CalculatorsSavePropertyEvaluationResponse = (PropertyEvaluationResponse);
+
+export type CalculatorsGetPropertyEvaluationData = {
+    evalId: string;
+};
+
+export type CalculatorsGetPropertyEvaluationResponse = (PropertyEvaluationResponse);
+
+export type CalculatorsDeletePropertyEvaluationData = {
+    evalId: string;
+};
+
+export type CalculatorsDeletePropertyEvaluationResponse = (void);
 
 export type DashboardGetDashboardOverviewResponse = (DashboardOverviewResponse);
 

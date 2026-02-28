@@ -58,9 +58,14 @@ function PropertyEvaluationPage() {
     return <LoadingSkeleton />
   }
 
+  const evaluationStep = journey?.steps.find(
+    (s) => s.content_key === "property_evaluation",
+  )
+
   return (
     <PropertyEvaluationCalculator
       journeyId={journeyId}
+      journeyStepId={evaluationStep?.id}
       initialState={journey?.property_location}
       initialBudget={journey?.budget_euros}
     />

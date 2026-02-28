@@ -38,14 +38,3 @@ export function useJourneyProgress(journeyId: string) {
     enabled: !!journeyId,
   })
 }
-
-/**
- * Get next recommended step
- */
-export function useNextStep(journeyId: string) {
-  return useQuery({
-    queryKey: queryKeys.journeys.nextStep(journeyId),
-    queryFn: () => JourneyService.getNextStep(journeyId),
-    enabled: !!journeyId,
-  })
-}

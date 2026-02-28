@@ -647,14 +647,21 @@ class JourneyService:
         step: JourneyStep,
         task_id: uuid.UUID,
         is_completed: bool,
+        journey: Journey,
     ) -> JourneyTask:
         """Update a task's completion status.
+
+        Automatically syncs the parent step status:
+        - First task checked on a not_started step → in_progress
+        - All tasks completed → completed (advances journey)
+        - Task unchecked on a completed step → in_progress
 
         Args:
             session: Database session.
             step: JourneyStep object.
             task_id: Task UUID.
             is_completed: New completion status.
+            journey: Journey object for step advancement on completion.
 
         Returns:
             Updated JourneyTask.
@@ -667,12 +674,89 @@ class JourneyService:
         if not task:
             raise JourneyError(f"Task {task_id} not found")
 
+        now = datetime.now(timezone.utc)
         task.is_completed = is_completed
-        task.completed_at = datetime.now(timezone.utc) if is_completed else None
+        task.completed_at = now if is_completed else None
         session.add(task)
+
+        # Sync step status based on task completion
+        self._sync_step_status_from_tasks(session, step, task, journey)
+
         session.commit()
         session.refresh(task)
         return task
+
+    def _sync_step_status_from_tasks(
+        self,
+        session: Session,
+        step: JourneyStep,
+        updated_task: JourneyTask,
+        journey: Journey | None,
+    ) -> None:
+        """Sync step status based on task completion state.
+
+        Args:
+            session: Database session.
+            step: Parent step.
+            updated_task: The task that was just updated (in-memory, not yet committed).
+            journey: Journey object for advancing current step on completion.
+        """
+        # Load all sibling tasks
+        all_tasks_stmt = select(JourneyTask).where(JourneyTask.step_id == step.id)
+        all_tasks = list(session.exec(all_tasks_stmt).all())
+
+        # Build completion map, using the in-memory state for the updated task
+        completed_count = 0
+        for t in all_tasks:
+            is_done = (
+                updated_task.is_completed if t.id == updated_task.id else t.is_completed
+            )
+            if is_done:
+                completed_count += 1
+
+        total_tasks = len(all_tasks)
+        if total_tasks == 0:
+            return
+        all_complete = completed_count == total_tasks
+        any_complete = completed_count > 0
+        now = datetime.now(timezone.utc)
+
+        if all_complete and step.status != StepStatus.COMPLETED:
+            # All tasks done → mark step completed
+            step.status = StepStatus.COMPLETED
+            step.completed_at = now
+            if not step.started_at:
+                step.started_at = now
+            session.add(step)
+
+            # Advance journey to next step
+            if journey:
+                next_step = self._get_next_incomplete_step(session, journey)
+                if next_step:
+                    journey.current_step_number = next_step.step_number
+                    journey.current_phase = next_step.phase
+                else:
+                    journey.completed_at = now
+                session.add(journey)
+
+        elif not all_complete and step.status == StepStatus.COMPLETED:
+            # Task unchecked on a completed step → revert to in_progress
+            step.status = StepStatus.IN_PROGRESS
+            step.completed_at = None
+            session.add(step)
+
+            # Revert journey current step if needed
+            if journey and journey.current_step_number > step.step_number:
+                journey.current_step_number = step.step_number
+                journey.current_phase = step.phase
+                journey.completed_at = None
+                session.add(journey)
+
+        elif any_complete and step.status == StepStatus.NOT_STARTED:
+            # First task checked → move to in_progress
+            step.status = StepStatus.IN_PROGRESS
+            step.started_at = now
+            session.add(step)
 
     def _get_next_incomplete_step(
         self,

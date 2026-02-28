@@ -8,6 +8,7 @@ export { FinancingSelector } from "./FinancingSelector"
 export { JourneyCard } from "./JourneyCard"
 export { JourneyDetail } from "./JourneyDetail"
 export { JourneyList } from "./JourneyList"
+export { JourneySummary } from "./JourneySummary"
 // Wizard components
 export { JourneyWizard } from "./JourneyWizard"
 export { LocationSelector } from "./LocationSelector"
@@ -17,7 +18,11 @@ export { PropertyTypeSelector } from "./PropertyTypeSelector"
 export { ResidencySelector } from "./ResidencySelector"
 export { StepCard } from "./StepCard"
 // Step content components
-export { MarketInsights, PropertyGoalsForm } from "./StepContent"
+export {
+  MarketInsights,
+  PropertyEvaluationSummary,
+  PropertyGoalsForm,
+} from "./StepContent"
 export { TaskCheckbox } from "./TaskCheckbox"
 export { TimelineSelector } from "./TimelineSelector"
 export { WizardStepIndicator } from "./WizardStepIndicator"
