@@ -3642,6 +3642,213 @@ export const ProjectionYearSchema = {
     description: 'Single year projection data.'
 } as const;
 
+export const PropertyEvaluationCreateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        journey_step_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Step Id'
+        },
+        inputs: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Inputs',
+            description: 'Full PropertyEvaluationState from frontend'
+        }
+    },
+    type: 'object',
+    required: ['inputs'],
+    title: 'PropertyEvaluationCreate'
+} as const;
+
+export const PropertyEvaluationListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/PropertyEvaluationSummary'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'PropertyEvaluationListResponse'
+} as const;
+
+export const PropertyEvaluationResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
+        journey_step_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Step Id'
+        },
+        purchase_price: {
+            type: 'number',
+            title: 'Purchase Price'
+        },
+        square_meters: {
+            type: 'number',
+            title: 'Square Meters'
+        },
+        state_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'State Code'
+        },
+        cashflow_after_tax: {
+            type: 'number',
+            title: 'Cashflow After Tax'
+        },
+        gross_rental_yield: {
+            type: 'number',
+            title: 'Gross Rental Yield'
+        },
+        return_on_equity: {
+            type: 'number',
+            title: 'Return On Equity'
+        },
+        is_positive_cashflow: {
+            type: 'boolean',
+            title: 'Is Positive Cashflow'
+        },
+        inputs: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Inputs'
+        },
+        results: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Results'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'purchase_price', 'square_meters', 'cashflow_after_tax', 'gross_rental_yield', 'return_on_equity', 'is_positive_cashflow', 'inputs', 'results', 'created_at'],
+    title: 'PropertyEvaluationResponse'
+} as const;
+
+export const PropertyEvaluationSummarySchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
+        purchase_price: {
+            type: 'number',
+            title: 'Purchase Price'
+        },
+        cashflow_after_tax: {
+            type: 'number',
+            title: 'Cashflow After Tax'
+        },
+        gross_rental_yield: {
+            type: 'number',
+            title: 'Gross Rental Yield'
+        },
+        is_positive_cashflow: {
+            type: 'boolean',
+            title: 'Is Positive Cashflow'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'purchase_price', 'cashflow_after_tax', 'gross_rental_yield', 'is_positive_cashflow', 'created_at'],
+    title: 'PropertyEvaluationSummary'
+} as const;
+
 export const PropertyGoalsSchema = {
     properties: {
         preferred_property_type: {

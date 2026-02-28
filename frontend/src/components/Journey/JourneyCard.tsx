@@ -6,7 +6,7 @@
 import { Link } from "@tanstack/react-router"
 import { ArrowRight, Calendar, Home, MapPin } from "lucide-react"
 import { GERMAN_STATES, PHASE_COLORS, PROPERTY_TYPES } from "@/common/constants"
-import { cn } from "@/common/utils"
+import { cn, formatDate, formatEur } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,14 +49,8 @@ function JourneyCard(props: IProps) {
   const totalSteps = progress?.total_steps ?? journey.steps.length
   const percentComplete = progress?.progress_percentage ?? 0
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "Not set"
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    })
-  }
+  const formatShortDate = (dateStr?: string) =>
+    formatDate(dateStr, { month: "short", day: "numeric", year: "numeric" })
 
   return (
     <Card className={cn("transition-all hover:shadow-md", className)}>
@@ -102,11 +96,11 @@ function JourneyCard(props: IProps) {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" />
-            Started {formatDate(journey.started_at)}
+            Started {formatShortDate(journey.started_at)}
           </span>
           {journey.target_purchase_date && (
             <span className="flex items-center gap-1">
-              Target: {formatDate(journey.target_purchase_date)}
+              Target: {formatShortDate(journey.target_purchase_date)}
             </span>
           )}
         </div>
@@ -115,11 +109,7 @@ function JourneyCard(props: IProps) {
           <div className="text-sm">
             <span className="text-muted-foreground">Budget: </span>
             <span className="font-medium">
-              {new Intl.NumberFormat("de-DE", {
-                style: "currency",
-                currency: "EUR",
-                maximumFractionDigits: 0,
-              }).format(journey.budget_euros)}
+              {formatEur(journey.budget_euros)}
             </span>
           </div>
         )}

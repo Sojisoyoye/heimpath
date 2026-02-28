@@ -64,6 +64,18 @@ export const queryKeys = {
     roiShare: (shareId: string) =>
       [...queryKeys.calculators.all, "roiShare", shareId] as const,
     stateRates: () => [...queryKeys.calculators.all, "stateRates"] as const,
+    propertyEvaluation: (id: string) =>
+      [...queryKeys.calculators.all, "propertyEvaluation", id] as const,
+    propertyEvaluationList: () =>
+      [...queryKeys.calculators.all, "propertyEvaluationList"] as const,
+    propertyEvaluationShare: (shareId: string) =>
+      [
+        ...queryKeys.calculators.all,
+        "propertyEvaluationShare",
+        shareId,
+      ] as const,
+    propertyEvaluationStep: (stepId: string) =>
+      [...queryKeys.calculators.all, "propertyEvaluationStep", stepId] as const,
   },
 
   // Financing queries

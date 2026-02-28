@@ -504,7 +504,7 @@ def update_task_status(
     """
     service = get_journey_service()
     try:
-        _journey = service.get_journey(
+        journey = service.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -515,6 +515,7 @@ def update_task_status(
             step=step,
             task_id=task_id,
             is_completed=request.is_completed,
+            journey=journey,
         )
     except JourneyNotFoundError:
         raise HTTPException(

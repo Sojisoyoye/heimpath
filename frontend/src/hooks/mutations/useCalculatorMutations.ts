@@ -9,6 +9,7 @@ import type {
   HiddenCostCalculationInput,
   ROICalculationInput,
 } from "@/models/calculator"
+import type { PropertyEvaluationInput } from "@/models/propertyEvaluation"
 import { queryKeys } from "@/query/queryKeys"
 import { CalculatorService } from "@/services/CalculatorService"
 
@@ -124,6 +125,48 @@ export function useDeleteFinancingAssessment() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.financing.eligibilityList(),
+      })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Property Evaluation
+// ---------------------------------------------------------------------------
+
+/** Save a property evaluation */
+export function useSavePropertyEvaluation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: PropertyEvaluationInput) =>
+      CalculatorService.savePropertyEvaluation(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.calculators.propertyEvaluationList(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.calculators.all,
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.journeys.all,
+      })
+    },
+  })
+}
+
+/** Delete a saved property evaluation */
+export function useDeletePropertyEvaluation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => CalculatorService.deletePropertyEvaluation(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.calculators.propertyEvaluationList(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.calculators.all,
       })
     },
   })

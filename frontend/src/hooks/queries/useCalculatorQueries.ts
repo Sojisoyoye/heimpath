@@ -132,3 +132,42 @@ export function useUserFinancingAssessments() {
     queryFn: () => CalculatorService.getUserFinancingAssessments(),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Property Evaluation
+// ---------------------------------------------------------------------------
+
+/** Get a specific property evaluation by ID */
+export function usePropertyEvaluation(id: string) {
+  return useQuery({
+    queryKey: queryKeys.calculators.propertyEvaluation(id),
+    queryFn: () => CalculatorService.getPropertyEvaluation(id),
+    enabled: !!id,
+  })
+}
+
+/** Get a shared property evaluation by share_id */
+export function usePropertyEvaluationByShareId(shareId: string) {
+  return useQuery({
+    queryKey: queryKeys.calculators.propertyEvaluationShare(shareId),
+    queryFn: () => CalculatorService.getPropertyEvaluationByShareId(shareId),
+    enabled: !!shareId,
+  })
+}
+
+/** Get all saved property evaluations for current user */
+export function useUserPropertyEvaluations() {
+  return useQuery({
+    queryKey: queryKeys.calculators.propertyEvaluationList(),
+    queryFn: () => CalculatorService.getUserPropertyEvaluations(),
+  })
+}
+
+/** Get property evaluations for a specific journey step */
+export function useStepPropertyEvaluations(stepId: string) {
+  return useQuery({
+    queryKey: queryKeys.calculators.propertyEvaluationStep(stepId),
+    queryFn: () => CalculatorService.getStepPropertyEvaluations(stepId),
+    enabled: !!stepId,
+  })
+}

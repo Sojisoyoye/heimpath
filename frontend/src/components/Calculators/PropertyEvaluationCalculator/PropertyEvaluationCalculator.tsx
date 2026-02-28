@@ -4,12 +4,27 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, Download, RefreshCw } from "lucide-react"
+import { ArrowLeft, Download, RefreshCw, Save, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { GERMAN_STATES } from "@/common/constants"
 import { EVALUATION_DEFAULTS } from "@/common/constants/propertyEvaluation"
-import { cn } from "@/common/utils"
+import { cn, formatEur } from "@/common/utils"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useCustomToast } from "@/hooks"
+import {
+  useDeletePropertyEvaluation,
+  useSavePropertyEvaluation,
+} from "@/hooks/mutations/useCalculatorMutations"
+import { useUserPropertyEvaluations } from "@/hooks/queries/useCalculatorQueries"
+import type { PropertyEvaluationSummary } from "@/models/propertyEvaluation"
 import {
   EvaluationSection,
   FinancingSection,
@@ -135,17 +150,78 @@ function saveToStorage(
                               Components
 ******************************************************************************/
 
+/** Saved evaluations list. */
+function SavedEvaluations(props: {
+  evaluations: PropertyEvaluationSummary[]
+  onDelete: (id: string) => void
+}) {
+  const { evaluations, onDelete } = props
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Saved Evaluations</CardTitle>
+        <CardDescription>
+          Your previously saved property evaluations
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {evaluations.map((ev) => (
+            <div
+              key={ev.id}
+              className="flex items-center justify-between rounded-lg border p-3"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-sm">
+                  {ev.name || "Unnamed evaluation"}
+                </p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{formatEur(ev.purchasePrice)}</span>
+                  <span
+                    className={
+                      ev.isPositiveCashflow ? "text-green-600" : "text-red-600"
+                    }
+                  >
+                    {formatEur(ev.cashflowAfterTax)}/mo
+                  </span>
+                  <span>{ev.grossRentalYield.toFixed(1)}% yield</span>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                onClick={() => onDelete(ev.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 /** Default component. Property evaluation calculator. */
 function PropertyEvaluationCalculator(
   props: PropertyEvaluationCalculatorProps,
 ) {
-  const { journeyId, initialState, initialBudget, className } = props
+  const { journeyId, journeyStepId, initialState, initialBudget, className } =
+    props
 
   const [state, setState] = useState<PropertyEvaluationState>(() =>
     loadFromStorage(journeyId, initialState, initialBudget),
   )
+  const [saveName, setSaveName] = useState("")
 
   const { results } = usePropertyEvaluation(state)
+
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const saveEvaluation = useSavePropertyEvaluation()
+  const deleteEvaluation = useDeletePropertyEvaluation()
+  const { data: savedEvals } = useUserPropertyEvaluations()
 
   // Save to localStorage when state changes
   useEffect(() => {
@@ -216,6 +292,32 @@ function PropertyEvaluationCalculator(
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  const handleSave = () => {
+    if (!results) return
+    saveEvaluation.mutate(
+      {
+        name: saveName || undefined,
+        journeyStepId: journeyStepId || undefined,
+        inputs: state,
+      },
+      {
+        onSuccess: () => {
+          setSaveName("")
+          showSuccessToast("Property evaluation saved")
+        },
+        onError: () => {
+          showErrorToast("Failed to save evaluation")
+        },
+      },
+    )
+  }
+
+  const handleDelete = (id: string) => {
+    deleteEvaluation.mutate(id, {
+      onSuccess: () => showSuccessToast("Evaluation deleted"),
+    })
   }
 
   // Compute total allocable costs for RentSection display
@@ -298,8 +400,35 @@ function PropertyEvaluationCalculator(
         {/* Results section - sticky on desktop */}
         <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
           <EvaluationSection results={results} />
+
+          {/* Save Section */}
+          <Card>
+            <CardContent className="pt-6 space-y-2">
+              <Input
+                placeholder="Name this evaluation (optional)"
+                value={saveName}
+                onChange={(e) => setSaveName(e.target.value)}
+              />
+              <Button
+                onClick={handleSave}
+                disabled={saveEvaluation.isPending || !results}
+                className="w-full gap-2"
+              >
+                <Save className="h-4 w-4" />
+                {saveEvaluation.isPending ? "Saving..." : "Save Evaluation"}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {/* Saved Evaluations */}
+      {savedEvals && savedEvals.data.length > 0 && (
+        <SavedEvaluations
+          evaluations={savedEvals.data}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   )
 }

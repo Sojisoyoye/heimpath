@@ -18,6 +18,11 @@ import type {
   StateComparisonResponse,
   StateRatesResponse,
 } from "@/models/calculator"
+import type {
+  PropertyEvaluationInput,
+  PropertyEvaluationRecord,
+  PropertyEvaluationSummary,
+} from "@/models/propertyEvaluation"
 import { PATHS } from "./common/Paths"
 
 /******************************************************************************
@@ -309,6 +314,81 @@ class CalculatorServiceClass {
     await request<void>(OpenAPI, {
       method: "DELETE",
       url: PATHS.FINANCING.ELIGIBILITY_DETAIL(id),
+    })
+  }
+
+  // -------------------------------------------------------------------------
+  // Property Evaluation
+  // -------------------------------------------------------------------------
+
+  /** Save a property evaluation */
+  async savePropertyEvaluation(
+    input: PropertyEvaluationInput,
+  ): Promise<PropertyEvaluationRecord> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS,
+      body: transformKeysToSnake(input),
+      mediaType: "application/json",
+    })
+    return transformKeys<PropertyEvaluationRecord>(response)
+  }
+
+  /** Get a specific property evaluation by ID */
+  async getPropertyEvaluation(id: string): Promise<PropertyEvaluationRecord> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS_DETAIL(id),
+    })
+    return transformKeys<PropertyEvaluationRecord>(response)
+  }
+
+  /** Get a shared property evaluation by share_id (no auth required) */
+  async getPropertyEvaluationByShareId(
+    shareId: string,
+  ): Promise<PropertyEvaluationRecord> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS_SHARE(shareId),
+    })
+    return transformKeys<PropertyEvaluationRecord>(response)
+  }
+
+  /** Get all saved property evaluations for the current user */
+  async getUserPropertyEvaluations(): Promise<{
+    data: PropertyEvaluationSummary[]
+    count: number
+  }> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS,
+    })
+    return transformKeys<{
+      data: PropertyEvaluationSummary[]
+      count: number
+    }>(response)
+  }
+
+  /** Get property evaluations for a specific journey step */
+  async getStepPropertyEvaluations(stepId: string): Promise<{
+    data: PropertyEvaluationSummary[]
+    count: number
+  }> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS_STEP(stepId),
+    })
+    return transformKeys<{
+      data: PropertyEvaluationSummary[]
+      count: number
+    }>(response)
+  }
+
+  /** Delete a saved property evaluation */
+  async deletePropertyEvaluation(id: string): Promise<void> {
+    await request<void>(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS_DETAIL(id),
     })
   }
 }

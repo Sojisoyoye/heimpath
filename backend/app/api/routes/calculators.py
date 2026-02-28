@@ -19,6 +19,12 @@ from app.schemas.calculator import (
     StateComparisonResponse,
     StateRatesResponse,
 )
+from app.schemas.property_evaluation import (
+    PropertyEvaluationCreate,
+    PropertyEvaluationListResponse,
+    PropertyEvaluationResponse,
+    PropertyEvaluationSummary,
+)
 from app.schemas.roi import (
     ROICalculationCreate,
     ROICalculationListResponse,
@@ -28,7 +34,12 @@ from app.schemas.roi import (
     ROICompareResponse,
     ROICompareResultItem,
 )
-from app.services import calculator_service, notification_service, roi_service
+from app.services import (
+    calculator_service,
+    notification_service,
+    property_evaluation_service,
+    roi_service,
+)
 
 router = APIRouter(prefix="/calculators", tags=["calculators"])
 
@@ -279,3 +290,137 @@ def delete_roi_calculation(
     Requires authentication and ownership.
     """
     roi_service.delete_calculation(session, calc_id, current_user.id)
+
+
+# ---------------------------------------------------------------------------
+# Property Evaluation endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/property-evaluations/share/{share_id}",
+    response_model=PropertyEvaluationResponse,
+)
+def get_shared_property_evaluation(
+    share_id: str,
+    session: Session = Depends(get_db),
+) -> PropertyEvaluationResponse:
+    """
+    Get a shared property evaluation by share_id.
+
+    No authentication required.
+    """
+    evaluation = property_evaluation_service.get_by_share_id(session, share_id)
+    return PropertyEvaluationResponse.model_validate(evaluation)
+
+
+@router.get(
+    "/property-evaluations/step/{step_id}",
+    response_model=PropertyEvaluationListResponse,
+)
+def list_step_property_evaluations(
+    step_id: uuid.UUID,
+    session: Session = Depends(get_db),
+    _current_user: CurrentUser = None,
+) -> PropertyEvaluationListResponse:
+    """
+    Get all property evaluations for a journey step.
+
+    Requires authentication.
+    """
+    evaluations = property_evaluation_service.list_step_evaluations(session, step_id)
+    summaries = [PropertyEvaluationSummary.model_validate(ev) for ev in evaluations]
+    return PropertyEvaluationListResponse(data=summaries, count=len(summaries))
+
+
+@router.post(
+    "/property-evaluations",
+    response_model=PropertyEvaluationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def save_property_evaluation(
+    request: PropertyEvaluationCreate,
+    session: Session = Depends(get_db),
+    current_user: CurrentUser = None,
+) -> PropertyEvaluationResponse:
+    """
+    Calculate and save a property evaluation.
+
+    Requires authentication.
+    """
+    evaluation = property_evaluation_service.save_evaluation(
+        session=session,
+        user_id=current_user.id,
+        data=request,
+    )
+
+    notification_service.create_notification(
+        session,
+        user_id=current_user.id,
+        type=NotificationType.CALCULATION_SAVED,
+        title="Property Evaluation Saved",
+        message="Your property evaluation has been saved.",
+        action_url=f"/calculators/property-evaluations/{evaluation.id}",
+    )
+
+    return PropertyEvaluationResponse.model_validate(evaluation)
+
+
+@router.get(
+    "/property-evaluations",
+    response_model=PropertyEvaluationListResponse,
+)
+def list_property_evaluations(
+    session: Session = Depends(get_db),
+    current_user: CurrentUser = None,
+) -> PropertyEvaluationListResponse:
+    """
+    Get all saved property evaluations for the current user.
+
+    Requires authentication.
+    """
+    evaluations = property_evaluation_service.list_user_evaluations(
+        session,
+        current_user.id,
+    )
+    summaries = [PropertyEvaluationSummary.model_validate(ev) for ev in evaluations]
+    return PropertyEvaluationListResponse(data=summaries, count=len(summaries))
+
+
+@router.get(
+    "/property-evaluations/{eval_id}",
+    response_model=PropertyEvaluationResponse,
+)
+def get_property_evaluation(
+    eval_id: uuid.UUID,
+    session: Session = Depends(get_db),
+    current_user: CurrentUser = None,
+) -> PropertyEvaluationResponse:
+    """
+    Get a specific saved property evaluation by ID.
+
+    Requires authentication and ownership.
+    """
+    evaluation = property_evaluation_service.get_evaluation(
+        session,
+        eval_id,
+        current_user.id,
+    )
+    return PropertyEvaluationResponse.model_validate(evaluation)
+
+
+@router.delete(
+    "/property-evaluations/{eval_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_property_evaluation(
+    eval_id: uuid.UUID,
+    session: Session = Depends(get_db),
+    current_user: CurrentUser = None,
+) -> None:
+    """
+    Delete a saved property evaluation.
+
+    Requires authentication and ownership.
+    """
+    property_evaluation_service.delete_evaluation(session, eval_id, current_user.id)
