@@ -63,36 +63,36 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        return (
-            str(
-                PostgresDsn.build(
-                    scheme="postgresql+psycopg",
-                    username=self.POSTGRES_USER,
-                    password=self.POSTGRES_PASSWORD,
-                    host=self.POSTGRES_SERVER,
-                    port=self.POSTGRES_PORT,
-                    path=self.POSTGRES_DB,
-                )
+        base_url = str(
+            PostgresDsn.build(
+                scheme="postgresql+psycopg",
+                username=self.POSTGRES_USER,
+                password=self.POSTGRES_PASSWORD,
+                host=self.POSTGRES_SERVER,
+                port=self.POSTGRES_PORT,
+                path=self.POSTGRES_DB,
             )
-            + "?sslmode=require"
         )
+        if self.ENVIRONMENT != "local":
+            base_url += "?sslmode=require"
+        return base_url
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def ASYNC_DATABASE_URI(self) -> str:
-        return (
-            str(
-                PostgresDsn.build(
-                    scheme="postgresql+asyncpg",
-                    username=self.POSTGRES_USER,
-                    password=self.POSTGRES_PASSWORD,
-                    host=self.POSTGRES_SERVER,
-                    port=self.POSTGRES_PORT,
-                    path=self.POSTGRES_DB,
-                )
+        base_url = str(
+            PostgresDsn.build(
+                scheme="postgresql+asyncpg",
+                username=self.POSTGRES_USER,
+                password=self.POSTGRES_PASSWORD,
+                host=self.POSTGRES_SERVER,
+                port=self.POSTGRES_PORT,
+                path=self.POSTGRES_DB,
             )
-            + "?sslmode=require"
         )
+        if self.ENVIRONMENT != "local":
+            base_url += "?sslmode=require"
+        return base_url
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
