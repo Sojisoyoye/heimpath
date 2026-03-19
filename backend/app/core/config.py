@@ -74,7 +74,7 @@ class Settings(BaseSettings):
             )
         )
         if self.ENVIRONMENT != "local":
-            base_url += "?sslmode=require"
+            base_url += "?sslmode=require&channel_binding=require"
         return base_url
 
     @computed_field  # type: ignore[prop-decorator]
