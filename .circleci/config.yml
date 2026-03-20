@@ -1,0 +1,74 @@
+version: 2.1
+
+jobs:
+  test-backend:
+    machine:
+      image: ubuntu-2404:current
+    steps:
+      - checkout
+
+      - run:
+          name: Create .env file
+          command: |
+            cat > .env << EOF
+            DOMAIN=${DOMAIN}
+            STACK_NAME=${STACK_NAME}
+            FRONTEND_HOST=${FRONTEND_HOST}
+            ENVIRONMENT=${ENVIRONMENT}
+            BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+            SECRET_KEY=${SECRET_KEY}
+            FIRST_SUPERUSER=${FIRST_SUPERUSER}
+            FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
+            PROJECT_NAME=${PROJECT_NAME}
+            POSTGRES_SERVER=${POSTGRES_SERVER}
+            POSTGRES_PORT=${POSTGRES_PORT}
+            POSTGRES_DB=${POSTGRES_DB}
+            POSTGRES_USER=${POSTGRES_USER}
+            POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            DOCKER_IMAGE_BACKEND=${DOCKER_IMAGE_BACKEND}
+            DOCKER_IMAGE_FRONTEND=${DOCKER_IMAGE_FRONTEND}
+            SMTP_HOST=
+            SMTP_USER=
+            SMTP_PASSWORD=
+            EMAILS_FROM_EMAIL=info@example.com
+            SENTRY_DSN=
+            EOF
+
+      - run:
+          name: Install uv
+          command: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - run:
+          name: Start database and mailcatcher
+          command: docker compose up -d db mailcatcher
+
+      - run:
+          name: Run DB migrations
+          command: |
+            export PATH="$HOME/.local/bin:$PATH"
+            uv run bash scripts/prestart.sh
+          working_directory: backend
+
+      - run:
+          name: Run tests
+          command: |
+            export PATH="$HOME/.local/bin:$PATH"
+            uv run bash scripts/tests-start.sh "Coverage for ${CIRCLE_SHA1}"
+          working_directory: backend
+
+      - run:
+          name: Coverage report
+          command: |
+            export PATH="$HOME/.local/bin:$PATH"
+            uv run coverage report --fail-under=70
+          working_directory: backend
+
+      - run:
+          name: Teardown
+          command: docker compose down -v --remove-orphans
+          when: always
+
+workflows:
+  test:
+    jobs:
+      - test-backend

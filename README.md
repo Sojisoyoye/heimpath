@@ -1,5 +1,11 @@
 # HeimPath - German Real Estate Navigator
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/Sojisoyoye/heimpath/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/Sojisoyoye/heimpath/tree/main)
+[![codecov](https://codecov.io/gh/Sojisoyoye/heimpath/graph/badge.svg)](https://codecov.io/gh/Sojisoyoye/heimpath)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Sojisoyoye_heimpath&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Sojisoyoye_heimpath)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Sojisoyoye_heimpath&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Sojisoyoye_heimpath)
+[![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
+
 HeimPath is a comprehensive platform helping foreign investors and immigrants navigate the German property buying process. The platform combines guided journeys, legal knowledge, document translation, and financial calculators to make property buying in Germany accessible and transparent.
 
 ## Environments
