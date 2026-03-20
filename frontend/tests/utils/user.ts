@@ -22,7 +22,7 @@ export async function logInUser(page: Page, email: string, password: string) {
   await page.getByTestId("email-input").fill(email)
   await page.getByTestId("password-input").fill(password)
   await page.getByRole("button", { name: "Sign In" }).click()
-  await page.waitForURL("/")
+  await page.waitForURL("/dashboard")
   await expect(page.getByText("Welcome back,", { exact: false })).toBeVisible()
 }
 

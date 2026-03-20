@@ -27,13 +27,19 @@ function PropertyEvaluationCtaSection() {
         </div>
         <div className="flex shrink-0 flex-col gap-3">
           <Button size="lg" asChild>
-            <Link to="/signup" search={{ redirect: "/calculators?tab=property-evaluation" }}>
+            <Link
+              to="/signup"
+              search={{ redirect: "/calculators?tab=property-evaluation" }}
+            >
               Get Started Free
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
-            <Link to="/login" search={{ redirect: "/calculators?tab=property-evaluation" }}>
+            <Link
+              to="/login"
+              search={{ redirect: "/calculators?tab=property-evaluation" }}
+            >
               Sign In to Evaluate
             </Link>
           </Button>
