@@ -362,6 +362,7 @@ resource "azurerm_container_app_custom_domain" "prod_frontend" {
   lifecycle {
     ignore_changes = [
       container_app_environment_certificate_id,
+      certificate_binding_type,
     ]
   }
 }
@@ -376,6 +377,7 @@ resource "azurerm_container_app_custom_domain" "prod_backend" {
   lifecycle {
     ignore_changes = [
       container_app_environment_certificate_id,
+      certificate_binding_type,
     ]
   }
 }
