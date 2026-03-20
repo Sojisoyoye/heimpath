@@ -337,10 +337,7 @@ function PropertyEvaluationCalculator(
       <div className="flex items-start gap-4">
         {journeyId && (
           <Button variant="ghost" size="icon" asChild>
-            <Link
-              to="/journeys/$journeyId"
-              params={{ journeyId }}
-            >
+            <Link to="/journeys/$journeyId" params={{ journeyId }}>
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>

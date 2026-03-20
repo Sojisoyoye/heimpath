@@ -46,22 +46,19 @@ jobs:
           name: Run DB migrations
           command: |
             export PATH="$HOME/.local/bin:$PATH"
-            uv run bash scripts/prestart.sh
-          working_directory: backend
+            cd backend && uv run bash scripts/prestart.sh
 
       - run:
           name: Run tests
           command: |
             export PATH="$HOME/.local/bin:$PATH"
-            uv run bash scripts/tests-start.sh "Coverage for ${CIRCLE_SHA1}"
-          working_directory: backend
+            cd backend && uv run bash scripts/tests-start.sh "Coverage for ${CIRCLE_SHA1}"
 
       - run:
           name: Coverage report
           command: |
             export PATH="$HOME/.local/bin:$PATH"
-            uv run coverage report --fail-under=70
-          working_directory: backend
+            cd backend && uv run coverage report --fail-under=70
 
       - run:
           name: Teardown

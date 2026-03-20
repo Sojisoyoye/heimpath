@@ -30,7 +30,10 @@ const useAuth = (redirectTo?: string) => {
     mutationFn: (data: UserRegister) =>
       UsersService.registerUser({ requestBody: data }),
     onSuccess: () => {
-      navigate({ to: "/login", search: redirectTo ? { redirect: redirectTo } : {} })
+      navigate({
+        to: "/login",
+        search: redirectTo ? { redirect: redirectTo } : {},
+      })
     },
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
