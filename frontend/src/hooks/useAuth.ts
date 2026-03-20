@@ -62,7 +62,7 @@ const useAuth = (redirectTo?: string) => {
 
   const logout = () => {
     localStorage.removeItem("access_token")
-    navigate({ to: "/" })
+    navigate({ to: "/login" })
   }
 
   return {
