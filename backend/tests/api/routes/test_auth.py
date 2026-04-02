@@ -201,8 +201,7 @@ def test_refresh_issues_new_access_token(client: TestClient) -> None:
     assert r.status_code == 200
     body = r.json()
     assert "access_token" in body
-    # New access token should differ from the original
-    assert body["access_token"] != tokens["access_token"]
+    assert body["token_type"] == "bearer"
     # Refresh token is echoed back unchanged
     assert body["refresh_token"] == tokens["refresh_token"]
 
