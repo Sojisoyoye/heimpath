@@ -72,18 +72,28 @@ jobs:
       - name: Fix coverage XML paths for SonarCloud
         # SonarCloud runs in Docker at /github/workspace/ but coverage.py
         # records absolute paths from the runner (/home/runner/work/...).
-        # Replace the source path so SonarCloud can resolve file coverage.
+        # Replace runner-absolute paths with container paths so SonarCloud
+        # can resolve coverage file paths for PR new-code analysis.
         run: |
           python3 - <<'EOF'
           import re, pathlib
           path = pathlib.Path("backend/coverage.xml")
           content = path.read_text()
-          # Replace any absolute <source> element with the container path
-          content = re.sub(
-              r"<source>[^<]*/backend(?:/app)?</source>",
-              "<source>/github/workspace/backend</source>",
-              content,
-          )
+          # /home/runner/work/{owner}/{repo}/... -> /github/workspace/...
+          # Preserve the path suffix after the repo root (e.g. backend/app)
+          def fix_source(m):
+              src = m.group(1)
+              # Strip everything up to and including the second path segment
+              # after /home/runner/work/ (i.e. owner/repo)
+              parts = src.split("/")
+              # Find index after "work"
+              try:
+                  idx = parts.index("work") + 3  # skip owner + repo
+              except ValueError:
+                  return m.group(0)
+              suffix = "/".join(parts[idx:])
+              return f"<source>/github/workspace/{suffix}</source>"
+          content = re.sub(r"<source>(/home/runner/work/[^<]+)</source>", fix_source, content)
           path.write_text(content)
           print("Fixed coverage XML source paths for SonarCloud")
           EOF
