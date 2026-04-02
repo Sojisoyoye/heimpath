@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: local-biome-check
         name: biome check
-        entry: npm run lint
+        entry: bun run --filter frontend lint
         pass_filenames: false
         language: system
         types: [text]

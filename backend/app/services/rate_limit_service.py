@@ -1,179 +1,120 @@
 """Rate limiting service for login attempts.
 
-Implements a sliding window rate limiter to prevent brute force attacks.
-After 5 failed attempts, the account is locked for 15 minutes.
+Implements a sliding-window rate limiter backed by Redis.
+After MAX_ATTEMPTS failed attempts within WINDOW_SECONDS the identifier is
+locked for LOCKOUT_SECONDS.  All state is stored in Redis, so limits survive
+server restarts and work correctly across horizontally-scaled instances.
 """
 
 from datetime import datetime, timedelta, timezone
 from typing import NamedTuple
 
+import redis as redis_lib
+
+from app.core.config import settings
+
+MAX_ATTEMPTS: int = 5
+LOCKOUT_SECONDS: int = 900  # 15 minutes
+WINDOW_SECONDS: int = 900  # sliding window
+
+_ATTEMPTS_PREFIX = "auth:ratelimit:attempts:"
+_LOCKOUT_PREFIX = "auth:ratelimit:lockout:"
+
+# Module-level Redis client (connection pool, lazily initialised)
+_redis_client: redis_lib.Redis | None = None
+
 
 class RateLimitInfo(NamedTuple):
-    """Information about rate limit status."""
+    """Snapshot of the current rate-limit state for an identifier."""
 
     is_locked: bool
     attempts_remaining: int
     lockout_expires_at: datetime | None
 
 
-class LoginRateLimiter:
-    """Rate limiter for login attempts.
+def _redis() -> redis_lib.Redis:
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis_lib.from_url(settings.REDIS_URL, decode_responses=True)
+    return _redis_client
 
-    Tracks failed login attempts per identifier (usually email).
-    After MAX_ATTEMPTS failed attempts within the window, the identifier
-    is locked out for LOCKOUT_DURATION.
 
-    In production, this should be replaced with Redis storage for
-    persistence and horizontal scaling.
-    """
+def is_locked(identifier: str) -> bool:
+    """Return *True* if the identifier is currently locked out."""
+    return _redis().ttl(f"{_LOCKOUT_PREFIX}{identifier}") > 0
 
-    MAX_ATTEMPTS: int = 5
-    LOCKOUT_DURATION: timedelta = timedelta(minutes=15)
-    ATTEMPT_WINDOW: timedelta = timedelta(minutes=15)
 
-    def __init__(self) -> None:
-        # Maps identifier to list of failed attempt timestamps
-        self._attempts: dict[str, list[datetime]] = {}
-        # Maps identifier to lockout expiration time
-        self._lockouts: dict[str, datetime] = {}
-
-    def _cleanup_old_attempts(self, identifier: str) -> None:
-        """Remove attempts older than the window."""
-        if identifier not in self._attempts:
-            return
-
-        cutoff = datetime.now(timezone.utc) - self.ATTEMPT_WINDOW
-        self._attempts[identifier] = [
-            ts for ts in self._attempts[identifier] if ts > cutoff
-        ]
-
-    def is_locked(self, identifier: str) -> bool:
-        """Check if identifier is currently locked out.
-
-        Args:
-            identifier: The identifier to check (e.g., email address).
-
-        Returns:
-            True if locked out, False otherwise.
-        """
-        if identifier not in self._lockouts:
-            return False
-
-        lockout_expires = self._lockouts[identifier]
-        if datetime.now(timezone.utc) >= lockout_expires:
-            # Lockout expired, clean up
-            del self._lockouts[identifier]
-            if identifier in self._attempts:
-                del self._attempts[identifier]
-            return False
-
-        return True
-
-    def record_failed_attempt(self, identifier: str) -> RateLimitInfo:
-        """Record a failed login attempt.
-
-        Args:
-            identifier: The identifier (e.g., email address).
-
-        Returns:
-            RateLimitInfo with current status.
-        """
-        now = datetime.now(timezone.utc)
-
-        # Check if already locked
-        if self.is_locked(identifier):
-            return RateLimitInfo(
-                is_locked=True,
-                attempts_remaining=0,
-                lockout_expires_at=self._lockouts.get(identifier),
-            )
-
-        # Initialize if needed
-        if identifier not in self._attempts:
-            self._attempts[identifier] = []
-
-        # Clean up old attempts
-        self._cleanup_old_attempts(identifier)
-
-        # Record this attempt
-        self._attempts[identifier].append(now)
-        attempt_count = len(self._attempts[identifier])
-
-        # Check if we should lock
-        if attempt_count >= self.MAX_ATTEMPTS:
-            lockout_expires = now + self.LOCKOUT_DURATION
-            self._lockouts[identifier] = lockout_expires
-            return RateLimitInfo(
-                is_locked=True,
-                attempts_remaining=0,
-                lockout_expires_at=lockout_expires,
-            )
-
+def get_status(identifier: str) -> RateLimitInfo:
+    """Return the current rate-limit status without recording an attempt."""
+    r = _redis()
+    lockout_ttl = r.ttl(f"{_LOCKOUT_PREFIX}{identifier}")
+    if lockout_ttl > 0:
+        expires = datetime.now(timezone.utc) + timedelta(seconds=lockout_ttl)
         return RateLimitInfo(
-            is_locked=False,
-            attempts_remaining=self.MAX_ATTEMPTS - attempt_count,
-            lockout_expires_at=None,
+            is_locked=True, attempts_remaining=0, lockout_expires_at=expires
         )
 
-    def record_successful_login(self, identifier: str) -> None:
-        """Clear failed attempts after successful login.
+    now_ts = datetime.now(timezone.utc).timestamp()
+    window_start = now_ts - WINDOW_SECONDS
+    count = int(r.zcount(f"{_ATTEMPTS_PREFIX}{identifier}", window_start, "+inf"))
+    return RateLimitInfo(
+        is_locked=False,
+        attempts_remaining=max(0, MAX_ATTEMPTS - count),
+        lockout_expires_at=None,
+    )
 
-        Args:
-            identifier: The identifier (e.g., email address).
-        """
-        if identifier in self._attempts:
-            del self._attempts[identifier]
-        if identifier in self._lockouts:
-            del self._lockouts[identifier]
 
-    def get_status(self, identifier: str) -> RateLimitInfo:
-        """Get current rate limit status for identifier.
+def record_failed_attempt(identifier: str) -> RateLimitInfo:
+    """Record a failed login attempt and return the updated status.
 
-        Args:
-            identifier: The identifier (e.g., email address).
+    Uses a Redis sorted set keyed by timestamp to implement a sliding window.
+    Entries older than the window are pruned atomically via a pipeline.
+    """
+    r = _redis()
+    lockout_key = f"{_LOCKOUT_PREFIX}{identifier}"
+    attempts_key = f"{_ATTEMPTS_PREFIX}{identifier}"
 
-        Returns:
-            RateLimitInfo with current status.
-        """
-        if self.is_locked(identifier):
-            return RateLimitInfo(
-                is_locked=True,
-                attempts_remaining=0,
-                lockout_expires_at=self._lockouts.get(identifier),
-            )
-
-        self._cleanup_old_attempts(identifier)
-        attempt_count = len(self._attempts.get(identifier, []))
-
+    lockout_ttl = r.ttl(lockout_key)
+    if lockout_ttl > 0:
+        expires = datetime.now(timezone.utc) + timedelta(seconds=lockout_ttl)
         return RateLimitInfo(
-            is_locked=False,
-            attempts_remaining=self.MAX_ATTEMPTS - attempt_count,
-            lockout_expires_at=None,
+            is_locked=True, attempts_remaining=0, lockout_expires_at=expires
         )
 
-    def reset(self, identifier: str) -> None:
-        """Reset rate limit for identifier (admin use).
+    now = datetime.now(timezone.utc)
+    now_ts = now.timestamp()
+    window_start = now_ts - WINDOW_SECONDS
 
-        Args:
-            identifier: The identifier to reset.
-        """
-        if identifier in self._attempts:
-            del self._attempts[identifier]
-        if identifier in self._lockouts:
-            del self._lockouts[identifier]
+    # Atomically prune old entries, record new one, and refresh TTL
+    pipe = r.pipeline()
+    pipe.zremrangebyscore(attempts_key, "-inf", window_start)
+    pipe.zadd(attempts_key, {str(now_ts): now_ts})
+    pipe.expire(attempts_key, WINDOW_SECONDS)
+    pipe.execute()
+
+    count = int(r.zcount(attempts_key, window_start, "+inf"))
+
+    if count >= MAX_ATTEMPTS:
+        r.setex(lockout_key, LOCKOUT_SECONDS, "1")
+        expires = now + timedelta(seconds=LOCKOUT_SECONDS)
+        return RateLimitInfo(
+            is_locked=True, attempts_remaining=0, lockout_expires_at=expires
+        )
+
+    return RateLimitInfo(
+        is_locked=False,
+        attempts_remaining=MAX_ATTEMPTS - count,
+        lockout_expires_at=None,
+    )
 
 
-# Singleton instance
-_rate_limiter: LoginRateLimiter | None = None
+def record_successful_login(identifier: str) -> None:
+    """Clear all rate-limit state for an identifier after a successful login."""
+    r = _redis()
+    r.delete(f"{_ATTEMPTS_PREFIX}{identifier}")
+    r.delete(f"{_LOCKOUT_PREFIX}{identifier}")
 
 
-def get_login_rate_limiter() -> LoginRateLimiter:
-    """Get or create the application rate limiter instance.
-
-    Returns:
-        Configured LoginRateLimiter instance.
-    """
-    global _rate_limiter
-    if _rate_limiter is None:
-        _rate_limiter = LoginRateLimiter()
-    return _rate_limiter
+def reset(identifier: str) -> None:
+    """Reset rate-limit state (admin use)."""
+    record_successful_login(identifier)

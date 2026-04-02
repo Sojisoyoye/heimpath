@@ -49,6 +49,12 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
+        # Reject refresh tokens — only access tokens are valid here
+        if payload.get("type") == "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Could not validate credentials",
+            )
         token_data = TokenPayload(**payload)
     except (InvalidTokenError, ValidationError):
         raise HTTPException(
@@ -77,6 +83,9 @@ def get_optional_current_user(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
+        # Reject refresh tokens
+        if payload.get("type") == "refresh":
+            return None
         token_data = TokenPayload(**payload)
     except (InvalidTokenError, ValidationError):
         return None

@@ -44,3 +44,13 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="owner",
         cascade="all, delete-orphan",
     )
+    journeys = relationship(
+        "Journey",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    law_bookmarks = relationship(
+        "LawBookmark",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

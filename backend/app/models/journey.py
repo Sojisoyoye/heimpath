@@ -124,7 +124,7 @@ class Journey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     is_active = Column(Boolean, default=True, nullable=False)
 
     # Relationships
-    user = relationship("User", backref="journeys")
+    user = relationship("User", back_populates="journeys")
     steps = relationship(
         "JourneyStep",
         back_populates="journey",
@@ -168,11 +168,11 @@ class JourneyStep(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Content references
     content_key = Column(String(100), nullable=True)  # Key to fetch related content
-    related_laws = Column(Text, nullable=True)  # JSON array of related law references
-    estimated_costs = Column(Text, nullable=True)  # JSON object with cost breakdown
+    related_laws = Column(JSONB, nullable=True)  # JSON array of related law references
+    estimated_costs = Column(JSONB, nullable=True)  # JSON object with cost breakdown
 
     # Prerequisites (step numbers that must be completed first)
-    prerequisites = Column(Text, nullable=True)  # JSON array of step numbers
+    prerequisites = Column(JSONB, nullable=True)  # JSON array of step numbers
 
     # Relationships
     journey = relationship("Journey", back_populates="steps")

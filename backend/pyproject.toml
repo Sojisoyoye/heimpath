@@ -26,6 +26,7 @@ dependencies = [
     "aiohttp>=3.9.0",
     "pdfplumber>=0.11.0",
     "starlette>=0.47.2",
+    "redis>=5.0.0",
 ]
 
 [dependency-groups]
@@ -36,6 +37,7 @@ dev = [
     "ruff<1.0.0,>=0.2.2",
     "prek>=0.2.24,<1.0.0",
     "coverage<8.0.0,>=7.4.3",
+    "fakeredis>=2.0.0",
 ]
 
 [build-system]

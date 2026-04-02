@@ -26,3 +26,23 @@ backend/uploads/
 
 # Python virtual environment
 .venv
+
+# Logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+# Environment variables
+.env
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files (tasks/todo.md is tracked; .taskmaster/ is ignored above)

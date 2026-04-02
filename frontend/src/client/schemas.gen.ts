@@ -1699,6 +1699,34 @@ export const FinancingTypeSchema = {
     description: 'Types of financing.'
 } as const;
 
+export const ForgotPasswordRequestSchema = {
+    properties: {
+        email: {
+            type: 'string',
+            maxLength: 255,
+            format: 'email',
+            title: 'Email'
+        }
+    },
+    type: 'object',
+    required: ['email'],
+    title: 'ForgotPasswordRequest',
+    description: 'Schema for forgot password request.'
+} as const;
+
+export const ForgotPasswordResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['message'],
+    title: 'ForgotPasswordResponse',
+    description: 'Schema for forgot password response.'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -3555,6 +3583,19 @@ export const NotificationTypeSchema = {
     description: 'Types of notifications.'
 } as const;
 
+export const PasswordRecoveryRequestSchema = {
+    properties: {
+        email: {
+            type: 'string',
+            format: 'email',
+            title: 'Email'
+        }
+    },
+    type: 'object',
+    required: ['email'],
+    title: 'PasswordRecoveryRequest'
+} as const;
+
 export const PortalRequestSchema = {
     properties: {
         return_url: {
@@ -4665,6 +4706,44 @@ export const ResendVerificationRequestSchema = {
     description: 'Schema for resending verification email.'
 } as const;
 
+export const ResetPasswordRequestSchema = {
+    properties: {
+        token: {
+            type: 'string',
+            minLength: 1,
+            title: 'Token'
+        },
+        new_password: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 8,
+            title: 'New Password'
+        }
+    },
+    type: 'object',
+    required: ['token', 'new_password'],
+    title: 'ResetPasswordRequest',
+    description: `Schema for password reset request.
+
+Password requirements:
+- Minimum 8 characters
+- At least 1 uppercase letter
+- At least 1 number`
+} as const;
+
+export const ResetPasswordResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['message'],
+    title: 'ResetPasswordResponse',
+    description: 'Schema for password reset response.'
+} as const;
+
 export const RiskLevelSchema = {
     type: 'string',
     enum: ['none', 'low', 'medium', 'high'],
@@ -5522,6 +5601,18 @@ export const UserUpdateMeSchema = {
                 }
             ],
             title: 'Email'
+        },
+        citizenship: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Citizenship'
         }
     },
     type: 'object',
