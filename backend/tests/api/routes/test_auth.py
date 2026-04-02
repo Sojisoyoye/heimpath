@@ -8,8 +8,6 @@ Uses a real database (following project test patterns) and fakeredis to
 isolate Redis state between tests without requiring a running Redis instance.
 """
 
-from unittest.mock import patch
-
 import fakeredis
 import pytest
 from fastapi.testclient import TestClient
@@ -20,7 +18,7 @@ from app.core.security import verify_password
 from app.crud import get_user_by_email
 from app.services.email_verification_service import get_email_verification_service
 from app.services.password_reset_service import get_password_reset_service
-from tests.utils.utils import random_email, random_lower_string
+from tests.utils.utils import random_email
 
 AUTH = f"{settings.API_V1_STR}/auth"
 
@@ -139,9 +137,7 @@ def test_login_returns_tokens(client: TestClient) -> None:
     email = random_email()
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
 
-    r = client.post(
-        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
-    )
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 200
     body = r.json()
     assert "access_token" in body
@@ -152,9 +148,7 @@ def test_login_returns_tokens(client: TestClient) -> None:
 def test_login_wrong_password_returns_401(client: TestClient) -> None:
     email = random_email()
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
-    r = client.post(
-        f"{AUTH}/login", json={"email": email, "password": "WrongPass1"}
-    )
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": "WrongPass1"})
     assert r.status_code == 401
 
 
@@ -175,9 +169,7 @@ def test_login_inactive_user_returns_403(client: TestClient, db: Session) -> Non
     db.add(user)
     db.commit()
 
-    r = client.post(
-        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
-    )
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 403
 
 
@@ -199,17 +191,13 @@ def test_login_remember_me_issues_longer_token(client: TestClient) -> None:
 def _register_and_login(client: TestClient) -> dict:
     email = random_email()
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
-    r = client.post(
-        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
-    )
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     return r.json()
 
 
 def test_refresh_issues_new_access_token(client: TestClient) -> None:
     tokens = _register_and_login(client)
-    r = client.post(
-        f"{AUTH}/refresh", json={"refresh_token": tokens["refresh_token"]}
-    )
+    r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["refresh_token"]})
     assert r.status_code == 200
     body = r.json()
     assert "access_token" in body
@@ -227,9 +215,7 @@ def test_refresh_with_invalid_token_returns_401(client: TestClient) -> None:
 def test_refresh_with_access_token_returns_401(client: TestClient) -> None:
     tokens = _register_and_login(client)
     # Pass the access token where a refresh token is expected
-    r = client.post(
-        f"{AUTH}/refresh", json={"refresh_token": tokens["access_token"]}
-    )
+    r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["access_token"]})
     assert r.status_code == 401
 
 
@@ -238,9 +224,7 @@ def test_refresh_with_access_token_returns_401(client: TestClient) -> None:
 
 def test_logout_returns_204(client: TestClient) -> None:
     tokens = _register_and_login(client)
-    r = client.post(
-        f"{AUTH}/logout", json={"refresh_token": tokens["refresh_token"]}
-    )
+    r = client.post(f"{AUTH}/logout", json={"refresh_token": tokens["refresh_token"]})
     assert r.status_code == 204
 
 
@@ -248,9 +232,7 @@ def test_logout_blacklists_refresh_token(client: TestClient) -> None:
     tokens = _register_and_login(client)
     client.post(f"{AUTH}/logout", json={"refresh_token": tokens["refresh_token"]})
     # Refresh should now be rejected
-    r = client.post(
-        f"{AUTH}/refresh", json={"refresh_token": tokens["refresh_token"]}
-    )
+    r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["refresh_token"]})
     assert r.status_code == 401
 
 
@@ -287,9 +269,7 @@ def test_resend_verification_returns_200(client: TestClient) -> None:
 
 def test_resend_verification_unknown_email_returns_200(client: TestClient) -> None:
     # Enumeration-safe: should return 200 even for unknown email
-    r = client.post(
-        f"{AUTH}/resend-verification", json={"email": "ghost@example.com"}
-    )
+    r = client.post(f"{AUTH}/resend-verification", json={"email": "ghost@example.com"})
     assert r.status_code == 200
 
 
@@ -322,9 +302,7 @@ def test_forgot_password_registered_email_returns_200(client: TestClient) -> Non
 
 def test_forgot_password_unknown_email_returns_200(client: TestClient) -> None:
     # Enumeration-safe
-    r = client.post(
-        f"{AUTH}/forgot-password", json={"email": "nobody@nowhere.com"}
-    )
+    r = client.post(f"{AUTH}/forgot-password", json={"email": "nobody@nowhere.com"})
     assert r.status_code == 200
 
 
@@ -410,13 +388,9 @@ def test_rate_limit_locks_after_five_failures(client: TestClient) -> None:
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
 
     for _ in range(5):
-        client.post(
-            f"{AUTH}/login", json={"email": email, "password": "WrongPass1"}
-        )
+        client.post(f"{AUTH}/login", json={"email": email, "password": "WrongPass1"})
 
-    r = client.post(
-        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
-    )
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 429
     assert "Retry-After" in r.headers
 
@@ -427,22 +401,14 @@ def test_rate_limit_cleared_on_success(client: TestClient) -> None:
 
     # Build up some failures but not enough to lock
     for _ in range(3):
-        client.post(
-            f"{AUTH}/login", json={"email": email, "password": "WrongPass1"}
-        )
+        client.post(f"{AUTH}/login", json={"email": email, "password": "WrongPass1"})
 
     # Successful login clears the counter
-    r = client.post(
-        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
-    )
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 200
 
     # Three more failures should not yet lock
     for _ in range(3):
-        client.post(
-            f"{AUTH}/login", json={"email": email, "password": "WrongPass1"}
-        )
-    r = client.post(
-        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
-    )
+        client.post(f"{AUTH}/login", json={"email": email, "password": "WrongPass1"})
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 200

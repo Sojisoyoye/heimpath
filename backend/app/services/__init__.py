@@ -1,11 +1,14 @@
 """Business logic services for HeimPath."""
 
 from app.services.auth_service import (
-    AuthService,
-    TokenBlacklist,
     TokenData,
     TokenType,
-    get_auth_service,
+    blacklist_token,
+    create_access_token,
+    create_refresh_token,
+    is_token_blacklisted,
+    logout,
+    refresh_access_token,
 )
 from app.services.email_verification_service import (
     EmailVerificationService,
@@ -40,9 +43,10 @@ from app.services.payment_service import (
     get_payment_service,
 )
 from app.services.rate_limit_service import (
-    LoginRateLimiter,
     RateLimitInfo,
-    get_login_rate_limiter,
+    is_locked,
+    record_failed_attempt,
+    record_successful_login,
 )
 from app.services.translation_service import (
     TranslationError,
@@ -53,7 +57,6 @@ from app.services.translation_service import (
 )
 
 __all__ = [
-    "AuthService",
     "CheckoutSessionError",
     "CheckoutSessionResult",
     "CustomerNotFoundError",
@@ -62,7 +65,6 @@ __all__ = [
     "JourneyError",
     "JourneyNotFoundError",
     "JourneyService",
-    "LoginRateLimiter",
     "PasswordResetService",
     "PasswordResetToken",
     "PaymentError",
@@ -72,20 +74,26 @@ __all__ = [
     "StepNotFoundError",
     "SubscriptionError",
     "SubscriptionInfo",
-    "TokenBlacklist",
     "TokenData",
     "TokenType",
     "VerificationToken",
     "WebhookEvent",
     "WebhookEventType",
     "WebhookVerificationError",
-    "get_auth_service",
+    "blacklist_token",
+    "create_access_token",
+    "create_refresh_token",
     "get_email_verification_service",
     "get_journey_service",
-    "get_login_rate_limiter",
     "get_password_reset_service",
     "get_payment_service",
     "get_translation_service",
+    "is_locked",
+    "is_token_blacklisted",
+    "logout",
+    "record_failed_attempt",
+    "record_successful_login",
+    "refresh_access_token",
     "TranslationError",
     "TranslationResult",
     "TranslationService",

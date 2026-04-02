@@ -2,7 +2,6 @@
 
 import uuid
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
 
 import fakeredis
 import jwt
@@ -148,7 +147,11 @@ class TestDecodeToken:
     def test_wrong_secret_returns_none(self) -> None:
         # Forge a token with a different secret
         bad_token = jwt.encode(
-            {"sub": "x", "type": "access", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
+            {
+                "sub": "x",
+                "type": "access",
+                "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+            },
             "wrong-secret",
             algorithm=ALGORITHM,
         )
