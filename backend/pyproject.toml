@@ -78,6 +78,7 @@ keep-runtime-typing = true
 [tool.coverage.run]
 source = ["app"]
 dynamic_context = "test_function"
+relative_files = true
 
 [tool.coverage.report]
 show_missing = true
