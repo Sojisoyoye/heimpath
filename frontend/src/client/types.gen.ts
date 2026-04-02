@@ -550,6 +550,20 @@ export type FinancingAssessmentSummary = {
 export type FinancingType = 'cash' | 'mortgage' | 'mixed';
 
 /**
+ * Schema for forgot password request.
+ */
+export type ForgotPasswordRequest = {
+    email: string;
+};
+
+/**
+ * Schema for forgot password response.
+ */
+export type ForgotPasswordResponse = {
+    message: string;
+};
+
+/**
  * Request to save a hidden cost calculation.
  */
 export type HiddenCostCalculationCreate = {
@@ -1061,6 +1075,10 @@ export type NotificationResponse = {
  */
 export type NotificationType = 'step_completed' | 'document_translated' | 'calculation_saved' | 'law_bookmarked' | 'journey_deadline' | 'payment_reminder' | 'subscription_expiring' | 'system_announcement';
 
+export type PasswordRecoveryRequest = {
+    email: string;
+};
+
 /**
  * Request to create a customer portal session.
  */
@@ -1236,6 +1254,26 @@ export type RegisterResponse = {
  */
 export type ResendVerificationRequest = {
     email: string;
+};
+
+/**
+ * Schema for password reset request.
+ *
+ * Password requirements:
+ * - Minimum 8 characters
+ * - At least 1 uppercase letter
+ * - At least 1 number
+ */
+export type ResetPasswordRequest = {
+    token: string;
+    new_password: string;
+};
+
+/**
+ * Schema for password reset response.
+ */
+export type ResetPasswordResponse = {
+    message: string;
 };
 
 /**
@@ -1639,6 +1677,7 @@ export type UserUpdate = {
 export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
+    citizenship?: (string | null);
 };
 
 export type ValidationError = {
@@ -1761,6 +1800,18 @@ export type AuthResendVerificationData = {
 };
 
 export type AuthResendVerificationResponse = (VerifyEmailResponse);
+
+export type AuthForgotPasswordData = {
+    requestBody: ForgotPasswordRequest;
+};
+
+export type AuthForgotPasswordResponse = (ForgotPasswordResponse);
+
+export type AuthResetPasswordData = {
+    requestBody: ResetPasswordRequest;
+};
+
+export type AuthResetPasswordResponse = (ResetPasswordResponse);
 
 export type CalculatorsGetStateRatesResponse = (StateRatesResponse);
 
@@ -2094,7 +2145,7 @@ export type LoginLoginAccessTokenResponse = (Token);
 export type LoginTestTokenResponse = (UserPublic);
 
 export type LoginRecoverPasswordData = {
-    email: string;
+    requestBody: PasswordRecoveryRequest;
 };
 
 export type LoginRecoverPasswordResponse = (Message);
@@ -2106,7 +2157,7 @@ export type LoginResetPasswordData = {
 export type LoginResetPasswordResponse = (Message);
 
 export type LoginRecoverPasswordHtmlContentData = {
-    email: string;
+    requestBody: PasswordRecoveryRequest;
 };
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
