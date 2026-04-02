@@ -17,20 +17,25 @@ from app.core.security import get_password_hash, verify_password
 from app.models import User
 from app.schemas.auth import (
     AuthToken,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     LoginRequest,
     LogoutRequest,
     RefreshTokenRequest,
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
-from app.services.auth_service import get_auth_service
+from app.services import auth_service, rate_limit_service
 from app.services.email_verification_service import get_email_verification_service
-from app.services.rate_limit_service import get_login_rate_limiter
+from app.services.password_reset_service import get_password_reset_service
 from app.utils import (
     generate_email_verification_email,
+    generate_reset_password_email,
     send_email,
 )
 
@@ -42,7 +47,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def register(
+async def register(
     request: RegisterRequest,
     session: Session = Depends(get_db),
 ) -> User:
@@ -104,7 +109,7 @@ def register(
 
 
 @router.post("/login", response_model=AuthToken)
-def login(
+async def login(
     request: LoginRequest,
     session: Session = Depends(get_db),
 ) -> AuthToken:
@@ -115,11 +120,9 @@ def login(
 
     Returns access token (24h or 30d with remember_me) and refresh token (7d).
     """
-    rate_limiter = get_login_rate_limiter()
-
     # Check if account is locked due to rate limiting
-    if rate_limiter.is_locked(request.email):
-        status_info = rate_limiter.get_status(request.email)
+    if rate_limit_service.is_locked(request.email):
+        status_info = rate_limit_service.get_status(request.email)
         retry_after = 900  # Default 15 minutes
         if status_info.lockout_expires_at:
             retry_after = int(
@@ -145,7 +148,7 @@ def login(
             request.password,
             "$argon2id$v=19$m=65536,t=3,p=4$dummy$dummyhash",
         )
-        rate_limiter.record_failed_attempt(request.email)
+        rate_limit_service.record_failed_attempt(request.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -153,7 +156,7 @@ def login(
 
     verified, updated_hash = verify_password(request.password, user.hashed_password)
     if not verified:
-        rate_info = rate_limiter.record_failed_attempt(request.email)
+        rate_info = rate_limit_service.record_failed_attempt(request.email)
         detail = "Incorrect email or password"
         if rate_info.is_locked:
             detail = "Too many failed login attempts. Account locked for 15 minutes."
@@ -176,10 +179,9 @@ def login(
         session.commit()
 
     # Clear failed attempts on successful login
-    rate_limiter.record_successful_login(request.email)
+    rate_limit_service.record_successful_login(request.email)
 
     # Generate tokens
-    auth_service = get_auth_service()
     access_token = auth_service.create_access_token(
         subject=str(user.id),
         remember_me=request.remember_me,
@@ -193,15 +195,13 @@ def login(
 
 
 @router.post("/refresh", response_model=AuthToken)
-def refresh_token(request: RefreshTokenRequest) -> AuthToken:
+async def refresh_token(request: RefreshTokenRequest) -> AuthToken:
     """
     Get new access token using refresh token.
 
     The refresh token is validated and a new access token is issued.
     The same refresh token remains valid until expiration.
     """
-    auth_service = get_auth_service()
-
     new_access_token = auth_service.refresh_access_token(request.refresh_token)
     if new_access_token is None:
         raise HTTPException(
@@ -216,19 +216,18 @@ def refresh_token(request: RefreshTokenRequest) -> AuthToken:
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(request: LogoutRequest) -> None:
+async def logout(request: LogoutRequest) -> None:
     """
     Logout by invalidating the refresh token.
 
     The refresh token is blacklisted and cannot be used again.
     """
-    auth_service = get_auth_service()
     auth_service.logout(request.refresh_token)
     # Always return success even if token was invalid (security best practice)
 
 
 @router.post("/verify-email", response_model=VerifyEmailResponse)
-def verify_email(
+async def verify_email(
     request: VerifyEmailRequest,
     session: Session = Depends(get_db),
 ) -> VerifyEmailResponse:
@@ -283,7 +282,7 @@ def verify_email(
 
 
 @router.post("/resend-verification", response_model=VerifyEmailResponse)
-def resend_verification(
+async def resend_verification(
     request: ResendVerificationRequest,
     session: Session = Depends(get_db),
 ) -> VerifyEmailResponse:
@@ -335,3 +334,91 @@ def resend_verification(
         )
 
     return success_response
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    session: Session = Depends(get_db),
+) -> ForgotPasswordResponse:
+    """
+    Request a password reset link.
+
+    Generates a reset token and sends it to the user's email.
+    Tokens expire after 1 hour.
+
+    Note: Always returns success to prevent email enumeration attacks.
+    """
+    success_response = ForgotPasswordResponse(
+        message="If that email is registered, we sent a password reset link",
+    )
+
+    statement = select(User).where(User.email == request.email)
+    user = session.exec(statement).first()
+
+    if user is None or not user.is_active:
+        return success_response
+
+    reset_service = get_password_reset_service()
+    token_data = reset_service.generate_token(
+        user_id=str(user.id),
+        email=user.email,
+    )
+
+    if settings.emails_enabled:
+        email_data = generate_reset_password_email(
+            email_to=user.email,
+            email=user.email,
+            token=token_data.token,
+        )
+        send_email(
+            email_to=user.email,
+            subject=email_data.subject,
+            html_content=email_data.html_content,
+        )
+
+    return success_response
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+async def reset_password(
+    request: ResetPasswordRequest,
+    session: Session = Depends(get_db),
+) -> ResetPasswordResponse:
+    """
+    Reset password using a reset token.
+
+    The token is consumed after use and cannot be reused.
+    Tokens expire after 1 hour.
+    """
+    reset_service = get_password_reset_service()
+    token_data = reset_service.consume_token(request.token)
+
+    if token_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset token",
+        )
+
+    statement = select(User).where(User.id == token_data.user_id)
+    user = session.exec(statement).first()
+
+    if user is None or not user.is_active:
+        # Avoid leaking whether the user exists
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset token",
+        )
+
+    # Verify email matches the token (defense in depth)
+    if user.email != token_data.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset token",
+        )
+
+    user.hashed_password = get_password_hash(request.new_password)
+    session.add(user)
+    session.commit()
+
+    return ResetPasswordResponse(message="Password reset successfully")
