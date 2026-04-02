@@ -1,7 +1,8 @@
-"""JWT Authentication Service.
+"""JWT token utilities for user authentication.
 
-Provides JWT token generation, validation, and blacklisting for user authentication.
-Supports access tokens, refresh tokens, and "remember me" functionality.
+Module-level functions for token creation, validation, blacklisting, and logout.
+The token blacklist is backed by Redis for persistence across restarts and
+horizontal scaling.
 """
 
 import uuid
@@ -10,10 +11,17 @@ from enum import Enum
 from typing import Any
 
 import jwt
+import redis as redis_lib
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
 from app.core.config import settings
+
+ALGORITHM = "HS256"
+_BLACKLIST_PREFIX = "auth:blacklist:"
+
+# Module-level Redis client (connection pool, created lazily)
+_redis_client: redis_lib.Redis | None = None
 
 
 class TokenType(str, Enum):
@@ -32,250 +40,191 @@ class TokenData(BaseModel):
     jti: str | None = None
 
 
-class TokenBlacklist:
-    """In-memory token blacklist for invalidated tokens.
-
-    In production, this should be replaced with Redis or database storage
-    for persistence across server restarts and horizontal scaling.
-    """
-
-    def __init__(self) -> None:
-        self._blacklisted: set[str] = set()
-
-    def add(self, jti: str) -> None:
-        """Add a token ID to the blacklist."""
-        self._blacklisted.add(jti)
-
-    def is_blacklisted(self, jti: str) -> bool:
-        """Check if a token ID is blacklisted."""
-        return jti in self._blacklisted
+def _redis() -> redis_lib.Redis:
+    """Return the shared Redis client (lazily initialised)."""
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis_lib.from_url(settings.REDIS_URL, decode_responses=True)
+    return _redis_client
 
 
-class AuthService:
-    """JWT Authentication Service.
-
-    Handles JWT token generation, validation, refresh, and blacklisting.
-
-    Attributes:
-        ACCESS_TOKEN_EXPIRE_HOURS: Default expiration for access tokens (24 hours).
-        REFRESH_TOKEN_EXPIRE_DAYS: Default expiration for refresh tokens (7 days).
-        REMEMBER_ME_EXPIRE_DAYS: Expiration for "remember me" tokens (30 days).
-    """
-
-    ACCESS_TOKEN_EXPIRE_HOURS: int = 24
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    REMEMBER_ME_EXPIRE_DAYS: int = 30
-
-    def __init__(self, secret_key: str, algorithm: str = "HS256") -> None:
-        """Initialize the auth service.
-
-        Args:
-            secret_key: Secret key for JWT encoding/decoding.
-            algorithm: JWT algorithm to use (default: HS256).
-        """
-        self._secret_key = secret_key
-        self._algorithm = algorithm
-        self._blacklist = TokenBlacklist()
-
-    def create_access_token(
-        self,
-        subject: str,
-        expires_delta: timedelta | None = None,
-        remember_me: bool = False,
-    ) -> str:
-        """Create a new access token.
-
-        Args:
-            subject: The subject (user ID) for the token.
-            expires_delta: Custom expiration time. Defaults to 24 hours.
-            remember_me: If True, token expires in 30 days instead of 24 hours.
-
-        Returns:
-            Encoded JWT access token.
-        """
-        if expires_delta is not None:
-            expire = datetime.now(timezone.utc) + expires_delta
-        elif remember_me:
-            expire = datetime.now(timezone.utc) + timedelta(
-                days=self.REMEMBER_ME_EXPIRE_DAYS
-            )
-        else:
-            expire = datetime.now(timezone.utc) + timedelta(
-                hours=self.ACCESS_TOKEN_EXPIRE_HOURS
-            )
-
-        to_encode: dict[str, Any] = {
-            "sub": subject,
-            "type": TokenType.ACCESS.value,
-            "exp": expire,
-        }
-
-        return jwt.encode(to_encode, self._secret_key, algorithm=self._algorithm)
-
-    def create_refresh_token(
-        self,
-        subject: str,
-        expires_delta: timedelta | None = None,
-    ) -> str:
-        """Create a new refresh token.
-
-        Refresh tokens include a unique identifier (jti) for blacklisting
-        on logout.
-
-        Args:
-            subject: The subject (user ID) for the token.
-            expires_delta: Custom expiration time. Defaults to 7 days.
-
-        Returns:
-            Encoded JWT refresh token.
-        """
-        if expires_delta is not None:
-            expire = datetime.now(timezone.utc) + expires_delta
-        else:
-            expire = datetime.now(timezone.utc) + timedelta(
-                days=self.REFRESH_TOKEN_EXPIRE_DAYS
-            )
-
-        jti = str(uuid.uuid4())
-
-        to_encode: dict[str, Any] = {
-            "sub": subject,
-            "type": TokenType.REFRESH.value,
-            "exp": expire,
-            "jti": jti,
-        }
-
-        return jwt.encode(to_encode, self._secret_key, algorithm=self._algorithm)
-
-    def decode_token(self, token: str) -> dict[str, Any] | None:
-        """Decode and validate a JWT token.
-
-        Args:
-            token: The JWT token to decode.
-
-        Returns:
-            Decoded token payload if valid, None if invalid or expired.
-        """
-        try:
-            payload = jwt.decode(
-                token,
-                self._secret_key,
-                algorithms=[self._algorithm],
-            )
-            return payload
-        except InvalidTokenError:
-            return None
-
-    def verify_token(self, token: str) -> TokenData | None:
-        """Verify a token and return structured token data.
-
-        Checks token validity, expiration, and blacklist status.
-
-        Args:
-            token: The JWT token to verify.
-
-        Returns:
-            TokenData if valid, None if invalid, expired, or blacklisted.
-        """
-        payload = self.decode_token(token)
-        if payload is None:
-            return None
-
-        # Check if token is blacklisted (for refresh tokens)
-        jti = payload.get("jti")
-        if jti and self.is_token_blacklisted(jti):
-            return None
-
-        try:
-            return TokenData(
-                sub=payload["sub"],
-                type=TokenType(payload["type"]),
-                exp=datetime.fromtimestamp(payload["exp"], tz=timezone.utc),
-                jti=jti,
-            )
-        except (KeyError, ValueError):
-            return None
-
-    def blacklist_token(self, jti: str) -> None:
-        """Add a token to the blacklist.
-
-        Args:
-            jti: The unique token identifier to blacklist.
-        """
-        self._blacklist.add(jti)
-
-    def is_token_blacklisted(self, jti: str) -> bool:
-        """Check if a token is blacklisted.
-
-        Args:
-            jti: The unique token identifier to check.
-
-        Returns:
-            True if the token is blacklisted, False otherwise.
-        """
-        return self._blacklist.is_blacklisted(jti)
-
-    def refresh_access_token(self, refresh_token: str) -> str | None:
-        """Create a new access token from a valid refresh token.
-
-        Args:
-            refresh_token: A valid refresh token.
-
-        Returns:
-            New access token if refresh token is valid, None otherwise.
-        """
-        token_data = self.verify_token(refresh_token)
-        if token_data is None:
-            return None
-
-        # Only refresh tokens can be used for refresh
-        if token_data.type != TokenType.REFRESH:
-            return None
-
-        return self.create_access_token(subject=token_data.sub)
-
-    def logout(self, refresh_token: str) -> bool:
-        """Logout by blacklisting the refresh token.
-
-        Args:
-            refresh_token: The refresh token to invalidate.
-
-        Returns:
-            True if logout successful, False if token was invalid.
-        """
-        payload = self.decode_token(refresh_token)
-        if payload is None:
-            return False
-
-        jti = payload.get("jti")
-        if jti:
-            self.blacklist_token(jti)
-            return True
-
-        return False
+# ── token creation ────────────────────────────────────────────────────────────
 
 
-# Singleton instance for the application
-_auth_service: AuthService | None = None
+def create_access_token(
+    subject: str,
+    expires_delta: timedelta | None = None,
+    remember_me: bool = False,
+) -> str:
+    """Create a signed JWT access token.
 
-
-def get_auth_service() -> AuthService:
-    """Get or create the application AuthService instance.
-
-    Returns a singleton AuthService configured with application settings.
-    The instance is created lazily on first call.
+    Args:
+        subject: The user ID to embed as the ``sub`` claim.
+        expires_delta: Custom lifetime. Overrides ``remember_me`` and the
+            default 24-hour window when provided.
+        remember_me: When *True* the token lives for
+            ``settings.REMEMBER_ME_EXPIRE_DAYS`` days instead of 24 hours.
 
     Returns:
-        Configured AuthService instance.
+        Encoded JWT string.
     """
-    global _auth_service
-    if _auth_service is None:
-        _auth_service = AuthService(
-            secret_key=settings.SECRET_KEY,
-            algorithm="HS256",
+    if expires_delta is not None:
+        expire = datetime.now(timezone.utc) + expires_delta
+    elif remember_me:
+        expire = datetime.now(timezone.utc) + timedelta(
+            days=settings.REMEMBER_ME_EXPIRE_DAYS
         )
-        # Apply settings to the instance
-        _auth_service.ACCESS_TOKEN_EXPIRE_HOURS = settings.ACCESS_TOKEN_EXPIRE_HOURS
-        _auth_service.REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
-        _auth_service.REMEMBER_ME_EXPIRE_DAYS = settings.REMEMBER_ME_EXPIRE_DAYS
-    return _auth_service
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(
+            hours=settings.ACCESS_TOKEN_EXPIRE_HOURS
+        )
+
+    to_encode: dict[str, Any] = {
+        "sub": subject,
+        "type": TokenType.ACCESS.value,
+        "exp": expire,
+    }
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(
+    subject: str,
+    expires_delta: timedelta | None = None,
+) -> str:
+    """Create a signed JWT refresh token.
+
+    Refresh tokens carry a unique ``jti`` claim so they can be individually
+    blacklisted on logout.
+
+    Args:
+        subject: The user ID to embed as the ``sub`` claim.
+        expires_delta: Custom lifetime. Defaults to
+            ``settings.REFRESH_TOKEN_EXPIRE_DAYS`` days.
+
+    Returns:
+        Encoded JWT string.
+    """
+    expire = (
+        datetime.now(timezone.utc) + expires_delta
+        if expires_delta is not None
+        else datetime.now(timezone.utc)
+        + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    )
+    jti = str(uuid.uuid4())
+    to_encode: dict[str, Any] = {
+        "sub": subject,
+        "type": TokenType.REFRESH.value,
+        "exp": expire,
+        "jti": jti,
+    }
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+# ── token validation ──────────────────────────────────────────────────────────
+
+
+def decode_token(token: str) -> dict[str, Any] | None:
+    """Decode and verify the JWT signature and expiry.
+
+    Returns the raw payload dict, or *None* on any validation failure.
+    Does **not** check the blacklist — use :func:`verify_token` for that.
+    """
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+    except InvalidTokenError:
+        return None
+
+
+def verify_token(token: str) -> TokenData | None:
+    """Fully validate a token: signature, expiry, and blacklist.
+
+    Args:
+        token: Encoded JWT string.
+
+    Returns:
+        :class:`TokenData` when the token is valid and not blacklisted,
+        *None* otherwise.
+    """
+    payload = decode_token(token)
+    if payload is None:
+        return None
+
+    jti = payload.get("jti")
+    if jti and is_token_blacklisted(jti):
+        return None
+
+    try:
+        return TokenData(
+            sub=payload["sub"],
+            type=TokenType(payload["type"]),
+            exp=datetime.fromtimestamp(payload["exp"], tz=timezone.utc),
+            jti=jti,
+        )
+    except (KeyError, ValueError):
+        return None
+
+
+# ── blacklist (Redis-backed) ──────────────────────────────────────────────────
+
+
+def blacklist_token(jti: str, expires_at: datetime) -> None:
+    """Blacklist a token JTI in Redis until its natural expiry.
+
+    The Redis key TTL matches the remaining token lifetime so the blacklist
+    entry is automatically evicted when the token would have expired anyway.
+
+    Args:
+        jti: Unique token identifier (``jti`` claim).
+        expires_at: Token expiry timestamp (used to compute TTL).
+    """
+    ttl = max(int((expires_at - datetime.now(timezone.utc)).total_seconds()), 1)
+    _redis().setex(f"{_BLACKLIST_PREFIX}{jti}", ttl, "1")
+
+
+def is_token_blacklisted(jti: str) -> bool:
+    """Return *True* if the JTI is present in the Redis blacklist."""
+    return bool(_redis().exists(f"{_BLACKLIST_PREFIX}{jti}"))
+
+
+# ── higher-level operations ───────────────────────────────────────────────────
+
+
+def refresh_access_token(refresh_token: str) -> str | None:
+    """Issue a new access token from a valid, non-blacklisted refresh token.
+
+    Args:
+        refresh_token: A refresh token previously issued by
+            :func:`create_refresh_token`.
+
+    Returns:
+        New access token string, or *None* if the refresh token is invalid,
+        expired, or blacklisted.
+    """
+    token_data = verify_token(refresh_token)
+    if token_data is None:
+        return None
+    if token_data.type != TokenType.REFRESH:
+        return None
+    return create_access_token(subject=token_data.sub)
+
+
+def logout(refresh_token: str) -> bool:
+    """Blacklist a refresh token, effectively logging the user out.
+
+    Args:
+        refresh_token: The refresh token to invalidate.
+
+    Returns:
+        *True* if the token was successfully blacklisted, *False* if the
+        token was invalid (treated as a no-op; logout always succeeds from
+        the caller's perspective).
+    """
+    payload = decode_token(refresh_token)
+    if payload is None:
+        return False
+    jti = payload.get("jti")
+    if jti:
+        expires_at = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+        blacklist_token(jti, expires_at)
+        return True
+    return False
