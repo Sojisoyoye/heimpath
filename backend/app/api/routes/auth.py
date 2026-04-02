@@ -14,6 +14,7 @@ from sqlmodel import Session, select
 from app.api.deps import get_db
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
+from app.crud import DUMMY_HASH
 from app.models import User
 from app.schemas.auth import (
     AuthToken,
@@ -143,11 +144,7 @@ async def login(
     # Verify credentials
     if not user:
         # Still run password verification to prevent timing attacks
-        # Use a dummy hash to maintain constant time
-        verify_password(
-            request.password,
-            "$argon2id$v=19$m=65536,t=3,p=4$dummy$dummyhash",
-        )
+        verify_password(request.password, DUMMY_HASH)
         rate_limit_service.record_failed_attempt(request.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
