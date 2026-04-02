@@ -13,6 +13,7 @@ module.exports = {
         "test",
         "chore",
         "ci",
+        "infra",
         "perf",
         "revert",
         "build",
