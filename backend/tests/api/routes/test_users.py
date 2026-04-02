@@ -279,6 +279,63 @@ def test_update_password_me_incorrect_password(
     assert updated_user["detail"] == "Incorrect password"
 
 
+def test_update_user_me_email_resets_email_verified(
+    client: TestClient, db: Session
+) -> None:
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    user = crud.create_user(session=db, user_create=user_in)
+
+    # Mark the user as email-verified
+    user.email_verified = True
+    db.add(user)
+    db.commit()
+
+    login_data = {"username": username, "password": password}
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    new_email = random_email()
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/me",
+        headers=headers,
+        json={"email": new_email},
+    )
+    assert r.status_code == 200
+    assert r.json()["email_verified"] is False
+
+    db.refresh(user)
+    assert user.email_verified is False
+
+
+def test_update_user_me_same_email_keeps_email_verified(
+    client: TestClient, db: Session
+) -> None:
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    user = crud.create_user(session=db, user_create=user_in)
+
+    user.email_verified = True
+    db.add(user)
+    db.commit()
+
+    login_data = {"username": username, "password": password}
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    # Update only full_name — email unchanged, verified status must be preserved
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/me",
+        headers=headers,
+        json={"full_name": "Same Email Update"},
+    )
+    assert r.status_code == 200
+    db.refresh(user)
+    assert user.email_verified is True
+
+
 def test_update_user_me_email_exists(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
