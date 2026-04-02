@@ -251,7 +251,7 @@ class LawBookmark(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     notes = Column(Text, nullable=True)
 
     # Relationships
-    user = relationship("User", backref="law_bookmarks")
+    user = relationship("User", back_populates="law_bookmarks")
     law = relationship("Law", back_populates="bookmarks")
 
     # Unique constraint on user + law
