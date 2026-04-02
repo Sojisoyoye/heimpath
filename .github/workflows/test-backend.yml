@@ -69,6 +69,24 @@ jobs:
       - name: Generate coverage XML
         run: uv run coverage xml
         working-directory: backend
+      - name: Fix coverage XML paths for SonarCloud
+        # SonarCloud runs in Docker at /github/workspace/ but coverage.py
+        # records absolute paths from the runner (/home/runner/work/...).
+        # Replace the source path so SonarCloud can resolve file coverage.
+        run: |
+          python3 - <<'EOF'
+          import re, pathlib
+          path = pathlib.Path("backend/coverage.xml")
+          content = path.read_text()
+          # Replace any absolute <source> element with the container path
+          content = re.sub(
+              r"<source>[^<]*/backend(?:/app)?</source>",
+              "<source>/github/workspace/backend</source>",
+              content,
+          )
+          path.write_text(content)
+          print("Fixed coverage XML source paths for SonarCloud")
+          EOF
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
