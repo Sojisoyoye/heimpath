@@ -93,7 +93,8 @@ class TestRateLimitFunctions:
         status = get_status(email)
         assert status.lockout_expires_at is not None
         actual = status.lockout_expires_at - datetime.now(timezone.utc)
-        assert actual > timedelta(minutes=14, seconds=59)
+        # Allow 5s tolerance for time passing between SETEX and TTL read-back
+        assert actual > timedelta(minutes=14, seconds=55)
         assert actual <= timedelta(minutes=15)
 
     def test_successful_login_clears_attempts(self) -> None:
