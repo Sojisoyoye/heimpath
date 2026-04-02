@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -127,9 +128,9 @@ class JourneyStepCreate(JourneyStepBase):
     """Schema for creating a journey step."""
 
     content_key: str | None = None
-    related_laws: str | None = None  # JSON string
-    estimated_costs: str | None = None  # JSON string
-    prerequisites: str | None = None  # JSON string
+    related_laws: list[str] | None = None
+    estimated_costs: dict[str, Any] | None = None
+    prerequisites: list[int] | None = None
 
 
 class JourneyStepUpdate(BaseModel):
@@ -148,8 +149,8 @@ class JourneyStepResponse(JourneyStepBase):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     content_key: str | None = None
-    related_laws: str | None = None
-    estimated_costs: str | None = None
+    related_laws: list[str] | None = None
+    estimated_costs: dict[str, Any] | None = None
     tasks: list[JourneyTaskResponse] = []
 
 

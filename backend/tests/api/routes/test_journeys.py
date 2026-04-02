@@ -317,8 +317,7 @@ def test_delete_journey(client: TestClient, db: Session) -> None:
         headers=headers,
     )
 
-    assert r.status_code == 200
-    assert "deleted" in r.json()["message"].lower()
+    assert r.status_code == 204
 
     # Journey should not appear in active list
     r = client.get(f"{settings.API_V1_STR}/journeys/", headers=headers)

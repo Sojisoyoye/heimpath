@@ -4,11 +4,9 @@ Provides journey generation, progression, and management for the
 guided property buying process.
 """
 
-import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from functools import lru_cache
 from typing import Any
 
 from sqlmodel import Session, select
@@ -369,489 +367,464 @@ STEP_TEMPLATES: list[StepTemplate] = [
 ]
 
 
-class JourneyService:
-    """Service for managing property buying journeys.
-
-    Handles journey generation based on questionnaire answers,
-    step progression, and progress tracking.
-    """
-
-    def __init__(self) -> None:
-        """Initialize the journey service."""
-        self._step_templates = STEP_TEMPLATES
-
-    def _should_include_step(
-        self, template: StepTemplate, answers: QuestionnaireAnswers
-    ) -> bool:
-        """Check if a step should be included based on questionnaire answers."""
-        if template.conditions is None:
-            return True
-
-        for field, valid_values in template.conditions.items():
-            answer_value = getattr(answers, field, None)
-            if answer_value is None:
-                continue
-
-            # Handle enum values
-            if hasattr(answer_value, "value"):
-                answer_value = answer_value.value
-
-            # Handle boolean conditions
-            if isinstance(valid_values, bool):
-                if answer_value != valid_values:
-                    return False
-            # Handle list of valid values
-            elif isinstance(valid_values, list):
-                if answer_value not in valid_values:
-                    return False
-
+def _should_include_step(
+    template: StepTemplate, answers: QuestionnaireAnswers
+) -> bool:
+    """Check if a step should be included based on questionnaire answers."""
+    if template.conditions is None:
         return True
 
-    def generate_journey(
-        self,
-        session: Session,
-        user_id: uuid.UUID,
-        title: str,
-        answers: QuestionnaireAnswers,
-    ) -> Journey:
-        """Generate a personalized journey based on questionnaire answers.
+    for field, valid_values in template.conditions.items():
+        answer_value = getattr(answers, field, None)
+        if answer_value is None:
+            continue
 
-        Args:
-            session: Database session.
-            user_id: User's UUID.
-            title: Journey title.
-            answers: Questionnaire answers for personalization.
+        # Handle enum values
+        if hasattr(answer_value, "value"):
+            answer_value = answer_value.value
 
-        Returns:
-            Created Journey with generated steps.
-        """
-        # Create the journey
-        journey = Journey(
-            user_id=user_id,
-            title=title,
-            property_type=answers.property_type,
-            property_location=answers.property_location,
-            financing_type=answers.financing_type,
-            is_first_time_buyer=answers.is_first_time_buyer,
-            has_german_residency=answers.has_german_residency,
-            budget_euros=answers.budget_euros,
-            target_purchase_date=answers.target_purchase_date,
-            started_at=datetime.now(timezone.utc),
+        # Handle boolean conditions
+        if isinstance(valid_values, bool):
+            if answer_value != valid_values:
+                return False
+        # Handle list of valid values
+        elif isinstance(valid_values, list):
+            if answer_value not in valid_values:
+                return False
+
+    return True
+
+
+def generate_journey(
+    session: Session,
+    user_id: uuid.UUID,
+    title: str,
+    answers: QuestionnaireAnswers,
+) -> Journey:
+    """Generate a personalized journey based on questionnaire answers.
+
+    Args:
+        session: Database session.
+        user_id: User's UUID.
+        title: Journey title.
+        answers: Questionnaire answers for personalization.
+
+    Returns:
+        Created Journey with generated steps.
+    """
+    # Create the journey
+    journey = Journey(
+        user_id=user_id,
+        title=title,
+        property_type=answers.property_type,
+        property_location=answers.property_location,
+        financing_type=answers.financing_type,
+        is_first_time_buyer=answers.is_first_time_buyer,
+        has_german_residency=answers.has_german_residency,
+        budget_euros=answers.budget_euros,
+        target_purchase_date=answers.target_purchase_date,
+        started_at=datetime.now(timezone.utc),
+    )
+    session.add(journey)
+    session.flush()  # Get journey ID
+
+    # Generate steps based on conditions
+    step_number_map: dict[int, int] = {}  # Original -> New step number
+    current_step = 0
+
+    for template in STEP_TEMPLATES:
+        if not _should_include_step(template, answers):
+            continue
+
+        current_step += 1
+        step_number_map[template.step_number] = current_step
+
+        # Map prerequisites to new step numbers
+        prerequisites: list[int] | None = None
+        if template.prerequisites:
+            mapped_prereqs = [
+                step_number_map.get(p)
+                for p in template.prerequisites
+                if p in step_number_map
+            ]
+            if mapped_prereqs:
+                prerequisites = [p for p in mapped_prereqs if p is not None]
+
+        step = JourneyStep(
+            journey_id=journey.id,
+            step_number=current_step,
+            phase=template.phase,
+            title=template.title,
+            description=template.description,
+            estimated_duration_days=template.estimated_duration_days,
+            content_key=template.content_key,
+            prerequisites=prerequisites,
+            related_laws=template.related_laws,
+            estimated_costs=template.estimated_costs,
         )
-        session.add(journey)
-        session.flush()  # Get journey ID
+        session.add(step)
+        session.flush()
 
-        # Generate steps based on conditions
-        step_number_map: dict[int, int] = {}  # Original -> New step number
-        current_step = 0
-
-        for template in self._step_templates:
-            if not self._should_include_step(template, answers):
-                continue
-
-            current_step += 1
-            step_number_map[template.step_number] = current_step
-
-            # Map prerequisites to new step numbers
-            prerequisites = None
-            if template.prerequisites:
-                mapped_prereqs = [
-                    step_number_map.get(p)
-                    for p in template.prerequisites
-                    if p in step_number_map
-                ]
-                if mapped_prereqs:
-                    prerequisites = json.dumps(mapped_prereqs)
-
-            step = JourneyStep(
-                journey_id=journey.id,
-                step_number=current_step,
-                phase=template.phase,
-                title=template.title,
-                description=template.description,
-                estimated_duration_days=template.estimated_duration_days,
-                content_key=template.content_key,
-                prerequisites=prerequisites,
-                related_laws=json.dumps(template.related_laws)
-                if template.related_laws
-                else None,
-                estimated_costs=json.dumps(template.estimated_costs)
-                if template.estimated_costs
-                else None,
+        # Create tasks for this step
+        for i, task_data in enumerate(template.tasks):
+            task = JourneyTask(
+                step_id=step.id,
+                order=i,
+                title=task_data["title"],
+                is_required=task_data.get("is_required", True),
+                description=task_data.get("description"),
+                resource_url=task_data.get("resource_url"),
+                resource_type=task_data.get("resource_type"),
             )
-            session.add(step)
-            session.flush()
+            session.add(task)
 
-            # Create tasks for this step
-            for i, task_data in enumerate(template.tasks):
-                task = JourneyTask(
-                    step_id=step.id,
-                    order=i,
-                    title=task_data["title"],
-                    is_required=task_data.get("is_required", True),
-                    description=task_data.get("description"),
-                    resource_url=task_data.get("resource_url"),
-                    resource_type=task_data.get("resource_type"),
+    session.commit()
+    session.refresh(journey)
+    return journey
+
+
+def get_journey(
+    session: Session,
+    journey_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> Journey:
+    """Get a journey by ID, ensuring it belongs to the user.
+
+    Args:
+        session: Database session.
+        journey_id: Journey UUID.
+        user_id: User's UUID.
+
+    Returns:
+        Journey object.
+
+    Raises:
+        JourneyNotFoundError: If journey not found or doesn't belong to user.
+    """
+    statement = select(Journey).where(
+        Journey.id == journey_id,
+        Journey.user_id == user_id,
+    )
+    journey = session.exec(statement).first()
+    if not journey:
+        raise JourneyNotFoundError(f"Journey {journey_id} not found")
+    return journey
+
+
+def get_user_journeys(
+    session: Session,
+    user_id: uuid.UUID,
+    active_only: bool = True,
+) -> list[Journey]:
+    """Get all journeys for a user.
+
+    Args:
+        session: Database session.
+        user_id: User's UUID.
+        active_only: If True, only return active journeys.
+
+    Returns:
+        List of Journey objects.
+    """
+    statement = select(Journey).where(Journey.user_id == user_id)
+    if active_only:
+        statement = statement.where(Journey.is_active == True)  # noqa: E712
+    statement = statement.order_by(Journey.created_at.desc())
+    return list(session.exec(statement).all())
+
+
+def get_step(
+    session: Session,
+    journey_id: uuid.UUID,
+    step_id: uuid.UUID,
+) -> JourneyStep:
+    """Get a specific step.
+
+    Args:
+        session: Database session.
+        journey_id: Journey UUID.
+        step_id: Step UUID.
+
+    Returns:
+        JourneyStep object.
+
+    Raises:
+        StepNotFoundError: If step not found.
+    """
+    statement = select(JourneyStep).where(
+        JourneyStep.id == step_id,
+        JourneyStep.journey_id == journey_id,
+    )
+    step = session.exec(statement).first()
+    if not step:
+        raise StepNotFoundError(f"Step {step_id} not found")
+    return step
+
+
+def update_step_status(
+    session: Session,
+    journey: Journey,
+    step_id: uuid.UUID,
+    new_status: StepStatus,
+) -> JourneyStep:
+    """Update a step's status.
+
+    Args:
+        session: Database session.
+        journey: Journey object.
+        step_id: Step UUID.
+        new_status: New status to set.
+
+    Returns:
+        Updated JourneyStep.
+
+    Raises:
+        StepNotFoundError: If step not found.
+        InvalidStepTransitionError: If prerequisites not met.
+    """
+    step = get_step(session, journey.id, step_id)
+
+    # Check prerequisites if starting or completing
+    if new_status in (StepStatus.IN_PROGRESS, StepStatus.COMPLETED):
+        if step.prerequisites:
+            prereq_steps: list[int] = step.prerequisites
+            for prereq_num in prereq_steps:
+                prereq_statement = select(JourneyStep).where(
+                    JourneyStep.journey_id == journey.id,
+                    JourneyStep.step_number == prereq_num,
                 )
-                session.add(task)
-
-        session.commit()
-        session.refresh(journey)
-        return journey
-
-    def get_journey(
-        self,
-        session: Session,
-        journey_id: uuid.UUID,
-        user_id: uuid.UUID,
-    ) -> Journey:
-        """Get a journey by ID, ensuring it belongs to the user.
-
-        Args:
-            session: Database session.
-            journey_id: Journey UUID.
-            user_id: User's UUID.
-
-        Returns:
-            Journey object.
-
-        Raises:
-            JourneyNotFoundError: If journey not found or doesn't belong to user.
-        """
-        statement = select(Journey).where(
-            Journey.id == journey_id,
-            Journey.user_id == user_id,
-        )
-        journey = session.exec(statement).first()
-        if not journey:
-            raise JourneyNotFoundError(f"Journey {journey_id} not found")
-        return journey
-
-    def get_user_journeys(
-        self,
-        session: Session,
-        user_id: uuid.UUID,
-        active_only: bool = True,
-    ) -> list[Journey]:
-        """Get all journeys for a user.
-
-        Args:
-            session: Database session.
-            user_id: User's UUID.
-            active_only: If True, only return active journeys.
-
-        Returns:
-            List of Journey objects.
-        """
-        statement = select(Journey).where(Journey.user_id == user_id)
-        if active_only:
-            statement = statement.where(Journey.is_active == True)  # noqa: E712
-        statement = statement.order_by(Journey.created_at.desc())
-        return list(session.exec(statement).all())
-
-    def get_step(
-        self,
-        session: Session,
-        journey_id: uuid.UUID,
-        step_id: uuid.UUID,
-    ) -> JourneyStep:
-        """Get a specific step.
-
-        Args:
-            session: Database session.
-            journey_id: Journey UUID.
-            step_id: Step UUID.
-
-        Returns:
-            JourneyStep object.
-
-        Raises:
-            StepNotFoundError: If step not found.
-        """
-        statement = select(JourneyStep).where(
-            JourneyStep.id == step_id,
-            JourneyStep.journey_id == journey_id,
-        )
-        step = session.exec(statement).first()
-        if not step:
-            raise StepNotFoundError(f"Step {step_id} not found")
-        return step
-
-    def update_step_status(
-        self,
-        session: Session,
-        journey: Journey,
-        step_id: uuid.UUID,
-        new_status: StepStatus,
-    ) -> JourneyStep:
-        """Update a step's status.
-
-        Args:
-            session: Database session.
-            journey: Journey object.
-            step_id: Step UUID.
-            new_status: New status to set.
-
-        Returns:
-            Updated JourneyStep.
-
-        Raises:
-            StepNotFoundError: If step not found.
-            InvalidStepTransitionError: If prerequisites not met.
-        """
-        step = self.get_step(session, journey.id, step_id)
-
-        # Check prerequisites if starting or completing
-        if new_status in (StepStatus.IN_PROGRESS, StepStatus.COMPLETED):
-            if step.prerequisites:
-                prereq_steps = json.loads(step.prerequisites)
-                for prereq_num in prereq_steps:
-                    prereq_statement = select(JourneyStep).where(
-                        JourneyStep.journey_id == journey.id,
-                        JourneyStep.step_number == prereq_num,
+                prereq = session.exec(prereq_statement).first()
+                if prereq and prereq.status != StepStatus.COMPLETED:
+                    raise InvalidStepTransitionError(
+                        f"Prerequisite step {prereq_num} must be completed first"
                     )
-                    prereq = session.exec(prereq_statement).first()
-                    if prereq and prereq.status != StepStatus.COMPLETED:
-                        raise InvalidStepTransitionError(
-                            f"Prerequisite step {prereq_num} must be completed first"
-                        )
 
-        # Update timestamps
-        now = datetime.now(timezone.utc)
-        if new_status == StepStatus.IN_PROGRESS and not step.started_at:
+    # Update timestamps
+    now = datetime.now(timezone.utc)
+    if new_status == StepStatus.IN_PROGRESS and not step.started_at:
+        step.started_at = now
+    elif new_status == StepStatus.COMPLETED:
+        step.completed_at = now
+
+    step.status = new_status
+    session.add(step)
+
+    # Update journey's current step if progressing
+    if new_status == StepStatus.COMPLETED:
+        next_step = _get_next_incomplete_step(session, journey)
+        if next_step:
+            journey.current_step_number = next_step.step_number
+            journey.current_phase = next_step.phase
+        else:
+            # Journey complete
+            journey.completed_at = now
+        session.add(journey)
+
+    session.commit()
+    session.refresh(step)
+    return step
+
+
+def update_task_status(
+    session: Session,
+    step: JourneyStep,
+    task_id: uuid.UUID,
+    is_completed: bool,
+    journey: Journey,
+) -> JourneyTask:
+    """Update a task's completion status.
+
+    Automatically syncs the parent step status:
+    - First task checked on a not_started step → in_progress
+    - All tasks completed → completed (advances journey)
+    - Task unchecked on a completed step → in_progress
+
+    Args:
+        session: Database session.
+        step: JourneyStep object.
+        task_id: Task UUID.
+        is_completed: New completion status.
+        journey: Journey object for step advancement on completion.
+
+    Returns:
+        Updated JourneyTask.
+
+    Raises:
+        JourneyError: If task not found.
+    """
+    statement = select(JourneyTask).where(
+        JourneyTask.id == task_id,
+        JourneyTask.step_id == step.id,
+    )
+    task = session.exec(statement).first()
+    if not task:
+        raise JourneyError(f"Task {task_id} not found")
+
+    now = datetime.now(timezone.utc)
+    task.is_completed = is_completed
+    task.completed_at = now if is_completed else None
+    session.add(task)
+
+    # Sync step status based on task completion
+    _sync_step_status_from_tasks(session, step, task, journey)
+
+    session.commit()
+    session.refresh(task)
+    return task
+
+
+def _sync_step_status_from_tasks(
+    session: Session,
+    step: JourneyStep,
+    updated_task: JourneyTask,
+    journey: Journey | None,
+) -> None:
+    """Sync step status based on task completion state.
+
+    Args:
+        session: Database session.
+        step: Parent step.
+        updated_task: The task that was just updated (in-memory, not yet committed).
+        journey: Journey object for advancing current step on completion.
+    """
+    # Load all sibling tasks
+    all_tasks_stmt = select(JourneyTask).where(JourneyTask.step_id == step.id)
+    all_tasks = list(session.exec(all_tasks_stmt).all())
+
+    # Build completion map, using the in-memory state for the updated task
+    completed_count = 0
+    for t in all_tasks:
+        is_done = (
+            updated_task.is_completed if t.id == updated_task.id else t.is_completed
+        )
+        if is_done:
+            completed_count += 1
+
+    total_tasks = len(all_tasks)
+    if total_tasks == 0:
+        return
+    all_complete = completed_count == total_tasks
+    any_complete = completed_count > 0
+    now = datetime.now(timezone.utc)
+
+    if all_complete and step.status != StepStatus.COMPLETED:
+        # All tasks done → mark step completed
+        step.status = StepStatus.COMPLETED
+        step.completed_at = now
+        if not step.started_at:
             step.started_at = now
-        elif new_status == StepStatus.COMPLETED:
-            step.completed_at = now
-
-        step.status = new_status
         session.add(step)
 
-        # Update journey's current step if progressing
-        if new_status == StepStatus.COMPLETED:
-            next_step = self._get_next_incomplete_step(session, journey)
+        # Advance journey to next step
+        if journey:
+            next_step = _get_next_incomplete_step(session, journey)
             if next_step:
                 journey.current_step_number = next_step.step_number
                 journey.current_phase = next_step.phase
             else:
-                # Journey complete
                 journey.completed_at = now
             session.add(journey)
 
-        session.commit()
-        session.refresh(step)
-        return step
+    elif not all_complete and step.status == StepStatus.COMPLETED:
+        # Task unchecked on a completed step → revert to in_progress
+        step.status = StepStatus.IN_PROGRESS
+        step.completed_at = None
+        session.add(step)
 
-    def update_task_status(
-        self,
-        session: Session,
-        step: JourneyStep,
-        task_id: uuid.UUID,
-        is_completed: bool,
-        journey: Journey,
-    ) -> JourneyTask:
-        """Update a task's completion status.
+        # Revert journey current step if needed
+        if journey and journey.current_step_number > step.step_number:
+            journey.current_step_number = step.step_number
+            journey.current_phase = step.phase
+            journey.completed_at = None
+            session.add(journey)
 
-        Automatically syncs the parent step status:
-        - First task checked on a not_started step → in_progress
-        - All tasks completed → completed (advances journey)
-        - Task unchecked on a completed step → in_progress
+    elif any_complete and step.status == StepStatus.NOT_STARTED:
+        # First task checked → move to in_progress
+        step.status = StepStatus.IN_PROGRESS
+        step.started_at = now
+        session.add(step)
 
-        Args:
-            session: Database session.
-            step: JourneyStep object.
-            task_id: Task UUID.
-            is_completed: New completion status.
-            journey: Journey object for step advancement on completion.
 
-        Returns:
-            Updated JourneyTask.
-        """
-        statement = select(JourneyTask).where(
-            JourneyTask.id == task_id,
-            JourneyTask.step_id == step.id,
+def _get_next_incomplete_step(
+    session: Session,
+    journey: Journey,
+) -> JourneyStep | None:
+    """Get the next incomplete step in the journey."""
+    statement = (
+        select(JourneyStep)
+        .where(
+            JourneyStep.journey_id == journey.id,
+            JourneyStep.status != StepStatus.COMPLETED,
+            JourneyStep.status != StepStatus.SKIPPED,
         )
-        task = session.exec(statement).first()
-        if not task:
-            raise JourneyError(f"Task {task_id} not found")
+        .order_by(JourneyStep.step_number)
+    )
+    return session.exec(statement).first()
 
-        now = datetime.now(timezone.utc)
-        task.is_completed = is_completed
-        task.completed_at = now if is_completed else None
-        session.add(task)
 
-        # Sync step status based on task completion
-        self._sync_step_status_from_tasks(session, step, task, journey)
+def get_next_step(
+    session: Session,
+    journey: Journey,
+) -> JourneyStep | None:
+    """Get the next recommended step for a journey.
 
-        session.commit()
-        session.refresh(task)
-        return task
+    Args:
+        session: Database session.
+        journey: Journey object.
 
-    def _sync_step_status_from_tasks(
-        self,
-        session: Session,
-        step: JourneyStep,
-        updated_task: JourneyTask,
-        journey: Journey | None,
-    ) -> None:
-        """Sync step status based on task completion state.
+    Returns:
+        Next JourneyStep or None if journey is complete.
+    """
+    return _get_next_incomplete_step(session, journey)
 
-        Args:
-            session: Database session.
-            step: Parent step.
-            updated_task: The task that was just updated (in-memory, not yet committed).
-            journey: Journey object for advancing current step on completion.
-        """
-        # Load all sibling tasks
-        all_tasks_stmt = select(JourneyTask).where(JourneyTask.step_id == step.id)
-        all_tasks = list(session.exec(all_tasks_stmt).all())
 
-        # Build completion map, using the in-memory state for the updated task
-        completed_count = 0
-        for t in all_tasks:
-            is_done = (
-                updated_task.is_completed if t.id == updated_task.id else t.is_completed
-            )
-            if is_done:
-                completed_count += 1
+def get_progress(
+    session: Session,
+    journey: Journey,
+) -> dict[str, Any]:
+    """Calculate journey progress.
 
-        total_tasks = len(all_tasks)
-        if total_tasks == 0:
-            return
-        all_complete = completed_count == total_tasks
-        any_complete = completed_count > 0
-        now = datetime.now(timezone.utc)
+    Args:
+        session: Database session.
+        journey: Journey object.
 
-        if all_complete and step.status != StepStatus.COMPLETED:
-            # All tasks done → mark step completed
-            step.status = StepStatus.COMPLETED
-            step.completed_at = now
-            if not step.started_at:
-                step.started_at = now
-            session.add(step)
+    Returns:
+        Progress dictionary with stats.
+    """
+    statement = select(JourneyStep).where(JourneyStep.journey_id == journey.id)
+    steps = list(session.exec(statement).all())
 
-            # Advance journey to next step
-            if journey:
-                next_step = self._get_next_incomplete_step(session, journey)
-                if next_step:
-                    journey.current_step_number = next_step.step_number
-                    journey.current_phase = next_step.phase
-                else:
-                    journey.completed_at = now
-                session.add(journey)
+    total_steps = len(steps)
+    completed_steps = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
 
-        elif not all_complete and step.status == StepStatus.COMPLETED:
-            # Task unchecked on a completed step → revert to in_progress
-            step.status = StepStatus.IN_PROGRESS
-            step.completed_at = None
-            session.add(step)
-
-            # Revert journey current step if needed
-            if journey and journey.current_step_number > step.step_number:
-                journey.current_step_number = step.step_number
-                journey.current_phase = step.phase
-                journey.completed_at = None
-                session.add(journey)
-
-        elif any_complete and step.status == StepStatus.NOT_STARTED:
-            # First task checked → move to in_progress
-            step.status = StepStatus.IN_PROGRESS
-            step.started_at = now
-            session.add(step)
-
-    def _get_next_incomplete_step(
-        self,
-        session: Session,
-        journey: Journey,
-    ) -> JourneyStep | None:
-        """Get the next incomplete step in the journey."""
-        statement = (
-            select(JourneyStep)
-            .where(
-                JourneyStep.journey_id == journey.id,
-                JourneyStep.status != StepStatus.COMPLETED,
-                JourneyStep.status != StepStatus.SKIPPED,
-            )
-            .order_by(JourneyStep.step_number)
-        )
-        return session.exec(statement).first()
-
-    def get_next_step(
-        self,
-        session: Session,
-        journey: Journey,
-    ) -> JourneyStep | None:
-        """Get the next recommended step for a journey.
-
-        Args:
-            session: Database session.
-            journey: Journey object.
-
-        Returns:
-            Next JourneyStep or None if journey is complete.
-        """
-        return self._get_next_incomplete_step(session, journey)
-
-    def get_progress(
-        self,
-        session: Session,
-        journey: Journey,
-    ) -> dict[str, Any]:
-        """Calculate journey progress.
-
-        Args:
-            session: Database session.
-            journey: Journey object.
-
-        Returns:
-            Progress dictionary with stats.
-        """
-        statement = select(JourneyStep).where(JourneyStep.journey_id == journey.id)
-        steps = list(session.exec(statement).all())
-
-        total_steps = len(steps)
-        completed_steps = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
-
-        # Calculate by phase
-        phases: dict[str, dict[str, int]] = {}
-        for phase in JourneyPhase:
-            phase_steps = [s for s in steps if s.phase == phase]
-            phases[phase.value] = {
-                "total": len(phase_steps),
-                "completed": sum(
-                    1 for s in phase_steps if s.status == StepStatus.COMPLETED
-                ),
-            }
-
-        # Estimate remaining days
-        remaining_steps = [
-            s
-            for s in steps
-            if s.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED)
-        ]
-        estimated_days = sum(s.estimated_duration_days or 0 for s in remaining_steps)
-
-        return {
-            "journey_id": journey.id,
-            "total_steps": total_steps,
-            "completed_steps": completed_steps,
-            "current_step_number": journey.current_step_number,
-            "current_phase": journey.current_phase,
-            "progress_percentage": (completed_steps / total_steps * 100)
-            if total_steps > 0
-            else 0,
-            "estimated_days_remaining": estimated_days if estimated_days > 0 else None,
-            "phases": phases,
+    # Calculate by phase
+    phases: dict[str, dict[str, int]] = {}
+    for phase in JourneyPhase:
+        phase_steps = [s for s in steps if s.phase == phase]
+        phases[phase.value] = {
+            "total": len(phase_steps),
+            "completed": sum(
+                1 for s in phase_steps if s.status == StepStatus.COMPLETED
+            ),
         }
 
+    # Estimate remaining days
+    remaining_steps = [
+        s
+        for s in steps
+        if s.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED)
+    ]
+    estimated_days = sum(s.estimated_duration_days or 0 for s in remaining_steps)
 
-# Singleton instance
-_journey_service: JourneyService | None = None
-
-
-@lru_cache
-def get_journey_service() -> JourneyService:
-    """Get the journey service singleton."""
-    global _journey_service
-    if _journey_service is None:
-        _journey_service = JourneyService()
-    return _journey_service
+    return {
+        "journey_id": journey.id,
+        "total_steps": total_steps,
+        "completed_steps": completed_steps,
+        "current_step_number": journey.current_step_number,
+        "current_phase": journey.current_phase,
+        "progress_percentage": (completed_steps / total_steps * 100)
+        if total_steps > 0
+        else 0,
+        "estimated_days_remaining": estimated_days if estimated_days > 0 else None,
+        "phases": phases,
+    }

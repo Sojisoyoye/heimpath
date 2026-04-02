@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
 from app.api.deps import CurrentUser, get_db
-from app.models import Message
+from app.models.journey import Journey, JourneyStep, JourneyTask
 from app.models.notification import NotificationType
 from app.schemas.journey import (
     JourneyCreate,
@@ -30,55 +30,68 @@ from app.schemas.journey import (
 from app.services import notification_service
 from app.services.journey_service import (
     InvalidStepTransitionError,
+    JourneyError,
     JourneyNotFoundError,
     StepNotFoundError,
-    get_journey_service,
+    generate_journey,
+    get_journey,
+    get_next_step,
+    get_progress,
+    get_step,
+    get_user_journeys,
+    update_step_status,
+    update_task_status,
 )
 
 router = APIRouter(prefix="/journeys", tags=["journeys"])
 
 
-@router.post(
-    "/",
-    response_model=JourneyResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_journey(
-    request: JourneyCreate,
-    session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
-) -> JourneyResponse:
-    """
-    Create a new property buying journey from questionnaire answers.
-
-    The journey will be personalized based on:
-    - Property type and location
-    - Financing needs
-    - First-time buyer status
-    - German residency status
-    - Budget and timeline
-    """
-    service = get_journey_service()
-    journey = service.generate_journey(
-        session=session,
-        user_id=current_user.id,
-        title=request.title,
-        answers=request.questionnaire,
+def _build_step_summary(step: JourneyStep) -> JourneyStepSummary:
+    return JourneyStepSummary(
+        id=step.id,
+        step_number=step.step_number,
+        phase=step.phase,
+        title=step.title,
+        status=step.status,
+        estimated_duration_days=step.estimated_duration_days,
     )
 
-    # Convert to response with step summaries
-    steps = [
-        JourneyStepSummary(
-            id=step.id,
-            step_number=step.step_number,
-            phase=step.phase,
-            title=step.title,
-            status=step.status,
-            estimated_duration_days=step.estimated_duration_days,
-        )
-        for step in journey.steps
-    ]
 
+def _build_task_response(task: JourneyTask) -> JourneyTaskResponse:
+    return JourneyTaskResponse(
+        id=task.id,
+        order=task.order,
+        title=task.title,
+        description=task.description,
+        is_required=task.is_required,
+        is_completed=task.is_completed,
+        completed_at=task.completed_at,
+        resource_url=task.resource_url,
+        resource_type=task.resource_type,
+    )
+
+
+def _build_step_response(step: JourneyStep) -> JourneyStepResponse:
+    tasks = [_build_task_response(t) for t in step.tasks]
+    return JourneyStepResponse(
+        id=step.id,
+        step_number=step.step_number,
+        phase=step.phase,
+        title=step.title,
+        description=step.description,
+        estimated_duration_days=step.estimated_duration_days,
+        status=step.status,
+        started_at=step.started_at,
+        completed_at=step.completed_at,
+        content_key=step.content_key,
+        related_laws=step.related_laws,
+        estimated_costs=step.estimated_costs,
+        tasks=tasks,
+    )
+
+
+def _build_journey_response(journey: Journey) -> JourneyResponse:
+    steps = [_build_step_summary(s) for s in journey.steps]
     return JourneyResponse(
         id=journey.id,
         title=journey.title,
@@ -102,74 +115,64 @@ def create_journey(
     )
 
 
-@router.get("/", response_model=JourneysListResponse)
-def list_journeys(
+@router.post(
+    "/",
+    response_model=JourneyResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_journey(
+    request: JourneyCreate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+) -> JourneyResponse:
+    """
+    Create a new property buying journey from questionnaire answers.
+
+    The journey will be personalized based on:
+    - Property type and location
+    - Financing needs
+    - First-time buyer status
+    - German residency status
+    - Budget and timeline
+    """
+    journey = generate_journey(
+        session=session,
+        user_id=current_user.id,
+        title=request.title,
+        answers=request.questionnaire,
+    )
+    return _build_journey_response(journey)
+
+
+@router.get("/", response_model=JourneysListResponse)
+async def list_journeys(
+    current_user: CurrentUser,
+    session: Session = Depends(get_db),
     active_only: bool = True,
 ) -> JourneysListResponse:
     """
     List all journeys for the current user.
     """
-    service = get_journey_service()
-    journeys = service.get_user_journeys(
+    journeys = get_user_journeys(
         session=session,
         user_id=current_user.id,
         active_only=active_only,
     )
-
-    journey_responses = []
-    for journey in journeys:
-        steps = [
-            JourneyStepSummary(
-                id=step.id,
-                step_number=step.step_number,
-                phase=step.phase,
-                title=step.title,
-                status=step.status,
-                estimated_duration_days=step.estimated_duration_days,
-            )
-            for step in journey.steps
-        ]
-        journey_responses.append(
-            JourneyResponse(
-                id=journey.id,
-                title=journey.title,
-                current_phase=journey.current_phase,
-                current_step_number=journey.current_step_number,
-                property_type=journey.property_type,
-                property_location=journey.property_location,
-                financing_type=journey.financing_type,
-                is_first_time_buyer=journey.is_first_time_buyer,
-                has_german_residency=journey.has_german_residency,
-                budget_euros=journey.budget_euros,
-                target_purchase_date=journey.target_purchase_date,
-                property_goals=PropertyGoals(**journey.property_goals)
-                if journey.property_goals
-                else None,
-                started_at=journey.started_at,
-                completed_at=journey.completed_at,
-                is_active=journey.is_active,
-                created_at=journey.created_at,
-                steps=steps,
-            )
-        )
-
+    journey_responses = [_build_journey_response(j) for j in journeys]
     return JourneysListResponse(data=journey_responses, count=len(journey_responses))
 
 
 @router.get("/{journey_id}", response_model=JourneyDetailResponse)
-def get_journey(
+async def get_journey_endpoint(
     journey_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> JourneyDetailResponse:
     """
     Get a specific journey with full step and task details.
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -180,40 +183,7 @@ def get_journey(
             detail="Journey not found",
         )
 
-    # Build detailed step responses with tasks
-    steps = []
-    for step in journey.steps:
-        tasks = [
-            JourneyTaskResponse(
-                id=task.id,
-                order=task.order,
-                title=task.title,
-                description=task.description,
-                is_required=task.is_required,
-                is_completed=task.is_completed,
-                completed_at=task.completed_at,
-                resource_url=task.resource_url,
-                resource_type=task.resource_type,
-            )
-            for task in step.tasks
-        ]
-        steps.append(
-            JourneyStepResponse(
-                id=step.id,
-                step_number=step.step_number,
-                phase=step.phase,
-                title=step.title,
-                description=step.description,
-                estimated_duration_days=step.estimated_duration_days,
-                status=step.status,
-                started_at=step.started_at,
-                completed_at=step.completed_at,
-                content_key=step.content_key,
-                related_laws=step.related_laws,
-                estimated_costs=step.estimated_costs,
-                tasks=tasks,
-            )
-        )
+    steps = [_build_step_response(s) for s in journey.steps]
 
     return JourneyDetailResponse(
         id=journey.id,
@@ -239,18 +209,17 @@ def get_journey(
 
 
 @router.patch("/{journey_id}", response_model=JourneyResponse)
-def update_journey(
+async def update_journey(
     journey_id: uuid.UUID,
     request: JourneyUpdate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> JourneyResponse:
     """
     Update journey metadata.
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -261,7 +230,6 @@ def update_journey(
             detail="Journey not found",
         )
 
-    # Update fields
     update_data = request.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(journey, field, value)
@@ -270,53 +238,20 @@ def update_journey(
     session.commit()
     session.refresh(journey)
 
-    steps = [
-        JourneyStepSummary(
-            id=step.id,
-            step_number=step.step_number,
-            phase=step.phase,
-            title=step.title,
-            status=step.status,
-            estimated_duration_days=step.estimated_duration_days,
-        )
-        for step in journey.steps
-    ]
-
-    return JourneyResponse(
-        id=journey.id,
-        title=journey.title,
-        current_phase=journey.current_phase,
-        current_step_number=journey.current_step_number,
-        property_type=journey.property_type,
-        property_location=journey.property_location,
-        financing_type=journey.financing_type,
-        is_first_time_buyer=journey.is_first_time_buyer,
-        has_german_residency=journey.has_german_residency,
-        budget_euros=journey.budget_euros,
-        target_purchase_date=journey.target_purchase_date,
-        property_goals=PropertyGoals(**journey.property_goals)
-        if journey.property_goals
-        else None,
-        started_at=journey.started_at,
-        completed_at=journey.completed_at,
-        is_active=journey.is_active,
-        created_at=journey.created_at,
-        steps=steps,
-    )
+    return _build_journey_response(journey)
 
 
 @router.get("/{journey_id}/progress", response_model=JourneyProgressResponse)
-def get_journey_progress(
+async def get_journey_progress(
     journey_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> JourneyProgressResponse:
     """
     Get journey progress statistics.
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -327,22 +262,21 @@ def get_journey_progress(
             detail="Journey not found",
         )
 
-    progress = service.get_progress(session, journey)
+    progress = get_progress(session, journey)
     return JourneyProgressResponse(**progress)
 
 
 @router.get("/{journey_id}/next-step", response_model=NextStepResponse)
-def get_next_step(
+async def get_next_step_endpoint(
     journey_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> NextStepResponse:
     """
     Get the next recommended step for a journey.
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -353,7 +287,7 @@ def get_next_step(
             detail="Journey not found",
         )
 
-    next_step = service.get_next_step(session, journey)
+    next_step = get_next_step(session, journey)
 
     if not next_step:
         return NextStepResponse(
@@ -362,50 +296,19 @@ def get_next_step(
             message="Congratulations! You have completed your property journey.",
         )
 
-    tasks = [
-        JourneyTaskResponse(
-            id=task.id,
-            order=task.order,
-            title=task.title,
-            description=task.description,
-            is_required=task.is_required,
-            is_completed=task.is_completed,
-            completed_at=task.completed_at,
-            resource_url=task.resource_url,
-            resource_type=task.resource_type,
-        )
-        for task in next_step.tasks
-    ]
-
-    step_response = JourneyStepResponse(
-        id=next_step.id,
-        step_number=next_step.step_number,
-        phase=next_step.phase,
-        title=next_step.title,
-        description=next_step.description,
-        estimated_duration_days=next_step.estimated_duration_days,
-        status=next_step.status,
-        started_at=next_step.started_at,
-        completed_at=next_step.completed_at,
-        content_key=next_step.content_key,
-        related_laws=next_step.related_laws,
-        estimated_costs=next_step.estimated_costs,
-        tasks=tasks,
-    )
-
-    return NextStepResponse(has_next=True, step=step_response)
+    return NextStepResponse(has_next=True, step=_build_step_response(next_step))
 
 
 @router.patch(
     "/{journey_id}/steps/{step_id}",
     response_model=JourneyStepResponse,
 )
-def update_step_status(
+async def update_step_status_endpoint(
     journey_id: uuid.UUID,
     step_id: uuid.UUID,
     request: JourneyStepUpdate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> JourneyStepResponse:
     """
     Update a step's status.
@@ -415,14 +318,13 @@ def update_step_status(
     - in_progress -> completed
     - any -> skipped
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
         )
-        step = service.update_step_status(
+        step = update_step_status(
             session=session,
             journey=journey,
             step_id=step_id,
@@ -455,62 +357,32 @@ def update_step_status(
             action_url=f"/journeys/{journey_id}",
         )
 
-    tasks = [
-        JourneyTaskResponse(
-            id=task.id,
-            order=task.order,
-            title=task.title,
-            description=task.description,
-            is_required=task.is_required,
-            is_completed=task.is_completed,
-            completed_at=task.completed_at,
-            resource_url=task.resource_url,
-            resource_type=task.resource_type,
-        )
-        for task in step.tasks
-    ]
-
-    return JourneyStepResponse(
-        id=step.id,
-        step_number=step.step_number,
-        phase=step.phase,
-        title=step.title,
-        description=step.description,
-        estimated_duration_days=step.estimated_duration_days,
-        status=step.status,
-        started_at=step.started_at,
-        completed_at=step.completed_at,
-        content_key=step.content_key,
-        related_laws=step.related_laws,
-        estimated_costs=step.estimated_costs,
-        tasks=tasks,
-    )
+    return _build_step_response(step)
 
 
 @router.patch(
     "/{journey_id}/steps/{step_id}/tasks/{task_id}",
     response_model=JourneyTaskResponse,
 )
-def update_task_status(
+async def update_task_status_endpoint(
     journey_id: uuid.UUID,
     step_id: uuid.UUID,
     task_id: uuid.UUID,
     request: JourneyTaskUpdate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> JourneyTaskResponse:
     """
     Update a task's completion status.
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
         )
-        step = service.get_step(session, journey_id, step_id)
-        task = service.update_task_status(
+        step = get_step(session, journey_id, step_id)
+        task = update_task_status(
             session=session,
             step=step,
             task_id=task_id,
@@ -527,37 +399,26 @@ def update_task_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Step not found",
         )
-    except Exception:
+    except JourneyError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
 
-    return JourneyTaskResponse(
-        id=task.id,
-        order=task.order,
-        title=task.title,
-        description=task.description,
-        is_required=task.is_required,
-        is_completed=task.is_completed,
-        completed_at=task.completed_at,
-        resource_url=task.resource_url,
-        resource_type=task.resource_type,
-    )
+    return _build_task_response(task)
 
 
-@router.delete("/{journey_id}", response_model=Message)
-def delete_journey(
+@router.delete("/{journey_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_journey(
     journey_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
-) -> Message:
+) -> None:
     """
     Delete a journey (soft delete by setting is_active=False).
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -572,21 +433,18 @@ def delete_journey(
     session.add(journey)
     session.commit()
 
-    return Message(message="Journey deleted successfully")
-
 
 @router.get("/{journey_id}/property-goals", response_model=PropertyGoals)
-def get_property_goals(
+async def get_property_goals(
     journey_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> PropertyGoals:
     """
     Get property goals for a journey (Step 1 data).
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -604,11 +462,11 @@ def get_property_goals(
 
 
 @router.patch("/{journey_id}/property-goals", response_model=PropertyGoals)
-def update_property_goals(
+async def update_property_goals(
     journey_id: uuid.UUID,
     request: PropertyGoalsUpdate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> PropertyGoals:
     """
     Update property goals for a journey (Step 1 data).
@@ -620,9 +478,8 @@ def update_property_goals(
     - Size requirements
     - Additional notes
     """
-    service = get_journey_service()
     try:
-        journey = service.get_journey(
+        journey = get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -633,10 +490,8 @@ def update_property_goals(
             detail="Journey not found",
         )
 
-    # Get existing goals or create new
     existing_goals = journey.property_goals or {}
 
-    # Merge updates
     update_data = request.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         existing_goals[field] = value
