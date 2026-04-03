@@ -34,6 +34,21 @@ jobs:
         run: uv run pip-audit
         working-directory: backend
 
+  npm-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+        working-directory: frontend
+      - name: Run bun audit
+        run: bun audit
+        working-directory: frontend
+        # continue-on-error until transitive vulns in @hey-api/openapi-ts are resolved upstream
+        continue-on-error: true
+
   container-scan:
     # Only run on schedule — building Docker images is too slow for every PR
     if: github.event_name == 'schedule'
@@ -46,14 +61,14 @@ jobs:
       - name: Build frontend image
         run: docker build -t heimpath-frontend:scan -f frontend/Dockerfile .
       - name: Run Trivy on backend
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: "heimpath-backend:scan"
           format: "sarif"
           output: "trivy-backend-results.sarif"
           severity: "CRITICAL,HIGH"
       - name: Run Trivy on frontend
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: "heimpath-frontend:scan"
           format: "sarif"
@@ -80,7 +95,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.94.2
         with:
           extra_args: --only-verified
 
@@ -88,6 +103,7 @@ jobs:
     if: always()
     needs:
       - python-audit
+      - npm-audit
       - container-scan
       - secret-scan
     runs-on: ubuntu-latest
