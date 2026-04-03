@@ -135,8 +135,9 @@ def search_articles(
         session.exec(select(Article).where(Article.id.in_(article_ids))).scalars().all()
     )
     # Restore rank order
+    _UNRANKED = len(article_ids)
     id_order = {aid: i for i, aid in enumerate(article_ids)}
-    articles.sort(key=lambda a: id_order.get(a.id, 999))
+    articles.sort(key=lambda a: id_order.get(a.id, _UNRANKED))
     return [(a, rank_by_id[a.id]) for a in articles]
 
 
@@ -177,9 +178,6 @@ def rate_article(
     is_helpful: bool,
 ) -> None:
     """Rate an article (upsert: create or update existing rating)."""
-    # Check article exists
-    get_article_by_id(session, article_id)
-
     query = select(ArticleRating).where(
         ArticleRating.article_id == article_id,
         ArticleRating.user_id == user_id,
