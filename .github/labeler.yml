@@ -1,14 +1,12 @@
-feature:
+backend:
   - changed-files:
       - any-glob-to-any-file:
-          - "backend/app/**"
-          - "frontend/src/**"
+          - "backend/**"
 
-bug:
+frontend:
   - changed-files:
       - any-glob-to-any-file:
-          - "backend/app/**"
-          - "frontend/src/**"
+          - "frontend/**"
 
 docs:
   - changed-files:
@@ -33,9 +31,3 @@ security:
           - "backend/app/api/deps.py"
           - "backend/app/core/security.py"
           - "backend/app/services/auth_service.py"
-
-refactor:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "backend/app/**"
-          - "frontend/src/**"
