@@ -1,41 +1,17 @@
 feature:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "backend/app/**"
-          - "frontend/src/**"
+  - head-branch: ["^feat/", "^feature/"]
 
 bug:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "backend/app/**"
-          - "frontend/src/**"
-
-docs:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "**/*.md"
-          - "docs/**"
-
-internal:
-  - changed-files:
-      - any-glob-to-any-file:
-          - ".github/**"
-          - "scripts/**"
-          - "docker-compose*"
-          - "Dockerfile*"
-          - ".pre-commit-config.yaml"
-          - "pyproject.toml"
-          - "package.json"
-
-security:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "backend/app/api/deps.py"
-          - "backend/app/core/security.py"
-          - "backend/app/services/auth_service.py"
+  - head-branch: ["^fix/", "^bugfix/"]
 
 refactor:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "backend/app/**"
-          - "frontend/src/**"
+  - head-branch: ["^refactor/"]
+
+chore:
+  - head-branch: ["^chore/"]
+
+documentation:
+  - head-branch: ["^docs/"]
+
+infra:
+  - head-branch: ["^infra/"]
