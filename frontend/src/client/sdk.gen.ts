@@ -1230,7 +1230,7 @@ export class JourneysService {
      * Delete a journey (soft delete by setting is_active=False).
      * @param data The data for the request.
      * @param data.journeyId
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteJourney(data: JourneysDeleteJourneyData): CancelablePromise<JourneysDeleteJourneyResponse> {

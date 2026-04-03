@@ -27,20 +27,13 @@ from app.schemas.journey import (
     PropertyGoals,
     PropertyGoalsUpdate,
 )
+from app.services import journey_service as svc
 from app.services import notification_service
 from app.services.journey_service import (
     InvalidStepTransitionError,
     JourneyError,
     JourneyNotFoundError,
     StepNotFoundError,
-    generate_journey,
-    get_journey,
-    get_next_step,
-    get_progress,
-    get_step,
-    get_user_journeys,
-    update_step_status,
-    update_task_status,
 )
 
 router = APIRouter(prefix="/journeys", tags=["journeys"])
@@ -135,7 +128,7 @@ async def create_journey(
     - German residency status
     - Budget and timeline
     """
-    journey = generate_journey(
+    journey = svc.generate_journey(
         session=session,
         user_id=current_user.id,
         title=request.title,
@@ -153,7 +146,7 @@ async def list_journeys(
     """
     List all journeys for the current user.
     """
-    journeys = get_user_journeys(
+    journeys = svc.get_user_journeys(
         session=session,
         user_id=current_user.id,
         active_only=active_only,
@@ -163,7 +156,7 @@ async def list_journeys(
 
 
 @router.get("/{journey_id}", response_model=JourneyDetailResponse)
-async def get_journey_endpoint(
+async def get_journey(
     journey_id: uuid.UUID,
     current_user: CurrentUser,
     session: Session = Depends(get_db),
@@ -172,7 +165,7 @@ async def get_journey_endpoint(
     Get a specific journey with full step and task details.
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -219,7 +212,7 @@ async def update_journey(
     Update journey metadata.
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -251,7 +244,7 @@ async def get_journey_progress(
     Get journey progress statistics.
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -262,12 +255,12 @@ async def get_journey_progress(
             detail="Journey not found",
         )
 
-    progress = get_progress(session, journey)
+    progress = svc.get_progress(session, journey)
     return JourneyProgressResponse(**progress)
 
 
 @router.get("/{journey_id}/next-step", response_model=NextStepResponse)
-async def get_next_step_endpoint(
+async def get_next_step(
     journey_id: uuid.UUID,
     current_user: CurrentUser,
     session: Session = Depends(get_db),
@@ -276,7 +269,7 @@ async def get_next_step_endpoint(
     Get the next recommended step for a journey.
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -287,7 +280,7 @@ async def get_next_step_endpoint(
             detail="Journey not found",
         )
 
-    next_step = get_next_step(session, journey)
+    next_step = svc.get_next_step(session, journey)
 
     if not next_step:
         return NextStepResponse(
@@ -303,7 +296,7 @@ async def get_next_step_endpoint(
     "/{journey_id}/steps/{step_id}",
     response_model=JourneyStepResponse,
 )
-async def update_step_status_endpoint(
+async def update_step_status(
     journey_id: uuid.UUID,
     step_id: uuid.UUID,
     request: JourneyStepUpdate,
@@ -319,12 +312,12 @@ async def update_step_status_endpoint(
     - any -> skipped
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
         )
-        step = update_step_status(
+        step = svc.update_step_status(
             session=session,
             journey=journey,
             step_id=step_id,
@@ -364,7 +357,7 @@ async def update_step_status_endpoint(
     "/{journey_id}/steps/{step_id}/tasks/{task_id}",
     response_model=JourneyTaskResponse,
 )
-async def update_task_status_endpoint(
+async def update_task_status(
     journey_id: uuid.UUID,
     step_id: uuid.UUID,
     task_id: uuid.UUID,
@@ -376,13 +369,13 @@ async def update_task_status_endpoint(
     Update a task's completion status.
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
         )
-        step = get_step(session, journey_id, step_id)
-        task = update_task_status(
+        step = svc.get_step(session, journey_id, step_id)
+        task = svc.update_task_status(
             session=session,
             step=step,
             task_id=task_id,
@@ -418,7 +411,7 @@ async def delete_journey(
     Delete a journey (soft delete by setting is_active=False).
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -444,7 +437,7 @@ async def get_property_goals(
     Get property goals for a journey (Step 1 data).
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
@@ -479,7 +472,7 @@ async def update_property_goals(
     - Additional notes
     """
     try:
-        journey = get_journey(
+        journey = svc.get_journey(
             session=session,
             journey_id=journey_id,
             user_id=current_user.id,
