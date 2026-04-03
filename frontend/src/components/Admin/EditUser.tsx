@@ -56,7 +56,7 @@ interface EditUserProps {
   onSuccess: () => void
 }
 
-const EditUser = ({ user, onSuccess }: EditUserProps) => {
+function EditUser({ user, onSuccess }: EditUserProps) {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()

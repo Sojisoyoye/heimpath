@@ -37,7 +37,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-const AddItem = () => {
+function AddItem() {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
