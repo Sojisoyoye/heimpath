@@ -117,7 +117,7 @@ async def save_calculation(
         user_id=current_user.id,
         type=NotificationType.CALCULATION_SAVED,
         title="Calculation Saved",
-        message=f"Your hidden cost calculation for {request.state} has been saved.",
+        message=f"Your hidden cost calculation for {request.state_code} has been saved.",
         action_url=f"/calculators/hidden-costs/{calculation.id}",
     )
 
