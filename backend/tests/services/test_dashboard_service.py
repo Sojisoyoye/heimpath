@@ -135,9 +135,7 @@ class TestGetJourneyOverview:
     """Tests for journey overview retrieval."""
 
     @patch("app.services.dashboard_service.journey_service")
-    def test_returns_none_when_no_journeys(
-        self, mock_js, user_id: uuid.UUID
-    ) -> None:
+    def test_returns_none_when_no_journeys(self, mock_js, user_id: uuid.UUID) -> None:
         """Test that None is returned when user has no journeys."""
         mock_js.get_user_journeys.return_value = []
 

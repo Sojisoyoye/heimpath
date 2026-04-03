@@ -367,9 +367,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
 ]
 
 
-def _should_include_step(
-    template: StepTemplate, answers: QuestionnaireAnswers
-) -> bool:
+def _should_include_step(template: StepTemplate, answers: QuestionnaireAnswers) -> bool:
     """Check if a step should be included based on questionnaire answers."""
     if template.conditions is None:
         return True
@@ -810,9 +808,7 @@ def get_progress(
 
     # Estimate remaining days
     remaining_steps = [
-        s
-        for s in steps
-        if s.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED)
+        s for s in steps if s.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED)
     ]
     estimated_days = sum(s.estimated_duration_days or 0 for s in remaining_steps)
 
