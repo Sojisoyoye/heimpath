@@ -35,7 +35,7 @@ router = APIRouter(prefix="/articles", tags=["articles"])
 
 
 @router.get("/", response_model=ArticleListResponse)
-def list_articles(
+async def list_articles(
     session: Session = Depends(get_db),
     category: ArticleCategory | None = None,
     difficulty_level: DifficultyLevel | None = None,
@@ -61,7 +61,7 @@ def list_articles(
 
 
 @router.get("/search", response_model=ArticleSearchResponse)
-def search_articles(
+async def search_articles(
     q: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(20, ge=1, le=100),
     session: Session = Depends(get_db),
@@ -85,7 +85,7 @@ def search_articles(
 
 
 @router.get("/categories", response_model=list[ArticleCategoryInfo])
-def get_categories(
+async def get_categories(
     session: Session = Depends(get_db),
 ) -> list[ArticleCategoryInfo]:
     """Get article categories with counts."""
@@ -93,10 +93,10 @@ def get_categories(
 
 
 @router.get("/{slug}", response_model=ArticleDetailResponse)
-def get_article(
+async def get_article(
     slug: str,
+    current_user: OptionalCurrentUser,
     session: Session = Depends(get_db),
-    current_user: OptionalCurrentUser = None,
 ) -> ArticleDetailResponse:
     """Get article detail by slug. Increments view count."""
     try:
@@ -146,11 +146,11 @@ def get_article(
     response_model=ArticleRatingResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def rate_article(
+async def rate_article(
     slug: str,
     request: ArticleRatingRequest,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> ArticleRatingResponse:
     """Rate an article as helpful or not helpful."""
     try:
@@ -181,7 +181,7 @@ def rate_article(
     response_model=ArticleDetailResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_article(
+async def create_article(
     request: ArticleCreateRequest,
     session: Session = Depends(get_db),
     _current_user=Depends(get_current_active_superuser),
@@ -199,7 +199,7 @@ def create_article(
 
 
 @router.put("/{article_id}", response_model=ArticleDetailResponse)
-def update_article(
+async def update_article(
     article_id: uuid.UUID,
     request: ArticleUpdateRequest,
     session: Session = Depends(get_db),
@@ -230,7 +230,7 @@ def update_article(
     "/{article_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_article(
+async def delete_article(
     article_id: uuid.UUID,
     session: Session = Depends(get_db),
     _current_user=Depends(get_current_active_superuser),
