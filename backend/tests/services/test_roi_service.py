@@ -269,6 +269,28 @@ class TestCalculateROI:
         )
         assert high_vacancy.net_operating_income < no_vacancy.net_operating_income
 
+    def test_net_yield_uses_cash_flow_not_noi(
+        self, standard_inputs: ROICalculationCreate
+    ) -> None:
+        # net_yield = annual_cash_flow / purchase_price (levered)
+        # cap_rate  = NOI / purchase_price (unlevered)
+        # On a leveraged purchase these must differ.
+        result = calculate_roi(standard_inputs)
+        assert result.net_yield == pytest.approx(
+            result.annual_cash_flow / standard_inputs.purchase_price, rel=1e-6
+        )
+        assert result.cap_rate == pytest.approx(
+            result.net_operating_income / standard_inputs.purchase_price, rel=1e-6
+        )
+        assert result.net_yield != pytest.approx(result.cap_rate)
+
+    def test_net_yield_equals_cap_rate_for_cash_buyer(
+        self, cash_buyer_inputs: ROICalculationCreate
+    ) -> None:
+        # With no mortgage, annual_cash_flow == NOI, so net_yield == cap_rate.
+        result = calculate_roi(cash_buyer_inputs)
+        assert result.net_yield == pytest.approx(result.cap_rate, rel=1e-6)
+
 
 # ---------------------------------------------------------------------------
 # calculate_projections

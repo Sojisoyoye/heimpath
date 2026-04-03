@@ -320,7 +320,7 @@ async def get_shared_property_evaluation(
 )
 async def list_step_property_evaluations(
     step_id: uuid.UUID,
-    _current_user: CurrentUser,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
 ) -> PropertyEvaluationListResponse:
     """
@@ -328,7 +328,9 @@ async def list_step_property_evaluations(
 
     Requires authentication.
     """
-    evaluations = property_evaluation_service.list_step_evaluations(session, step_id)
+    evaluations = property_evaluation_service.list_step_evaluations(
+        session, step_id, current_user.id
+    )
     summaries = [PropertyEvaluationSummary.model_validate(ev) for ev in evaluations]
     return PropertyEvaluationListResponse(data=summaries, count=len(summaries))
 
