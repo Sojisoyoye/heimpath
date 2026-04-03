@@ -1503,6 +1503,7 @@ export const FinancingAssessmentResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {
@@ -1644,6 +1645,7 @@ export const FinancingAssessmentSummarySchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {
@@ -1820,6 +1822,7 @@ export const HiddenCostCalculationResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {
@@ -1920,6 +1923,7 @@ export const HiddenCostCalculationSummarySchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {
@@ -3748,6 +3752,7 @@ export const PropertyEvaluationResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {
@@ -3843,6 +3848,7 @@ export const PropertyEvaluationSummarySchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {
@@ -4296,6 +4302,7 @@ export const ROICalculationResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {
@@ -4415,6 +4422,7 @@ export const ROICalculationSummarySchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         name: {

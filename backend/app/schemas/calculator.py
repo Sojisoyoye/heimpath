@@ -1,5 +1,6 @@
 """Hidden cost calculator request/response schemas."""
 
+import uuid
 from datetime import datetime
 from typing import Literal
 
@@ -48,7 +49,7 @@ class HiddenCostCalculationResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     # Inputs
@@ -76,7 +77,7 @@ class HiddenCostCalculationSummary(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     property_price: float

@@ -1,5 +1,6 @@
 """ROI calculator request/response schemas."""
 
+import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -45,7 +46,7 @@ class ROICalculationResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     # Inputs
@@ -78,7 +79,7 @@ class ROICalculationSummary(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     purchase_price: float

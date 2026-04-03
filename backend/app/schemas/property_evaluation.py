@@ -15,7 +15,7 @@ class PropertyEvaluationCreate(BaseModel):
 class PropertyEvaluationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     journey_step_id: str | None = None
@@ -34,7 +34,7 @@ class PropertyEvaluationResponse(BaseModel):
 class PropertyEvaluationSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     purchase_price: float

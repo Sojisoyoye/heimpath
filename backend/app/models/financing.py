@@ -16,11 +16,10 @@ class FinancingAssessment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "financing_assessment"
 
-    # Owner (nullable for share-only queries)
     user_id = Column(
         UUID(as_uuid=True),
         ForeignKey("user.id", ondelete="CASCADE"),
-        nullable=True,
+        nullable=False,
         index=True,
     )
 

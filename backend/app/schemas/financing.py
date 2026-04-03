@@ -1,5 +1,6 @@
 """Financing eligibility assessment request/response schemas."""
 
+import uuid
 from datetime import datetime
 from typing import Literal
 
@@ -42,7 +43,7 @@ class FinancingAssessmentResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     # Inputs
@@ -81,7 +82,7 @@ class FinancingAssessmentSummary(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
     total_score: float
