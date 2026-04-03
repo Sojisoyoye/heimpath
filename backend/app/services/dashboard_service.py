@@ -23,7 +23,7 @@ from app.schemas.dashboard import (
     SavedCalculationSummary,
     SavedDocumentSummary,
 )
-from app.services.journey_service import get_journey_service
+from app.services import journey_service
 
 
 def get_dashboard_overview(
@@ -66,14 +66,13 @@ def _get_journey_overview(
     user_id: uuid.UUID,
 ) -> JourneyOverview | None:
     """Get the most recent active journey with progress info."""
-    service = get_journey_service()
-    journeys = service.get_user_journeys(session, user_id, active_only=True)
+    journeys = journey_service.get_user_journeys(session, user_id, active_only=True)
     if not journeys:
         return None
 
     journey = journeys[0]  # Most recent active journey
-    progress = service.get_progress(session, journey)
-    next_step = service.get_next_step(session, journey)
+    progress = journey_service.get_progress(session, journey)
+    next_step = journey_service.get_next_step(session, journey)
 
     return JourneyOverview(
         id=journey.id,

@@ -806,8 +806,10 @@ export type JourneyStepResponse = {
     started_at?: (string | null);
     completed_at?: (string | null);
     content_key?: (string | null);
-    related_laws?: (string | null);
-    estimated_costs?: (string | null);
+    related_laws?: (Array<(string)> | null);
+    estimated_costs?: ({
+    [key: string]: unknown;
+} | null);
     tasks?: Array<JourneyTaskResponse>;
 };
 
@@ -2038,7 +2040,7 @@ export type JourneysDeleteJourneyData = {
     journeyId: string;
 };
 
-export type JourneysDeleteJourneyResponse = (Message);
+export type JourneysDeleteJourneyResponse = (void);
 
 export type JourneysGetJourneyProgressData = {
     journeyId: string;

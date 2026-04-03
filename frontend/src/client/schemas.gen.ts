@@ -2704,7 +2704,10 @@ export const JourneyStepResponseSchema = {
         related_laws: {
             anyOf: [
                 {
-                    type: 'string'
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
                 },
                 {
                     type: 'null'
@@ -2715,7 +2718,8 @@ export const JourneyStepResponseSchema = {
         estimated_costs: {
             anyOf: [
                 {
-                    type: 'string'
+                    additionalProperties: true,
+                    type: 'object'
                 },
                 {
                     type: 'null'

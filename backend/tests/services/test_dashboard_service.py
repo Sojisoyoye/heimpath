@@ -134,21 +134,17 @@ class TestGetDashboardOverview:
 class TestGetJourneyOverview:
     """Tests for journey overview retrieval."""
 
-    @patch("app.services.dashboard_service.get_journey_service")
-    def test_returns_none_when_no_journeys(
-        self, mock_get_service, user_id: uuid.UUID
-    ) -> None:
+    @patch("app.services.dashboard_service.journey_service")
+    def test_returns_none_when_no_journeys(self, mock_js, user_id: uuid.UUID) -> None:
         """Test that None is returned when user has no journeys."""
-        mock_service = MagicMock()
-        mock_service.get_user_journeys.return_value = []
-        mock_get_service.return_value = mock_service
+        mock_js.get_user_journeys.return_value = []
 
         result = _get_journey_overview(MagicMock(), user_id)
         assert result is None
 
-    @patch("app.services.dashboard_service.get_journey_service")
+    @patch("app.services.dashboard_service.journey_service")
     def test_returns_overview_for_active_journey(
-        self, mock_get_service, user_id: uuid.UUID
+        self, mock_js, user_id: uuid.UUID
     ) -> None:
         """Test that overview is built from the most recent active journey."""
         mock_journey = MagicMock(spec=Journey)
@@ -160,9 +156,8 @@ class TestGetJourneyOverview:
         mock_next_step.title = "Define Your Property Goals"
         mock_next_step.id = uuid.uuid4()
 
-        mock_service = MagicMock()
-        mock_service.get_user_journeys.return_value = [mock_journey]
-        mock_service.get_progress.return_value = {
+        mock_js.get_user_journeys.return_value = [mock_journey]
+        mock_js.get_progress.return_value = {
             "current_phase": JourneyPhase.RESEARCH,
             "current_step_number": 1,
             "progress_percentage": 0.0,
@@ -176,8 +171,7 @@ class TestGetJourneyOverview:
                 "closing": {"total": 3, "completed": 0},
             },
         }
-        mock_service.get_next_step.return_value = mock_next_step
-        mock_get_service.return_value = mock_service
+        mock_js.get_next_step.return_value = mock_next_step
 
         result = _get_journey_overview(MagicMock(), user_id)
 
@@ -187,9 +181,9 @@ class TestGetJourneyOverview:
         assert result.next_step_title == "Define Your Property Goals"
         assert result.next_step_id == mock_next_step.id
 
-    @patch("app.services.dashboard_service.get_journey_service")
+    @patch("app.services.dashboard_service.journey_service")
     def test_handles_completed_journey_no_next_step(
-        self, mock_get_service, user_id: uuid.UUID
+        self, mock_js, user_id: uuid.UUID
     ) -> None:
         """Test overview when journey is complete (no next step)."""
         mock_journey = MagicMock(spec=Journey)
@@ -197,9 +191,8 @@ class TestGetJourneyOverview:
         mock_journey.title = "Completed Journey"
         mock_journey.started_at = datetime(2025, 6, 1, tzinfo=timezone.utc)
 
-        mock_service = MagicMock()
-        mock_service.get_user_journeys.return_value = [mock_journey]
-        mock_service.get_progress.return_value = {
+        mock_js.get_user_journeys.return_value = [mock_journey]
+        mock_js.get_progress.return_value = {
             "current_phase": JourneyPhase.CLOSING,
             "current_step_number": 15,
             "progress_percentage": 100.0,
@@ -213,8 +206,7 @@ class TestGetJourneyOverview:
                 "closing": {"total": 3, "completed": 3},
             },
         }
-        mock_service.get_next_step.return_value = None
-        mock_get_service.return_value = mock_service
+        mock_js.get_next_step.return_value = None
 
         result = _get_journey_overview(MagicMock(), user_id)
 
