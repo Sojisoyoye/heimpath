@@ -73,6 +73,11 @@ jobs:
         echo "SMTP_PASSWORD=" >> .env
         echo "EMAILS_FROM_EMAIL=info@example.com" >> .env
         echo "SENTRY_DSN=" >> .env
+        echo "REDIS_URL=redis://redis:6379" >> .env
+        echo "AZURE_TRANSLATOR_KEY=" >> .env
+        echo "AZURE_TRANSLATOR_REGION=" >> .env
+        echo "AZURE_TRANSLATOR_ENDPOINT=" >> .env
+        echo "AZURE_DOCUMENT_TRANSLATOR_ENDPOINT=" >> .env
     - uses: oven-sh/setup-bun@v2
     - uses: actions/setup-python@v6
       with:
