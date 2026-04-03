@@ -22,7 +22,7 @@ router = APIRouter(prefix="/financing", tags=["financing"])
 
 
 @router.get("/eligibility/share/{share_id}", response_model=FinancingAssessmentResponse)
-def get_shared_assessment(
+async def get_shared_assessment(
     share_id: str,
     session: Session = Depends(get_db),
 ) -> FinancingAssessmentResponse:
@@ -40,10 +40,10 @@ def get_shared_assessment(
     response_model=FinancingAssessmentResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def save_assessment(
+async def save_assessment(
     request: FinancingAssessmentCreate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> FinancingAssessmentResponse:
     """
     Assess financing eligibility and save the result.
@@ -59,9 +59,9 @@ def save_assessment(
 
 
 @router.get("/eligibility", response_model=FinancingAssessmentListResponse)
-def list_assessments(
+async def list_assessments(
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> FinancingAssessmentListResponse:
     """
     Get all saved financing assessments for the current user.
@@ -77,10 +77,10 @@ def list_assessments(
 
 
 @router.get("/eligibility/{assessment_id}", response_model=FinancingAssessmentResponse)
-def get_assessment(
+async def get_assessment(
     assessment_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> FinancingAssessmentResponse:
     """
     Get a specific saved financing assessment by ID.
@@ -97,10 +97,10 @@ def get_assessment(
     "/eligibility/{assessment_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_assessment(
+async def delete_assessment(
     assessment_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> None:
     """
     Delete a saved financing assessment.
