@@ -297,11 +297,13 @@ def list_user_evaluations(
 def list_step_evaluations(
     session: Session,
     journey_step_id: uuid.UUID,
+    user_id: uuid.UUID,
 ) -> list[PropertyEvaluation]:
-    """Get evaluations for a specific journey step, newest first."""
+    """Get evaluations for a specific journey step owned by the user, newest first."""
     statement = (
         select(PropertyEvaluation)
         .where(PropertyEvaluation.journey_step_id == journey_step_id)
+        .where(PropertyEvaluation.user_id == user_id)
         .order_by(PropertyEvaluation.created_at.desc())
     )
     return list(session.exec(statement).all())

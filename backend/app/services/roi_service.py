@@ -167,7 +167,7 @@ def calculate_roi(inputs: ROICalculationCreate) -> ROIBreakdown:
 
     # Key metrics (as ratios)
     gross_yield = gross_rental_income / purchase_price
-    net_yield = net_operating_income / purchase_price
+    net_yield = annual_cash_flow / purchase_price
     cap_rate = net_operating_income / purchase_price
     cash_on_cash_return = annual_cash_flow / down_payment if down_payment > 0 else 0.0
 

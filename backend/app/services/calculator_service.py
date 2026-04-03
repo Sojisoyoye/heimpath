@@ -6,6 +6,7 @@ and CRUD operations for saved calculations.
 
 import secrets
 import uuid
+from dataclasses import dataclass, field
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
@@ -62,31 +63,26 @@ MOVING_COST_ESTIMATE = 3000.0
 # ---------------------------------------------------------------------------
 
 
+@dataclass
 class CostBreakdown:
     """Intermediate result of a cost calculation."""
 
-    def __init__(
-        self,
-        transfer_tax: float,
-        notary_fee: float,
-        land_registry_fee: float,
-        agent_commission: float,
-        renovation_estimate: float,
-        moving_costs: float,
-    ):
-        self.transfer_tax = transfer_tax
-        self.notary_fee = notary_fee
-        self.land_registry_fee = land_registry_fee
-        self.agent_commission = agent_commission
-        self.renovation_estimate = renovation_estimate
-        self.moving_costs = moving_costs
+    transfer_tax: float
+    notary_fee: float
+    land_registry_fee: float
+    agent_commission: float
+    renovation_estimate: float
+    moving_costs: float
+    total_additional_costs: float = field(init=False)
+
+    def __post_init__(self) -> None:
         self.total_additional_costs = (
-            transfer_tax
-            + notary_fee
-            + land_registry_fee
-            + agent_commission
-            + renovation_estimate
-            + moving_costs
+            self.transfer_tax
+            + self.notary_fee
+            + self.land_registry_fee
+            + self.agent_commission
+            + self.renovation_estimate
+            + self.moving_costs
         )
 
 

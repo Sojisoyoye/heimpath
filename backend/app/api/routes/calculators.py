@@ -45,7 +45,7 @@ router = APIRouter(prefix="/calculators", tags=["calculators"])
 
 
 @router.get("/state-rates", response_model=StateRatesResponse)
-def get_state_rates() -> StateRatesResponse:
+async def get_state_rates() -> StateRatesResponse:
     """
     Get all German state transfer tax rates and cost defaults.
 
@@ -58,7 +58,7 @@ def get_state_rates() -> StateRatesResponse:
 
 
 @router.get("/hidden-costs/compare", response_model=StateComparisonResponse)
-def compare_states(
+async def compare_states(
     price: float = Query(..., gt=0, description="Property price in EUR"),
     include_agent: bool = Query(True, description="Include agent commission"),
 ) -> StateComparisonResponse:
@@ -78,7 +78,7 @@ def compare_states(
 @router.get(
     "/hidden-costs/share/{share_id}", response_model=HiddenCostCalculationResponse
 )
-def get_shared_calculation(
+async def get_shared_calculation(
     share_id: str,
     session: Session = Depends(get_db),
 ) -> HiddenCostCalculationResponse:
@@ -96,10 +96,10 @@ def get_shared_calculation(
     response_model=HiddenCostCalculationResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def save_calculation(
+async def save_calculation(
     request: HiddenCostCalculationCreate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> HiddenCostCalculationResponse:
     """
     Calculate and save a hidden cost calculation.
@@ -117,7 +117,7 @@ def save_calculation(
         user_id=current_user.id,
         type=NotificationType.CALCULATION_SAVED,
         title="Calculation Saved",
-        message=f"Your hidden cost calculation for {request.state} has been saved.",
+        message=f"Your hidden cost calculation for {request.state_code} has been saved.",
         action_url=f"/calculators/hidden-costs/{calculation.id}",
     )
 
@@ -125,9 +125,9 @@ def save_calculation(
 
 
 @router.get("/hidden-costs", response_model=HiddenCostCalculationListResponse)
-def list_calculations(
+async def list_calculations(
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> HiddenCostCalculationListResponse:
     """
     Get all saved calculations for the current user.
@@ -145,10 +145,10 @@ def list_calculations(
 
 
 @router.get("/hidden-costs/{calc_id}", response_model=HiddenCostCalculationResponse)
-def get_calculation(
+async def get_calculation(
     calc_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> HiddenCostCalculationResponse:
     """
     Get a specific saved calculation by ID.
@@ -163,10 +163,10 @@ def get_calculation(
     "/hidden-costs/{calc_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_calculation(
+async def delete_calculation(
     calc_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> None:
     """
     Delete a saved calculation.
@@ -182,7 +182,7 @@ def delete_calculation(
 
 
 @router.post("/roi/compare", response_model=ROICompareResponse)
-def compare_roi_scenarios(
+async def compare_roi_scenarios(
     request: ROICompareRequest,
 ) -> ROICompareResponse:
     """
@@ -196,7 +196,7 @@ def compare_roi_scenarios(
 
 
 @router.get("/roi/share/{share_id}", response_model=ROICalculationResponse)
-def get_shared_roi_calculation(
+async def get_shared_roi_calculation(
     share_id: str,
     session: Session = Depends(get_db),
 ) -> ROICalculationResponse:
@@ -214,10 +214,10 @@ def get_shared_roi_calculation(
     response_model=ROICalculationResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def save_roi_calculation(
+async def save_roi_calculation(
     request: ROICalculationCreate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> ROICalculationResponse:
     """
     Calculate and save an ROI analysis.
@@ -243,9 +243,9 @@ def save_roi_calculation(
 
 
 @router.get("/roi", response_model=ROICalculationListResponse)
-def list_roi_calculations(
+async def list_roi_calculations(
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> ROICalculationListResponse:
     """
     Get all saved ROI calculations for the current user.
@@ -261,10 +261,10 @@ def list_roi_calculations(
 
 
 @router.get("/roi/{calc_id}", response_model=ROICalculationResponse)
-def get_roi_calculation(
+async def get_roi_calculation(
     calc_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> ROICalculationResponse:
     """
     Get a specific saved ROI calculation by ID.
@@ -279,10 +279,10 @@ def get_roi_calculation(
     "/roi/{calc_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_roi_calculation(
+async def delete_roi_calculation(
     calc_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> None:
     """
     Delete a saved ROI calculation.
@@ -301,7 +301,7 @@ def delete_roi_calculation(
     "/property-evaluations/share/{share_id}",
     response_model=PropertyEvaluationResponse,
 )
-def get_shared_property_evaluation(
+async def get_shared_property_evaluation(
     share_id: str,
     session: Session = Depends(get_db),
 ) -> PropertyEvaluationResponse:
@@ -318,17 +318,19 @@ def get_shared_property_evaluation(
     "/property-evaluations/step/{step_id}",
     response_model=PropertyEvaluationListResponse,
 )
-def list_step_property_evaluations(
+async def list_step_property_evaluations(
     step_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    _current_user: CurrentUser = None,
 ) -> PropertyEvaluationListResponse:
     """
     Get all property evaluations for a journey step.
 
     Requires authentication.
     """
-    evaluations = property_evaluation_service.list_step_evaluations(session, step_id)
+    evaluations = property_evaluation_service.list_step_evaluations(
+        session, step_id, current_user.id
+    )
     summaries = [PropertyEvaluationSummary.model_validate(ev) for ev in evaluations]
     return PropertyEvaluationListResponse(data=summaries, count=len(summaries))
 
@@ -338,10 +340,10 @@ def list_step_property_evaluations(
     response_model=PropertyEvaluationResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def save_property_evaluation(
+async def save_property_evaluation(
     request: PropertyEvaluationCreate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> PropertyEvaluationResponse:
     """
     Calculate and save a property evaluation.
@@ -370,9 +372,9 @@ def save_property_evaluation(
     "/property-evaluations",
     response_model=PropertyEvaluationListResponse,
 )
-def list_property_evaluations(
+async def list_property_evaluations(
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> PropertyEvaluationListResponse:
     """
     Get all saved property evaluations for the current user.
@@ -391,10 +393,10 @@ def list_property_evaluations(
     "/property-evaluations/{eval_id}",
     response_model=PropertyEvaluationResponse,
 )
-def get_property_evaluation(
+async def get_property_evaluation(
     eval_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> PropertyEvaluationResponse:
     """
     Get a specific saved property evaluation by ID.
@@ -413,10 +415,10 @@ def get_property_evaluation(
     "/property-evaluations/{eval_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_property_evaluation(
+async def delete_property_evaluation(
     eval_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> None:
     """
     Delete a saved property evaluation.
