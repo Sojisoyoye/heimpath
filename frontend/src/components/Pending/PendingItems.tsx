@@ -8,7 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-const PendingItems = () => (
+function PendingItems() {
+  return (
   <Table>
     <TableHeader>
       <TableRow>
@@ -41,6 +42,7 @@ const PendingItems = () => (
       ))}
     </TableBody>
   </Table>
-)
+  )
+}
 
 export default PendingItems

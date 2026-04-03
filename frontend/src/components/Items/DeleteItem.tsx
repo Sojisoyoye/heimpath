@@ -24,7 +24,7 @@ interface DeleteItemProps {
   onSuccess: () => void
 }
 
-const DeleteItem = ({ id, onSuccess }: DeleteItemProps) => {
+function DeleteItem({ id, onSuccess }: DeleteItemProps) {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()

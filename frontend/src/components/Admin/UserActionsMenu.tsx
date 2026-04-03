@@ -16,7 +16,7 @@ interface UserActionsMenuProps {
   user: UserPublic
 }
 
-export const UserActionsMenu = ({ user }: UserActionsMenuProps) => {
+export function UserActionsMenu({ user }: UserActionsMenuProps) {
   const [open, setOpen] = useState(false)
   const { user: currentUser } = useAuth()
 

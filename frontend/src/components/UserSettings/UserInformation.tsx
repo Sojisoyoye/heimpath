@@ -28,7 +28,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-const UserInformation = () => {
+function UserInformation() {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const [editMode, setEditMode] = useState(false)

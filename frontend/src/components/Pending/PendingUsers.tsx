@@ -8,7 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-const PendingUsers = () => (
+function PendingUsers() {
+  return (
   <Table>
     <TableHeader>
       <TableRow>
@@ -48,6 +49,7 @@ const PendingUsers = () => (
       ))}
     </TableBody>
   </Table>
-)
+  )
+}
 
 export default PendingUsers

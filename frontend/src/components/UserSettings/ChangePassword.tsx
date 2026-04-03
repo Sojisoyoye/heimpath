@@ -38,7 +38,7 @@ const formSchema = z
 
 type FormData = z.infer<typeof formSchema>
 
-const ChangePassword = () => {
+function ChangePassword() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
