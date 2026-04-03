@@ -123,13 +123,22 @@ def search_articles(
     """)
 
     result = session.execute(search_query, {"query": query_text, "limit": limit})
+    rows = list(result)
 
-    articles_with_scores = []
-    for row in result:
-        article = get_article_by_id(session, row.id)
-        articles_with_scores.append((article, float(row.rank)))
+    if not rows:
+        return []
 
-    return articles_with_scores
+    # Fetch all matched articles in a single query to avoid N+1
+    article_ids = [row.id for row in rows]
+    rank_by_id = {row.id: float(row.rank) for row in rows}
+    articles = list(
+        session.exec(select(Article).where(Article.id.in_(article_ids))).scalars().all()
+    )
+    # Restore rank order
+    _UNRANKED = len(article_ids)
+    id_order = {aid: i for i, aid in enumerate(article_ids)}
+    articles.sort(key=lambda a: id_order.get(a.id, _UNRANKED))
+    return [(a, rank_by_id[a.id]) for a in articles]
 
 
 def get_categories(session: Session) -> list[ArticleCategoryInfo]:
@@ -169,9 +178,6 @@ def rate_article(
     is_helpful: bool,
 ) -> None:
     """Rate an article (upsert: create or update existing rating)."""
-    # Check article exists
-    get_article_by_id(session, article_id)
-
     query = select(ArticleRating).where(
         ArticleRating.article_id == article_id,
         ArticleRating.user_id == user_id,
