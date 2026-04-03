@@ -10,7 +10,6 @@ from app.core.config import settings
 from app.models import UserCreate
 from tests.utils.utils import random_email, random_lower_string
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
