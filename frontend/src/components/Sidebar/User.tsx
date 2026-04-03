@@ -25,8 +25,8 @@ interface IProps {
 }
 
 interface UserInfoProps {
-  fullName?: string
-  email?: string
+  fullName?: string | null
+  email?: string | null
 }
 
 function UserInfo({ fullName, email }: UserInfoProps) {

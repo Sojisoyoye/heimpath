@@ -93,4 +93,3 @@ function DeleteUser({ id, onSuccess }: DeleteUserProps) {
 }
 
 export default DeleteUser
-
