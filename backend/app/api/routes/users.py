@@ -259,7 +259,11 @@ async def update_user(
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)], status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{user_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> None:
