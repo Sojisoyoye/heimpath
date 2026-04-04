@@ -5,7 +5,7 @@
 
 import { useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { GERMAN_STATES } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
@@ -43,6 +43,9 @@ const WIZARD_STEPS = [
   { id: 6, title: "Status" },
 ] as const
 
+const STORAGE_STATE_KEY = "heimpath-wizard-state"
+const STORAGE_STEP_KEY = "heimpath-wizard-step"
+
 /******************************************************************************
                               Types
 ******************************************************************************/
@@ -67,9 +70,40 @@ function JourneyWizard(props: IProps) {
   const navigate = useNavigate()
   const createJourneyMutation = useCreateJourney()
 
-  const [currentStep, setCurrentStep] = useState(1)
-  const [state, setState] = useState<WizardState>({})
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_STEP_KEY)
+      return stored ? Number(stored) : 1
+    } catch {
+      return 1
+    }
+  })
+  const [state, setState] = useState<WizardState>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_STATE_KEY)
+      return stored ? (JSON.parse(stored) as WizardState) : {}
+    } catch {
+      return {}
+    }
+  })
   const [showSummary, setShowSummary] = useState(false)
+
+  // Persist selections to sessionStorage so Back navigation restores them
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_STATE_KEY, JSON.stringify(state))
+    } catch {
+      // ignore — sessionStorage unavailable
+    }
+  }, [state])
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_STEP_KEY, String(currentStep))
+    } catch {
+      // ignore — sessionStorage unavailable
+    }
+  }, [currentStep])
 
   const updateState = (updates: Partial<WizardState>) => {
     setState((prev) => ({ ...prev, ...updates }))
@@ -115,6 +149,15 @@ function JourneyWizard(props: IProps) {
     }
   }
 
+  const clearWizardStorage = () => {
+    try {
+      sessionStorage.removeItem(STORAGE_STATE_KEY)
+      sessionStorage.removeItem(STORAGE_STEP_KEY)
+    } catch {
+      // ignore
+    }
+  }
+
   const handleSubmit = async () => {
     if (
       !state.propertyType ||
@@ -146,6 +189,7 @@ function JourneyWizard(props: IProps) {
 
     try {
       const newJourney = await createJourneyMutation.mutateAsync(journeyData)
+      clearWizardStorage()
       navigate({
         to: "/journeys/$journeyId",
         params: { journeyId: newJourney.id },
@@ -154,6 +198,19 @@ function JourneyWizard(props: IProps) {
       // Error is handled by React Query
     }
   }
+
+  // Steps with a confirmed selection — drives the green checkmark in the indicator
+  const completedSteps = useMemo((): Set<number> => {
+    const done = new Set<number>()
+    if (state.propertyType) done.add(1)
+    if (state.targetState) done.add(2)
+    if (state.financingType) done.add(3)
+    // Budget and Timeline are optional; mark done once the user moves past them
+    if (currentStep > 4) done.add(4)
+    if (currentStep > 5) done.add(5)
+    if (state.residencyStatus) done.add(6)
+    return done
+  }, [state, currentStep])
 
   const selectedState = GERMAN_STATES.find((s) => s.code === state.targetState)
 
@@ -222,6 +279,7 @@ function JourneyWizard(props: IProps) {
       <WizardStepIndicator
         steps={WIZARD_STEPS.map((s) => ({ id: s.id, title: s.title }))}
         currentStep={showSummary ? WIZARD_STEPS.length + 1 : currentStep}
+        completedSteps={completedSteps}
       />
 
       <Card>
