@@ -116,7 +116,18 @@ class LegalServiceClass {
       method: "GET",
       url: `${PATHS.LAWS.SEARCH}?${params.toString()}`,
     })
-    return transformKeys<LawSearchResult>(response)
+    const transformed = transformKeys<{
+      data: LawSummary[]
+      count: number
+      query: string
+    }>(response)
+    return {
+      query: transformed.query,
+      results: transformed.data,
+      total: transformed.count,
+      page,
+      pageSize,
+    }
   }
 
   /**
