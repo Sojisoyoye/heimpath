@@ -191,7 +191,6 @@ function SubscriptionUpgrade(props: IProps) {
   const handleUpgrade = async (tier: SubscriptionTier) => {
     if (!onUpgrade) {
       // Placeholder: In production, this would redirect to Stripe checkout
-      console.log(`Upgrade to ${tier} requested`)
       return
     }
 

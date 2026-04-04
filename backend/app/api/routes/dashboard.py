@@ -14,9 +14,9 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
 @router.get("/", response_model=DashboardOverviewResponse)
-def get_dashboard_overview(
+async def get_dashboard_overview(
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: CurrentUser,
 ) -> DashboardOverviewResponse:
     """Get aggregated dashboard overview for the current user."""
     return dashboard_service.get_dashboard_overview(

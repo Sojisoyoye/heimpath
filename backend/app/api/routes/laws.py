@@ -8,7 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
-from app.api.deps import CurrentUser, get_db
+from app.api.deps import CurrentUser, OptionalCurrentUser, get_db
 from app.models import Message
 from app.models.legal import LawCategory, PropertyTypeApplicability
 from app.models.notification import NotificationType
@@ -39,7 +39,7 @@ router = APIRouter(prefix="/laws", tags=["laws"])
 
 
 @router.get("/", response_model=LawListResponse)
-def list_laws(
+async def list_laws(
     session: Session = Depends(get_db),
     category: LawCategory | None = None,
     property_type: PropertyTypeApplicability | None = None,
@@ -88,7 +88,7 @@ def list_laws(
 
 
 @router.get("/search", response_model=LawSearchResponse)
-def search_laws(
+async def search_laws(
     q: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(20, ge=1, le=50),
     session: Session = Depends(get_db),
@@ -123,7 +123,7 @@ def search_laws(
 
 
 @router.get("/categories")
-def get_categories() -> dict:
+async def get_categories() -> dict:
     """
     Get all law categories with counts.
     """
@@ -153,7 +153,7 @@ def _get_category_description(category: LawCategory) -> str:
 @router.get(
     "/by-journey-step/{step_content_key}", response_model=JourneyStepLawsResponse
 )
-def get_laws_for_journey_step(
+async def get_laws_for_journey_step(
     step_content_key: str,
     session: Session = Depends(get_db),
 ) -> JourneyStepLawsResponse:
@@ -188,9 +188,9 @@ def get_laws_for_journey_step(
 
 
 @router.get("/bookmarks", response_model=BookmarkListResponse)
-def get_bookmarks(
+async def get_bookmarks(
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: CurrentUser,
 ) -> BookmarkListResponse:
     """
     Get all bookmarked laws for the current user.
@@ -223,10 +223,10 @@ def get_bookmarks(
 
 
 @router.get("/{law_id}", response_model=LawDetailResponse)
-def get_law(
+async def get_law(
     law_id: uuid.UUID,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: OptionalCurrentUser = None,
 ) -> LawDetailResponse:
     """
     Get a specific law with full details.
@@ -323,11 +323,11 @@ def get_law(
     response_model=BookmarkResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_bookmark(
+async def create_bookmark(
     law_id: uuid.UUID,
     request: BookmarkCreate,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: CurrentUser,
 ) -> BookmarkResponse:
     """
     Bookmark a law for later reference.
@@ -379,12 +379,12 @@ def create_bookmark(
     )
 
 
-@router.delete("/{law_id}/bookmark", response_model=Message)
-def delete_bookmark(
+@router.delete("/{law_id}/bookmark", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_bookmark(
     law_id: uuid.UUID,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
-) -> Message:
+    current_user: CurrentUser,
+) -> None:
     """
     Remove a law bookmark.
     """
@@ -400,5 +400,3 @@ def delete_bookmark(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Bookmark not found",
         )
-
-    return Message(message="Bookmark removed successfully")
