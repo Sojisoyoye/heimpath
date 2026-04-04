@@ -32,14 +32,24 @@ from app.services.legal_service import (
     BookmarkAlreadyExistsError,
     BookmarkNotFoundError,
     LawNotFoundError,
-    create_bookmark as svc_create_bookmark,
-    delete_bookmark as svc_delete_bookmark,
-    get_law as svc_get_law,
     get_laws,
-    get_laws_for_journey_step as svc_get_laws_for_journey_step,
     get_related_laws,
     get_user_bookmarks,
     is_bookmarked,
+)
+from app.services.legal_service import (
+    create_bookmark as svc_create_bookmark,
+)
+from app.services.legal_service import (
+    delete_bookmark as svc_delete_bookmark,
+)
+from app.services.legal_service import (
+    get_law as svc_get_law,
+)
+from app.services.legal_service import (
+    get_laws_for_journey_step as svc_get_laws_for_journey_step,
+)
+from app.services.legal_service import (
     search_laws as svc_search_laws,
 )
 
