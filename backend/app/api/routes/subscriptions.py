@@ -15,7 +15,6 @@ from app.models import SubscriptionTier, User
 from app.services.payment_service import (
     CheckoutSessionError,
     CustomerNotFoundError,
-    PaymentService,
     WebhookEventType,
     WebhookVerificationError,
     get_payment_service,
@@ -68,20 +67,6 @@ class WebhookResponse(BaseModel):
     received: bool
 
 
-# Dependency to require Stripe configuration
-
-
-def require_payment_service() -> PaymentService:
-    """Dependency that requires Stripe to be configured."""
-    service = get_payment_service()
-    if service is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Payment service is not configured",
-        )
-    return service
-
-
 # Endpoints
 
 
@@ -107,7 +92,6 @@ def get_current_subscription(
 async def create_checkout_session(
     request: CreateCheckoutRequest,
     current_user: CurrentUser,
-    payment_service: PaymentService = Depends(require_payment_service),
 ) -> CheckoutResponse:
     """
     Create a Stripe checkout session for subscription upgrade.
@@ -115,6 +99,13 @@ async def create_checkout_session(
     The user will be redirected to Stripe's hosted checkout page.
     After payment, they will be redirected to the success_url or cancel_url.
     """
+    payment_service = get_payment_service()
+    if payment_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Payment service is not configured",
+        )
+
     if request.tier == SubscriptionTier.FREE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -148,7 +139,6 @@ async def create_checkout_session(
 async def create_portal_session(
     request: PortalRequest,
     current_user: CurrentUser,
-    payment_service: PaymentService = Depends(require_payment_service),
 ) -> PortalResponse:
     """
     Create a Stripe customer portal session.
@@ -156,6 +146,13 @@ async def create_portal_session(
     The portal allows users to manage their subscription, update payment
     methods, view invoices, and cancel their subscription.
     """
+    payment_service = get_payment_service()
+    if payment_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Payment service is not configured",
+        )
+
     stripe_customer_id = getattr(current_user, "stripe_customer_id", None)
     if not stripe_customer_id:
         raise HTTPException(
@@ -252,7 +249,6 @@ async def handle_webhook(
 async def cancel_subscription(
     current_user: CurrentUser,
     session: Session = Depends(get_db),
-    payment_service: PaymentService = Depends(require_payment_service),  # noqa: ARG001
 ) -> SubscriptionResponse:
     """
     Cancel the current subscription.
@@ -260,6 +256,12 @@ async def cancel_subscription(
     The subscription will be cancelled at the end of the current billing period.
     The user will retain access until then.
     """
+    if get_payment_service() is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Payment service is not configured",
+        )
+
     if current_user.subscription_tier == SubscriptionTier.FREE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

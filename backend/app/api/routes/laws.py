@@ -8,7 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
-from app.api.deps import CurrentUser, get_db
+from app.api.deps import CurrentUser, OptionalCurrentUser, get_db
 from app.models import Message
 from app.models.legal import LawCategory, PropertyTypeApplicability
 from app.models.notification import NotificationType
@@ -32,14 +32,32 @@ from app.services.legal_service import (
     BookmarkAlreadyExistsError,
     BookmarkNotFoundError,
     LawNotFoundError,
-    get_legal_service,
+    get_laws,
+    get_related_laws,
+    get_user_bookmarks,
+    is_bookmarked,
+)
+from app.services.legal_service import (
+    create_bookmark as svc_create_bookmark,
+)
+from app.services.legal_service import (
+    delete_bookmark as svc_delete_bookmark,
+)
+from app.services.legal_service import (
+    get_law as svc_get_law,
+)
+from app.services.legal_service import (
+    get_laws_for_journey_step as svc_get_laws_for_journey_step,
+)
+from app.services.legal_service import (
+    search_laws as svc_search_laws,
 )
 
 router = APIRouter(prefix="/laws", tags=["laws"])
 
 
 @router.get("/", response_model=LawListResponse)
-def list_laws(
+async def list_laws(
     session: Session = Depends(get_db),
     category: LawCategory | None = None,
     property_type: PropertyTypeApplicability | None = None,
@@ -55,7 +73,6 @@ def list_laws(
     - property_type: Property type applicability
     - state: German state code for state-specific variations
     """
-    service = get_legal_service()
     filters = LawFilter(
         category=category,
         property_type=property_type,
@@ -64,7 +81,7 @@ def list_laws(
         page_size=page_size,
     )
 
-    laws, total = service.get_laws(session, filters)
+    laws, total = get_laws(session, filters)
 
     law_summaries = [
         LawSummary(
@@ -88,7 +105,7 @@ def list_laws(
 
 
 @router.get("/search", response_model=LawSearchResponse)
-def search_laws(
+async def search_laws(
     q: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(20, ge=1, le=50),
     session: Session = Depends(get_db),
@@ -99,8 +116,7 @@ def search_laws(
     Searches across titles, summaries, and detailed explanations.
     Returns results ranked by relevance.
     """
-    service = get_legal_service()
-    results = service.search_laws(session, q, limit)
+    results = svc_search_laws(session, q, limit)
 
     search_results = [
         LawSearchResult(
@@ -123,7 +139,7 @@ def search_laws(
 
 
 @router.get("/categories")
-def get_categories() -> dict:
+async def get_categories() -> dict:
     """
     Get all law categories with counts.
     """
@@ -153,7 +169,7 @@ def _get_category_description(category: LawCategory) -> str:
 @router.get(
     "/by-journey-step/{step_content_key}", response_model=JourneyStepLawsResponse
 )
-def get_laws_for_journey_step(
+async def get_laws_for_journey_step(
     step_content_key: str,
     session: Session = Depends(get_db),
 ) -> JourneyStepLawsResponse:
@@ -162,8 +178,7 @@ def get_laws_for_journey_step(
 
     Laws are returned sorted by relevance score (highest first).
     """
-    service = get_legal_service()
-    results = service.get_laws_for_journey_step(session, step_content_key)
+    results = svc_get_laws_for_journey_step(session, step_content_key)
 
     law_responses = [
         JourneyStepLawResponse(
@@ -188,15 +203,14 @@ def get_laws_for_journey_step(
 
 
 @router.get("/bookmarks", response_model=BookmarkListResponse)
-def get_bookmarks(
+async def get_bookmarks(
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> BookmarkListResponse:
     """
     Get all bookmarked laws for the current user.
     """
-    service = get_legal_service()
-    bookmarks = service.get_user_bookmarks(session, current_user.id)
+    bookmarks = get_user_bookmarks(session, current_user.id)
 
     bookmark_responses = [
         BookmarkResponse(
@@ -223,19 +237,18 @@ def get_bookmarks(
 
 
 @router.get("/{law_id}", response_model=LawDetailResponse)
-def get_law(
+async def get_law(
     law_id: uuid.UUID,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: OptionalCurrentUser = None,
 ) -> LawDetailResponse:
     """
     Get a specific law with full details.
 
     Includes court rulings, state variations, and related laws.
     """
-    service = get_legal_service()
     try:
-        law = service.get_law(session, law_id)
+        law = svc_get_law(session, law_id)
     except LawNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -243,7 +256,7 @@ def get_law(
         )
 
     # Get related laws
-    related_laws = service.get_related_laws(session, law_id)
+    related_laws = get_related_laws(session, law_id)
     related_law_summaries = [
         LawSummary(
             id=related.id,
@@ -257,9 +270,9 @@ def get_law(
     ]
 
     # Check bookmark status
-    is_bookmarked = False
+    law_is_bookmarked = False
     if current_user:
-        is_bookmarked = service.is_bookmarked(session, law_id, current_user.id)
+        law_is_bookmarked = is_bookmarked(session, law_id, current_user.id)
 
     # Build court rulings response
     court_rulings = [
@@ -314,7 +327,7 @@ def get_law(
         court_rulings=court_rulings,
         state_variations=state_variations,
         related_laws=related_law_summaries,
-        is_bookmarked=is_bookmarked,
+        is_bookmarked=law_is_bookmarked,
     )
 
 
@@ -323,18 +336,17 @@ def get_law(
     response_model=BookmarkResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_bookmark(
+async def create_bookmark(
     law_id: uuid.UUID,
     request: BookmarkCreate,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> BookmarkResponse:
     """
     Bookmark a law for later reference.
     """
-    service = get_legal_service()
     try:
-        bookmark = service.create_bookmark(
+        bookmark = svc_create_bookmark(
             session=session,
             law_id=law_id,
             user_id=current_user.id,
@@ -380,17 +392,16 @@ def create_bookmark(
 
 
 @router.delete("/{law_id}/bookmark", response_model=Message)
-def delete_bookmark(
+async def delete_bookmark(
     law_id: uuid.UUID,
+    current_user: CurrentUser,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
 ) -> Message:
     """
     Remove a law bookmark.
     """
-    service = get_legal_service()
     try:
-        service.delete_bookmark(
+        svc_delete_bookmark(
             session=session,
             law_id=law_id,
             user_id=current_user.id,

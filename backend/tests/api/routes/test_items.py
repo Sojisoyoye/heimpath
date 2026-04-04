@@ -134,9 +134,7 @@ def test_delete_item(
         f"{settings.API_V1_STR}/items/{item.id}",
         headers=superuser_token_headers,
     )
-    assert response.status_code == 200
-    content = response.json()
-    assert content["message"] == "Item deleted successfully"
+    assert response.status_code == 204
 
 
 def test_delete_item_not_found(

@@ -4,7 +4,7 @@ Provides translation services for German real estate documents using
 Microsoft Azure Translator API with legal term detection and warnings.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from app.api.deps import CurrentUser
@@ -19,7 +19,6 @@ from app.schemas.translation import (
 )
 from app.services.translation_service import (
     TranslationError,
-    TranslationService,
     get_translation_service,
 )
 
@@ -57,20 +56,6 @@ LANGUAGE_NAMES = {
 }
 
 
-# Dependency to require translation service configuration
-
-
-def require_translation_service() -> TranslationService:
-    """Dependency that requires translation service to be configured."""
-    service = get_translation_service()
-    if service is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Translation service is not configured. Please set AZURE_TRANSLATOR_KEY.",
-        )
-    return service
-
-
 # Endpoints
 
 
@@ -78,7 +63,6 @@ def require_translation_service() -> TranslationService:
 async def translate_text(
     request: TranslationRequest,
     current_user: CurrentUser,  # noqa: ARG001
-    translation_service: TranslationService = Depends(require_translation_service),
 ) -> TranslationResponse:
     """
     Translate text from source to target language.
@@ -101,6 +85,12 @@ async def translate_text(
     - Free tier: 2 million characters/month
     - Character count included in response for tracking
     """
+    translation_service = get_translation_service()
+    if translation_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Translation service is not configured. Please set AZURE_TRANSLATOR_KEY.",
+        )
     try:
         result = await translation_service.translate_with_warnings(
             text=request.text,
@@ -120,7 +110,6 @@ async def translate_text(
 async def detect_language(
     request: LanguageDetectionRequest,
     current_user: CurrentUser,  # noqa: ARG001
-    translation_service: TranslationService = Depends(require_translation_service),
 ) -> LanguageDetectionResponse:
     """
     Detect the language of given text.
@@ -128,6 +117,12 @@ async def detect_language(
     Returns the detected language code, confidence score, and whether
     the language is supported for translation.
     """
+    translation_service = get_translation_service()
+    if translation_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Translation service is not configured. Please set AZURE_TRANSLATOR_KEY.",
+        )
     try:
         language, confidence, is_supported = await translation_service.detect_language(
             text=request.text
@@ -148,7 +143,6 @@ async def detect_language(
 async def batch_translate(
     request: BatchTranslationRequest,
     current_user: CurrentUser,  # noqa: ARG001
-    translation_service: TranslationService = Depends(require_translation_service),
 ) -> BatchTranslationResponse:
     """
     Translate multiple texts in a single request.
@@ -160,6 +154,12 @@ async def batch_translate(
     - Maximum 100 texts per request
     - Each text limited to 50,000 characters
     """
+    translation_service = get_translation_service()
+    if translation_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Translation service is not configured. Please set AZURE_TRANSLATOR_KEY.",
+        )
     try:
         result = await translation_service.batch_translate(
             texts=request.texts,

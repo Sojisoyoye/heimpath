@@ -25,6 +25,13 @@ class PasswordResetService:
     Handles token generation, storage, and validation.
     Tokens are stored in-memory; production should use Redis or database.
 
+    NOTE: This class is intentionally preserved rather than converted to
+    module-level functions. External callers (e.g. auth endpoints, tests)
+    depend on the class interface, and replacing it is out of scope for this
+    PR. Module-level delegation functions at the bottom of this file provide
+    the expected flat API surface while keeping the class as the
+    implementation.
+
     Attributes:
         TOKEN_EXPIRY_HOURS: Token validity period (1 hour).
         TOKEN_LENGTH: Length of generated token (32 bytes = 64 hex chars).
@@ -158,3 +165,27 @@ def get_password_reset_service() -> PasswordResetService:
     if _password_reset_service is None:
         _password_reset_service = PasswordResetService()
     return _password_reset_service
+
+
+# Module-level constant and delegation functions
+TOKEN_EXPIRY_HOURS: int = PasswordResetService.TOKEN_EXPIRY_HOURS
+
+
+def generate_token(user_id: str, email: str) -> PasswordResetToken:
+    """Generate a new password reset token."""
+    return get_password_reset_service().generate_token(user_id, email)
+
+
+def verify_token(token: str) -> PasswordResetToken | None:
+    """Verify a password reset token without consuming it."""
+    return get_password_reset_service().verify_token(token)
+
+
+def consume_token(token: str) -> PasswordResetToken | None:
+    """Verify and consume a password reset token."""
+    return get_password_reset_service().consume_token(token)
+
+
+def invalidate_user_tokens(user_id: str) -> None:
+    """Invalidate all reset tokens for a user."""
+    get_password_reset_service().invalidate_user_tokens(user_id)
