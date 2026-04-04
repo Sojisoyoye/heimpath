@@ -158,6 +158,43 @@ class TestGenerateJourney:
         assert journey.has_german_residency == sample_answers.has_german_residency
         assert journey.budget_euros == sample_answers.budget_euros
 
+    def test_property_goals_prefilled_from_questionnaire(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that property_goals.preferred_property_type is pre-filled from questionnaire."""
+        mock_session = MagicMock()
+        user_id = uuid.uuid4()
+
+        journey = generate_journey(
+            session=mock_session,
+            user_id=user_id,
+            title="Test Journey",
+            answers=sample_answers,
+        )
+
+        assert journey.property_goals is not None
+        assert (
+            journey.property_goals["preferred_property_type"]
+            == sample_answers.property_type.value
+        )
+
+    def test_property_goals_prefilled_for_house_type(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that property_goals.preferred_property_type is pre-filled for house type."""
+        mock_session = MagicMock()
+        user_id = uuid.uuid4()
+
+        journey = generate_journey(
+            session=mock_session,
+            user_id=user_id,
+            title="Test Journey",
+            answers=cash_buyer_answers,
+        )
+
+        assert journey.property_goals is not None
+        assert journey.property_goals["preferred_property_type"] == "house"
+
 
 class TestGetJourney:
     """Tests for getting journeys."""

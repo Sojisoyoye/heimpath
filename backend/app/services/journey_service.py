@@ -410,7 +410,8 @@ def generate_journey(
     Returns:
         Created Journey with generated steps.
     """
-    # Create the journey
+    # Create the journey, pre-filling property_goals from questionnaire so
+    # Research Step 1 "Define Your Property Goals" loads with the type already selected.
     journey = Journey(
         user_id=user_id,
         title=title,
@@ -422,6 +423,7 @@ def generate_journey(
         budget_euros=answers.budget_euros,
         target_purchase_date=answers.target_purchase_date,
         started_at=datetime.now(timezone.utc),
+        property_goals={"preferred_property_type": answers.property_type.value},
     )
     session.add(journey)
     session.flush()  # Get journey ID
