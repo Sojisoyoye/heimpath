@@ -158,3 +158,27 @@ def get_password_reset_service() -> PasswordResetService:
     if _password_reset_service is None:
         _password_reset_service = PasswordResetService()
     return _password_reset_service
+
+
+# Module-level constant and delegation functions
+TOKEN_EXPIRY_HOURS: int = PasswordResetService.TOKEN_EXPIRY_HOURS
+
+
+def generate_token(user_id: str, email: str) -> PasswordResetToken:
+    """Generate a new password reset token."""
+    return get_password_reset_service().generate_token(user_id, email)
+
+
+def verify_token(token: str) -> PasswordResetToken | None:
+    """Verify a password reset token without consuming it."""
+    return get_password_reset_service().verify_token(token)
+
+
+def consume_token(token: str) -> PasswordResetToken | None:
+    """Verify and consume a password reset token."""
+    return get_password_reset_service().consume_token(token)
+
+
+def invalidate_user_tokens(user_id: str) -> None:
+    """Invalidate all reset tokens for a user."""
+    get_password_reset_service().invalidate_user_tokens(user_id)

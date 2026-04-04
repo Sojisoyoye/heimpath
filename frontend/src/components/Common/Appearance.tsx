@@ -22,7 +22,7 @@ const ICON_MAP: Record<Theme, LucideIcon> = {
   dark: Moon,
 }
 
-export const SidebarAppearance = () => {
+export function SidebarAppearance() {
   const { isMobile } = useSidebar()
   const { setTheme, theme } = useTheme()
   const Icon = ICON_MAP[theme]
@@ -66,7 +66,7 @@ export const SidebarAppearance = () => {
   )
 }
 
-export const Appearance = () => {
+export function Appearance() {
   const { setTheme } = useTheme()
 
   return (

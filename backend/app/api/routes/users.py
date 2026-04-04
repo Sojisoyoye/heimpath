@@ -172,8 +172,8 @@ async def export_user_data(session: SessionDep, current_user: CurrentUser) -> An
     )
 
 
-@router.delete("/me", response_model=Message)
-async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
+@router.delete("/me", status_code=204)
+async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> None:
     """
     Delete own user.
     """
@@ -183,7 +183,6 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         )
     session.delete(current_user)
     session.commit()
-    return Message(message="User deleted successfully")
 
 
 @router.post("/signup", response_model=UserPublic)
@@ -260,10 +259,10 @@ async def update_user(
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
+@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)], status_code=204)
 async def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
-) -> Message:
+) -> None:
     """
     Delete a user.
     """
@@ -278,4 +277,3 @@ async def delete_user(
     session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()
-    return Message(message="User deleted successfully")

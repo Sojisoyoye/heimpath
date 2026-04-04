@@ -171,3 +171,32 @@ def get_email_verification_service() -> EmailVerificationService:
     if _email_verification_service is None:
         _email_verification_service = EmailVerificationService()
     return _email_verification_service
+
+
+# Module-level constant and delegation functions
+TOKEN_EXPIRY_HOURS: int = EmailVerificationService.TOKEN_EXPIRY_HOURS
+
+
+def generate_token(user_id: str, email: str) -> VerificationToken:
+    """Generate a new email verification token."""
+    return get_email_verification_service().generate_token(user_id, email)
+
+
+def verify_token(token: str) -> VerificationToken | None:
+    """Verify an email verification token without consuming it."""
+    return get_email_verification_service().verify_token(token)
+
+
+def consume_token(token: str) -> VerificationToken | None:
+    """Verify and consume an email verification token."""
+    return get_email_verification_service().consume_token(token)
+
+
+def get_token_for_user(user_id: str) -> VerificationToken | None:
+    """Get the current verification token for a user."""
+    return get_email_verification_service().get_token_for_user(user_id)
+
+
+def invalidate_user_tokens(user_id: str) -> None:
+    """Invalidate all tokens for a user."""
+    get_email_verification_service().invalidate_user_tokens(user_id)

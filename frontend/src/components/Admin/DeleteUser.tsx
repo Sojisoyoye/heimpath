@@ -24,7 +24,7 @@ interface DeleteUserProps {
   onSuccess: () => void
 }
 
-const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
+function DeleteUser({ id, onSuccess }: DeleteUserProps) {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()

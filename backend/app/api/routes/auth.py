@@ -32,8 +32,15 @@ from app.schemas.auth import (
     VerifyEmailResponse,
 )
 from app.services import auth_service, rate_limit_service
-from app.services.email_verification_service import get_email_verification_service
-from app.services.password_reset_service import get_password_reset_service
+from app.services.email_verification_service import (
+    TOKEN_EXPIRY_HOURS as EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
+    consume_token as consume_verification_token,
+    generate_token as generate_verification_token,
+)
+from app.services.password_reset_service import (
+    consume_token as consume_reset_token,
+    generate_token as generate_reset_token,
+)
 from app.utils import (
     generate_email_verification_email,
     generate_reset_password_email,
@@ -88,8 +95,7 @@ async def register(
     session.refresh(user)
 
     # Generate verification token and send email
-    verification_service = get_email_verification_service()
-    token_data = verification_service.generate_token(
+    token_data = generate_verification_token(
         user_id=str(user.id),
         email=user.email,
     )
@@ -98,7 +104,7 @@ async def register(
         email_data = generate_email_verification_email(
             email_to=user.email,
             token=token_data.token,
-            valid_hours=verification_service.TOKEN_EXPIRY_HOURS,
+            valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
         )
         send_email(
             email_to=user.email,
@@ -234,10 +240,8 @@ async def verify_email(
     The token is consumed after successful verification and cannot be reused.
     Tokens expire after 24 hours.
     """
-    verification_service = get_email_verification_service()
-
     # Consume the token (validates and removes it)
-    token_data = verification_service.consume_token(request.token)
+    token_data = consume_verification_token(request.token)
     if token_data is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -311,8 +315,7 @@ async def resend_verification(
         )
 
     # Generate new verification token
-    verification_service = get_email_verification_service()
-    token_data = verification_service.generate_token(
+    token_data = generate_verification_token(
         user_id=str(user.id),
         email=user.email,
     )
@@ -322,7 +325,7 @@ async def resend_verification(
         email_data = generate_email_verification_email(
             email_to=user.email,
             token=token_data.token,
-            valid_hours=verification_service.TOKEN_EXPIRY_HOURS,
+            valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
         )
         send_email(
             email_to=user.email,
@@ -356,8 +359,7 @@ async def forgot_password(
     if user is None or not user.is_active:
         return success_response
 
-    reset_service = get_password_reset_service()
-    token_data = reset_service.generate_token(
+    token_data = generate_reset_token(
         user_id=str(user.id),
         email=user.email,
     )
@@ -388,8 +390,7 @@ async def reset_password(
     The token is consumed after use and cannot be reused.
     Tokens expire after 1 hour.
     """
-    reset_service = get_password_reset_service()
-    token_data = reset_service.consume_token(request.token)
+    token_data = consume_reset_token(request.token)
 
     if token_data is None:
         raise HTTPException(

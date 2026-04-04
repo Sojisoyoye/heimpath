@@ -32,7 +32,15 @@ from app.services.legal_service import (
     BookmarkAlreadyExistsError,
     BookmarkNotFoundError,
     LawNotFoundError,
-    get_legal_service,
+    create_bookmark,
+    delete_bookmark,
+    get_law,
+    get_laws,
+    get_laws_for_journey_step,
+    get_related_laws,
+    get_user_bookmarks,
+    is_bookmarked,
+    search_laws,
 )
 
 router = APIRouter(prefix="/laws", tags=["laws"])
@@ -55,7 +63,6 @@ def list_laws(
     - property_type: Property type applicability
     - state: German state code for state-specific variations
     """
-    service = get_legal_service()
     filters = LawFilter(
         category=category,
         property_type=property_type,
@@ -64,7 +71,7 @@ def list_laws(
         page_size=page_size,
     )
 
-    laws, total = service.get_laws(session, filters)
+    laws, total = get_laws(session, filters)
 
     law_summaries = [
         LawSummary(
@@ -99,8 +106,7 @@ def search_laws(
     Searches across titles, summaries, and detailed explanations.
     Returns results ranked by relevance.
     """
-    service = get_legal_service()
-    results = service.search_laws(session, q, limit)
+    results = search_laws(session, q, limit)
 
     search_results = [
         LawSearchResult(
@@ -162,8 +168,7 @@ def get_laws_for_journey_step(
 
     Laws are returned sorted by relevance score (highest first).
     """
-    service = get_legal_service()
-    results = service.get_laws_for_journey_step(session, step_content_key)
+    results = get_laws_for_journey_step(session, step_content_key)
 
     law_responses = [
         JourneyStepLawResponse(
@@ -195,8 +200,7 @@ def get_bookmarks(
     """
     Get all bookmarked laws for the current user.
     """
-    service = get_legal_service()
-    bookmarks = service.get_user_bookmarks(session, current_user.id)
+    bookmarks = get_user_bookmarks(session, current_user.id)
 
     bookmark_responses = [
         BookmarkResponse(
@@ -233,9 +237,8 @@ def get_law(
 
     Includes court rulings, state variations, and related laws.
     """
-    service = get_legal_service()
     try:
-        law = service.get_law(session, law_id)
+        law = get_law(session, law_id)
     except LawNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -243,7 +246,7 @@ def get_law(
         )
 
     # Get related laws
-    related_laws = service.get_related_laws(session, law_id)
+    related_laws = get_related_laws(session, law_id)
     related_law_summaries = [
         LawSummary(
             id=related.id,
@@ -257,9 +260,9 @@ def get_law(
     ]
 
     # Check bookmark status
-    is_bookmarked = False
+    law_is_bookmarked = False
     if current_user:
-        is_bookmarked = service.is_bookmarked(session, law_id, current_user.id)
+        law_is_bookmarked = is_bookmarked(session, law_id, current_user.id)
 
     # Build court rulings response
     court_rulings = [
@@ -314,7 +317,7 @@ def get_law(
         court_rulings=court_rulings,
         state_variations=state_variations,
         related_laws=related_law_summaries,
-        is_bookmarked=is_bookmarked,
+        is_bookmarked=law_is_bookmarked,
     )
 
 
@@ -332,9 +335,8 @@ def create_bookmark(
     """
     Bookmark a law for later reference.
     """
-    service = get_legal_service()
     try:
-        bookmark = service.create_bookmark(
+        bookmark = create_bookmark(
             session=session,
             law_id=law_id,
             user_id=current_user.id,
@@ -388,9 +390,8 @@ def delete_bookmark(
     """
     Remove a law bookmark.
     """
-    service = get_legal_service()
     try:
-        service.delete_bookmark(
+        delete_bookmark(
             session=session,
             law_id=law_id,
             user_id=current_user.id,
