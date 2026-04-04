@@ -483,7 +483,7 @@ async def update_property_goals(
             detail="Journey not found",
         )
 
-    existing_goals = journey.property_goals or {}
+    existing_goals = dict(journey.property_goals) if journey.property_goals else {}
 
     update_data = request.model_dump(exclude_unset=True)
     for field, value in update_data.items():

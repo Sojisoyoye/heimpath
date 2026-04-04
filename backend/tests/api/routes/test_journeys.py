@@ -372,3 +372,109 @@ def test_journey_with_non_resident_includes_document_prep(
     # Check that document preparation step is included
     step_titles = [step["title"] for step in data["steps"]]
     assert "Prepare Required Documents" in step_titles
+
+
+def test_update_property_goals_first_save(client: TestClient, db: Session) -> None:
+    """Test saving property goals for the first time (property_goals starts as null)."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)
+    journey_id = journey["id"]
+
+    goals_data = {
+        "preferred_property_type": "apartment",
+        "min_rooms": 3,
+        "min_bathrooms": 1,
+        "preferred_floor": "middle",
+        "has_elevator_required": False,
+        "features": ["balcony", "parking"],
+        "additional_notes": "Near schools",
+        "is_completed": True,
+    }
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json=goals_data,
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["preferred_property_type"] == "apartment"
+    assert data["min_rooms"] == 3
+    assert data["features"] == ["balcony", "parking"]
+    assert data["is_completed"] is True
+
+    # Verify data persists via GET
+    r = client.get(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+    )
+    assert r.status_code == 200
+    persisted = r.json()
+    assert persisted["preferred_property_type"] == "apartment"
+    assert persisted["min_rooms"] == 3
+    assert persisted["features"] == ["balcony", "parking"]
+
+
+def test_update_property_goals_second_save_persists(
+    client: TestClient, db: Session
+) -> None:
+    """Regression test: second PATCH to property-goals must persist the new values.
+
+    This catches the SQLAlchemy JSONB mutation bug where re-assigning the same
+    dict object causes no change to be detected and the UPDATE is skipped.
+    """
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)
+    journey_id = journey["id"]
+
+    # First save
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "min_rooms": 2,
+            "is_completed": False,
+        },
+    )
+    assert r.status_code == 200
+
+    # Second save with different values
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "house",
+            "min_rooms": 4,
+            "features": ["garden", "parking"],
+            "is_completed": True,
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["preferred_property_type"] == "house"
+    assert data["min_rooms"] == 4
+    assert data["features"] == ["garden", "parking"]
+    assert data["is_completed"] is True
+
+    # Re-fetch via GET to confirm DB was updated (not just in-memory response)
+    r = client.get(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+    )
+    assert r.status_code == 200
+    persisted = r.json()
+    assert persisted["preferred_property_type"] == "house", (
+        "Second save did not persist: property_goals not updated in DB"
+    )
+    assert persisted["min_rooms"] == 4
+    assert persisted["features"] == ["garden", "parking"]
+    assert persisted["is_completed"] is True
+
+    # Also verify the journey detail endpoint returns updated goals
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    assert r.status_code == 200
+    journey_goals = r.json()["property_goals"]
+    assert journey_goals is not None
+    assert journey_goals["preferred_property_type"] == "house"
