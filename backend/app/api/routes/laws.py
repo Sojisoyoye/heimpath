@@ -8,7 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
-from app.api.deps import CurrentUser, get_db
+from app.api.deps import CurrentUser, OptionalCurrentUser, get_db
 from app.models import Message
 from app.models.legal import LawCategory, PropertyTypeApplicability
 from app.models.notification import NotificationType
@@ -32,15 +32,15 @@ from app.services.legal_service import (
     BookmarkAlreadyExistsError,
     BookmarkNotFoundError,
     LawNotFoundError,
-    create_bookmark,
-    delete_bookmark,
-    get_law,
+    create_bookmark as svc_create_bookmark,
+    delete_bookmark as svc_delete_bookmark,
+    get_law as svc_get_law,
     get_laws,
-    get_laws_for_journey_step,
+    get_laws_for_journey_step as svc_get_laws_for_journey_step,
     get_related_laws,
     get_user_bookmarks,
     is_bookmarked,
-    search_laws,
+    search_laws as svc_search_laws,
 )
 
 router = APIRouter(prefix="/laws", tags=["laws"])
@@ -106,7 +106,7 @@ async def search_laws(
     Searches across titles, summaries, and detailed explanations.
     Returns results ranked by relevance.
     """
-    results = search_laws(session, q, limit)
+    results = svc_search_laws(session, q, limit)
 
     search_results = [
         LawSearchResult(
@@ -168,7 +168,7 @@ async def get_laws_for_journey_step(
 
     Laws are returned sorted by relevance score (highest first).
     """
-    results = get_laws_for_journey_step(session, step_content_key)
+    results = svc_get_laws_for_journey_step(session, step_content_key)
 
     law_responses = [
         JourneyStepLawResponse(
@@ -195,7 +195,7 @@ async def get_laws_for_journey_step(
 @router.get("/bookmarks", response_model=BookmarkListResponse)
 async def get_bookmarks(
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: CurrentUser,
 ) -> BookmarkListResponse:
     """
     Get all bookmarked laws for the current user.
@@ -230,7 +230,7 @@ async def get_bookmarks(
 async def get_law(
     law_id: uuid.UUID,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: OptionalCurrentUser = None,
 ) -> LawDetailResponse:
     """
     Get a specific law with full details.
@@ -238,7 +238,7 @@ async def get_law(
     Includes court rulings, state variations, and related laws.
     """
     try:
-        law = get_law(session, law_id)
+        law = svc_get_law(session, law_id)
     except LawNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -330,13 +330,13 @@ async def create_bookmark(
     law_id: uuid.UUID,
     request: BookmarkCreate,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: CurrentUser,
 ) -> BookmarkResponse:
     """
     Bookmark a law for later reference.
     """
     try:
-        bookmark = create_bookmark(
+        bookmark = svc_create_bookmark(
             session=session,
             law_id=law_id,
             user_id=current_user.id,
@@ -385,13 +385,13 @@ async def create_bookmark(
 async def delete_bookmark(
     law_id: uuid.UUID,
     session: Session = Depends(get_db),
-    current_user: CurrentUser = None,
+    current_user: CurrentUser,
 ) -> Message:
     """
     Remove a law bookmark.
     """
     try:
-        delete_bookmark(
+        svc_delete_bookmark(
             session=session,
             law_id=law_id,
             user_id=current_user.id,
