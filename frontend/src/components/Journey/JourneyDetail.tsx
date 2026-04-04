@@ -24,7 +24,7 @@ import { ProgressBar } from "./ProgressBar"
 import { StepCard } from "./StepCard"
 
 interface IProps {
-  journey: JourneyPublic
+  journey?: JourneyPublic
   progress?: JourneyProgress
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
   onDelete?: () => void
@@ -169,7 +169,7 @@ function JourneyDetail(props: IProps) {
     className,
   } = props
 
-  if (isLoading) {
+  if (isLoading || !journey) {
     return <JourneyDetailSkeleton />
   }
 

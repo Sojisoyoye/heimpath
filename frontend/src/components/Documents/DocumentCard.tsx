@@ -148,4 +148,4 @@ function DocumentCard(props: IProps) {
                               Export
 ******************************************************************************/
 
-export { DocumentCard, DOCUMENT_TYPE_LABELS, STATUS_CONFIG }
+export { DOCUMENT_TYPE_LABELS, DocumentCard, STATUS_CONFIG }

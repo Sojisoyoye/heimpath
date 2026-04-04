@@ -121,7 +121,7 @@ refactor(calculator): extract tax calculation logic
 
 ## Pull Request Process
 
-1. **Create a feature branch** from `master`
+1. **Create a feature branch** from `main`
 
 2. **Make your changes** following the code standards
 
@@ -149,7 +149,7 @@ refactor(calculator): extract tax calculation logic
 
 - All CI checks must pass
 - At least one approving review required
-- Branch must be up to date with `master`
+- Branch must be up to date with `main`
 - No merge conflicts
 
 ## Code Standards

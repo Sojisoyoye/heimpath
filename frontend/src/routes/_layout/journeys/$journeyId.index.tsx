@@ -82,9 +82,7 @@ function JourneyDetailPage() {
   }
 
   if (isLoadingJourney || !journey) {
-    return (
-      <JourneyDetail journey={{} as any} onTaskToggle={() => {}} isLoading />
-    )
+    return <JourneyDetail onTaskToggle={() => {}} isLoading />
   }
 
   return (
