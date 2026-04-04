@@ -195,6 +195,65 @@ class TestGenerateJourney:
         assert journey.property_goals is not None
         assert journey.property_goals["preferred_property_type"] == "house"
 
+    def test_property_goals_budget_max_prefilled_from_budget_euros(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that property_goals.budget_max_euros is pre-filled from budget_euros."""
+        mock_session = MagicMock()
+        user_id = uuid.uuid4()
+
+        journey = generate_journey(
+            session=mock_session,
+            user_id=user_id,
+            title="Test Journey",
+            answers=sample_answers,
+        )
+
+        assert journey.property_goals is not None
+        assert journey.property_goals["budget_max_euros"] == sample_answers.budget_euros
+
+    def test_property_goals_budget_min_prefilled_when_provided(
+        self,
+    ) -> None:
+        """Test that property_goals.budget_min_euros is pre-filled when provided."""
+        answers = QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="Berlin",
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=400000,
+            budget_min_euros=200000,
+        )
+        mock_session = MagicMock()
+
+        journey = generate_journey(
+            session=mock_session,
+            user_id=uuid.uuid4(),
+            title="Test Journey",
+            answers=answers,
+        )
+
+        assert journey.property_goals is not None
+        assert journey.property_goals["budget_min_euros"] == 200000
+        assert journey.property_goals["budget_max_euros"] == 400000
+
+    def test_property_goals_budget_min_none_when_not_provided(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that budget_min_euros is None in property_goals when not in questionnaire."""
+        mock_session = MagicMock()
+
+        journey = generate_journey(
+            session=mock_session,
+            user_id=uuid.uuid4(),
+            title="Test Journey",
+            answers=sample_answers,
+        )
+
+        assert journey.property_goals is not None
+        assert journey.property_goals["budget_min_euros"] is None
+
 
 class TestGetJourney:
     """Tests for getting journeys."""

@@ -35,6 +35,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useUpdatePropertyGoals } from "@/hooks/mutations/useJourneyMutations"
 import type { PropertyGoals } from "@/models/journey"
+import { BudgetInput } from "../BudgetInput"
 
 interface IProps {
   journeyId: string
@@ -133,6 +134,8 @@ function PropertyGoalsForm(props: IProps) {
 
   const [goals, setGoals] = useState<PropertyGoals>({
     preferred_property_type: initialGoals?.preferred_property_type || "",
+    budget_min_euros: initialGoals?.budget_min_euros,
+    budget_max_euros: initialGoals?.budget_max_euros,
     min_rooms: initialGoals?.min_rooms || undefined,
     min_bathrooms: initialGoals?.min_bathrooms || undefined,
     preferred_floor: initialGoals?.preferred_floor || "",
@@ -149,6 +152,8 @@ function PropertyGoalsForm(props: IProps) {
     if (initialGoals) {
       setGoals({
         preferred_property_type: initialGoals.preferred_property_type || "",
+        budget_min_euros: initialGoals.budget_min_euros,
+        budget_max_euros: initialGoals.budget_max_euros,
         min_rooms: initialGoals.min_rooms,
         min_bathrooms: initialGoals.min_bathrooms,
         preferred_floor: initialGoals.preferred_floor || "",
@@ -218,6 +223,18 @@ function PropertyGoalsForm(props: IProps) {
             ))}
           </div>
         </div>
+
+        {/* Budget */}
+        <BudgetInput
+          budgetMin={goals.budget_min_euros}
+          budgetMax={goals.budget_max_euros}
+          onBudgetMinChange={(v) =>
+            setGoals((prev) => ({ ...prev, budget_min_euros: v }))
+          }
+          onBudgetMaxChange={(v) =>
+            setGoals((prev) => ({ ...prev, budget_max_euros: v }))
+          }
+        />
 
         {/* Number of Rooms */}
         <div className="space-y-3">

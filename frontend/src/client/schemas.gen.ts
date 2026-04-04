@@ -3919,6 +3919,30 @@ export const PropertyGoalsSchema = {
             ],
             title: 'Preferred Property Type'
         },
+        budget_min_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Min Euros'
+        },
+        budget_max_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Max Euros'
+        },
         min_rooms: {
             anyOf: [
                 {
@@ -4027,6 +4051,30 @@ export const PropertyGoalsUpdateSchema = {
                 }
             ],
             title: 'Preferred Property Type'
+        },
+        budget_min_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Min Euros'
+        },
+        budget_max_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Max Euros'
         },
         min_rooms: {
             anyOf: [
@@ -4191,6 +4239,18 @@ export const QuestionnaireAnswersSchema = {
                 }
             ],
             title: 'Budget Euros'
+        },
+        budget_min_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Min Euros'
         },
         target_purchase_date: {
             anyOf: [

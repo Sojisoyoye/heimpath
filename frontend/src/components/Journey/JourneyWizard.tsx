@@ -183,6 +183,7 @@ function JourneyWizard(props: IProps) {
         is_first_time_buyer: true, // Default value, can be added to wizard later
         has_german_residency: hasGermanResidency,
         budget_euros: state.budgetMax || state.budgetMin,
+        budget_min_euros: state.budgetMin,
         target_purchase_date: state.targetDate,
       },
     }

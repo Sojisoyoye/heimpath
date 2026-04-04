@@ -90,6 +90,7 @@ export interface QuestionnaireAnswers {
   is_first_time_buyer: boolean
   has_german_residency: boolean
   budget_euros?: number
+  budget_min_euros?: number
   target_purchase_date?: string
 }
 
@@ -127,6 +128,8 @@ export interface NextStepRecommendation {
 /** Property goals from Step 1 */
 export interface PropertyGoals {
   preferred_property_type?: string
+  budget_min_euros?: number
+  budget_max_euros?: number
   min_rooms?: number
   min_bathrooms?: number
   preferred_floor?: string
@@ -141,6 +144,8 @@ export interface PropertyGoals {
 /** Property goals update request */
 export interface PropertyGoalsUpdate {
   preferred_property_type?: string
+  budget_min_euros?: number
+  budget_max_euros?: number
   min_rooms?: number
   min_bathrooms?: number
   preferred_floor?: string

@@ -22,6 +22,10 @@ class PropertyGoals(BaseModel):
     # Property type preference (can differ from initial questionnaire)
     preferred_property_type: str | None = None
 
+    # Budget range (pre-filled from wizard questionnaire)
+    budget_min_euros: int | None = Field(default=None, ge=0)
+    budget_max_euros: int | None = Field(default=None, ge=0)
+
     # Room requirements
     min_rooms: int | None = Field(default=None, ge=1, le=10)
     min_bathrooms: int | None = Field(default=None, ge=1, le=5)
@@ -49,6 +53,8 @@ class PropertyGoalsUpdate(BaseModel):
     """Schema for updating property goals."""
 
     preferred_property_type: str | None = None
+    budget_min_euros: int | None = Field(default=None, ge=0)
+    budget_max_euros: int | None = Field(default=None, ge=0)
     min_rooms: int | None = Field(default=None, ge=1, le=10)
     min_bathrooms: int | None = Field(default=None, ge=1, le=5)
     preferred_floor: str | None = None
@@ -71,7 +77,8 @@ class QuestionnaireAnswers(BaseModel):
     financing_type: FinancingType
     is_first_time_buyer: bool = True
     has_german_residency: bool = False
-    budget_euros: int | None = Field(default=None, ge=0)
+    budget_euros: int | None = Field(default=None, ge=0)  # max budget
+    budget_min_euros: int | None = Field(default=None, ge=0)  # min budget
     target_purchase_date: datetime | None = None
 
 
