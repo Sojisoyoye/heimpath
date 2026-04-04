@@ -194,8 +194,8 @@ async def get_laws_for_journey_step(
 
 @router.get("/bookmarks", response_model=BookmarkListResponse)
 async def get_bookmarks(
-    session: Session = Depends(get_db),
     current_user: CurrentUser,
+    session: Session = Depends(get_db),
 ) -> BookmarkListResponse:
     """
     Get all bookmarked laws for the current user.
@@ -329,8 +329,8 @@ async def get_law(
 async def create_bookmark(
     law_id: uuid.UUID,
     request: BookmarkCreate,
-    session: Session = Depends(get_db),
     current_user: CurrentUser,
+    session: Session = Depends(get_db),
 ) -> BookmarkResponse:
     """
     Bookmark a law for later reference.
@@ -384,8 +384,8 @@ async def create_bookmark(
 @router.delete("/{law_id}/bookmark", response_model=Message)
 async def delete_bookmark(
     law_id: uuid.UUID,
-    session: Session = Depends(get_db),
     current_user: CurrentUser,
+    session: Session = Depends(get_db),
 ) -> Message:
     """
     Remove a law bookmark.
