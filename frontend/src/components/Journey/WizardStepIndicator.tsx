@@ -15,6 +15,8 @@ interface WizardStep {
 interface IProps {
   steps: WizardStep[]
   currentStep: number
+  /** Step IDs that have a confirmed selection — shown with green checkmark. */
+  completedSteps?: Set<number>
   className?: string
 }
 
@@ -37,13 +39,11 @@ function StepDot(props: {
         <div
           className={cn(
             "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium transition-all",
-            isCompleted && "border-green-600 bg-green-600 text-white",
-            isCurrent &&
-              !isCompleted &&
-              "border-blue-600 bg-blue-600 text-white",
-            !isCurrent &&
-              !isCompleted &&
-              "border-muted-foreground/30 bg-background text-muted-foreground",
+            isCompleted
+              ? "border-green-600 bg-green-600 text-white"
+              : isCurrent
+                ? "border-blue-600 bg-blue-600 text-white"
+                : "border-muted-foreground/30 bg-background text-muted-foreground",
           )}
         >
           {isCompleted ? <Check className="h-5 w-5" /> : step.id}
@@ -51,9 +51,11 @@ function StepDot(props: {
         <span
           className={cn(
             "mt-2 text-xs font-medium text-center max-w-[80px]",
-            isCurrent && "text-foreground",
-            isCompleted && "text-green-600",
-            !isCurrent && !isCompleted && "text-muted-foreground",
+            isCompleted
+              ? "text-green-600"
+              : isCurrent
+                ? "text-foreground"
+                : "text-muted-foreground",
           )}
         >
           {step.title}
@@ -74,7 +76,7 @@ function StepDot(props: {
 
 /** Default component. Wizard step indicator showing progress through steps. */
 function WizardStepIndicator(props: IProps) {
-  const { steps, currentStep, className } = props
+  const { steps, currentStep, completedSteps, className } = props
 
   return (
     <div className={cn("flex items-start justify-center", className)}>
@@ -83,7 +85,9 @@ function WizardStepIndicator(props: IProps) {
           key={step.id}
           step={step}
           isCurrent={step.id === currentStep}
-          isCompleted={step.id < currentStep}
+          isCompleted={
+            completedSteps ? completedSteps.has(step.id) : step.id < currentStep
+          }
           isLast={index === steps.length - 1}
         />
       ))}
