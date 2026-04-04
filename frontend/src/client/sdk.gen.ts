@@ -1562,7 +1562,7 @@ export class LawsService {
      * Remove a law bookmark.
      * @param data The data for the request.
      * @param data.lawId
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteBookmark(data: LawsDeleteBookmarkData): CancelablePromise<LawsDeleteBookmarkResponse> {

@@ -213,8 +213,7 @@ def test_delete_bookmark(client: TestClient, db: Session) -> None:
         headers=headers,
     )
 
-    assert r.status_code == 200
-    assert "removed" in r.json()["message"].lower()
+    assert r.status_code == 204
 
 
 def test_delete_bookmark_not_found(client: TestClient, db: Session) -> None:

@@ -9,7 +9,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
 from app.api.deps import CurrentUser, OptionalCurrentUser, get_db
-from app.models import Message
 from app.models.legal import LawCategory, PropertyTypeApplicability
 from app.models.notification import NotificationType
 from app.schemas.legal import (
@@ -391,12 +390,12 @@ async def create_bookmark(
     )
 
 
-@router.delete("/{law_id}/bookmark", response_model=Message)
+@router.delete("/{law_id}/bookmark", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_bookmark(
     law_id: uuid.UUID,
     current_user: CurrentUser,
     session: Session = Depends(get_db),
-) -> Message:
+) -> None:
     """
     Remove a law bookmark.
     """
@@ -411,5 +410,3 @@ async def delete_bookmark(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Bookmark not found",
         )
-
-    return Message(message="Bookmark removed successfully")
