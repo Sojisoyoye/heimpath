@@ -20,6 +20,7 @@ from app.services.legal_service import (
     create_bookmark,
     delete_bookmark,
     get_law,
+    get_law_by_citation,
     get_laws,
     get_laws_by_category,
     get_related_laws,
@@ -100,8 +101,6 @@ class TestGetLawByCitation:
 
     def test_raises_not_found_for_missing_citation(self) -> None:
         """Test that LawNotFoundError is raised for missing citation."""
-        from app.services.legal_service import get_law_by_citation
-
         mock_session = MagicMock()
         mock_session.exec.return_value.scalars.return_value.first.return_value = None
 
@@ -110,8 +109,6 @@ class TestGetLawByCitation:
 
     def test_returns_law_for_valid_citation(self, sample_law: MagicMock) -> None:
         """Test that law is returned for valid citation."""
-        from app.services.legal_service import get_law_by_citation
-
         mock_session = MagicMock()
         mock_session.exec.return_value.scalars.return_value.first.return_value = (
             sample_law

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import col, delete, func, select
 
 from app import crud
@@ -172,7 +172,7 @@ async def export_user_data(session: SessionDep, current_user: CurrentUser) -> An
     )
 
 
-@router.delete("/me", status_code=204)
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> None:
     """
     Delete own user.
@@ -259,7 +259,7 @@ async def update_user(
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)], status_code=204)
+@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)], status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> None:

@@ -25,6 +25,13 @@ class EmailVerificationService:
     Handles token generation, storage, and validation.
     Tokens are stored in-memory; production should use Redis or database.
 
+    NOTE: This class is intentionally preserved rather than converted to
+    module-level functions. External callers (e.g. auth endpoints, tests)
+    depend on the class interface, and replacing it is out of scope for this
+    PR. Module-level delegation functions at the bottom of this file provide
+    the expected flat API surface while keeping the class as the
+    implementation.
+
     Attributes:
         TOKEN_EXPIRY_HOURS: Token validity period (24 hours).
         TOKEN_LENGTH: Length of generated token (32 bytes = 64 hex chars).

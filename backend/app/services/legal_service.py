@@ -162,14 +162,22 @@ def search_laws(
     """)
 
     result = session.execute(search_query, {"query": query_text, "limit": limit})
+    rows = list(result)
 
-    # Fetch full law objects
-    laws_with_scores = []
-    for row in result:
-        law = get_law(session, row.id)
-        laws_with_scores.append((law, float(row.rank)))
+    if not rows:
+        return []
 
-    return laws_with_scores
+    # Fetch all matched laws in a single query to avoid N+1
+    law_ids = [row.id for row in rows]
+    rank_by_id = {row.id: float(row.rank) for row in rows}
+    laws = list(
+        session.exec(select(Law).where(Law.id.in_(law_ids))).scalars().all()
+    )
+    # Restore rank order
+    _UNRANKED = len(law_ids)
+    id_order = {lid: i for i, lid in enumerate(law_ids)}
+    laws.sort(key=lambda law: id_order.get(law.id, _UNRANKED))
+    return [(law, rank_by_id[law.id]) for law in laws]
 
 
 def get_related_laws(
