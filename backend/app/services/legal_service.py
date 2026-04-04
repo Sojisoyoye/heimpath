@@ -170,9 +170,7 @@ def search_laws(
     # Fetch all matched laws in a single query to avoid N+1
     law_ids = [row.id for row in rows]
     rank_by_id = {row.id: float(row.rank) for row in rows}
-    laws = list(
-        session.exec(select(Law).where(Law.id.in_(law_ids))).scalars().all()
-    )
+    laws = list(session.exec(select(Law).where(Law.id.in_(law_ids))).scalars().all())
     # Restore rank order
     _UNRANKED = len(law_ids)
     id_order = {lid: i for i, lid in enumerate(law_ids)}

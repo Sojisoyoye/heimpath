@@ -163,9 +163,7 @@ class TestBookmarks:
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    def test_create_bookmark_raises_already_exists(
-        self, sample_law: MagicMock
-    ) -> None:
+    def test_create_bookmark_raises_already_exists(self, sample_law: MagicMock) -> None:
         """Test that BookmarkAlreadyExistsError is raised for duplicate."""
         mock_session = MagicMock()
         mock_bookmark = MagicMock(spec=LawBookmark)
