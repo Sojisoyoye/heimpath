@@ -423,7 +423,11 @@ def generate_journey(
         budget_euros=answers.budget_euros,
         target_purchase_date=answers.target_purchase_date,
         started_at=datetime.now(timezone.utc),
-        property_goals={"preferred_property_type": answers.property_type.value},
+        property_goals={
+            "preferred_property_type": answers.property_type.value,
+            "budget_min_euros": answers.budget_min_euros,
+            "budget_max_euros": answers.budget_euros,
+        },
     )
     session.add(journey)
     session.flush()  # Get journey ID
