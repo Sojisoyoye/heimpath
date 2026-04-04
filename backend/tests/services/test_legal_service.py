@@ -26,7 +26,6 @@ from app.services.legal_service import (
     get_related_laws,
     get_user_bookmarks,
     is_bookmarked,
-    search_laws,
 )
 
 

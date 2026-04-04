@@ -86,7 +86,7 @@ def get_laws(
 def get_law(
     session: Session,
     law_id: uuid.UUID,
-    user_id: uuid.UUID | None = None,
+    _user_id: uuid.UUID | None = None,
 ) -> Law:
     """Get a law by ID.
 

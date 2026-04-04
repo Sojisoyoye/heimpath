@@ -34,11 +34,17 @@ from app.schemas.auth import (
 from app.services import auth_service, rate_limit_service
 from app.services.email_verification_service import (
     TOKEN_EXPIRY_HOURS as EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
+)
+from app.services.email_verification_service import (
     consume_token as consume_verification_token,
+)
+from app.services.email_verification_service import (
     generate_token as generate_verification_token,
 )
 from app.services.password_reset_service import (
     consume_token as consume_reset_token,
+)
+from app.services.password_reset_service import (
     generate_token as generate_reset_token,
 )
 from app.utils import (

@@ -1114,7 +1114,7 @@ export class ItemsService {
      * Delete an item.
      * @param data The data for the request.
      * @param data.id
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteItem(data: ItemsDeleteItemData): CancelablePromise<ItemsDeleteItemResponse> {
@@ -2103,7 +2103,7 @@ export class UsersService {
     /**
      * Delete User Me
      * Delete own user.
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteUserMe(): CancelablePromise<UsersDeleteUserMeResponse> {
@@ -2247,7 +2247,7 @@ export class UsersService {
      * Delete a user.
      * @param data The data for the request.
      * @param data.userId
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteUser(data: UsersDeleteUserData): CancelablePromise<UsersDeleteUserResponse> {
