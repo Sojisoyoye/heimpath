@@ -3,7 +3,6 @@ import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
 
 import type { UserPublic } from "@/client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { UserPublic } from "@/client"
 import {
   DropdownMenu,
   DropdownMenuContent,

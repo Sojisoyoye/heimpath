@@ -2136,7 +2136,7 @@ export type LawsDeleteBookmarkData = {
     lawId: string;
 };
 
-export type LawsDeleteBookmarkResponse = (Message);
+export type LawsDeleteBookmarkResponse = (void);
 
 export type LoginLoginAccessTokenData = {
     formData: Body_login_login_access_token;
