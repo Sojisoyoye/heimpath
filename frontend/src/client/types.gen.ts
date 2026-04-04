@@ -2009,7 +2009,7 @@ export type ItemsDeleteItemData = {
     id: string;
 };
 
-export type ItemsDeleteItemResponse = (Message);
+export type ItemsDeleteItemResponse = (void);
 
 export type JourneysCreateJourneyData = {
     requestBody: JourneyCreate;
@@ -2257,7 +2257,7 @@ export type UsersCreateUserResponse = (UserPublic);
 
 export type UsersReadUserMeResponse = (UserPublic);
 
-export type UsersDeleteUserMeResponse = (Message);
+export type UsersDeleteUserMeResponse = (void);
 
 export type UsersUpdateUserMeData = {
     requestBody: UserUpdateMe;
@@ -2296,7 +2296,7 @@ export type UsersDeleteUserData = {
     userId: string;
 };
 
-export type UsersDeleteUserResponse = (Message);
+export type UsersDeleteUserResponse = (void);
 
 export type UtilsTestEmailData = {
     emailTo: string;

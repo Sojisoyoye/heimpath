@@ -1116,6 +1116,7 @@ export const DocumentDetailResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         original_filename: {
@@ -1244,6 +1245,7 @@ export const DocumentStatusResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         status: {
@@ -1275,6 +1277,7 @@ export const DocumentSummarySchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         original_filename: {
@@ -1311,10 +1314,12 @@ export const DocumentTranslationResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         document_id: {
             type: 'string',
+            format: 'uuid',
             title: 'Document Id'
         },
         source_language: {
@@ -1388,6 +1393,7 @@ export const DocumentUploadResponseSchema = {
     properties: {
         id: {
             type: 'string',
+            format: 'uuid',
             title: 'Id'
         },
         original_filename: {

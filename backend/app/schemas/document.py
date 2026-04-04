@@ -1,5 +1,6 @@
 """Document translation request/response schemas."""
 
+import uuid
 from datetime import datetime
 from enum import Enum
 
@@ -33,7 +34,7 @@ class DocumentUploadResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     original_filename: str
     file_size_bytes: int
     page_count: int
@@ -46,7 +47,7 @@ class DocumentSummary(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     original_filename: str
     file_size_bytes: int
     page_count: int
@@ -100,8 +101,8 @@ class DocumentTranslationResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
-    document_id: str
+    id: uuid.UUID
+    document_id: uuid.UUID
     source_language: str
     target_language: str
     translated_pages: list[TranslatedPage]
@@ -116,7 +117,7 @@ class DocumentDetailResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: uuid.UUID
     original_filename: str
     file_size_bytes: int
     page_count: int
@@ -130,7 +131,7 @@ class DocumentDetailResponse(BaseModel):
 class DocumentStatusResponse(BaseModel):
     """Lightweight status check response."""
 
-    id: str
+    id: uuid.UUID
     status: DocumentStatusEnum
     error_message: str | None = None
     page_count: int

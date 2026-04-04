@@ -25,6 +25,13 @@ class EmailVerificationService:
     Handles token generation, storage, and validation.
     Tokens are stored in-memory; production should use Redis or database.
 
+    NOTE: This class is intentionally preserved rather than converted to
+    module-level functions. External callers (e.g. auth endpoints, tests)
+    depend on the class interface, and replacing it is out of scope for this
+    PR. Module-level delegation functions at the bottom of this file provide
+    the expected flat API surface while keeping the class as the
+    implementation.
+
     Attributes:
         TOKEN_EXPIRY_HOURS: Token validity period (24 hours).
         TOKEN_LENGTH: Length of generated token (32 bytes = 64 hex chars).
@@ -171,3 +178,32 @@ def get_email_verification_service() -> EmailVerificationService:
     if _email_verification_service is None:
         _email_verification_service = EmailVerificationService()
     return _email_verification_service
+
+
+# Module-level constant and delegation functions
+TOKEN_EXPIRY_HOURS: int = EmailVerificationService.TOKEN_EXPIRY_HOURS
+
+
+def generate_token(user_id: str, email: str) -> VerificationToken:
+    """Generate a new email verification token."""
+    return get_email_verification_service().generate_token(user_id, email)
+
+
+def verify_token(token: str) -> VerificationToken | None:
+    """Verify an email verification token without consuming it."""
+    return get_email_verification_service().verify_token(token)
+
+
+def consume_token(token: str) -> VerificationToken | None:
+    """Verify and consume an email verification token."""
+    return get_email_verification_service().consume_token(token)
+
+
+def get_token_for_user(user_id: str) -> VerificationToken | None:
+    """Get the current verification token for a user."""
+    return get_email_verification_service().get_token_for_user(user_id)
+
+
+def invalidate_user_tokens(user_id: str) -> None:
+    """Invalidate all tokens for a user."""
+    get_email_verification_service().invalidate_user_tokens(user_id)

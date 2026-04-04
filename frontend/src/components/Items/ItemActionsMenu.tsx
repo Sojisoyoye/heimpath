@@ -15,7 +15,7 @@ interface ItemActionsMenuProps {
   item: ItemPublic
 }
 
-export const ItemActionsMenu = ({ item }: ItemActionsMenuProps) => {
+export function ItemActionsMenu({ item }: ItemActionsMenuProps) {
   const [open, setOpen] = useState(false)
 
   return (

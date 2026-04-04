@@ -494,9 +494,7 @@ def test_delete_user_me(client: TestClient, db: Session) -> None:
         f"{settings.API_V1_STR}/users/me",
         headers=headers,
     )
-    assert r.status_code == 200
-    deleted_user = r.json()
-    assert deleted_user["message"] == "User deleted successfully"
+    assert r.status_code == 204
     result = db.exec(select(User).where(User.id == user_id)).first()
     assert result is None
 
@@ -529,9 +527,7 @@ def test_delete_user_super_user(
         f"{settings.API_V1_STR}/users/{user_id}",
         headers=superuser_token_headers,
     )
-    assert r.status_code == 200
-    deleted_user = r.json()
-    assert deleted_user["message"] == "User deleted successfully"
+    assert r.status_code == 204
     result = db.exec(select(User).where(User.id == user_id)).first()
     assert result is None
 
