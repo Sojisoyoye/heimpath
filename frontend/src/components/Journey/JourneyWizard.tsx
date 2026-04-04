@@ -222,10 +222,18 @@ function JourneyWizard(props: IProps) {
     switch (currentStep) {
       case 1:
         return (
-          <PropertyTypeSelector
-            value={state.propertyType}
-            onChange={(v) => updateState({ propertyType: v })}
-          />
+          <div className="space-y-8">
+            <PropertyTypeSelector
+              value={state.propertyType}
+              onChange={(v) => updateState({ propertyType: v })}
+            />
+            <BudgetInput
+              budgetMin={state.budgetMin}
+              budgetMax={state.budgetMax}
+              onBudgetMinChange={(v) => updateState({ budgetMin: v })}
+              onBudgetMaxChange={(v) => updateState({ budgetMax: v })}
+            />
+          </div>
         )
       case 2:
         return (
