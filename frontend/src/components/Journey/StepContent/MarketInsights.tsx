@@ -298,33 +298,41 @@ function MarketInsights(props: IProps) {
         </div>
 
         {/* Key Stats Grid */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <StatCard
-            label="Average Price per m²"
-            value={CURRENCY_FORMATTER.format(adjustedAvgPrice)}
-            sublabel={`For ${propertyTypeLabel.toLowerCase()}s`}
-            icon={Euro}
-            highlight
-          />
-          <StatCard
-            label="Price Range"
-            value={`${CURRENCY_FORMATTER.format(adjustedMinPrice)} - ${CURRENCY_FORMATTER.format(adjustedMaxPrice)}`}
-            sublabel="Per m²"
-            icon={BarChart3}
-          />
-          <StatCard
-            label="Agent Fee (Makler)"
-            value={`${marketData.agentFeePercent}%`}
-            sublabel="Buyer's share after Bestellerprinzip"
-            icon={Users}
-          />
-          <StatCard
-            label="Transfer Tax"
-            value={`${stateInfo.transferTaxRate}%`}
-            sublabel="Grunderwerbsteuer"
-            icon={Euro}
-          />
-        </div>
+        {(() => {
+          const agentFee =
+            marketInsights?.agent_fee_percent ?? marketData.agentFeePercent
+          const transferTax =
+            marketInsights?.transfer_tax_rate ?? stateInfo.transferTaxRate
+          return (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <StatCard
+                label="Average Price per m²"
+                value={CURRENCY_FORMATTER.format(adjustedAvgPrice)}
+                sublabel={`For ${propertyTypeLabel.toLowerCase()}s`}
+                icon={Euro}
+                highlight
+              />
+              <StatCard
+                label="Price Range"
+                value={`${CURRENCY_FORMATTER.format(adjustedMinPrice)} - ${CURRENCY_FORMATTER.format(adjustedMaxPrice)}`}
+                sublabel="Per m²"
+                icon={BarChart3}
+              />
+              <StatCard
+                label="Agent Fee (Makler)"
+                value={`${agentFee}%`}
+                sublabel="Buyer's share after Bestellerprinzip"
+                icon={Users}
+              />
+              <StatCard
+                label="Transfer Tax"
+                value={`${transferTax}%`}
+                sublabel="Grunderwerbsteuer"
+                icon={Euro}
+              />
+            </div>
+          )
+        })()}
 
         {/* Budget Analysis */}
         {budgetEuros && budgetEuros > 0 && (
@@ -336,38 +344,43 @@ function MarketInsights(props: IProps) {
                 Based on Your Budget
               </h4>
               <div className="rounded-lg bg-muted/50 p-4 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Your Budget</span>
-                  <span className="font-medium">
-                    {CURRENCY_FORMATTER.format(budgetEuros)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Estimated Property Size
-                  </span>
-                  <span className="font-medium">{estimatedSqm} m²</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Total Additional Costs (~
-                    {(
-                      marketData.agentFeePercent +
-                      stateInfo.transferTaxRate +
-                      2
-                    ).toFixed(1)}
-                    %)
-                  </span>
-                  <span className="font-medium">
-                    {CURRENCY_FORMATTER.format(
-                      (budgetEuros *
-                        (marketData.agentFeePercent +
-                          stateInfo.transferTaxRate +
-                          2)) /
-                        100,
-                    )}
-                  </span>
-                </div>
+                {(() => {
+                  const agentFee =
+                    marketInsights?.agent_fee_percent ??
+                    marketData.agentFeePercent
+                  const transferTax =
+                    marketInsights?.transfer_tax_rate ?? stateInfo.transferTaxRate
+                  const additionalCostPct = agentFee + transferTax + 2
+                  return (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Your Budget
+                        </span>
+                        <span className="font-medium">
+                          {CURRENCY_FORMATTER.format(budgetEuros)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Estimated Property Size
+                        </span>
+                        <span className="font-medium">{estimatedSqm} m²</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Total Additional Costs (~
+                          {additionalCostPct.toFixed(1)}%)
+                        </span>
+                        <span className="font-medium">
+                          {CURRENCY_FORMATTER.format(
+                            (budgetEuros * additionalCostPct) / 100,
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  )
+                })()}
               </div>
             </div>
           </>
@@ -430,26 +443,34 @@ function MarketInsights(props: IProps) {
         </div>
 
         {/* Tips */}
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:bg-blue-950/30">
-          <h4 className="font-medium text-blue-800 dark:text-blue-400 mb-2">
-            Tips for {stateInfo.name}
-          </h4>
-          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-            <li>
-              • Agent fees are typically split 50/50 between buyer and seller
-            </li>
-            <li>
-              • Budget an additional 10-15% for transaction costs (notary,
-              taxes, etc.)
-            </li>
-            {marketData.trend === "rising" && (
-              <li>• Market is competitive - be prepared to move quickly</li>
-            )}
-            {marketData.trend === "stable" && (
-              <li>• Take your time to find the right property</li>
-            )}
-          </ul>
-        </div>
+        {(() => {
+          const effectiveTrend = marketInsights?.trend ?? marketData.trend
+          return (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:bg-blue-950/30">
+              <h4 className="font-medium text-blue-800 dark:text-blue-400 mb-2">
+                Tips for {stateInfo.name}
+              </h4>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                <li>
+                  • Agent fees are typically split 50/50 between buyer and
+                  seller
+                </li>
+                <li>
+                  • Budget an additional 10-15% for transaction costs (notary,
+                  taxes, etc.)
+                </li>
+                {effectiveTrend === "rising" && (
+                  <li>
+                    • Market is competitive - be prepared to move quickly
+                  </li>
+                )}
+                {effectiveTrend === "stable" && (
+                  <li>• Take your time to find the right property</li>
+                )}
+              </ul>
+            </div>
+          )
+        })()}
       </CardContent>
     </Card>
   )

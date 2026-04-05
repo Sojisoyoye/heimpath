@@ -8,6 +8,7 @@ backend and frontend are always in sync.
 """
 
 from datetime import datetime, timezone
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Static data: German states
@@ -162,8 +163,8 @@ def compute_market_insights(
     property_location: str | None,
     property_type: str | None,
     budget_euros: int | None,
-    property_goals: dict | None,
-) -> dict | None:
+    property_goals: dict[str, Any] | None,
+) -> dict[str, Any] | None:
     """Compute market insights from static data.
 
     Returns a dict suitable for storing in Journey.market_insights, or None

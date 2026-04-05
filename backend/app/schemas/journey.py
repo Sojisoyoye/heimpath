@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,7 +25,7 @@ class MarketInsightsData(BaseModel):
     price_range_min: float
     price_range_max: float
     agent_fee_percent: float
-    trend: str  # "rising" | "stable" | "falling"
+    trend: Literal["rising", "stable", "falling"]
     hotspots: list[str]
     transfer_tax_rate: float
     property_type: str

@@ -1,7 +1,7 @@
 """Add market_insights to journey
 
-Revision ID: f6a7b8c9d0e1
-Revises: e5f6a7b8c9d0
+Revision ID: o6k7l8m9n0p1
+Revises: n5j6k7l8m9o1
 Create Date: 2026-04-05 10:00:00.000000
 
 """
@@ -10,8 +10,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "f6a7b8c9d0e1"
-down_revision = "e5f6a7b8c9d0"
+revision = "o6k7l8m9n0p1"
+down_revision = "n5j6k7l8m9o1"
 branch_labels = None
 depends_on = None
 
