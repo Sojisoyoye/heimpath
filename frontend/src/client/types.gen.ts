@@ -218,7 +218,7 @@ export type BatchTranslationResponse = {
 };
 
 export type Body_documents_upload_document = {
-    file: string;
+    file: (Blob | File);
 };
 
 export type Body_login_login_access_token = {

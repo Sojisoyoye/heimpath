@@ -716,7 +716,7 @@ export const Body_documents_upload_documentSchema = {
     properties: {
         file: {
             type: 'string',
-            contentMediaType: 'application/octet-stream',
+            format: 'binary',
             title: 'File'
         }
     },
