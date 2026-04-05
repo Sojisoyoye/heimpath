@@ -23,12 +23,14 @@ from app.schemas.journey import (
     JourneyTaskResponse,
     JourneyTaskUpdate,
     JourneyUpdate,
+    MarketInsightsData,
     NextStepResponse,
     PropertyGoals,
     PropertyGoalsUpdate,
 )
 from app.services import journey_service as svc
 from app.services import notification_service
+from app.services.market_data import compute_market_insights
 from app.services.journey_service import (
     InvalidStepTransitionError,
     JourneyError,
@@ -99,6 +101,9 @@ def _build_journey_response(journey: Journey) -> JourneyResponse:
         target_purchase_date=journey.target_purchase_date,
         property_goals=PropertyGoals(**journey.property_goals)
         if journey.property_goals
+        else None,
+        market_insights=MarketInsightsData(**journey.market_insights)
+        if journey.market_insights
         else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
@@ -192,6 +197,9 @@ async def get_journey(
         target_purchase_date=journey.target_purchase_date,
         property_goals=PropertyGoals(**journey.property_goals)
         if journey.property_goals
+        else None,
+        market_insights=MarketInsightsData(**journey.market_insights)
+        if journey.market_insights
         else None,
         started_at=journey.started_at,
         completed_at=journey.completed_at,
@@ -490,6 +498,18 @@ async def update_property_goals(
         existing_goals[field] = value
 
     journey.property_goals = existing_goals
+
+    # Auto-generate market insights when Step 1 is completed for the first time.
+    # Insights are only computed once; re-saving an already-completed form does
+    # not overwrite previously generated insights.
+    if existing_goals.get("is_completed") and journey.market_insights is None:
+        journey.market_insights = compute_market_insights(
+            property_location=journey.property_location,
+            property_type=journey.property_type,
+            budget_euros=journey.budget_euros,
+            property_goals=existing_goals,
+        )
+
     session.add(journey)
     session.commit()
     session.refresh(journey)

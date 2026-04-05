@@ -8,6 +8,7 @@ import {
   BarChart3,
   Euro,
   Info,
+  Loader2,
   MapPin,
   Minus,
   TrendingDown,
@@ -30,13 +31,15 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import type { PropertyGoals } from "@/models/journey"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { MarketInsightsData, PropertyGoals } from "@/models/journey"
 
 interface IProps {
   propertyLocation?: string
   propertyType?: string
   budgetEuros?: number
   propertyGoals?: PropertyGoals
+  marketInsights?: MarketInsightsData
   className?: string
 }
 
@@ -103,6 +106,49 @@ function StatCard(props: {
   )
 }
 
+/** Skeleton stat card shown while insights are generating. */
+function StatCardSkeleton() {
+  return (
+    <div className="rounded-lg border p-4 space-y-2">
+      <Skeleton className="h-4 w-2/3" />
+      <Skeleton className="h-7 w-1/2" />
+      <Skeleton className="h-3 w-3/4" />
+    </div>
+  )
+}
+
+/** Loading state shown while market insights are being generated. */
+function GeneratingInsights(props: { className?: string }) {
+  return (
+    <Card className={cn("overflow-hidden", props.className)}>
+      <CardHeader className="bg-green-50 dark:bg-green-950/30">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <BarChart3 className="h-4 w-4" />
+          Market Insights
+          <Loader2 className="ml-auto h-4 w-4 animate-spin text-muted-foreground" />
+        </CardTitle>
+        <CardDescription>Generating personalised insights…</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-6">
+        <div className="flex items-center gap-3 rounded-lg border p-4">
+          <Skeleton className="h-6 w-6 rounded" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+          <Skeleton className="h-6 w-16 rounded-full" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 /** No goals warning. */
 function NoGoalsWarning() {
   return (
@@ -127,8 +173,15 @@ function MarketInsights(props: IProps) {
     propertyType,
     budgetEuros,
     propertyGoals,
+    marketInsights,
     className,
   } = props
+
+  // Show loading skeleton when Step 1 is done but insights haven't arrived yet
+  const isGenerating = propertyGoals?.is_completed && !marketInsights
+  if (isGenerating) {
+    return <GeneratingInsights className={className} />
+  }
 
   // Get state info
   const stateInfo = GERMAN_STATES.find((s) => s.code === propertyLocation)
@@ -144,23 +197,38 @@ function MarketInsights(props: IProps) {
       " ",
     )[0] || "Property"
 
-  // Calculate adjusted price based on property type
-  const typeMultiplier = PROPERTY_TYPE_MULTIPLIERS[effectivePropertyType] || 1
-  const adjustedAvgPrice = marketData
-    ? Math.round(marketData.avgPricePerSqm * typeMultiplier)
-    : 0
-  const adjustedMinPrice = marketData
-    ? Math.round(marketData.priceRange.min * typeMultiplier)
-    : 0
-  const adjustedMaxPrice = marketData
-    ? Math.round(marketData.priceRange.max * typeMultiplier)
-    : 0
+  // Use backend-computed prices when available, fall back to local computation
+  const adjustedAvgPrice =
+    marketInsights?.adjusted_avg_price_per_sqm ??
+    (marketData
+      ? Math.round(
+          marketData.avgPricePerSqm *
+            (PROPERTY_TYPE_MULTIPLIERS[effectivePropertyType] || 1),
+        )
+      : 0)
+  const adjustedMinPrice =
+    marketInsights?.adjusted_min_price_per_sqm ??
+    (marketData
+      ? Math.round(
+          marketData.priceRange.min *
+            (PROPERTY_TYPE_MULTIPLIERS[effectivePropertyType] || 1),
+        )
+      : 0)
+  const adjustedMaxPrice =
+    marketInsights?.adjusted_max_price_per_sqm ??
+    (marketData
+      ? Math.round(
+          marketData.priceRange.max *
+            (PROPERTY_TYPE_MULTIPLIERS[effectivePropertyType] || 1),
+        )
+      : 0)
 
-  // Calculate estimated size based on budget
+  // Calculate estimated size based on budget (prefer backend value)
   const estimatedSqm =
-    budgetEuros && adjustedAvgPrice > 0
+    marketInsights?.estimated_size_sqm ??
+    (budgetEuros && adjustedAvgPrice > 0
       ? Math.round(budgetEuros / adjustedAvgPrice)
-      : 0
+      : 0)
 
   // Check if property goals are set
   const hasGoals = propertyGoals?.is_completed

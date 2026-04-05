@@ -13,6 +13,30 @@ from app.models.journey import (
     StepStatus,
 )
 
+# Market Insights schema (generated after Step 1 completion)
+
+
+class MarketInsightsData(BaseModel):
+    """Computed market insights stored on the journey after Step 1 completion."""
+
+    state_code: str
+    state_name: str
+    avg_price_per_sqm: float
+    price_range_min: float
+    price_range_max: float
+    agent_fee_percent: float
+    trend: str  # "rising" | "stable" | "falling"
+    hotspots: list[str]
+    transfer_tax_rate: float
+    property_type: str
+    type_multiplier: float
+    adjusted_avg_price_per_sqm: float
+    adjusted_min_price_per_sqm: float
+    adjusted_max_price_per_sqm: float
+    estimated_size_sqm: int | None = None
+    generated_at: str
+
+
 # Property Goals schemas (Step 1)
 
 
@@ -209,6 +233,7 @@ class JourneyResponse(BaseModel):
     budget_euros: int | None = None
     target_purchase_date: datetime | None = None
     property_goals: PropertyGoals | None = None
+    market_insights: MarketInsightsData | None = None
     started_at: datetime | None = None
     completed_at: datetime | None = None
     is_active: bool
