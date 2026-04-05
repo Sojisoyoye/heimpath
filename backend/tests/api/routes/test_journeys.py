@@ -593,9 +593,7 @@ def test_incomplete_goals_do_not_generate_insights(
     assert r.json()["market_insights"] is None
 
 
-def test_goals_property_type_used_in_insights(
-    client: TestClient, db: Session
-) -> None:
+def test_goals_property_type_used_in_insights(client: TestClient, db: Session) -> None:
     """Insights use the property type set in goals, not the journey-level type."""
     headers, _ = get_auth_headers(client, db)
     journey = create_journey_with_state_location(client, headers)

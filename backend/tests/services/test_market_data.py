@@ -95,7 +95,9 @@ class TestComputeMarketInsights:
             property_goals=None,
         )
         assert result is not None
-        avg = MARKET_DATA_BY_STATE[location]["avg_price_per_sqm"]  # apartment multiplier = 1.0
+        avg = MARKET_DATA_BY_STATE[location][
+            "avg_price_per_sqm"
+        ]  # apartment multiplier = 1.0
         expected_sqm = round(budget / avg)
         assert result["estimated_size_sqm"] == expected_sqm
 

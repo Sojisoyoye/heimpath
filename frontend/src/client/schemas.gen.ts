@@ -2249,6 +2249,18 @@ export const JourneyDetailResponseSchema = {
                 }
             ]
         },
+        market_insights: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/MarketInsightsData'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            default: null,
+            title: 'Market Insights'
+        },
         started_at: {
             anyOf: [
                 {
@@ -2541,6 +2553,18 @@ export const JourneyResponseSchema = {
                     type: 'null'
                 }
             ]
+        },
+        market_insights: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/MarketInsightsData'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            default: null,
+            title: 'Market Insights'
         },
         started_at: {
             anyOf: [
@@ -3919,30 +3943,6 @@ export const PropertyGoalsSchema = {
             ],
             title: 'Preferred Property Type'
         },
-        budget_min_euros: {
-            anyOf: [
-                {
-                    type: 'integer',
-                    minimum: 0
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Budget Min Euros'
-        },
-        budget_max_euros: {
-            anyOf: [
-                {
-                    type: 'integer',
-                    minimum: 0
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Budget Max Euros'
-        },
         min_rooms: {
             anyOf: [
                 {
@@ -4051,30 +4051,6 @@ export const PropertyGoalsUpdateSchema = {
                 }
             ],
             title: 'Preferred Property Type'
-        },
-        budget_min_euros: {
-            anyOf: [
-                {
-                    type: 'integer',
-                    minimum: 0
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Budget Min Euros'
-        },
-        budget_max_euros: {
-            anyOf: [
-                {
-                    type: 'integer',
-                    minimum: 0
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Budget Max Euros'
         },
         min_rooms: {
             anyOf: [
@@ -4239,18 +4215,6 @@ export const QuestionnaireAnswersSchema = {
                 }
             ],
             title: 'Budget Euros'
-        },
-        budget_min_euros: {
-            anyOf: [
-                {
-                    type: 'integer',
-                    minimum: 0
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Budget Min Euros'
         },
         target_purchase_date: {
             anyOf: [
@@ -5795,4 +5759,88 @@ export const WebhookResponseSchema = {
     required: ['received'],
     title: 'WebhookResponse',
     description: 'Webhook processing response.'
+} as const;
+
+export const MarketInsightsDataSchema = {
+    properties: {
+        state_code: {
+            title: 'State Code',
+            type: 'string'
+        },
+        state_name: {
+            title: 'State Name',
+            type: 'string'
+        },
+        avg_price_per_sqm: {
+            title: 'Avg Price Per Sqm',
+            type: 'number'
+        },
+        price_range_min: {
+            title: 'Price Range Min',
+            type: 'number'
+        },
+        price_range_max: {
+            title: 'Price Range Max',
+            type: 'number'
+        },
+        agent_fee_percent: {
+            title: 'Agent Fee Percent',
+            type: 'number'
+        },
+        trend: {
+            enum: ['rising', 'stable', 'falling'],
+            title: 'Trend',
+            type: 'string'
+        },
+        hotspots: {
+            items: {
+                type: 'string'
+            },
+            title: 'Hotspots',
+            type: 'array'
+        },
+        transfer_tax_rate: {
+            title: 'Transfer Tax Rate',
+            type: 'number'
+        },
+        property_type: {
+            title: 'Property Type',
+            type: 'string'
+        },
+        type_multiplier: {
+            title: 'Type Multiplier',
+            type: 'number'
+        },
+        adjusted_avg_price_per_sqm: {
+            title: 'Adjusted Avg Price Per Sqm',
+            type: 'number'
+        },
+        adjusted_min_price_per_sqm: {
+            title: 'Adjusted Min Price Per Sqm',
+            type: 'number'
+        },
+        adjusted_max_price_per_sqm: {
+            title: 'Adjusted Max Price Per Sqm',
+            type: 'number'
+        },
+        estimated_size_sqm: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            default: null,
+            title: 'Estimated Size Sqm'
+        },
+        generated_at: {
+            title: 'Generated At',
+            type: 'string'
+        }
+    },
+    required: ['state_code', 'state_name', 'avg_price_per_sqm', 'price_range_min', 'price_range_max', 'agent_fee_percent', 'trend', 'hotspots', 'transfer_tax_rate', 'property_type', 'type_multiplier', 'adjusted_avg_price_per_sqm', 'adjusted_min_price_per_sqm', 'adjusted_max_price_per_sqm', 'generated_at'],
+    title: 'MarketInsightsData',
+    type: 'object'
 } as const;

@@ -349,7 +349,8 @@ function MarketInsights(props: IProps) {
                     marketInsights?.agent_fee_percent ??
                     marketData.agentFeePercent
                   const transferTax =
-                    marketInsights?.transfer_tax_rate ?? stateInfo.transferTaxRate
+                    marketInsights?.transfer_tax_rate ??
+                    stateInfo.transferTaxRate
                   const additionalCostPct = agentFee + transferTax + 2
                   return (
                     <>
@@ -460,9 +461,7 @@ function MarketInsights(props: IProps) {
                   taxes, etc.)
                 </li>
                 {effectiveTrend === "rising" && (
-                  <li>
-                    • Market is competitive - be prepared to move quickly
-                  </li>
+                  <li>• Market is competitive - be prepared to move quickly</li>
                 )}
                 {effectiveTrend === "stable" && (
                   <li>• Take your time to find the right property</li>

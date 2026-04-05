@@ -30,13 +30,13 @@ from app.schemas.journey import (
 )
 from app.services import journey_service as svc
 from app.services import notification_service
-from app.services.market_data import compute_market_insights
 from app.services.journey_service import (
     InvalidStepTransitionError,
     JourneyError,
     JourneyNotFoundError,
     StepNotFoundError,
 )
+from app.services.market_data import compute_market_insights
 
 router = APIRouter(prefix="/journeys", tags=["journeys"])
 
