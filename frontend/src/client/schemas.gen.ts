@@ -716,7 +716,7 @@ export const Body_documents_upload_documentSchema = {
     properties: {
         file: {
             type: 'string',
-            format: 'binary',
+            contentMediaType: 'application/octet-stream',
             title: 'File'
         }
     },
@@ -2257,9 +2257,7 @@ export const JourneyDetailResponseSchema = {
                 {
                     type: 'null'
                 }
-            ],
-            default: null,
-            title: 'Market Insights'
+            ]
         },
         started_at: {
             anyOf: [
@@ -2562,9 +2560,7 @@ export const JourneyResponseSchema = {
                 {
                     type: 'null'
                 }
-            ],
-            default: null,
-            title: 'Market Insights'
+            ]
         },
         started_at: {
             anyOf: [
@@ -3426,6 +3422,90 @@ export const LogoutRequestSchema = {
     description: 'Schema for logout request.'
 } as const;
 
+export const MarketInsightsDataSchema = {
+    properties: {
+        state_code: {
+            type: 'string',
+            title: 'State Code'
+        },
+        state_name: {
+            type: 'string',
+            title: 'State Name'
+        },
+        avg_price_per_sqm: {
+            type: 'number',
+            title: 'Avg Price Per Sqm'
+        },
+        price_range_min: {
+            type: 'number',
+            title: 'Price Range Min'
+        },
+        price_range_max: {
+            type: 'number',
+            title: 'Price Range Max'
+        },
+        agent_fee_percent: {
+            type: 'number',
+            title: 'Agent Fee Percent'
+        },
+        trend: {
+            type: 'string',
+            enum: ['rising', 'stable', 'falling'],
+            title: 'Trend'
+        },
+        hotspots: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Hotspots'
+        },
+        transfer_tax_rate: {
+            type: 'number',
+            title: 'Transfer Tax Rate'
+        },
+        property_type: {
+            type: 'string',
+            title: 'Property Type'
+        },
+        type_multiplier: {
+            type: 'number',
+            title: 'Type Multiplier'
+        },
+        adjusted_avg_price_per_sqm: {
+            type: 'number',
+            title: 'Adjusted Avg Price Per Sqm'
+        },
+        adjusted_min_price_per_sqm: {
+            type: 'number',
+            title: 'Adjusted Min Price Per Sqm'
+        },
+        adjusted_max_price_per_sqm: {
+            type: 'number',
+            title: 'Adjusted Max Price Per Sqm'
+        },
+        estimated_size_sqm: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Size Sqm'
+        },
+        generated_at: {
+            type: 'string',
+            title: 'Generated At'
+        }
+    },
+    type: 'object',
+    required: ['state_code', 'state_name', 'avg_price_per_sqm', 'price_range_min', 'price_range_max', 'agent_fee_percent', 'trend', 'hotspots', 'transfer_tax_rate', 'property_type', 'type_multiplier', 'adjusted_avg_price_per_sqm', 'adjusted_min_price_per_sqm', 'adjusted_max_price_per_sqm', 'generated_at'],
+    title: 'MarketInsightsData',
+    description: 'Computed market insights stored on the journey after Step 1 completion.'
+} as const;
+
 export const MessageSchema = {
     properties: {
         message: {
@@ -3943,6 +4023,30 @@ export const PropertyGoalsSchema = {
             ],
             title: 'Preferred Property Type'
         },
+        budget_min_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Min Euros'
+        },
+        budget_max_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Max Euros'
+        },
         min_rooms: {
             anyOf: [
                 {
@@ -4051,6 +4155,30 @@ export const PropertyGoalsUpdateSchema = {
                 }
             ],
             title: 'Preferred Property Type'
+        },
+        budget_min_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Min Euros'
+        },
+        budget_max_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Max Euros'
         },
         min_rooms: {
             anyOf: [
@@ -4215,6 +4343,18 @@ export const QuestionnaireAnswersSchema = {
                 }
             ],
             title: 'Budget Euros'
+        },
+        budget_min_euros: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Min Euros'
         },
         target_purchase_date: {
             anyOf: [
@@ -5759,88 +5899,4 @@ export const WebhookResponseSchema = {
     required: ['received'],
     title: 'WebhookResponse',
     description: 'Webhook processing response.'
-} as const;
-
-export const MarketInsightsDataSchema = {
-    properties: {
-        state_code: {
-            title: 'State Code',
-            type: 'string'
-        },
-        state_name: {
-            title: 'State Name',
-            type: 'string'
-        },
-        avg_price_per_sqm: {
-            title: 'Avg Price Per Sqm',
-            type: 'number'
-        },
-        price_range_min: {
-            title: 'Price Range Min',
-            type: 'number'
-        },
-        price_range_max: {
-            title: 'Price Range Max',
-            type: 'number'
-        },
-        agent_fee_percent: {
-            title: 'Agent Fee Percent',
-            type: 'number'
-        },
-        trend: {
-            enum: ['rising', 'stable', 'falling'],
-            title: 'Trend',
-            type: 'string'
-        },
-        hotspots: {
-            items: {
-                type: 'string'
-            },
-            title: 'Hotspots',
-            type: 'array'
-        },
-        transfer_tax_rate: {
-            title: 'Transfer Tax Rate',
-            type: 'number'
-        },
-        property_type: {
-            title: 'Property Type',
-            type: 'string'
-        },
-        type_multiplier: {
-            title: 'Type Multiplier',
-            type: 'number'
-        },
-        adjusted_avg_price_per_sqm: {
-            title: 'Adjusted Avg Price Per Sqm',
-            type: 'number'
-        },
-        adjusted_min_price_per_sqm: {
-            title: 'Adjusted Min Price Per Sqm',
-            type: 'number'
-        },
-        adjusted_max_price_per_sqm: {
-            title: 'Adjusted Max Price Per Sqm',
-            type: 'number'
-        },
-        estimated_size_sqm: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            default: null,
-            title: 'Estimated Size Sqm'
-        },
-        generated_at: {
-            title: 'Generated At',
-            type: 'string'
-        }
-    },
-    required: ['state_code', 'state_name', 'avg_price_per_sqm', 'price_range_min', 'price_range_max', 'agent_fee_percent', 'trend', 'hotspots', 'transfer_tax_rate', 'property_type', 'type_multiplier', 'adjusted_avg_price_per_sqm', 'adjusted_min_price_per_sqm', 'adjusted_max_price_per_sqm', 'generated_at'],
-    title: 'MarketInsightsData',
-    type: 'object'
 } as const;

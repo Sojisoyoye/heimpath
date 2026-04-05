@@ -218,7 +218,7 @@ export type BatchTranslationResponse = {
 };
 
 export type Body_documents_upload_document = {
-    file: (Blob | File);
+    file: string;
 };
 
 export type Body_login_login_access_token = {
@@ -1011,6 +1011,9 @@ export type LogoutRequest = {
     refresh_token: string;
 };
 
+/**
+ * Computed market insights stored on the journey after Step 1 completion.
+ */
 export type MarketInsightsData = {
     state_code: string;
     state_name: string;
@@ -1190,6 +1193,8 @@ export type PropertyEvaluationSummary = {
  */
 export type PropertyGoals = {
     preferred_property_type?: (string | null);
+    budget_min_euros?: (number | null);
+    budget_max_euros?: (number | null);
     min_rooms?: (number | null);
     min_bathrooms?: (number | null);
     preferred_floor?: (string | null);
@@ -1206,6 +1211,8 @@ export type PropertyGoals = {
  */
 export type PropertyGoalsUpdate = {
     preferred_property_type?: (string | null);
+    budget_min_euros?: (number | null);
+    budget_max_euros?: (number | null);
     min_rooms?: (number | null);
     min_bathrooms?: (number | null);
     preferred_floor?: (string | null);
@@ -1237,6 +1244,7 @@ export type QuestionnaireAnswers = {
     is_first_time_buyer?: boolean;
     has_german_residency?: boolean;
     budget_euros?: (number | null);
+    budget_min_euros?: (number | null);
     target_purchase_date?: (string | null);
 };
 
