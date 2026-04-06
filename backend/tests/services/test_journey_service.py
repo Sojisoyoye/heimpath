@@ -834,6 +834,7 @@ class TestStep4StatusTransitions:
         assert tasks[3].is_completed is True
         assert mock_step.status == StepStatus.COMPLETED
         assert mock_step.completed_at is not None
+        assert mock_journey.completed_at is not None
 
     def test_unchecking_all_four_tasks_reverts_step4_to_not_started(self) -> None:
         """Unchecking the last checked task reverts step from in_progress to not_started."""
