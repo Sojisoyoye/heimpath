@@ -753,3 +753,121 @@ class TestUpdateTaskStatusSyncsStepStatus:
         )
 
         assert mock_step.status == StepStatus.NOT_STARTED
+
+
+class TestStep4StatusTransitions:
+    """Regression tests for Step 4 ('Evaluate Your Property') status transitions.
+
+    Step 4 has four required tasks and uses task checkboxes to drive status.
+    These tests confirm the 3-state logic (not_started → in_progress → completed
+    and the reversion path) works correctly for a step with four tasks.
+    """
+
+    def _make_four_tasks(self, step_id: uuid.UUID) -> list[JourneyTask]:
+        return [_make_task(step_id, is_completed=False) for _ in range(4)]
+
+    def test_first_task_checked_moves_step4_to_in_progress(self) -> None:
+        """Checking the first of four tasks moves step from not_started to in_progress."""
+        step_id = uuid.uuid4()
+        tasks = self._make_four_tasks(step_id)
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = tasks[0]
+        mock_session.exec.return_value.all.return_value = tasks
+
+        mock_step = MagicMock(spec=JourneyStep)
+        mock_step.id = step_id
+        mock_step.status = StepStatus.NOT_STARTED
+        mock_step.started_at = None
+        mock_step.step_number = 4
+
+        mock_journey = MagicMock(spec=Journey)
+        mock_journey.id = uuid.uuid4()
+        mock_journey.current_step_number = 4
+        mock_journey.completed_at = None
+
+        update_task_status(
+            session=mock_session,
+            step=mock_step,
+            task_id=tasks[0].id,
+            is_completed=True,
+            journey=mock_journey,
+        )
+
+        assert tasks[0].is_completed is True
+        assert mock_step.status == StepStatus.IN_PROGRESS
+        assert mock_step.started_at is not None
+
+    def test_all_four_tasks_checked_moves_step4_to_completed(self) -> None:
+        """Checking the last of four tasks moves step from in_progress to completed."""
+        step_id = uuid.uuid4()
+        tasks = [
+            _make_task(step_id, is_completed=True),
+            _make_task(step_id, is_completed=True),
+            _make_task(step_id, is_completed=True),
+            _make_task(step_id, is_completed=False),  # last task being checked
+        ]
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.side_effect = [tasks[3], None]
+        mock_session.exec.return_value.all.return_value = tasks
+
+        mock_step = MagicMock(spec=JourneyStep)
+        mock_step.id = step_id
+        mock_step.status = StepStatus.IN_PROGRESS
+        mock_step.started_at = datetime.now(timezone.utc)
+        mock_step.step_number = 4
+
+        mock_journey = MagicMock(spec=Journey)
+        mock_journey.id = uuid.uuid4()
+        mock_journey.current_step_number = 4
+        mock_journey.completed_at = None
+
+        update_task_status(
+            session=mock_session,
+            step=mock_step,
+            task_id=tasks[3].id,
+            is_completed=True,
+            journey=mock_journey,
+        )
+
+        assert tasks[3].is_completed is True
+        assert mock_step.status == StepStatus.COMPLETED
+        assert mock_step.completed_at is not None
+
+    def test_unchecking_all_four_tasks_reverts_step4_to_not_started(self) -> None:
+        """Unchecking the last checked task reverts step from in_progress to not_started."""
+        step_id = uuid.uuid4()
+        tasks = [
+            _make_task(step_id, is_completed=False),
+            _make_task(step_id, is_completed=False),
+            _make_task(step_id, is_completed=False),
+            _make_task(step_id, is_completed=True),  # last checked task, being unchecked
+        ]
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = tasks[3]
+        mock_session.exec.return_value.all.return_value = tasks
+
+        mock_step = MagicMock(spec=JourneyStep)
+        mock_step.id = step_id
+        mock_step.status = StepStatus.IN_PROGRESS
+        mock_step.started_at = datetime.now(timezone.utc)
+        mock_step.step_number = 4
+
+        mock_journey = MagicMock(spec=Journey)
+        mock_journey.id = uuid.uuid4()
+        mock_journey.current_step_number = 4
+        mock_journey.completed_at = None
+
+        update_task_status(
+            session=mock_session,
+            step=mock_step,
+            task_id=tasks[3].id,
+            is_completed=False,
+            journey=mock_journey,
+        )
+
+        assert tasks[3].is_completed is False
+        assert mock_step.status == StepStatus.NOT_STARTED
+        assert mock_step.started_at is None
