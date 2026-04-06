@@ -10,7 +10,6 @@ import { z } from "zod"
 
 import { AuthService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
-import { isLoggedIn } from "@/hooks/useAuth"
 
 /******************************************************************************
                               Constants
@@ -28,9 +27,6 @@ export const Route = createFileRoute("/verify-email")({
   component: VerifyEmail,
   validateSearch: searchSchema,
   beforeLoad: async ({ search }) => {
-    if (isLoggedIn()) {
-      throw redirect({ to: "/dashboard" })
-    }
     if (!search.token) {
       throw redirect({ to: "/login" })
     }

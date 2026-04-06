@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 
 import {
@@ -18,7 +18,6 @@ const isLoggedIn = () => {
 
 const useAuth = (redirectTo?: string) => {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
 
   const { data: user } = useQuery<UserPublic | null, Error>({
@@ -34,9 +33,6 @@ const useAuth = (redirectTo?: string) => {
     mutationFn: (data: RegisterRequest) =>
       AuthService.register({ requestBody: data }),
     onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] })
-    },
   })
 
   const login = async (data: AccessToken) => {

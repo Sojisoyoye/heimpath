@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
@@ -44,8 +45,7 @@ function UnverifiedEmailBanner() {
       }),
     onSuccess: () =>
       showSuccessToast("Verification email sent — check your inbox."),
-    onError: () =>
-      showErrorToast("Could not send verification email. Try again later."),
+    onError: handleError.bind(showErrorToast),
   })
 
   if (dismissed || !user || user.email_verified !== false) return null
@@ -58,7 +58,7 @@ function UnverifiedEmailBanner() {
         <button
           type="button"
           onClick={() => resendMutation.mutate()}
-          disabled={resendMutation.isPending}
+          disabled={resendMutation.isPending || resendMutation.isSuccess}
           className="font-medium underline underline-offset-2 hover:text-amber-900 disabled:opacity-50 dark:hover:text-amber-100"
         >
           {resendMutation.isPending ? "Sending…" : "resend verification email"}
