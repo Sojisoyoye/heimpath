@@ -478,3 +478,158 @@ def test_update_property_goals_second_save_persists(
     journey_goals = r.json()["property_goals"]
     assert journey_goals is not None
     assert journey_goals["preferred_property_type"] == "house"
+
+
+def create_journey_with_state_location(
+    client: TestClient, headers: dict[str, str]
+) -> dict:
+    """Helper to create a journey with a valid German state code as location.
+
+    Uses "BE" (Berlin) so that market insight generation can look up static data.
+    """
+    journey_data = {
+        "title": "Berlin Property Journey",
+        "questionnaire": {
+            "property_type": "apartment",
+            "property_location": "BE",
+            "financing_type": "mortgage",
+            "is_first_time_buyer": True,
+            "has_german_residency": True,
+            "budget_euros": 400000,
+        },
+    }
+    r = client.post(
+        f"{settings.API_V1_STR}/journeys/",
+        headers=headers,
+        json=journey_data,
+    )
+    return r.json()
+
+
+def test_completing_property_goals_generates_market_insights(
+    client: TestClient, db: Session
+) -> None:
+    """Market insights are generated when property goals are completed for the first time."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)
+    journey_id = journey["id"]
+
+    # Confirm no insights exist yet
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    assert r.json()["market_insights"] is None
+
+    # Complete Step 1 property goals
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "min_rooms": 2,
+            "is_completed": True,
+        },
+    )
+    assert r.status_code == 200
+
+    # Verify insights were generated and attached to journey
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    assert r.status_code == 200
+    data = r.json()
+    insights = data["market_insights"]
+    assert insights is not None
+    assert insights["state_code"] == "BE"
+    assert insights["state_name"] == "Berlin"
+    assert insights["property_type"] == "apartment"
+    assert insights["trend"] == "rising"
+    assert "generated_at" in insights
+    assert insights["estimated_size_sqm"] is not None  # budget was provided
+
+
+def test_market_insights_not_regenerated_if_already_exists(
+    client: TestClient, db: Session
+) -> None:
+    """Re-saving property goals does not overwrite previously generated insights."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)
+    journey_id = journey["id"]
+
+    # First completion: generates insights
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={"preferred_property_type": "apartment", "is_completed": True},
+    )
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    first_generated_at = r.json()["market_insights"]["generated_at"]
+
+    # Second completion: insights must NOT be overwritten
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={"preferred_property_type": "house", "is_completed": True},
+    )
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    second_generated_at = r.json()["market_insights"]["generated_at"]
+
+    assert first_generated_at == second_generated_at, (
+        "market_insights was regenerated on a second save; it should be preserved"
+    )
+
+
+def test_incomplete_goals_do_not_generate_insights(
+    client: TestClient, db: Session
+) -> None:
+    """Saving property goals without is_completed=True must not generate insights."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)
+    journey_id = journey["id"]
+
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={"preferred_property_type": "apartment", "is_completed": False},
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    assert r.json()["market_insights"] is None
+
+
+def test_goals_property_type_used_in_insights(client: TestClient, db: Session) -> None:
+    """Insights use the property type set in goals, not the journey-level type."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)
+    journey_id = journey["id"]
+
+    # Journey property_type is "apartment"; override in goals with "house"
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "house",
+            "is_completed": True,
+        },
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    insights = r.json()["market_insights"]
+    assert insights["property_type"] == "house"
+    assert insights["type_multiplier"] == 1.3
+
+
+def test_unknown_location_skips_insight_generation(
+    client: TestClient, db: Session
+) -> None:
+    """When property_location is a city name (not a state code), no insights are set."""
+    headers, _ = get_auth_headers(client, db)
+    # Use the default create_journey helper which sends "Berlin" (city, not state code)
+    journey = create_journey(client, headers)
+    journey_id = journey["id"]
+
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={"preferred_property_type": "apartment", "is_completed": True},
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    # "Berlin" is not a recognised state code → insights should remain None
+    assert r.json()["market_insights"] is None

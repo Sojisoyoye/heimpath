@@ -692,6 +692,7 @@ export type JourneyDetailResponse = {
     budget_euros?: (number | null);
     target_purchase_date?: (string | null);
     property_goals?: (PropertyGoals | null);
+    market_insights?: (MarketInsightsData | null);
     started_at?: (string | null);
     completed_at?: (string | null);
     is_active: boolean;
@@ -760,6 +761,7 @@ export type JourneyResponse = {
     budget_euros?: (number | null);
     target_purchase_date?: (string | null);
     property_goals?: (PropertyGoals | null);
+    market_insights?: (MarketInsightsData | null);
     started_at?: (string | null);
     completed_at?: (string | null);
     is_active: boolean;
@@ -1008,6 +1010,30 @@ export type LoginRequest = {
 export type LogoutRequest = {
     refresh_token: string;
 };
+
+/**
+ * Computed market insights stored on the journey after Step 1 completion.
+ */
+export type MarketInsightsData = {
+    state_code: string;
+    state_name: string;
+    avg_price_per_sqm: number;
+    price_range_min: number;
+    price_range_max: number;
+    agent_fee_percent: number;
+    trend: 'rising' | 'stable' | 'falling';
+    hotspots: Array<(string)>;
+    transfer_tax_rate: number;
+    property_type: string;
+    type_multiplier: number;
+    adjusted_avg_price_per_sqm: number;
+    adjusted_min_price_per_sqm: number;
+    adjusted_max_price_per_sqm: number;
+    estimated_size_sqm?: (number | null);
+    generated_at: string;
+};
+
+export type trend = 'rising' | 'stable' | 'falling';
 
 export type Message = {
     message: string;

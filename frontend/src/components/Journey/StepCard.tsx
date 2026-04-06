@@ -20,6 +20,7 @@ import {
 import type {
   JourneyStep,
   JourneyTask,
+  MarketInsightsData,
   PropertyGoals,
   StepStatus,
 } from "@/models/journey"
@@ -78,6 +79,7 @@ interface IStepContentProps {
   propertyType?: string
   budgetEuros?: number
   propertyGoals?: PropertyGoals
+  marketInsights?: MarketInsightsData
 }
 
 const STEP_CONTENT_REGISTRY: Record<
@@ -93,6 +95,7 @@ const STEP_CONTENT_REGISTRY: Record<
       propertyType={p.propertyType}
       budgetEuros={p.budgetEuros}
       propertyGoals={p.propertyGoals}
+      marketInsights={p.marketInsights}
     />
   ),
   property_evaluation: (p) => (
@@ -229,6 +232,7 @@ function StepCard(props: IProps) {
                 propertyType: journey.property_type,
                 budgetEuros: journey.budget_euros,
                 propertyGoals: journey.property_goals,
+                marketInsights: journey.market_insights,
               })}
             </div>
           )}

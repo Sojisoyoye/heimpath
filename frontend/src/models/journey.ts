@@ -64,6 +64,7 @@ export interface JourneyPublic {
   budget_euros?: number
   target_purchase_date?: string
   property_goals?: PropertyGoals
+  market_insights?: MarketInsightsData
   started_at?: string
   completed_at?: string
   is_active: boolean
@@ -123,6 +124,26 @@ export interface NextStepRecommendation {
   has_next: boolean
   step?: JourneyStep
   message?: string
+}
+
+/** Computed market insights stored after Step 1 completion */
+export interface MarketInsightsData {
+  state_code: string
+  state_name: string
+  avg_price_per_sqm: number
+  price_range_min: number
+  price_range_max: number
+  agent_fee_percent: number
+  trend: "rising" | "stable" | "falling"
+  hotspots: string[]
+  transfer_tax_rate: number
+  property_type: string
+  type_multiplier: number
+  adjusted_avg_price_per_sqm: number
+  adjusted_min_price_per_sqm: number
+  adjusted_max_price_per_sqm: number
+  estimated_size_sqm?: number
+  generated_at: string
 }
 
 /** Property goals from Step 1 */

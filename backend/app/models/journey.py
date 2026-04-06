@@ -118,6 +118,9 @@ class Journey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # Property goals (Step 1 user input)
     property_goals = Column(JSONB, nullable=True)
 
+    # Market insights (generated after Step 1 completion)
+    market_insights = Column(JSONB, nullable=True)
+
     # Progress tracking
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
