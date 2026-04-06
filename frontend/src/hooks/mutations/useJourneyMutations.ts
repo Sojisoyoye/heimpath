@@ -119,12 +119,15 @@ export function useUpdateTask(journeyId: string) {
             const anyDone = updatedTasks.some((t) => t.is_completed)
 
             let newStatus: StepStatus = step.status
-            if (allDone && step.status !== "completed") {
-              newStatus = "completed"
-            } else if (!allDone && step.status === "completed") {
-              newStatus = "in_progress"
-            } else if (anyDone && step.status === "not_started") {
-              newStatus = "in_progress"
+            if (step.status !== "skipped") {
+              if (allDone) {
+                newStatus = "completed"
+              } else if (anyDone) {
+                newStatus = "in_progress"
+              } else {
+                // All tasks unchecked → revert to not_started
+                newStatus = "not_started"
+              }
             }
 
             return { ...step, tasks: updatedTasks, status: newStatus }
@@ -137,12 +140,15 @@ export function useUpdateTask(journeyId: string) {
 
           const targetStep = updatedSteps.find((s) => s.id === stepId)
           if (targetStep) {
+            const previousStatus = journey.steps.find(
+              (s) => s.id === stepId,
+            )?.status
             const justCompleted =
               targetStep.status === "completed" &&
-              journey.steps.find((s) => s.id === stepId)?.status !== "completed"
+              previousStatus !== "completed"
             const justReverted =
-              targetStep.status === "in_progress" &&
-              journey.steps.find((s) => s.id === stepId)?.status === "completed"
+              previousStatus === "completed" &&
+              targetStep.status !== "completed"
 
             if (justCompleted) {
               const nextIncomplete = updatedSteps.find(

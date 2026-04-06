@@ -742,6 +742,12 @@ def _sync_step_status_from_tasks(
             journey.completed_at = None
             session.add(journey)
 
+    elif not any_complete and step.status == StepStatus.IN_PROGRESS:
+        # All tasks unchecked on an in_progress step → revert to not_started
+        step.status = StepStatus.NOT_STARTED
+        step.started_at = None
+        session.add(step)
+
     elif any_complete and step.status == StepStatus.NOT_STARTED:
         # First task checked → move to in_progress
         step.status = StepStatus.IN_PROGRESS

@@ -9,6 +9,7 @@ import { useState } from "react"
 import { DeleteJourneyDialog, JourneyDetail } from "@/components/Journey"
 import {
   useDeleteJourney,
+  useUpdateStep,
   useUpdateTask,
 } from "@/hooks/mutations/useJourneyMutations"
 import { useJourney, useJourneyProgress } from "@/hooks/queries"
@@ -42,6 +43,7 @@ function JourneyDetailPage() {
 
   const { data: progress } = useJourneyProgress(journeyId)
   const updateTask = useUpdateTask(journeyId)
+  const updateStep = useUpdateStep(journeyId)
   const deleteJourney = useDeleteJourney()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -52,6 +54,10 @@ function JourneyDetailPage() {
     isCompleted: boolean,
   ) => {
     updateTask.mutate({ stepId, taskId, data: { is_completed: isCompleted } })
+  }
+
+  const handleStepOpen = (stepId: string) => {
+    updateStep.mutate({ stepId, data: { status: "in_progress" } })
   }
 
   const handleDeleteConfirm = () => {
@@ -91,6 +97,7 @@ function JourneyDetailPage() {
         journey={journey}
         progress={progress}
         onTaskToggle={handleTaskToggle}
+        onStepOpen={handleStepOpen}
         onDelete={() => setShowDeleteDialog(true)}
       />
       <DeleteJourneyDialog

@@ -35,6 +35,7 @@ interface IProps {
   step: JourneyStep
   isActive?: boolean
   onTaskToggle?: (stepId: string, taskId: string, isCompleted: boolean) => void
+  onStepOpen?: (stepId: string) => void
   className?: string
 }
 
@@ -167,7 +168,7 @@ function StepTasks(props: {
 
 /** Default component. Collapsible step card. */
 function StepCard(props: IProps) {
-  const { step, isActive = false, onTaskToggle, className } = props
+  const { step, isActive = false, onTaskToggle, onStepOpen, className } = props
   const { journey } = useJourneyContext()
 
   const [isExpanded, setIsExpanded] = useState(isActive)
@@ -180,6 +181,15 @@ function StepCard(props: IProps) {
   const hasBody =
     !!contentRenderer || hasTasks || !!step.estimated_duration_days
 
+  const handleToggleExpanded = () => {
+    if (!hasBody) return
+    const opening = !isExpanded
+    setIsExpanded(opening)
+    if (opening && step.status === "not_started") {
+      onStepOpen?.(step.id)
+    }
+  }
+
   return (
     <Card
       className={cn(
@@ -191,7 +201,7 @@ function StepCard(props: IProps) {
     >
       <CardHeader
         className={cn("pb-3", hasBody && "cursor-pointer select-none")}
-        onClick={() => hasBody && setIsExpanded((prev) => !prev)}
+        onClick={handleToggleExpanded}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="flex-1 space-y-1">
