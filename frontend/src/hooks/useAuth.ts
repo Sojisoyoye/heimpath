@@ -3,9 +3,10 @@ import { useNavigate } from "@tanstack/react-router"
 
 import {
   type Body_login_login_access_token as AccessToken,
+  AuthService,
   LoginService,
+  type RegisterRequest,
   type UserPublic,
-  type UserRegister,
   UsersService,
 } from "@/client"
 import { handleError } from "@/utils"
@@ -18,7 +19,7 @@ const isLoggedIn = () => {
 const useAuth = (redirectTo?: string) => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { showErrorToast, showSuccessToast } = useCustomToast()
+  const { showErrorToast } = useCustomToast()
 
   const { data: user } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
@@ -26,18 +27,12 @@ const useAuth = (redirectTo?: string) => {
     enabled: isLoggedIn(),
   })
 
+  // Uses /auth/register which sets email_verified=False and sends a
+  // verification email. onSuccess is omitted — SignUp renders a
+  // "check your email" confirmation when isSuccess is true.
   const signUpMutation = useMutation({
-    mutationFn: (data: UserRegister) =>
-      UsersService.registerUser({ requestBody: data }),
-    onSuccess: () => {
-      showSuccessToast(
-        "Account created! Please check your email to verify your account.",
-      )
-      navigate({
-        to: "/login",
-        search: redirectTo ? { redirect: redirectTo } : {},
-      })
-    },
+    mutationFn: (data: RegisterRequest) =>
+      AuthService.register({ requestBody: data }),
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] })

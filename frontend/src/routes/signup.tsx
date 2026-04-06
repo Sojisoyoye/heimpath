@@ -4,6 +4,7 @@ import {
   Link as RouterLink,
   redirect,
 } from "@tanstack/react-router"
+import { CheckCircle } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { RESIDENCY_STATUS_OPTIONS } from "@/common/constants"
@@ -80,6 +81,31 @@ export const Route = createFileRoute("/signup")({
                               Components
 ******************************************************************************/
 
+/** Shown after successful registration. */
+function RegistrationSuccess({ email }: { email: string }) {
+  return (
+    <div className="flex flex-col items-center gap-4 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30">
+        <CheckCircle className="h-6 w-6" />
+      </div>
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Check your email</h2>
+        <p className="text-sm text-muted-foreground">
+          We sent a verification link to{" "}
+          <span className="font-medium text-foreground">{email}</span>. Click
+          the link to activate your account.
+        </p>
+      </div>
+      <RouterLink
+        to="/login"
+        className="mt-2 inline-flex h-10 items-center justify-center rounded-md bg-blue-600 px-8 text-sm font-medium text-white hover:bg-blue-700"
+      >
+        Go to sign in
+      </RouterLink>
+    </div>
+  )
+}
+
 /** Default component. Sign up page. */
 function SignUp() {
   const { redirect: redirectTo } = Route.useSearch()
@@ -103,6 +129,14 @@ function SignUp() {
     // Exclude confirm_password from submission data
     const { confirm_password: _, ...submitData } = data
     signUpMutation.mutate(submitData)
+  }
+
+  if (signUpMutation.isSuccess) {
+    return (
+      <AuthLayout>
+        <RegistrationSuccess email={form.getValues("email")} />
+      </AuthLayout>
+    )
   }
 
   return (
