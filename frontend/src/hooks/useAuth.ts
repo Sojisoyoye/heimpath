@@ -18,7 +18,7 @@ const isLoggedIn = () => {
 const useAuth = (redirectTo?: string) => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { showErrorToast } = useCustomToast()
+  const { showErrorToast, showSuccessToast } = useCustomToast()
 
   const { data: user } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
@@ -30,6 +30,9 @@ const useAuth = (redirectTo?: string) => {
     mutationFn: (data: UserRegister) =>
       UsersService.registerUser({ requestBody: data }),
     onSuccess: () => {
+      showSuccessToast(
+        "Account created! Please check your email to verify your account.",
+      )
       navigate({
         to: "/login",
         search: redirectTo ? { redirect: redirectTo } : {},
