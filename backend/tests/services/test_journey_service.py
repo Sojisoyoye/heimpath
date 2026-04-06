@@ -594,6 +594,40 @@ class TestUpdateTaskStatusSyncsStepStatus:
         assert mock_step.completed_at is None
         assert mock_journey.current_step_number == 2
 
+    def test_all_tasks_unchecked_reverts_in_progress_step_to_not_started(
+        self,
+    ) -> None:
+        """All tasks unchecked on an in_progress step reverts it to not_started."""
+        step_id = uuid.uuid4()
+        task1 = _make_task(step_id, is_completed=False)
+        task2 = _make_task(step_id, is_completed=True)  # Will be unchecked
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = task2
+        mock_session.exec.return_value.all.return_value = [task1, task2]
+
+        mock_step = MagicMock(spec=JourneyStep)
+        mock_step.id = step_id
+        mock_step.status = StepStatus.IN_PROGRESS
+        mock_step.started_at = datetime.now(timezone.utc)
+        mock_step.step_number = 1
+
+        mock_journey = MagicMock(spec=Journey)
+        mock_journey.id = uuid.uuid4()
+        mock_journey.current_step_number = 1
+
+        update_task_status(
+            session=mock_session,
+            step=mock_step,
+            task_id=task2.id,
+            is_completed=False,
+            journey=mock_journey,
+        )
+
+        assert task2.is_completed is False
+        assert mock_step.status == StepStatus.NOT_STARTED
+        assert mock_step.started_at is None
+
     def test_partial_completion_keeps_step_in_progress(self) -> None:
         """Test that completing some but not all tasks keeps step in_progress."""
         step_id = uuid.uuid4()
