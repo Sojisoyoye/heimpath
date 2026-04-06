@@ -843,7 +843,9 @@ class TestStep4StatusTransitions:
             _make_task(step_id, is_completed=False),
             _make_task(step_id, is_completed=False),
             _make_task(step_id, is_completed=False),
-            _make_task(step_id, is_completed=True),  # last checked task, being unchecked
+            _make_task(
+                step_id, is_completed=True
+            ),  # last checked task, being unchecked
         ]
 
         mock_session = MagicMock()
