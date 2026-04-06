@@ -27,6 +27,7 @@ interface IProps {
   journey?: JourneyPublic
   progress?: JourneyProgress
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
+  onStepOpen?: (stepId: string) => void
   onDelete?: () => void
   isLoading?: boolean
   className?: string
@@ -164,6 +165,7 @@ function JourneyDetail(props: IProps) {
     journey,
     progress,
     onTaskToggle,
+    onStepOpen,
     onDelete,
     isLoading = false,
     className,
@@ -243,6 +245,7 @@ function JourneyDetail(props: IProps) {
                 step={step}
                 isActive={step.step_number === journey.current_step_number}
                 onTaskToggle={onTaskToggle}
+                onStepOpen={onStepOpen}
               />
             ))}
           </div>
