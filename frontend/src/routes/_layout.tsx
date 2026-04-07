@@ -5,6 +5,7 @@ import { useState } from "react"
 
 import { AuthService, type UserPublic, UsersService } from "@/client"
 import { Footer } from "@/components/Common/Footer"
+import { NavUserMenu } from "@/components/Common/NavUserMenu"
 import NotificationBell from "@/components/Notifications/NotificationBell"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import {
@@ -86,6 +87,7 @@ function Layout() {
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-2">
             <NotificationBell />
+            <NavUserMenu />
           </div>
         </header>
         <UnverifiedEmailBanner />
