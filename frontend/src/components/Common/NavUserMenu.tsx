@@ -11,24 +11,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import useAuth from "@/hooks/useAuth"
 import { getInitials } from "@/utils"
 
 /******************************************************************************
                               Components
 ******************************************************************************/
 
-/** Compact auth-aware user menu for navigation bars. Shows a login button when
- * logged out, and a profile avatar dropdown with logout when logged in. */
+/** Compact profile avatar dropdown for navigation bars. Renders the user's
+ * initials and a dropdown with User Settings and Log Out. Callers are
+ * responsible for only rendering this component when the user is authenticated. */
 function NavUserMenu() {
   const { user, logout } = useAuth()
 
-  if (!isLoggedIn()) {
-    return (
-      <Button variant="ghost" size="sm" asChild>
-        <Link to="/login">Log In</Link>
-      </Button>
-    )
+  // text-xs on the fallback is intentional: the compact nav avatar (size-8)
+  // reads better with smaller text than the default size used in the sidebar.
+  const handleLogout = async () => {
+    logout()
   }
 
   return (
@@ -65,7 +64,7 @@ function NavUserMenu() {
             User Settings
           </DropdownMenuItem>
         </Link>
-        <DropdownMenuItem onClick={logout}>
+        <DropdownMenuItem onClick={handleLogout}>
           <LogOut />
           Log Out
         </DropdownMenuItem>
