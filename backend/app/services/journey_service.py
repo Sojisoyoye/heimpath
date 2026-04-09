@@ -250,6 +250,10 @@ STEP_TEMPLATES: list[StepTemplate] = [
         prerequisites=[3],
         tasks=[
             {
+                "title": "Request property exposé from agent",
+                "is_required": True,
+            },
+            {
                 "title": "Request Grundbuchauszug (land registry extract)",
                 "is_required": True,
             },
@@ -260,6 +264,10 @@ STEP_TEMPLATES: list[StepTemplate] = [
             {"title": "Check for encumbrances or easements", "is_required": True},
             {"title": "Verify building permits and compliance", "is_required": True},
             {"title": "Consider hiring a property surveyor", "is_required": False},
+            {
+                "title": "Review HOA documents (Teilungserklärung)",
+                "is_required": False,
+            },
         ],
         related_laws=["GBO (Grundbuchordnung)", "EnEV (Energieeinsparverordnung)"],
     ),

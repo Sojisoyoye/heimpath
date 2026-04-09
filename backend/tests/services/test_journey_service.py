@@ -470,6 +470,15 @@ class TestStepTemplates:
         assert len(required) == 4
         assert len(optional) == 1
 
+    def test_step_10_due_diligence_tasks(self) -> None:
+        """Test that step 10 (due_diligence) has 7 tasks: 5 required, 2 optional."""
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "due_diligence")
+        assert len(template.tasks) == 7
+        required = [t for t in template.tasks if t["is_required"]]
+        optional = [t for t in template.tasks if not t["is_required"]]
+        assert len(required) == 5
+        assert len(optional) == 2
+
     def test_research_phase_steps_order(self) -> None:
         """Test that steps 1-5 are RESEARCH phase with correct content_keys."""
         expected = [
