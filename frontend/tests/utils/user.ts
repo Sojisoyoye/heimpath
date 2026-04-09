@@ -13,6 +13,7 @@ export async function signUpNewUser(
   await page.getByTestId("password-input").fill(password)
   await page.getByTestId("confirm-password-input").fill(password)
   await page.getByRole("button", { name: "Create Account" }).click()
+  await expect(page.getByText("Check your email")).toBeVisible()
   await page.goto("/login")
 }
 

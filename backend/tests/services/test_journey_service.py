@@ -461,6 +461,15 @@ class TestStepTemplates:
         assert template is not None
         assert not _should_include_step(template, cash_buyer_answers)
 
+    def test_step_2_market_research_tasks(self) -> None:
+        """Test that step 2 has 5 tasks: 4 required, 1 optional."""
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "market_research")
+        assert len(template.tasks) == 5
+        required = [t for t in template.tasks if t["is_required"]]
+        optional = [t for t in template.tasks if not t["is_required"]]
+        assert len(required) == 4
+        assert len(optional) == 1
+
     def test_research_phase_steps_order(self) -> None:
         """Test that steps 1-5 are RESEARCH phase with correct content_keys."""
         expected = [

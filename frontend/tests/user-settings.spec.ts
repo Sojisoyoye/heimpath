@@ -55,7 +55,7 @@ test.describe("Edit user profile", () => {
     page,
   }) => {
     await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Email").fill("")
+    await page.getByRole("textbox", { name: "Email" }).fill("")
     await page.locator("body").click()
 
     await expect(page.getByText("Invalid email address")).toBeVisible()
@@ -76,7 +76,7 @@ test.describe("Edit user email", () => {
     await page.getByRole("tab", { name: "Profile" }).click()
 
     await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Email").fill(updatedEmail)
+    await page.getByRole("textbox", { name: "Email" }).fill(updatedEmail)
     await page.getByRole("button", { name: "Save" }).click()
 
     await expect(page.getByText("User updated successfully")).toBeVisible()
@@ -115,7 +115,7 @@ test.describe("Cancel edit actions", () => {
     await page.goto("/settings")
     await page.getByRole("tab", { name: "Profile" }).click()
     await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Email").fill(randomEmail())
+    await page.getByRole("textbox", { name: "Email" }).fill(randomEmail())
     await page.getByRole("button", { name: "Cancel" }).first().click()
 
     await expect(
@@ -211,12 +211,14 @@ test("User can switch between theme modes", async ({ page }) => {
   await page.goto("/settings")
 
   await page.getByTestId("theme-button").click()
+  await expect(page.getByTestId("dark-mode")).toBeVisible()
   await page.getByTestId("dark-mode").click()
   await expect(page.locator("html")).toHaveClass(/dark/)
 
   await expect(page.getByTestId("dark-mode")).not.toBeVisible()
 
   await page.getByTestId("theme-button").click()
+  await expect(page.getByTestId("light-mode")).toBeVisible()
   await page.getByTestId("light-mode").click()
   await expect(page.locator("html")).toHaveClass(/light/)
 })
@@ -224,32 +226,23 @@ test("User can switch between theme modes", async ({ page }) => {
 test("Selected mode is preserved across sessions", async ({ page }) => {
   await page.goto("/settings")
 
+  // Force light mode first to have a known starting state
   await page.getByTestId("theme-button").click()
-  if (
-    await page.evaluate(() =>
-      document.documentElement.classList.contains("dark"),
-    )
-  ) {
-    await page.getByTestId("light-mode").click()
-    await page.getByTestId("theme-button").click()
-  }
+  await expect(page.getByTestId("light-mode")).toBeVisible()
+  await page.getByTestId("light-mode").click()
+  await expect(page.locator("html")).toHaveClass(/light/)
 
-  const isLightMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("light"),
-  )
-  expect(isLightMode).toBe(true)
-
+  // Now switch to dark mode
   await page.getByTestId("theme-button").click()
+  await expect(page.getByTestId("dark-mode")).toBeVisible()
   await page.getByTestId("dark-mode").click()
-  let isDarkMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("dark"),
-  )
-  expect(isDarkMode).toBe(true)
+  await expect(page.locator("html")).toHaveClass(/dark/)
 
+  // Log out and back in — dark mode should persist
   await logOutUser(page)
   await logInUser(page, firstSuperuser, firstSuperuserPassword)
 
-  isDarkMode = await page.evaluate(() =>
+  const isDarkMode = await page.evaluate(() =>
     document.documentElement.classList.contains("dark"),
   )
   expect(isDarkMode).toBe(true)
