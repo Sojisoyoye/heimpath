@@ -14,11 +14,13 @@ import { useCreateJourney } from "@/hooks/mutations"
 import type {
   FinancingType,
   JourneyCreate,
+  JourneyPublic,
   PropertyType,
   ResidencyStatus,
 } from "@/models/journey"
 import { BudgetInput } from "./BudgetInput"
 import { FinancingSelector } from "./FinancingSelector"
+import { JourneyGenerating } from "./JourneyGenerating"
 import { JourneySummary } from "./JourneySummary"
 import { LocationSelector } from "./LocationSelector"
 import { PropertyTypeSelector } from "./PropertyTypeSelector"
@@ -87,6 +89,12 @@ function JourneyWizard(props: IProps) {
     }
   })
   const [showSummary, setShowSummary] = useState(false)
+  const [wizardPhase, setWizardPhase] = useState<
+    "input" | "generating" | "complete"
+  >("input")
+  const [createdJourney, setCreatedJourney] = useState<JourneyPublic | null>(
+    null,
+  )
 
   // Persist selections to sessionStorage so Back navigation restores them
   useEffect(() => {
@@ -191,10 +199,8 @@ function JourneyWizard(props: IProps) {
     try {
       const newJourney = await createJourneyMutation.mutateAsync(journeyData)
       clearWizardStorage()
-      navigate({
-        to: "/journeys/$journeyId",
-        params: { journeyId: newJourney.id },
-      })
+      setCreatedJourney(newJourney)
+      setWizardPhase("generating")
     } catch {
       // Error is handled by React Query
     }
@@ -212,6 +218,21 @@ function JourneyWizard(props: IProps) {
     if (state.residencyStatus) done.add(6)
     return done
   }, [state, currentStep])
+
+  // Transition from generating animation to complete after 2 seconds
+  useEffect(() => {
+    if (wizardPhase !== "generating") return
+    const timer = setTimeout(() => setWizardPhase("complete"), 2000)
+    return () => clearTimeout(timer)
+  }, [wizardPhase])
+
+  const handleViewJourney = () => {
+    if (!createdJourney) return
+    navigate({
+      to: "/journeys/$journeyId",
+      params: { journeyId: createdJourney.id },
+    })
+  }
 
   const selectedState = GERMAN_STATES.find((s) => s.code === state.targetState)
 
@@ -270,6 +291,17 @@ function JourneyWizard(props: IProps) {
       default:
         return null
     }
+  }
+
+  // Show generating/complete screen after successful submission
+  if (wizardPhase !== "input" && createdJourney) {
+    return (
+      <JourneyGenerating
+        journey={createdJourney}
+        phase={wizardPhase as "generating" | "complete"}
+        onViewJourney={handleViewJourney}
+      />
+    )
   }
 
   const isLastStep = currentStep === WIZARD_STEPS.length && !showSummary
