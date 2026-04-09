@@ -298,7 +298,7 @@ function JourneyWizard(props: IProps) {
     return (
       <JourneyGenerating
         journey={createdJourney}
-        phase={wizardPhase as "generating" | "complete"}
+        phase={wizardPhase}
         onViewJourney={handleViewJourney}
       />
     )
