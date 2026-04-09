@@ -8,6 +8,7 @@ export { FinancingSelector } from "./FinancingSelector"
 // Dashboard components
 export { JourneyCard } from "./JourneyCard"
 export { JourneyDetail } from "./JourneyDetail"
+export { JourneyGenerating } from "./JourneyGenerating"
 export { JourneyList } from "./JourneyList"
 export { JourneySummary } from "./JourneySummary"
 // Wizard components

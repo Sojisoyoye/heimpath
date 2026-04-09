@@ -26,7 +26,7 @@ function NavUserMenu() {
 
   // text-xs on the fallback is intentional: the compact nav avatar (size-8)
   // reads better with smaller text than the default size used in the sidebar.
-  const handleLogout = async () => {
+  const handleLogout = () => {
     logout()
   }
 
