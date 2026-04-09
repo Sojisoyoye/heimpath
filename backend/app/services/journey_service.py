@@ -88,11 +88,23 @@ STEP_TEMPLATES: list[StepTemplate] = [
         content_key="market_research",
         prerequisites=[1],
         tasks=[
-            {"title": "Research average prices in your target area", "is_required": True},
+            {
+                "title": "Research average prices in your target area",
+                "is_required": True,
+            },
             {"title": "Understand price per sqm trends", "is_required": True},
-            {"title": "Learn about Makler (agent) fees in your state", "is_required": True},
-            {"title": "Compare Grunderwerbsteuer (transfer tax) rates across states", "is_required": True},
-            {"title": "Research neighborhood amenities and infrastructure", "is_required": False},
+            {
+                "title": "Learn about Makler (agent) fees in your state",
+                "is_required": True,
+            },
+            {
+                "title": "Compare Grunderwerbsteuer (transfer tax) rates across states",
+                "is_required": True,
+            },
+            {
+                "title": "Research neighborhood amenities and infrastructure",
+                "is_required": False,
+            },
         ],
         related_laws=["BGB §433-453 (Kaufvertrag)"],
     ),

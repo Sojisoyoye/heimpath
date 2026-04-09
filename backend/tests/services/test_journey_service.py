@@ -463,9 +463,7 @@ class TestStepTemplates:
 
     def test_step_2_market_research_tasks(self) -> None:
         """Test that step 2 has 5 tasks: 4 required, 1 optional."""
-        template = next(
-            t for t in STEP_TEMPLATES if t.content_key == "market_research"
-        )
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "market_research")
         assert len(template.tasks) == 5
         required = [t for t in template.tasks if t["is_required"]]
         optional = [t for t in template.tasks if not t["is_required"]]
