@@ -232,6 +232,9 @@ test("Selected mode is preserved across sessions", async ({ page }) => {
   await page.getByTestId("light-mode").click()
   await expect(page.locator("html")).toHaveClass(/light/)
 
+  // Wait for dropdown to fully close before reopening
+  await expect(page.getByTestId("light-mode")).not.toBeVisible()
+
   // Now switch to dark mode
   await page.getByTestId("theme-button").click()
   await expect(page.getByTestId("dark-mode")).toBeVisible()
