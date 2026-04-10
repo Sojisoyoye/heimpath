@@ -4,7 +4,14 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, Download, RefreshCw, Save, Trash2 } from "lucide-react"
+import {
+  ArrowLeft,
+  Download,
+  Loader2,
+  RefreshCw,
+  Save,
+  Trash2,
+} from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { GERMAN_STATES } from "@/common/constants"
 import { EVALUATION_DEFAULTS } from "@/common/constants/propertyEvaluation"
@@ -25,6 +32,7 @@ import {
 } from "@/hooks/mutations/useCalculatorMutations"
 import { useUserPropertyEvaluations } from "@/hooks/queries/useCalculatorQueries"
 import type { PropertyEvaluationSummary } from "@/models/propertyEvaluation"
+import { CalculatorService } from "@/services/CalculatorService"
 import { handleError } from "@/utils"
 import {
   EvaluationSection,
@@ -153,50 +161,67 @@ function saveToStorage(
 function SavedEvaluations(props: {
   evaluations: PropertyEvaluationSummary[]
   onDelete: (id: string) => void
+  onLoad: (id: string) => void
+  loadingId: string | null
 }) {
-  const { evaluations, onDelete } = props
+  const { evaluations, onDelete, onLoad, loadingId } = props
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Saved Evaluations</CardTitle>
         <CardDescription>
-          Your previously saved property evaluations
+          Click an evaluation to load it into the calculator
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {evaluations.map((ev) => (
-            <div
-              key={ev.id}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-sm">
-                  {ev.name || "Unnamed evaluation"}
-                </p>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{formatEur(ev.purchasePrice)}</span>
-                  <span
-                    className={
-                      ev.isPositiveCashflow ? "text-green-600" : "text-red-600"
-                    }
-                  >
-                    {formatEur(ev.cashflowAfterTax)}/mo
-                  </span>
-                  <span>{ev.grossRentalYield.toFixed(1)}% yield</span>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                onClick={() => onDelete(ev.id)}
+          {evaluations.map((ev) => {
+            const isLoading = loadingId === ev.id
+            return (
+              <button
+                key={ev.id}
+                type="button"
+                className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-accent"
+                disabled={!!loadingId}
+                onClick={() => onLoad(ev.id)}
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-sm">
+                    {ev.name || "Unnamed evaluation"}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>{formatEur(ev.purchasePrice)}</span>
+                    <span
+                      className={
+                        ev.isPositiveCashflow
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }
+                    >
+                      {formatEur(ev.cashflowAfterTax)}/mo
+                    </span>
+                    <span>{ev.grossRentalYield.toFixed(1)}% yield</span>
+                  </div>
+                </div>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete(ev.id)
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </button>
+            )
+          })}
         </div>
       </CardContent>
     </Card>
@@ -214,6 +239,7 @@ function PropertyEvaluationCalculator(
     loadFromStorage(journeyId, initialState, initialBudget),
   )
   const [saveName, setSaveName] = useState("")
+  const [loadingId, setLoadingId] = useState<string | null>(null)
 
   const { results } = usePropertyEvaluation(state)
 
@@ -313,6 +339,20 @@ function PropertyEvaluationCalculator(
     deleteEvaluation.mutate(id, {
       onSuccess: () => showSuccessToast("Evaluation deleted"),
     })
+  }
+
+  const handleLoad = async (id: string) => {
+    setLoadingId(id)
+    try {
+      const evaluation = await CalculatorService.getPropertyEvaluation(id)
+      setState(evaluation.inputs)
+      setSaveName(evaluation.name || "")
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    } catch (err) {
+      handleError.call(showErrorToast, err as Error)
+    } finally {
+      setLoadingId(null)
+    }
   }
 
   // Compute total allocable costs for RentSection display
@@ -421,6 +461,8 @@ function PropertyEvaluationCalculator(
         <SavedEvaluations
           evaluations={savedEvals.data}
           onDelete={handleDelete}
+          onLoad={handleLoad}
+          loadingId={loadingId}
         />
       )}
     </div>
