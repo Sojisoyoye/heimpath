@@ -115,7 +115,14 @@ function StatusBadge(props: { status: StepStatus }) {
   const Icon = config.icon
 
   return (
-    <Badge variant={config.variant} className="gap-1">
+    <Badge
+      variant={config.variant}
+      className={cn(
+        "gap-1",
+        status === "completed" &&
+          "border border-green-200 bg-green-100 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-400",
+      )}
+    >
       <Icon className="h-3 w-3" />
       {config.label}
     </Badge>
@@ -195,7 +202,8 @@ function StepCard(props: IProps) {
       className={cn(
         "transition-all",
         isActive && "ring-2 ring-blue-600 ring-offset-2",
-        step.status === "completed" && "opacity-75",
+        step.status === "completed" &&
+          "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20",
         className,
       )}
     >
