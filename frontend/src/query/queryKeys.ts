@@ -129,6 +129,13 @@ export const queryKeys = {
     categories: () => [...queryKeys.articles.all, "categories"] as const,
   },
 
+  // Search queries
+  search: {
+    all: ["search"] as const,
+    global: (query: string) =>
+      [...queryKeys.search.all, "global", query] as const,
+  },
+
   // Dashboard queries
   dashboard: {
     all: ["dashboard"] as const,

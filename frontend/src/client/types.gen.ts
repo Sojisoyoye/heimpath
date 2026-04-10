@@ -593,6 +593,16 @@ export type ForgotPasswordResponse = {
 };
 
 /**
+ * Response for global search across laws and articles.
+ */
+export type GlobalSearchResponse = {
+    query: string;
+    laws: Array<SearchResultItem>;
+    articles: Array<SearchResultItem>;
+    total_count: number;
+};
+
+/**
  * Request to save a hidden cost calculation.
  */
 export type HiddenCostCalculationCreate = {
@@ -1494,6 +1504,19 @@ export type SavedDocumentSummary = {
 };
 
 /**
+ * A single search result item from any content type.
+ */
+export type SearchResultItem = {
+    id: string;
+    title: string;
+    snippet: string;
+    result_type: 'law' | 'article';
+    url_path: string;
+};
+
+export type result_type = 'law' | 'article';
+
+/**
  * Cost breakdown for a single state in comparison view.
  */
 export type StateComparisonItem = {
@@ -2282,6 +2305,19 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type SearchSearchData = {
+    /**
+     * Max results per type
+     */
+    limit?: number;
+    /**
+     * Search query
+     */
+    q: string;
+};
+
+export type SearchSearchResponse = (GlobalSearchResponse);
 
 export type SubscriptionsGetCurrentSubscriptionResponse = (SubscriptionResponse);
 

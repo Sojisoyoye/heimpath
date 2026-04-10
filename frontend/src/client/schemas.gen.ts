@@ -1810,6 +1810,37 @@ export const ForgotPasswordResponseSchema = {
     description: 'Schema for forgot password response.'
 } as const;
 
+export const GlobalSearchResponseSchema = {
+    properties: {
+        query: {
+            type: 'string',
+            title: 'Query'
+        },
+        laws: {
+            items: {
+                '$ref': '#/components/schemas/SearchResultItem'
+            },
+            type: 'array',
+            title: 'Laws'
+        },
+        articles: {
+            items: {
+                '$ref': '#/components/schemas/SearchResultItem'
+            },
+            type: 'array',
+            title: 'Articles'
+        },
+        total_count: {
+            type: 'integer',
+            title: 'Total Count'
+        }
+    },
+    type: 'object',
+    required: ['query', 'laws', 'articles', 'total_count'],
+    title: 'GlobalSearchResponse',
+    description: 'Response for global search across laws and articles.'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -5076,6 +5107,36 @@ export const SavedDocumentSummarySchema = {
     required: ['id', 'original_filename', 'document_type', 'status', 'created_at'],
     title: 'SavedDocumentSummary',
     description: 'Brief document info for dashboard lists.'
+} as const;
+
+export const SearchResultItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        snippet: {
+            type: 'string',
+            title: 'Snippet'
+        },
+        result_type: {
+            type: 'string',
+            enum: ['law', 'article'],
+            title: 'Result Type'
+        },
+        url_path: {
+            type: 'string',
+            title: 'Url Path'
+        }
+    },
+    type: 'object',
+    required: ['id', 'title', 'snippet', 'result_type', 'url_path'],
+    title: 'SearchResultItem',
+    description: 'A single search result item from any content type.'
 } as const;
 
 export const StateComparisonItemSchema = {
