@@ -165,6 +165,26 @@ function PropertyGoalsForm(props: IProps) {
     }
   }, [initialGoals])
 
+  // Floor/elevator are irrelevant for houses and land
+  const isFloorRelevant =
+    goals.preferred_property_type !== "house" &&
+    goals.preferred_property_type !== "land"
+
+  const handlePropertyTypeChange = (value: string) => {
+    setGoals((prev) => {
+      const floorIrrelevant = value === "house" || value === "land"
+      return {
+        ...prev,
+        preferred_property_type: value,
+        // Clear floor and elevator when switching to a type without floors
+        ...(floorIrrelevant && {
+          preferred_floor: "",
+          has_elevator_required: false,
+        }),
+      }
+    })
+  }
+
   const handleFeatureToggle = (feature: string, checked: boolean) => {
     setGoals((prev) => ({
       ...prev,
@@ -211,12 +231,7 @@ function PropertyGoalsForm(props: IProps) {
               <SelectionButton
                 key={type.value}
                 selected={goals.preferred_property_type === type.value}
-                onClick={() =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    preferred_property_type: type.value,
-                  }))
-                }
+                onClick={() => handlePropertyTypeChange(type.value)}
               >
                 {type.label.split(" ")[0]}
               </SelectionButton>
@@ -275,7 +290,12 @@ function PropertyGoalsForm(props: IProps) {
         </div>
 
         {/* Floor Preference */}
-        <div className="space-y-3">
+        <div
+          className={cn(
+            "space-y-3",
+            !isFloorRelevant && "opacity-50 pointer-events-none",
+          )}
+        >
           <Label className="text-sm font-medium">Preferred Floor</Label>
           <div className="grid grid-cols-2 gap-2">
             {FLOOR_OPTIONS.map((option) => (
@@ -293,16 +313,25 @@ function PropertyGoalsForm(props: IProps) {
               </SelectionButton>
             ))}
           </div>
+          {!isFloorRelevant && (
+            <p className="text-xs text-muted-foreground">
+              Floor preference is not applicable for this property type
+            </p>
+          )}
         </div>
 
         {/* Elevator Required */}
         <label
           htmlFor="elevator-required"
-          className="flex cursor-pointer items-center gap-3"
+          className={cn(
+            "flex cursor-pointer items-center gap-3",
+            !isFloorRelevant && "opacity-50 pointer-events-none",
+          )}
         >
           <Checkbox
             id="elevator-required"
             checked={goals.has_elevator_required}
+            disabled={!isFloorRelevant}
             onCheckedChange={(checked) =>
               setGoals((prev) => ({
                 ...prev,

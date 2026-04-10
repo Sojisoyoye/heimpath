@@ -6,7 +6,6 @@
 import { useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { GERMAN_STATES } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -234,8 +233,6 @@ function JourneyWizard(props: IProps) {
     })
   }
 
-  const selectedState = GERMAN_STATES.find((s) => s.code === state.targetState)
-
   const renderStep = () => {
     if (showSummary) {
       return <JourneySummary state={state} />
@@ -270,8 +267,6 @@ function JourneyWizard(props: IProps) {
             budgetMax={state.budgetMax}
             onBudgetMinChange={(v) => updateState({ budgetMin: v })}
             onBudgetMaxChange={(v) => updateState({ budgetMax: v })}
-            targetState={state.targetState}
-            transferTaxRate={selectedState?.transferTaxRate}
           />
         )
       case 5:
