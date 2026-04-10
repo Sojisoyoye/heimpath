@@ -7,10 +7,27 @@ import { useQuery } from "@tanstack/react-query"
 import { queryKeys } from "@/query/queryKeys"
 import { DocumentService } from "@/services/DocumentService"
 
-export function useDocuments(page = 1, pageSize = 20) {
+interface IDocumentFilters extends Record<string, unknown> {
+  search?: string
+  documentType?: string
+  status?: string
+}
+
+export function useDocuments(
+  page = 1,
+  pageSize = 20,
+  filters?: IDocumentFilters,
+) {
   return useQuery({
-    queryKey: queryKeys.documents.list(page),
-    queryFn: () => DocumentService.getDocuments(page, pageSize),
+    queryKey: queryKeys.documents.list(page, filters),
+    queryFn: () =>
+      DocumentService.getDocuments(
+        page,
+        pageSize,
+        filters?.search,
+        filters?.documentType,
+        filters?.status,
+      ),
   })
 }
 
@@ -36,5 +53,20 @@ export function useDocumentStatus(documentId: string, isProcessing: boolean) {
     queryFn: () => DocumentService.getStatus(documentId),
     enabled: !!documentId && isProcessing,
     refetchInterval: isProcessing ? 3000 : false,
+  })
+}
+
+export function useSharedDocument(shareId: string) {
+  return useQuery({
+    queryKey: queryKeys.documents.shared(shareId),
+    queryFn: () => DocumentService.getSharedDocument(shareId),
+    enabled: !!shareId,
+  })
+}
+
+export function useDocumentUsage() {
+  return useQuery({
+    queryKey: queryKeys.documents.usage(),
+    queryFn: () => DocumentService.getUsage(),
   })
 }

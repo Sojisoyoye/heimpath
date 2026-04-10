@@ -8,9 +8,11 @@ import asyncio
 import logging
 import os
 import re
+import secrets
 import uuid
 from datetime import datetime, timezone
 
+from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -434,29 +436,45 @@ async def list_documents(
     user_id: uuid.UUID,
     page: int = 1,
     page_size: int = 20,
+    search: str | None = None,
+    document_type: str | None = None,
+    status_filter: str | None = None,
 ) -> tuple[list[Document], int]:
-    """Get paginated list of user's documents.
+    """Get paginated list of user's documents with optional filters.
 
     Args:
         session: Async database session.
         user_id: User UUID.
         page: Page number (1-indexed).
         page_size: Items per page.
+        search: Optional search term for filename.
+        document_type: Optional document type filter.
+        status_filter: Optional status filter.
 
     Returns:
         Tuple of (documents list, total count).
     """
+    # Build base filter
+    conditions = [Document.user_id == user_id]
+    if search:
+        # Escape LIKE wildcards to prevent injection via %, _, \
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        conditions.append(Document.original_filename.ilike(f"%{escaped}%", escape="\\"))
+    if document_type:
+        conditions.append(Document.document_type == document_type)
+    if status_filter:
+        conditions.append(Document.status == status_filter)
+
     # Count total
-    count_result = await session.execute(
-        select(func.count()).select_from(Document).where(Document.user_id == user_id)
-    )
+    count_query = select(func.count()).select_from(Document).where(*conditions)
+    count_result = await session.execute(count_query)
     total = count_result.scalar() or 0
 
     # Fetch page
     offset = (page - 1) * page_size
     result = await session.execute(
         select(Document)
-        .where(Document.user_id == user_id)
+        .where(*conditions)
         .order_by(Document.created_at.desc())
         .offset(offset)
         .limit(page_size)
@@ -464,3 +482,130 @@ async def list_documents(
     documents = list(result.scalars().all())
 
     return documents, total
+
+
+async def generate_share_id(
+    session: AsyncSession,
+    document_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> Document:
+    """Generate a share_id for a completed document.
+
+    Args:
+        session: Async database session.
+        document_id: Document UUID.
+        user_id: User UUID for ownership check.
+
+    Returns:
+        Updated Document with share_id set.
+
+    Raises:
+        HTTPException: If document not found, not owned, or not completed.
+    """
+    result = await session.execute(
+        select(Document).where(Document.id == document_id, Document.user_id == user_id)
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    if document.status != DocumentStatus.COMPLETED.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only completed documents can be shared",
+        )
+
+    # Reuse existing share_id if already generated
+    if not document.share_id:
+        document.share_id = secrets.token_urlsafe(8)
+        await session.commit()
+        await session.refresh(document)
+
+    return document
+
+
+async def get_by_share_id(
+    session: AsyncSession,
+    share_id: str,
+) -> Document:
+    """Get a document by share_id (no auth required).
+
+    Args:
+        session: Async database session.
+        share_id: The share token.
+
+    Returns:
+        Document with translation loaded.
+
+    Raises:
+        HTTPException: If shared document not found.
+    """
+    result = await session.execute(
+        select(Document)
+        .options(selectinload(Document.translation))
+        .where(Document.share_id == share_id)
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Shared document not found",
+        )
+    return document
+
+
+async def delete_document(
+    session: AsyncSession,
+    document_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> None:
+    """Delete a document with ownership check.
+
+    Removes the file from disk and deletes the database record.
+
+    Args:
+        session: Async database session.
+        document_id: Document UUID.
+        user_id: User UUID for ownership check.
+
+    Raises:
+        HTTPException: If document not found or not owned.
+    """
+    result = await session.execute(
+        select(Document).where(Document.id == document_id, Document.user_id == user_id)
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    # Remove file from disk (async to avoid blocking the event loop)
+    if document.file_path and os.path.exists(document.file_path):
+        await asyncio.to_thread(os.remove, document.file_path)
+
+    await session.delete(document)
+    await session.commit()
+
+
+async def count_user_documents(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+) -> int:
+    """Count total documents uploaded by a user.
+
+    Args:
+        session: Async database session.
+        user_id: User UUID.
+
+    Returns:
+        Total document count.
+    """
+    result = await session.execute(
+        select(func.count()).select_from(Document).where(Document.user_id == user_id)
+    )
+    return result.scalar() or 0

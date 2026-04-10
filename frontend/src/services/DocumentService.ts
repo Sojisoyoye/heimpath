@@ -8,8 +8,10 @@ import { request } from "@/client/core/request"
 import type {
   DocumentDetail,
   DocumentListResponse,
+  DocumentShareResponse,
   DocumentStatusInfo,
   DocumentTranslation,
+  DocumentUsageInfo,
 } from "@/models/document"
 import { PATHS } from "./common/Paths"
 
@@ -69,13 +71,23 @@ class DocumentServiceClass {
   }
 
   /**
-   * Get paginated list of user's documents
+   * Get paginated list of user's documents with optional filters
    */
-  async getDocuments(page = 1, pageSize = 20): Promise<DocumentListResponse> {
+  async getDocuments(
+    page = 1,
+    pageSize = 20,
+    search?: string,
+    documentType?: string,
+    statusFilter?: string,
+  ): Promise<DocumentListResponse> {
     const params = new URLSearchParams({
       page: String(page),
       page_size: String(pageSize),
     })
+    if (search) params.set("search", search)
+    if (documentType) params.set("document_type", documentType)
+    if (statusFilter) params.set("status", statusFilter)
+
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url: `${PATHS.DOCUMENTS.LIST}?${params.toString()}`,
@@ -114,6 +126,49 @@ class DocumentServiceClass {
       url: PATHS.DOCUMENTS.STATUS(documentId),
     })
     return transformKeys<DocumentStatusInfo>(response)
+  }
+
+  /**
+   * Delete a document
+   */
+  async deleteDocument(documentId: string): Promise<void> {
+    await request(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.DOCUMENTS.DELETE(documentId),
+    })
+  }
+
+  /**
+   * Generate a shareable link for a document
+   */
+  async shareDocument(documentId: string): Promise<DocumentShareResponse> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.DOCUMENTS.SHARE(documentId),
+    })
+    return transformKeys<DocumentShareResponse>(response)
+  }
+
+  /**
+   * Get a shared document by share_id (no auth required)
+   */
+  async getSharedDocument(shareId: string): Promise<DocumentDetail> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.DOCUMENTS.SHARED(shareId),
+    })
+    return transformKeys<DocumentDetail>(response)
+  }
+
+  /**
+   * Get document usage info for the current user
+   */
+  async getUsage(): Promise<DocumentUsageInfo> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.DOCUMENTS.USAGE,
+    })
+    return transformKeys<DocumentUsageInfo>(response)
   }
 }
 

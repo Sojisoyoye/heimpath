@@ -97,6 +97,9 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     error_message = Column(Text, nullable=True)
 
+    # Sharing
+    share_id = Column(String(12), unique=True, index=True, nullable=True)
+
     # Relationships
     translation = relationship(
         "DocumentTranslation",

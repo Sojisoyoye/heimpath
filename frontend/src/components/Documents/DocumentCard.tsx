@@ -10,10 +10,13 @@ import {
   Clock,
   FileText,
   Loader2,
+  Share2,
+  Trash2,
 } from "lucide-react"
 
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type {
   DocumentStatus,
@@ -24,6 +27,8 @@ import type {
 interface IProps {
   document: DocumentSummary
   className?: string
+  onDelete?: (id: string) => void
+  onShare?: (id: string) => void
 }
 
 /******************************************************************************
@@ -83,10 +88,11 @@ function formatFileSize(bytes: number): string {
 
 /** Default component. Document summary card. */
 function DocumentCard(props: IProps) {
-  const { document: doc, className } = props
+  const { document: doc, className, onDelete, onShare } = props
 
   const statusConfig = STATUS_CONFIG[doc.status]
   const StatusIcon = statusConfig.icon
+  const isCompleted = doc.status === "completed"
 
   return (
     <Link
@@ -105,18 +111,48 @@ function DocumentCard(props: IProps) {
                 {doc.originalFilename}
               </CardTitle>
             </div>
-            <Badge
-              variant="outline"
-              className={cn("text-xs gap-1 shrink-0", statusConfig.className)}
-            >
-              <StatusIcon
-                className={cn(
-                  "h-3 w-3",
-                  doc.status === "processing" && "animate-spin",
-                )}
-              />
-              {statusConfig.label}
-            </Badge>
+            <div className="flex items-center gap-1 shrink-0">
+              {isCompleted && onShare && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onShare(doc.id)
+                  }}
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onDelete(doc.id)
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              <Badge
+                variant="outline"
+                className={cn("text-xs gap-1", statusConfig.className)}
+              >
+                <StatusIcon
+                  className={cn(
+                    "h-3 w-3",
+                    doc.status === "processing" && "animate-spin",
+                  )}
+                />
+                {statusConfig.label}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

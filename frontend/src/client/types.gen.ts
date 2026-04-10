@@ -355,6 +355,7 @@ export type DocumentDetailResponse = {
     document_type: DocumentTypeEnum;
     status: DocumentStatusEnum;
     error_message?: (string | null);
+    share_id?: (string | null);
     created_at: string;
     translation?: (DocumentTranslationResponse | null);
 };
@@ -381,6 +382,19 @@ export type DocumentRiskWarning = {
 };
 
 /**
+ * Response after generating a share link for a document.
+ */
+export type DocumentShareResponse = {
+    id: string;
+    share_id: string;
+};
+
+/**
+ * Processing status for uploaded documents.
+ */
+export type DocumentStatus = 'uploaded' | 'processing' | 'completed' | 'failed';
+
+/**
  * Document processing status choices.
  */
 export type DocumentStatusEnum = 'uploaded' | 'processing' | 'completed' | 'failed';
@@ -405,6 +419,7 @@ export type DocumentSummary = {
     page_count: number;
     document_type: DocumentTypeEnum;
     status: DocumentStatusEnum;
+    share_id?: (string | null);
     created_at: string;
 };
 
@@ -424,6 +439,11 @@ export type DocumentTranslationResponse = {
 };
 
 /**
+ * Types of German real estate documents.
+ */
+export type DocumentType = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'unknown';
+
+/**
  * Document type choices.
  */
 export type DocumentTypeEnum = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'unknown';
@@ -438,6 +458,15 @@ export type DocumentUploadResponse = {
     page_count: number;
     document_type: DocumentTypeEnum;
     status: DocumentStatusEnum;
+};
+
+/**
+ * Document usage limits for the current user.
+ */
+export type DocumentUsageResponse = {
+    documents_used: number;
+    page_limit: number;
+    subscription_tier: string;
 };
 
 /**
@@ -1959,9 +1988,20 @@ export type DocumentsUploadDocumentData = {
 
 export type DocumentsUploadDocumentResponse = (DocumentUploadResponse);
 
+export type DocumentsGetUsageResponse = (DocumentUsageResponse);
+
+export type DocumentsGetSharedDocumentData = {
+    shareId: string;
+};
+
+export type DocumentsGetSharedDocumentResponse = (DocumentDetailResponse);
+
 export type DocumentsListDocumentsData = {
+    documentType?: (DocumentType | null);
     page?: number;
     pageSize?: number;
+    search?: (string | null);
+    status?: (DocumentStatus | null);
 };
 
 export type DocumentsListDocumentsResponse = (DocumentListResponse);
@@ -1971,6 +2011,18 @@ export type DocumentsGetDocumentData = {
 };
 
 export type DocumentsGetDocumentResponse = (DocumentDetailResponse);
+
+export type DocumentsDeleteDocumentData = {
+    documentId: string;
+};
+
+export type DocumentsDeleteDocumentResponse = (void);
+
+export type DocumentsShareDocumentData = {
+    documentId: string;
+};
+
+export type DocumentsShareDocumentResponse = (DocumentShareResponse);
 
 export type DocumentsGetDocumentTranslationData = {
     documentId: string;

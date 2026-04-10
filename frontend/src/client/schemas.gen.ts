@@ -1148,6 +1148,17 @@ export const DocumentDetailResponseSchema = {
             ],
             title: 'Error Message'
         },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
         created_at: {
             type: 'string',
             format: 'date-time',
@@ -1234,6 +1245,31 @@ export const DocumentRiskWarningSchema = {
     description: 'Risk warning for a term in the document.'
 } as const;
 
+export const DocumentShareResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        share_id: {
+            type: 'string',
+            title: 'Share Id'
+        }
+    },
+    type: 'object',
+    required: ['id', 'share_id'],
+    title: 'DocumentShareResponse',
+    description: 'Response after generating a share link for a document.'
+} as const;
+
+export const DocumentStatusSchema = {
+    type: 'string',
+    enum: ['uploaded', 'processing', 'completed', 'failed'],
+    title: 'DocumentStatus',
+    description: 'Processing status for uploaded documents.'
+} as const;
+
 export const DocumentStatusEnumSchema = {
     type: 'string',
     enum: ['uploaded', 'processing', 'completed', 'failed'],
@@ -1297,6 +1333,17 @@ export const DocumentSummarySchema = {
         },
         status: {
             '$ref': '#/components/schemas/DocumentStatusEnum'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
         },
         created_at: {
             type: 'string',
@@ -1382,6 +1429,13 @@ export const DocumentTranslationResponseSchema = {
     description: 'Full translation result for a document.'
 } as const;
 
+export const DocumentTypeSchema = {
+    type: 'string',
+    enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'unknown'],
+    title: 'DocumentType',
+    description: 'Types of German real estate documents.'
+} as const;
+
 export const DocumentTypeEnumSchema = {
     type: 'string',
     enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'unknown'],
@@ -1419,6 +1473,27 @@ export const DocumentUploadResponseSchema = {
     required: ['id', 'original_filename', 'file_size_bytes', 'page_count', 'document_type', 'status'],
     title: 'DocumentUploadResponse',
     description: 'Response after uploading a document.'
+} as const;
+
+export const DocumentUsageResponseSchema = {
+    properties: {
+        documents_used: {
+            type: 'integer',
+            title: 'Documents Used'
+        },
+        page_limit: {
+            type: 'integer',
+            title: 'Page Limit'
+        },
+        subscription_tier: {
+            type: 'string',
+            title: 'Subscription Tier'
+        }
+    },
+    type: 'object',
+    required: ['documents_used', 'page_limit', 'subscription_tier'],
+    title: 'DocumentUsageResponse',
+    description: 'Document usage limits for the current user.'
 } as const;
 
 export const FinancingAssessmentCreateSchema = {

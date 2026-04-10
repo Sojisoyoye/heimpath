@@ -19,3 +19,31 @@ export function useUploadDocument() {
     },
   })
 }
+
+export function useDeleteDocument() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (documentId: string) =>
+      DocumentService.deleteDocument(documentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.all,
+      })
+    },
+  })
+}
+
+export function useShareDocument() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (documentId: string) =>
+      DocumentService.shareDocument(documentId),
+    onSuccess: (_data, documentId) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.detail(documentId),
+      })
+    },
+  })
+}

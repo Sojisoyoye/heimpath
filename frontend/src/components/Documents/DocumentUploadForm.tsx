@@ -1,14 +1,15 @@
 /**
  * Document Upload Form
- * Drag-and-drop PDF upload zone with validation
+ * Drag-and-drop PDF upload zone with validation and usage limits
  */
 
-import { useNavigate } from "@tanstack/react-router"
-import { AlertCircle, FileText, Upload } from "lucide-react"
+import { Link, useNavigate } from "@tanstack/react-router"
+import { AlertCircle, FileText, Info, Upload } from "lucide-react"
 import { useCallback, useState } from "react"
 
 import { cn } from "@/common/utils"
 import { useUploadDocument } from "@/hooks/mutations"
+import { useDocumentUsage } from "@/hooks/queries"
 
 interface IProps {
   className?: string
@@ -24,6 +25,38 @@ const ACCEPTED_TYPE = "application/pdf"
 /******************************************************************************
                               Components
 ******************************************************************************/
+
+/** Usage limit display below the drop zone. */
+function UsageLimitInfo() {
+  const { data: usage } = useDocumentUsage()
+
+  if (!usage) return null
+
+  const isFree = usage.subscriptionTier === "free"
+
+  return (
+    <div className="flex items-start gap-2 mt-3 text-xs text-muted-foreground">
+      <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+      <div>
+        <span>
+          Page limit: {usage.pageLimit} pages per document (
+          {usage.subscriptionTier})
+        </span>
+        {isFree && (
+          <span className="ml-1">
+            &mdash;{" "}
+            <Link
+              to="/settings"
+              className="text-blue-600 hover:underline dark:text-blue-400"
+            >
+              Upgrade for more
+            </Link>
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
 
 /** Default component. PDF upload form with drag-and-drop. */
 function DocumentUploadForm(props: IProps) {
@@ -135,6 +168,8 @@ function DocumentUploadForm(props: IProps) {
           )}
         </div>
       </div>
+
+      <UsageLimitInfo />
 
       {validationError && (
         <div className="flex items-center gap-2 mt-3 text-sm text-destructive">

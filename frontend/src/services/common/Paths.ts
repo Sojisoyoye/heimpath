@@ -89,7 +89,11 @@ export const PATHS = {
   DOCUMENTS: {
     LIST: `${API_V1}/documents`,
     UPLOAD: `${API_V1}/documents/upload`,
+    USAGE: `${API_V1}/documents/usage`,
+    SHARED: (shareId: string) => `${API_V1}/documents/shared/${shareId}`,
     DETAIL: (id: string) => `${API_V1}/documents/${id}`,
+    SHARE: (id: string) => `${API_V1}/documents/${id}/share`,
+    DELETE: (id: string) => `${API_V1}/documents/${id}`,
     TRANSLATION: (id: string) => `${API_V1}/documents/${id}/translation`,
     STATUS: (id: string) => `${API_V1}/documents/${id}/status`,
   },
