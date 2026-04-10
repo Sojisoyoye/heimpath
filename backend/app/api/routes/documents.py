@@ -17,15 +17,19 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.models import SubscriptionTier
+from app.models.document import Document, DocumentStatus, DocumentType
 from app.schemas.document import (
     DocumentDetailResponse,
     DocumentListResponse,
+    DocumentShareResponse,
     DocumentStatusResponse,
     DocumentSummary,
     DocumentTranslationResponse,
     DocumentUploadResponse,
+    DocumentUsageResponse,
 )
 from app.services import document_service
 
@@ -39,6 +43,37 @@ async def get_async_session() -> AsyncSession:  # type: ignore[misc]
             yield session  # type: ignore[misc]
         finally:
             await session.close()
+
+
+def _build_detail_response(document: Document) -> DocumentDetailResponse:
+    """Build DocumentDetailResponse from a Document model instance."""
+    translation_response = None
+    if document.translation:
+        t = document.translation
+        translation_response = DocumentTranslationResponse(
+            id=str(t.id),
+            document_id=str(t.document_id),
+            source_language=t.source_language,
+            target_language=t.target_language,
+            translated_pages=t.translated_pages or [],
+            clauses_detected=t.clauses_detected or [],
+            risk_warnings=t.risk_warnings or [],
+            processing_started_at=t.processing_started_at,
+            processing_completed_at=t.processing_completed_at,
+        )
+
+    return DocumentDetailResponse(
+        id=str(document.id),
+        original_filename=document.original_filename,
+        file_size_bytes=document.file_size_bytes,
+        page_count=document.page_count,
+        document_type=document.document_type,
+        status=document.status,
+        error_message=document.error_message,
+        share_id=document.share_id,
+        created_at=document.created_at,
+        translation=translation_response,
+    )
 
 
 @router.post(
@@ -112,21 +147,72 @@ async def upload_document(
     )
 
 
+@router.get("/usage", response_model=DocumentUsageResponse)
+async def get_usage(
+    current_user: CurrentUser,
+    session: AsyncSession = Depends(get_async_session),
+) -> DocumentUsageResponse:
+    """
+    Get document usage information for the current user.
+
+    Returns the number of documents uploaded and the page-per-document limit
+    based on the user's subscription tier.
+    """
+    count = await document_service.count_user_documents(
+        session=session, user_id=current_user.id
+    )
+
+    is_premium = current_user.subscription_tier in (
+        SubscriptionTier.PREMIUM,
+        SubscriptionTier.ENTERPRISE,
+    )
+
+    return DocumentUsageResponse(
+        documents_used=count,
+        page_limit=settings.MAX_PAGES_PREMIUM
+        if is_premium
+        else settings.MAX_PAGES_FREE,
+        subscription_tier=current_user.subscription_tier.value,
+    )
+
+
+@router.get("/shared/{share_id}", response_model=DocumentDetailResponse)
+async def get_shared_document(
+    share_id: str,
+    session: AsyncSession = Depends(get_async_session),
+) -> DocumentDetailResponse:
+    """
+    Get a shared document by share_id.
+
+    No authentication required.
+    """
+    document = await document_service.get_by_share_id(session, share_id)
+    return _build_detail_response(document)
+
+
 @router.get("/", response_model=DocumentListResponse)
 async def list_documents(
     current_user: CurrentUser,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    search: str | None = Query(default=None, max_length=200),
+    document_type: DocumentType | None = Query(default=None),
+    document_status: DocumentStatus | None = Query(default=None, alias="status"),
     session: AsyncSession = Depends(get_async_session),
 ) -> DocumentListResponse:
     """
     Get paginated list of the current user's uploaded documents.
+
+    Supports optional filtering by search term, document type, and status.
     """
     documents, total = await document_service.list_documents(
         session=session,
         user_id=current_user.id,
         page=page,
         page_size=page_size,
+        search=search,
+        document_type=document_type.value if document_type else None,
+        status_filter=document_status.value if document_status else None,
     )
 
     return DocumentListResponse(
@@ -138,6 +224,7 @@ async def list_documents(
                 page_count=doc.page_count,
                 document_type=doc.document_type,
                 status=doc.status,
+                share_id=doc.share_id,
                 created_at=doc.created_at,
             )
             for doc in documents
@@ -168,31 +255,48 @@ async def get_document(
             detail="Document not found",
         )
 
-    translation_response = None
-    if document.translation:
-        t = document.translation
-        translation_response = DocumentTranslationResponse(
-            id=str(t.id),
-            document_id=str(t.document_id),
-            source_language=t.source_language,
-            target_language=t.target_language,
-            translated_pages=t.translated_pages or [],
-            clauses_detected=t.clauses_detected or [],
-            risk_warnings=t.risk_warnings or [],
-            processing_started_at=t.processing_started_at,
-            processing_completed_at=t.processing_completed_at,
-        )
+    return _build_detail_response(document)
 
-    return DocumentDetailResponse(
+
+@router.post("/{document_id}/share", response_model=DocumentShareResponse)
+async def share_document(
+    document_id: str,
+    current_user: CurrentUser,
+    session: AsyncSession = Depends(get_async_session),
+) -> DocumentShareResponse:
+    """
+    Generate a shareable link for a completed document.
+
+    Returns the existing share_id if one was already generated.
+    """
+    document = await document_service.generate_share_id(
+        session=session,
+        document_id=document_id,
+        user_id=current_user.id,
+    )
+
+    return DocumentShareResponse(
         id=str(document.id),
-        original_filename=document.original_filename,
-        file_size_bytes=document.file_size_bytes,
-        page_count=document.page_count,
-        document_type=document.document_type,
-        status=document.status,
-        error_message=document.error_message,
-        created_at=document.created_at,
-        translation=translation_response,
+        share_id=document.share_id,
+    )
+
+
+@router.delete(
+    "/{document_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_document(
+    document_id: str,
+    current_user: CurrentUser,
+    session: AsyncSession = Depends(get_async_session),
+) -> None:
+    """
+    Delete a document and its associated file.
+    """
+    await document_service.delete_document(
+        session=session,
+        document_id=document_id,
+        user_id=current_user.id,
     )
 
 

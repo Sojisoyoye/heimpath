@@ -3,9 +3,9 @@
  * Shows processing status, translation, clauses, and risk warnings
  */
 
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { ArrowLeft, FileText } from "lucide-react"
-import { useState } from "react"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { ArrowLeft, FileText, Share2, Trash2 } from "lucide-react"
+import { useCallback, useState } from "react"
 import {
   ClauseHighlights,
   ProcessingStatus,
@@ -16,7 +16,9 @@ import { DOCUMENT_TYPE_LABELS } from "@/components/Documents/DocumentCard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useDeleteDocument, useShareDocument } from "@/hooks/mutations"
 import { useDocument } from "@/hooks/queries"
+import useCustomToast from "@/hooks/useCustomToast"
 import type { DocumentType } from "@/models/document"
 
 /******************************************************************************
@@ -37,8 +39,41 @@ export const Route = createFileRoute("/_layout/documents/$documentId")({
 /** Default component. Document detail page. */
 function DocumentDetailPage() {
   const { documentId } = Route.useParams()
+  const navigate = useNavigate()
   const { data: doc, isLoading, error } = useDocument(documentId)
   const [activeTab, setActiveTab] = useState("translation")
+
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const deleteMutation = useDeleteDocument()
+  const shareMutation = useShareDocument()
+
+  // Functions
+
+  const handleDelete = useCallback(() => {
+    if (!window.confirm("Are you sure you want to delete this document?")) {
+      return
+    }
+    deleteMutation.mutate(documentId, {
+      onSuccess: () => {
+        showSuccessToast("Document deleted")
+        navigate({ to: "/documents" })
+      },
+      onError: () => showErrorToast("Failed to delete document"),
+    })
+  }, [documentId, deleteMutation, navigate, showSuccessToast, showErrorToast])
+
+  const handleShare = useCallback(() => {
+    shareMutation.mutate(documentId, {
+      onSuccess: (data) => {
+        const url = `${window.location.origin}/documents/shared/${data.shareId}`
+        navigator.clipboard.writeText(url)
+        showSuccessToast("Share link copied to clipboard")
+      },
+      onError: () => showErrorToast("Failed to generate share link"),
+    })
+  }, [documentId, shareMutation, showSuccessToast, showErrorToast])
+
+  // Render
 
   if (error) {
     return (
@@ -94,6 +129,29 @@ function DocumentDetailPage() {
               {doc.pageCount} {doc.pageCount === 1 ? "page" : "pages"}
             </span>
           </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {isCompleted && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              disabled={shareMutation.isPending}
+            >
+              <Share2 className="h-4 w-4 mr-1" />
+              Share
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete
+          </Button>
         </div>
       </div>
 

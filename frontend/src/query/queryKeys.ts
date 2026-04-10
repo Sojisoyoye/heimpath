@@ -92,12 +92,15 @@ export const queryKeys = {
   // Document queries
   documents: {
     all: ["documents"] as const,
-    list: (page?: number) =>
-      [...queryKeys.documents.all, "list", page] as const,
+    list: (page?: number, filters?: Record<string, unknown>) =>
+      [...queryKeys.documents.all, "list", page, filters] as const,
     detail: (id: string) => [...queryKeys.documents.all, "detail", id] as const,
     translation: (id: string) =>
       [...queryKeys.documents.all, "translation", id] as const,
     status: (id: string) => [...queryKeys.documents.all, "status", id] as const,
+    shared: (shareId: string) =>
+      [...queryKeys.documents.all, "shared", shareId] as const,
+    usage: () => [...queryKeys.documents.all, "usage"] as const,
   },
 
   // Notification queries

@@ -22,6 +22,7 @@ export interface DocumentSummary {
   pageCount: number
   documentType: DocumentType
   status: DocumentStatus
+  shareId: string | null
   createdAt: string
 }
 
@@ -67,6 +68,7 @@ export interface DocumentDetail {
   documentType: DocumentType
   status: DocumentStatus
   errorMessage: string | null
+  shareId: string | null
   createdAt: string
   translation: DocumentTranslation | null
 }
@@ -76,6 +78,17 @@ export interface DocumentStatusInfo {
   status: DocumentStatus
   errorMessage: string | null
   pageCount: number
+}
+
+export interface DocumentShareResponse {
+  id: string
+  shareId: string
+}
+
+export interface DocumentUsageInfo {
+  documentsUsed: number
+  pageLimit: number
+  subscriptionTier: string
 }
 
 export interface DocumentListResponse {

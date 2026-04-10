@@ -53,6 +53,7 @@ class DocumentSummary(BaseModel):
     page_count: int
     document_type: DocumentTypeEnum
     status: DocumentStatusEnum
+    share_id: str | None = None
     created_at: datetime
 
 
@@ -124,8 +125,24 @@ class DocumentDetailResponse(BaseModel):
     document_type: DocumentTypeEnum
     status: DocumentStatusEnum
     error_message: str | None = None
+    share_id: str | None = None
     created_at: datetime
     translation: DocumentTranslationResponse | None = None
+
+
+class DocumentShareResponse(BaseModel):
+    """Response after generating a share link for a document."""
+
+    id: uuid.UUID
+    share_id: str
+
+
+class DocumentUsageResponse(BaseModel):
+    """Document usage limits for the current user."""
+
+    documents_used: int
+    page_limit: int
+    subscription_tier: str
 
 
 class DocumentStatusResponse(BaseModel):
