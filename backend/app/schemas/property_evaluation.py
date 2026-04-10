@@ -18,7 +18,7 @@ class PropertyEvaluationResponse(BaseModel):
     id: uuid.UUID
     name: str | None = None
     share_id: str | None = None
-    journey_step_id: str | None = None
+    journey_step_id: uuid.UUID | None = None
     purchase_price: float
     square_meters: float
     state_code: str | None = None

@@ -25,6 +25,7 @@ import {
 } from "@/hooks/mutations/useCalculatorMutations"
 import { useUserPropertyEvaluations } from "@/hooks/queries/useCalculatorQueries"
 import type { PropertyEvaluationSummary } from "@/models/propertyEvaluation"
+import { handleError } from "@/utils"
 import {
   EvaluationSection,
   FinancingSection,
@@ -303,9 +304,7 @@ function PropertyEvaluationCalculator(
           setSaveName("")
           showSuccessToast("Property evaluation saved")
         },
-        onError: () => {
-          showErrorToast("Failed to save evaluation")
-        },
+        onError: handleError.bind(showErrorToast),
       },
     )
   }

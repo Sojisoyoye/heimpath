@@ -118,7 +118,7 @@ async def save_calculation(
         type=NotificationType.CALCULATION_SAVED,
         title="Calculation Saved",
         message=f"Your hidden cost calculation for {request.state_code} has been saved.",
-        action_url=f"/calculators/hidden-costs/{calculation.id}",
+        action_url="/calculators?tab=costs",
     )
 
     return HiddenCostCalculationResponse.model_validate(calculation)
@@ -236,7 +236,7 @@ async def save_roi_calculation(
         type=NotificationType.CALCULATION_SAVED,
         title="ROI Calculation Saved",
         message="Your ROI analysis has been saved.",
-        action_url=f"/calculators/roi/{calculation.id}",
+        action_url="/calculators?tab=roi",
     )
 
     return ROICalculationResponse.model_validate(calculation)
@@ -362,7 +362,7 @@ async def save_property_evaluation(
         type=NotificationType.CALCULATION_SAVED,
         title="Property Evaluation Saved",
         message="Your property evaluation has been saved.",
-        action_url=f"/calculators/property-evaluations/{evaluation.id}",
+        action_url="/calculators?tab=property-evaluation",
     )
 
     return PropertyEvaluationResponse.model_validate(evaluation)
