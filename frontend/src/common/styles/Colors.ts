@@ -98,6 +98,13 @@ const Colors = {
     Completed: Base.Green.Default,
     Skipped: Base.Grey.Light,
   },
+
+  // Chart series colors
+  Chart: {
+    Blue: Base.Blue.Default,
+    Green: Base.Green.Default,
+    Amber: "#f59e0b",
+  },
 } as const
 
 export default Colors

@@ -15,6 +15,16 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { useMemo, useState } from "react"
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
+import Colors from "@/common/styles/Colors"
 
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
@@ -391,6 +401,85 @@ function ProjectionRow(props: {
         {PERCENT_FORMATTER.format(totalReturnPercent)}
       </td>
     </tr>
+  )
+}
+
+/** 10-year projection area chart. */
+function ProjectionChart(props: {
+  projections: ROIResults["projectedValues"]
+}) {
+  const { projections } = props
+
+  const chartData = useMemo(
+    () =>
+      projections.map((p) => ({
+        name: `Yr ${p.year}`,
+        propertyValue: Math.round(p.propertyValue),
+        equity: Math.round(p.equity),
+        cumulativeCashFlow: Math.round(p.cumulativeCashFlow),
+      })),
+    [projections],
+  )
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <AreaChart
+        data={chartData}
+        margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+        <YAxis
+          tick={{ fontSize: 12 }}
+          tickFormatter={(v: number) =>
+            v >= 1_000_000
+              ? `${(v / 1_000_000).toFixed(1)}M`
+              : v >= 1_000
+                ? `${(v / 1_000).toFixed(0)}k`
+                : `${v}`
+          }
+        />
+        <Tooltip
+          formatter={(value, name) => {
+            const label =
+              name === "propertyValue"
+                ? "Property Value"
+                : name === "equity"
+                  ? "Equity"
+                  : "Cumulative Cash Flow"
+            return [CURRENCY_FORMATTER.format(Number(value)), label]
+          }}
+          labelFormatter={(label) => String(label)}
+        />
+        <Area
+          type="monotone"
+          dataKey="propertyValue"
+          name="propertyValue"
+          stroke={Colors.Chart.Blue}
+          fill={Colors.Chart.Blue}
+          fillOpacity={0.1}
+          strokeWidth={2}
+        />
+        <Area
+          type="monotone"
+          dataKey="equity"
+          name="equity"
+          stroke={Colors.Chart.Green}
+          fill={Colors.Chart.Green}
+          fillOpacity={0.1}
+          strokeWidth={2}
+        />
+        <Area
+          type="monotone"
+          dataKey="cumulativeCashFlow"
+          name="cumulativeCashFlow"
+          stroke={Colors.Chart.Amber}
+          fill={Colors.Chart.Amber}
+          fillOpacity={0.1}
+          strokeWidth={2}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   )
 }
 
@@ -904,7 +993,7 @@ function ROICalculator(props: IProps) {
         </Card>
       </div>
 
-      {/* Projections Table */}
+      {/* Projections Chart & Table */}
       {results && (
         <Card>
           <CardHeader>
@@ -914,34 +1003,61 @@ function ROICalculator(props: IProps) {
               rent increase
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="py-2 text-left font-medium">Year</th>
-                    <th className="py-2 text-right font-medium">
-                      Property Value
-                    </th>
-                    <th className="py-2 text-right font-medium">Equity</th>
-                    <th className="py-2 text-right font-medium">
-                      Cumulative Cash Flow
-                    </th>
-                    <th className="py-2 text-right font-medium">
-                      Total Return
-                    </th>
-                    <th className="py-2 text-right font-medium">ROI</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.projectedValues.map((proj) => (
-                    <ProjectionRow key={proj.year} {...proj} />
-                  ))}
-                </tbody>
-              </table>
+          <CardContent className="space-y-6">
+            {/* Chart */}
+            <div>
+              <div className="mb-3 flex flex-wrap items-center gap-4 text-xs">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
+                  Property Value
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-500" />
+                  Equity
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
+                  Cumulative Cash Flow
+                </span>
+              </div>
+              <ProjectionChart projections={results.projectedValues} />
             </div>
 
-            <div className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3">
+            <Separator />
+
+            {/* Details Table */}
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground mb-3">
+                Detailed Breakdown
+              </h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-muted-foreground">
+                      <th className="py-2 text-left font-medium">Year</th>
+                      <th className="py-2 text-right font-medium">
+                        Property Value
+                      </th>
+                      <th className="py-2 text-right font-medium">Equity</th>
+                      <th className="py-2 text-right font-medium">
+                        Cumulative Cash Flow
+                      </th>
+                      <th className="py-2 text-right font-medium">
+                        Total Return
+                      </th>
+                      <th className="py-2 text-right font-medium">ROI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.projectedValues.map((proj) => (
+                      <ProjectionRow key={proj.year} {...proj} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 rounded-lg bg-muted p-3">
               <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
                 Projections are estimates based on your inputs. Actual returns
