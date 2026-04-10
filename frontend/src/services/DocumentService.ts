@@ -14,6 +14,7 @@ import type {
   DocumentUsageInfo,
 } from "@/models/document"
 import { PATHS } from "./common/Paths"
+import { transformKeys } from "./common/transformKeys"
 
 interface UploadResponse {
   id: string
@@ -22,31 +23,6 @@ interface UploadResponse {
   pageCount: number
   documentType: string
   status: string
-}
-
-/******************************************************************************
-                              Functions
-******************************************************************************/
-
-/** Convert a snake_case string to camelCase. */
-function snakeToCamel(str: string): string {
-  return str.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
-}
-
-/** Recursively convert all object keys from snake_case to camelCase. */
-function transformKeys<T>(obj: unknown): T {
-  if (Array.isArray(obj)) {
-    return obj.map((item) => transformKeys(item)) as T
-  }
-  if (obj !== null && typeof obj === "object") {
-    return Object.fromEntries(
-      Object.entries(obj as Record<string, unknown>).map(([key, value]) => [
-        snakeToCamel(key),
-        transformKeys(value),
-      ]),
-    ) as T
-  }
-  return obj as T
 }
 
 /******************************************************************************

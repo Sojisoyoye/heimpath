@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
@@ -71,6 +72,11 @@ const IndexRoute = IndexRouteImport.update({
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutSearchRoute = LayoutSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/calculators': typeof LayoutCalculatorsRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
+  '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/calculators': typeof LayoutCalculatorsRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
+  '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/_layout/calculators': typeof LayoutCalculatorsRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/articles/$slug': typeof LayoutArticlesSlugRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/calculators'
     | '/dashboard'
     | '/items'
+    | '/search'
     | '/settings'
     | '/articles/$slug'
     | '/documents/$documentId'
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
     | '/calculators'
     | '/dashboard'
     | '/items'
+    | '/search'
     | '/settings'
     | '/articles/$slug'
     | '/documents/$documentId'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/_layout/calculators'
     | '/_layout/dashboard'
     | '/_layout/items'
+    | '/_layout/search'
     | '/_layout/settings'
     | '/_layout/articles/$slug'
     | '/_layout/documents/$documentId'
@@ -377,6 +389,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof LayoutSettingsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/search': {
+      id: '/_layout/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof LayoutSearchRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/items': {
@@ -516,6 +535,7 @@ interface LayoutRouteChildren {
   LayoutCalculatorsRoute: typeof LayoutCalculatorsRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutArticlesSlugRoute: typeof LayoutArticlesSlugRoute
   LayoutDocumentsDocumentIdRoute: typeof LayoutDocumentsDocumentIdRoute
@@ -534,6 +554,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutCalculatorsRoute: LayoutCalculatorsRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutItemsRoute: LayoutItemsRoute,
+  LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutArticlesSlugRoute: LayoutArticlesSlugRoute,
   LayoutDocumentsDocumentIdRoute: LayoutDocumentsDocumentIdRoute,

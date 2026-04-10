@@ -7,6 +7,7 @@ import { AuthService, type UserPublic, UsersService } from "@/client"
 import { Footer } from "@/components/Common/Footer"
 import { NavUserMenu } from "@/components/Common/NavUserMenu"
 import NotificationBell from "@/components/Notifications/NotificationBell"
+import { SearchTrigger } from "@/components/Search"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import {
   SidebarInset,
@@ -86,6 +87,7 @@ function Layout() {
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 bg-background px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-2">
+            <SearchTrigger />
             <NotificationBell />
             <NavUserMenu />
           </div>
