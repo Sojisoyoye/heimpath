@@ -50,6 +50,7 @@ import type {
   FinancingResidencyStatus,
   SchufaRating,
 } from "@/models/calculator"
+import { handleError } from "@/utils"
 
 interface IProps {
   className?: string
@@ -644,9 +645,7 @@ function FinancingWizard(props: IProps) {
           setShareUrl(url)
         }
       },
-      onError: () => {
-        showErrorToast("Failed to save financing assessment")
-      },
+      onError: handleError.bind(showErrorToast),
     })
   }
 

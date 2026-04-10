@@ -38,6 +38,7 @@ import type {
   ROICalculationInput,
   ROICalculationSummary,
 } from "@/models/calculator"
+import { handleError } from "@/utils"
 
 interface IProps {
   className?: string
@@ -559,9 +560,7 @@ function ROICalculator(props: IProps) {
           setShareUrl(url)
         }
       },
-      onError: () => {
-        showErrorToast("Failed to save ROI calculation")
-      },
+      onError: handleError.bind(showErrorToast),
     })
   }
 

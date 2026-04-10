@@ -3890,7 +3890,8 @@ export const PropertyEvaluationResponseSchema = {
         journey_step_id: {
             anyOf: [
                 {
-                    type: 'string'
+                    type: 'string',
+                    format: 'uuid'
                 },
                 {
                     type: 'null'
