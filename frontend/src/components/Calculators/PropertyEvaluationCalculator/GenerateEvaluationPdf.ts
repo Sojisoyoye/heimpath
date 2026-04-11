@@ -418,13 +418,12 @@ export function generateEvaluationPdf(
   addFooter(doc)
 
   // Generate filename
-  const slug = state.propertyInfo.address
-    ? state.propertyInfo.address
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
-        .slice(0, 40)
-    : `${Date.now()}`
+  const cleaned = state.propertyInfo.address
+    ?.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 40)
+  const slug = cleaned || `${Date.now()}`
   const filename = `heimpath-evaluation-${slug}.pdf`
 
   doc.save(filename)

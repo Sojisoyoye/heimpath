@@ -298,8 +298,12 @@ function PropertyEvaluationCalculator(
 
   const handleExport = async () => {
     if (!results) return
-    const { generateEvaluationPdf } = await import("./GenerateEvaluationPdf")
-    generateEvaluationPdf(state, results)
+    try {
+      const { generateEvaluationPdf } = await import("./GenerateEvaluationPdf")
+      generateEvaluationPdf(state, results)
+    } catch {
+      showErrorToast("Failed to generate PDF. Please try again.")
+    }
   }
 
   const handleSave = () => {
