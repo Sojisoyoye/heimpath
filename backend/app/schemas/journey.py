@@ -239,6 +239,9 @@ class JourneyResponse(BaseModel):
     is_active: bool
     created_at: datetime
     steps: list[JourneyStepSummary] = []
+    progress_percentage: float = 0
+    completed_steps: int = 0
+    total_steps: int = 0
 
 
 class JourneyDetailResponse(JourneyResponse):

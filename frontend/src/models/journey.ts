@@ -70,6 +70,9 @@ export interface JourneyPublic {
   is_active: boolean
   created_at: string
   steps: JourneyStep[]
+  progress_percentage: number
+  completed_steps: number
+  total_steps: number
 }
 
 /** Frontend wizard state for creating a journey */

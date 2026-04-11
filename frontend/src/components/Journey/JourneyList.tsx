@@ -9,7 +9,7 @@ import { Compass, Plus } from "lucide-react"
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { JourneyPublic } from "@/models/journey"
+import type { JourneyProgress, JourneyPublic } from "@/models/journey"
 import { JourneyCard } from "./JourneyCard"
 
 interface IProps {
@@ -90,9 +90,25 @@ function JourneyList(props: IProps) {
 
   return (
     <div className={cn("grid gap-6 md:grid-cols-2 lg:grid-cols-3", className)}>
-      {journeys.map((journey) => (
-        <JourneyCard key={journey.id} journey={journey} onDelete={onDelete} />
-      ))}
+      {journeys.map((journey) => {
+        const progress: JourneyProgress = {
+          journey_id: journey.id,
+          total_steps: journey.total_steps,
+          completed_steps: journey.completed_steps,
+          current_step_number: journey.current_step_number,
+          current_phase: journey.current_phase,
+          progress_percentage: journey.progress_percentage,
+          phases: {},
+        }
+        return (
+          <JourneyCard
+            key={journey.id}
+            journey={journey}
+            progress={progress}
+            onDelete={onDelete}
+          />
+        )
+      })}
     </div>
   )
 }

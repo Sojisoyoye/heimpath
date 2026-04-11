@@ -6,6 +6,7 @@ import { ApiError } from "@/client"
  */
 const handleApiError = (error: Error) => {
   if (error instanceof ApiError && [401, 403].includes(error.status)) {
+    queryClient.clear()
     localStorage.removeItem("access_token")
     window.location.href = "/login"
   }
