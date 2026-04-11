@@ -1,12 +1,13 @@
 /**
  * Financing Section
- * Inputs for loan settings
+ * Inputs for loan settings with optional 110% financing (acquisition costs included)
  */
 
-import { Landmark } from "lucide-react"
+import { Info, Landmark } from "lucide-react"
 import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
 import { cn } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { FinancingInputs } from "../types"
@@ -42,13 +43,19 @@ function FinancingSection(props: IProps) {
     onChange({ [field]: num })
   }
 
-  // Loan is % of purchase price, equity covers the rest of total investment
-  const loanAmount = purchasePrice * (values.loanPercent / 100)
+  const loanBasis = values.includeAcquisitionCosts
+    ? totalInvestment
+    : purchasePrice
+  const loanAmount = loanBasis * (values.loanPercent / 100)
   const equityAmount = totalInvestment - loanAmount
   const monthlyInterest = (loanAmount * (values.interestRatePercent / 100)) / 12
   const monthlyRepayment =
     (loanAmount * (values.repaymentRatePercent / 100)) / 12
   const debtServiceMonthly = monthlyInterest + monthlyRepayment
+
+  const loanLabel = values.includeAcquisitionCosts
+    ? "Loan (% of total investment)"
+    : "Loan (% of purchase price)"
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -62,10 +69,46 @@ function FinancingSection(props: IProps) {
         </p>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
+        {/* 110% financing toggle */}
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="includeAcquisitionCosts"
+            checked={values.includeAcquisitionCosts}
+            onCheckedChange={(checked) =>
+              onChange({ includeAcquisitionCosts: checked === true })
+            }
+            className="mt-0.5"
+          />
+          <div>
+            <Label
+              htmlFor="includeAcquisitionCosts"
+              className="cursor-pointer leading-tight"
+            >
+              Include acquisition costs in loan (110% financing)
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Finance both the purchase price and all additional costs (notary,
+              broker, transfer tax, land registry)
+            </p>
+          </div>
+        </div>
+
+        {values.includeAcquisitionCosts && (
+          <div className="flex items-start gap-2 rounded-md bg-blue-50 p-3 dark:bg-blue-950/30">
+            <Info className="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+            <p className="text-xs text-blue-800 dark:text-blue-300">
+              110% financing means your bank loan covers the property price plus
+              all acquisition costs. This reduces required equity to zero but
+              increases monthly payments and total interest paid. Many German
+              banks offer this for creditworthy borrowers.
+            </p>
+          </div>
+        )}
+
         {/* Loan settings */}
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="loanPercent">Loan (% of purchase price)</Label>
+            <Label htmlFor="loanPercent">{loanLabel}</Label>
             <Input
               id="loanPercent"
               type="number"
@@ -116,6 +159,14 @@ function FinancingSection(props: IProps) {
         {/* Financing summary */}
         {purchasePrice > 0 && (
           <div className="rounded-md bg-purple-50 p-3 space-y-2 dark:bg-purple-950/30">
+            {values.includeAcquisitionCosts && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Loan Basis</span>
+                <span className="font-medium">
+                  {CURRENCY_FORMATTER.format(totalInvestment)}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Loan Amount</span>
               <span className="font-medium">
@@ -126,8 +177,13 @@ function FinancingSection(props: IProps) {
               <span className="text-muted-foreground">
                 Own Capital / Equity
               </span>
-              <span className="font-medium">
-                {CURRENCY_FORMATTER.format(equityAmount)}
+              <span
+                className={cn(
+                  "font-medium",
+                  equityAmount <= 0 && "text-amber-600 dark:text-amber-400",
+                )}
+              >
+                {CURRENCY_FORMATTER.format(Math.max(equityAmount, 0))}
               </span>
             </div>
             <div className="flex justify-between text-sm border-t pt-2 mt-2">
