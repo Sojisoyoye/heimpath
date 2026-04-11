@@ -9,6 +9,7 @@ import { cn } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { FieldTooltip } from "../FieldTooltip"
 import type { RentInputs } from "../types"
 
 interface IProps {
@@ -61,7 +62,10 @@ function RentSection(props: IProps) {
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="rentPerSqm">Rent per m² (EUR)</Label>
+            <Label htmlFor="rentPerSqm">
+              Rent per m² (EUR)
+              <FieldTooltip text="Monthly cold rent (Kaltmiete) per square meter, excluding utilities and operating costs" />
+            </Label>
             <Input
               id="rentPerSqm"
               type="number"
@@ -127,7 +131,10 @@ function RentSection(props: IProps) {
           <p className="text-sm font-medium text-muted-foreground">Taxes</p>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="depreciationRate">Depreciation Rate (%)</Label>
+              <Label htmlFor="depreciationRate">
+                Depreciation Rate (%)
+                <FieldTooltip text="AfA (Absetzung für Abnutzung) — tax-deductible building wear. 2% for buildings built after 1924, 2.5% for older" />
+              </Label>
               <Input
                 id="depreciationRate"
                 type="number"
@@ -141,7 +148,10 @@ function RentSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="buildingShare">Building Share (%)</Label>
+              <Label htmlFor="buildingShare">
+                Building Share (%)
+                <FieldTooltip text="Percentage of purchase price attributable to the building (not land). Used for depreciation calculation" />
+              </Label>
               <Input
                 id="buildingShare"
                 type="number"
@@ -155,7 +165,10 @@ function RentSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="marginalTaxRate">Marginal Tax Rate (%)</Label>
+              <Label htmlFor="marginalTaxRate">
+                Marginal Tax Rate (%)
+                <FieldTooltip text="Your personal income tax rate in Germany (Einkommensteuer). Standard brackets range from 14% to 45%" />
+              </Label>
               <Input
                 id="marginalTaxRate"
                 type="number"
@@ -180,7 +193,10 @@ function RentSection(props: IProps) {
           <p className="text-sm font-medium text-muted-foreground">Forecast</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="costIncrease">Cost Increase p.a. (%)</Label>
+              <Label htmlFor="costIncrease">
+                Cost Increase p.a. (%)
+                <FieldTooltip text="Expected annual increase in operating costs, typically tracking inflation" />
+              </Label>
               <Input
                 id="costIncrease"
                 type="number"
@@ -194,7 +210,10 @@ function RentSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="rentIncrease">Rent Increase p.a. (%)</Label>
+              <Label htmlFor="rentIncrease">
+                Rent Increase p.a. (%)
+                <FieldTooltip text="Expected annual rent increase. Subject to Mietpreisbremse (rent cap) in regulated areas" />
+              </Label>
               <Input
                 id="rentIncrease"
                 type="number"
@@ -208,7 +227,10 @@ function RentSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="valueIncrease">Value Increase p.a. (%)</Label>
+              <Label htmlFor="valueIncrease">
+                Value Increase p.a. (%)
+                <FieldTooltip text="Expected annual property value appreciation rate" />
+              </Label>
               <Input
                 id="valueIncrease"
                 type="number"
@@ -224,6 +246,7 @@ function RentSection(props: IProps) {
             <div className="space-y-2">
               <Label htmlFor="equityInterest">
                 Interest on Equity p.a. (%)
+                <FieldTooltip text="Opportunity cost — what your equity could earn if invested elsewhere (e.g., stock market returns)" />
               </Label>
               <Input
                 id="equityInterest"
