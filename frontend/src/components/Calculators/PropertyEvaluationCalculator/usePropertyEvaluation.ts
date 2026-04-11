@@ -68,9 +68,11 @@ function usePropertyEvaluation(
       netColdRentYearly > 0 ? propertyInfo.purchasePrice / netColdRentYearly : 0
 
     // ========== Financing Metrics ==========
-    // Loan is a percentage of purchase price (not total investment)
-    const loanAmount =
-      propertyInfo.purchasePrice * (financing.loanPercent / 100)
+    // Loan basis: purchase price only, or total investment (110% financing)
+    const loanBasis = financing.includeAcquisitionCosts
+      ? totalInvestment
+      : propertyInfo.purchasePrice
+    const loanAmount = loanBasis * (financing.loanPercent / 100)
     // Equity covers the gap: total investment minus loan
     const equityAmount = totalInvestment - loanAmount
 

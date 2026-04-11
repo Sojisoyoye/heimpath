@@ -36,6 +36,7 @@ export interface FinancingInputs {
   loanPercent: number
   interestRatePercent: number
   repaymentRatePercent: number
+  includeAcquisitionCosts: boolean
 }
 
 export interface EvaluationResults {

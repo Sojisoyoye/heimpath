@@ -26,6 +26,7 @@ export const EVALUATION_DEFAULTS = {
   LOAN_PERCENT: 100,
   INTEREST_RATE_PERCENT: 4.0,
   REPAYMENT_RATE_PERCENT: 2.0,
+  INCLUDE_ACQUISITION_COSTS: false,
 
   // Operating costs defaults (EUR/month absolute - user enters from Abrechnung)
   HAUSGELD_ALLOCABLE: 0,

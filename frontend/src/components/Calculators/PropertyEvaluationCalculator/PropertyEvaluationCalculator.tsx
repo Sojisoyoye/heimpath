@@ -106,6 +106,7 @@ function createInitialState(
       loanPercent: EVALUATION_DEFAULTS.LOAN_PERCENT,
       interestRatePercent: EVALUATION_DEFAULTS.INTEREST_RATE_PERCENT,
       repaymentRatePercent: EVALUATION_DEFAULTS.REPAYMENT_RATE_PERCENT,
+      includeAcquisitionCosts: EVALUATION_DEFAULTS.INCLUDE_ACQUISITION_COSTS,
     },
   }
 }
