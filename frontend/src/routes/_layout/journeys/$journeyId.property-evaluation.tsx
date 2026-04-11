@@ -4,6 +4,7 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router"
+import { useEffect } from "react"
 
 import { PropertyEvaluationCalculator } from "@/components/Calculators/PropertyEvaluationCalculator"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -53,6 +54,11 @@ function PropertyEvaluationPage() {
   const { journeyId } = Route.useParams()
 
   const { data: journey, isLoading } = useJourney(journeyId)
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   if (isLoading) {
     return <LoadingSkeleton />
