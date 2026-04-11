@@ -296,26 +296,14 @@ function PropertyEvaluationCalculator(
     saveToStorage(storageKey, newState)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!results) return
-
-    const data = {
-      inputs: state,
-      results,
-      generatedAt: new Date().toISOString(),
+    try {
+      const { generateEvaluationPdf } = await import("./GenerateEvaluationPdf")
+      generateEvaluationPdf(state, results)
+    } catch {
+      showErrorToast("Failed to generate PDF. Please try again.")
     }
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `property-evaluation-${Date.now()}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
   }
 
   const handleSave = () => {
@@ -404,7 +392,7 @@ function PropertyEvaluationCalculator(
             disabled={!results}
           >
             <Download className="h-4 w-4 mr-2" />
-            Export
+            Download as PDF
           </Button>
         </div>
       </div>
