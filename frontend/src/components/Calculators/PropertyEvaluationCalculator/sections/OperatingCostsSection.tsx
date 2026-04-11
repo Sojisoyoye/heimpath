@@ -190,7 +190,7 @@ function OperatingCostsSection(props: IProps) {
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Instandhaltungsrucklage
+                Instandhaltungsrücklage
               </p>
             </div>
           </div>
