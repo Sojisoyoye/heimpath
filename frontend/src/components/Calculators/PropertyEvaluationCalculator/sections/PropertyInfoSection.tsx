@@ -114,7 +114,6 @@ function PropertyInfoSection(props: IProps) {
               type="number"
               step="0.1"
               min="0"
-              required
               placeholder="e.g., 25.7"
               value={values.squareMeters || ""}
               onChange={(e) =>
