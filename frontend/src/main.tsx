@@ -21,7 +21,11 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 // Initialize API client with base URL and token handler
 initializeApiClient()
 
-const router = createRouter({ routeTree })
+const router = createRouter({
+  routeTree,
+  defaultPreloadStaleTime: 0,
+  scrollRestoration: true,
+})
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router
