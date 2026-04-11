@@ -9,6 +9,7 @@ import { cn } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { FieldTooltip } from "../FieldTooltip"
 import type { OperatingCostsInputs } from "../types"
 
 interface IProps {
@@ -104,6 +105,7 @@ function OperatingCostsSection(props: IProps) {
             <div className="space-y-2">
               <Label htmlFor="hausgeldAllocable">
                 House Allowance - Allocable (EUR/month)
+                <FieldTooltip text="Umlagefähige Nebenkosten — costs passed through to the tenant (heating, water, garbage, cleaning, etc.)" />
               </Label>
               <Input
                 id="hausgeldAllocable"
@@ -123,6 +125,7 @@ function OperatingCostsSection(props: IProps) {
             <div className="space-y-2">
               <Label htmlFor="propertyTaxMonthly">
                 Property Tax (EUR/month)
+                <FieldTooltip text="Grundsteuer — municipal property tax, allocable to the tenant under German law" />
               </Label>
               <Input
                 id="propertyTaxMonthly"
@@ -153,6 +156,7 @@ function OperatingCostsSection(props: IProps) {
             <div className="space-y-2">
               <Label htmlFor="hausgeldNonAllocable">
                 House Allowance - Non-allocable (EUR/month)
+                <FieldTooltip text="Nicht umlagefähige Kosten — landlord-only costs that cannot be passed to the tenant (property management fees, etc.)" />
               </Label>
               <Input
                 id="hausgeldNonAllocable"
@@ -170,7 +174,10 @@ function OperatingCostsSection(props: IProps) {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reservesPortion">Reserves (EUR/month)</Label>
+              <Label htmlFor="reservesPortion">
+                Reserves (EUR/month)
+                <FieldTooltip text="Instandhaltungsrücklage — mandatory repair fund contribution for the building, set by the HOA" />
+              </Label>
               <Input
                 id="reservesPortion"
                 type="number"

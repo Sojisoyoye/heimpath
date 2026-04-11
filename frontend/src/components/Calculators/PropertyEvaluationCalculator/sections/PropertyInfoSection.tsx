@@ -9,6 +9,7 @@ import { cn } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { FieldTooltip } from "../FieldTooltip"
 import type { PropertyInfoInputs } from "../types"
 
 interface IProps {
@@ -108,6 +109,7 @@ function PropertyInfoSection(props: IProps) {
           <div className="space-y-2">
             <Label htmlFor="squareMeters">
               Living Space (m²) <span className="text-destructive">*</span>
+              <FieldTooltip text="Total usable living area in square meters, as listed in the property exposé (Wohnfläche)" />
             </Label>
             <Input
               id="squareMeters"
@@ -155,7 +157,10 @@ function PropertyInfoSection(props: IProps) {
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="brokerFee">Broker Fee (%)</Label>
+              <Label htmlFor="brokerFee">
+                Broker Fee (%)
+                <FieldTooltip text="Maklergebühr — agent commission, typically 3-7% split between buyer and seller" />
+              </Label>
               <Input
                 id="brokerFee"
                 type="number"
@@ -169,7 +174,10 @@ function PropertyInfoSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notaryFee">Notary Fee (%)</Label>
+              <Label htmlFor="notaryFee">
+                Notary Fee (%)
+                <FieldTooltip text="Notargebühren — legally required for property transfer, typically ~1.5% of purchase price" />
+              </Label>
               <Input
                 id="notaryFee"
                 type="number"
@@ -183,7 +191,10 @@ function PropertyInfoSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="landRegistryFee">Land Registry Fee (%)</Label>
+              <Label htmlFor="landRegistryFee">
+                Land Registry Fee (%)
+                <FieldTooltip text="Grundbuchgebühren — fee for registering ownership in the Grundbuch, typically ~0.5%" />
+              </Label>
               <Input
                 id="landRegistryFee"
                 type="number"
@@ -197,7 +208,10 @@ function PropertyInfoSection(props: IProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="transferTax">Transfer Tax (%)</Label>
+              <Label htmlFor="transferTax">
+                Transfer Tax (%)
+                <FieldTooltip text="Grunderwerbsteuer — varies by state (Bundesland), from 3.5% to 6.5% of purchase price" />
+              </Label>
               <Input
                 id="transferTax"
                 type="number"
