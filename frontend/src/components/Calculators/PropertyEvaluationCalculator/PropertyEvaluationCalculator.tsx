@@ -409,6 +409,7 @@ function PropertyEvaluationCalculator(
             values={state.rent}
             squareMeters={state.propertyInfo.squareMeters}
             totalAllocableCosts={totalAllocableCosts}
+            stateCode={initialState}
             onChange={updateRent}
           />
           <OperatingCostsSection

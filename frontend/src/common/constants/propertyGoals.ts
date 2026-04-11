@@ -60,6 +60,8 @@ export const MARKET_DATA_BY_STATE: Record<
   {
     avgPricePerSqm: number
     priceRange: { min: number; max: number }
+    avgRentPerSqm: number
+    rentRange: { min: number; max: number }
     agentFeePercent: number
     trend: "rising" | "stable" | "falling"
     hotspots: string[]
@@ -68,6 +70,8 @@ export const MARKET_DATA_BY_STATE: Record<
   BW: {
     avgPricePerSqm: 3800,
     priceRange: { min: 2500, max: 6000 },
+    avgRentPerSqm: 10.5,
+    rentRange: { min: 7.5, max: 14.0 },
     agentFeePercent: 3.57,
     trend: "stable",
     hotspots: ["Stuttgart", "Freiburg", "Karlsruhe"],
@@ -75,6 +79,8 @@ export const MARKET_DATA_BY_STATE: Record<
   BY: {
     avgPricePerSqm: 4500,
     priceRange: { min: 2800, max: 9000 },
+    avgRentPerSqm: 12.0,
+    rentRange: { min: 8.0, max: 18.0 },
     agentFeePercent: 3.57,
     trend: "stable",
     hotspots: ["Munich", "Nuremberg", "Augsburg"],
@@ -82,6 +88,8 @@ export const MARKET_DATA_BY_STATE: Record<
   BE: {
     avgPricePerSqm: 5200,
     priceRange: { min: 3500, max: 8000 },
+    avgRentPerSqm: 13.5,
+    rentRange: { min: 10.0, max: 17.0 },
     agentFeePercent: 3.57,
     trend: "rising",
     hotspots: ["Mitte", "Prenzlauer Berg", "Kreuzberg"],
@@ -89,6 +97,8 @@ export const MARKET_DATA_BY_STATE: Record<
   BB: {
     avgPricePerSqm: 2800,
     priceRange: { min: 1800, max: 4500 },
+    avgRentPerSqm: 8.0,
+    rentRange: { min: 6.0, max: 11.0 },
     agentFeePercent: 3.57,
     trend: "rising",
     hotspots: ["Potsdam", "Cottbus", "Brandenburg an der Havel"],
@@ -96,6 +106,8 @@ export const MARKET_DATA_BY_STATE: Record<
   HB: {
     avgPricePerSqm: 2900,
     priceRange: { min: 2000, max: 4500 },
+    avgRentPerSqm: 8.5,
+    rentRange: { min: 6.5, max: 11.0 },
     agentFeePercent: 2.98,
     trend: "stable",
     hotspots: ["Bremen-Mitte", "Schwachhausen", "Horn-Lehe"],
@@ -103,6 +115,8 @@ export const MARKET_DATA_BY_STATE: Record<
   HH: {
     avgPricePerSqm: 5800,
     priceRange: { min: 4000, max: 10000 },
+    avgRentPerSqm: 13.0,
+    rentRange: { min: 9.5, max: 17.5 },
     agentFeePercent: 3.12,
     trend: "stable",
     hotspots: ["Eppendorf", "Winterhude", "Eimsbüttel"],
@@ -110,6 +124,8 @@ export const MARKET_DATA_BY_STATE: Record<
   HE: {
     avgPricePerSqm: 3600,
     priceRange: { min: 2200, max: 7000 },
+    avgRentPerSqm: 11.0,
+    rentRange: { min: 8.0, max: 15.0 },
     agentFeePercent: 2.98,
     trend: "stable",
     hotspots: ["Frankfurt", "Wiesbaden", "Darmstadt"],
@@ -117,6 +133,8 @@ export const MARKET_DATA_BY_STATE: Record<
   MV: {
     avgPricePerSqm: 2200,
     priceRange: { min: 1400, max: 4000 },
+    avgRentPerSqm: 7.5,
+    rentRange: { min: 5.5, max: 10.0 },
     agentFeePercent: 2.98,
     trend: "rising",
     hotspots: ["Rostock", "Schwerin", "Greifswald"],
@@ -124,6 +142,8 @@ export const MARKET_DATA_BY_STATE: Record<
   NI: {
     avgPricePerSqm: 2600,
     priceRange: { min: 1800, max: 4500 },
+    avgRentPerSqm: 8.5,
+    rentRange: { min: 6.5, max: 11.5 },
     agentFeePercent: 2.98,
     trend: "stable",
     hotspots: ["Hannover", "Braunschweig", "Oldenburg"],
@@ -131,6 +151,8 @@ export const MARKET_DATA_BY_STATE: Record<
   NW: {
     avgPricePerSqm: 3200,
     priceRange: { min: 2000, max: 6000 },
+    avgRentPerSqm: 9.5,
+    rentRange: { min: 7.0, max: 13.5 },
     agentFeePercent: 3.57,
     trend: "stable",
     hotspots: ["Düsseldorf", "Cologne", "Münster"],
@@ -138,6 +160,8 @@ export const MARKET_DATA_BY_STATE: Record<
   RP: {
     avgPricePerSqm: 2400,
     priceRange: { min: 1600, max: 4000 },
+    avgRentPerSqm: 8.0,
+    rentRange: { min: 6.0, max: 10.5 },
     agentFeePercent: 2.98,
     trend: "stable",
     hotspots: ["Mainz", "Koblenz", "Trier"],
@@ -145,6 +169,8 @@ export const MARKET_DATA_BY_STATE: Record<
   SL: {
     avgPricePerSqm: 2000,
     priceRange: { min: 1400, max: 3200 },
+    avgRentPerSqm: 7.0,
+    rentRange: { min: 5.5, max: 9.0 },
     agentFeePercent: 3.57,
     trend: "stable",
     hotspots: ["Saarbrücken", "Neunkirchen", "Homburg"],
@@ -152,6 +178,8 @@ export const MARKET_DATA_BY_STATE: Record<
   SN: {
     avgPricePerSqm: 2400,
     priceRange: { min: 1600, max: 4000 },
+    avgRentPerSqm: 7.5,
+    rentRange: { min: 5.5, max: 10.0 },
     agentFeePercent: 2.98,
     trend: "rising",
     hotspots: ["Leipzig", "Dresden", "Chemnitz"],
@@ -159,6 +187,8 @@ export const MARKET_DATA_BY_STATE: Record<
   ST: {
     avgPricePerSqm: 1800,
     priceRange: { min: 1200, max: 3000 },
+    avgRentPerSqm: 6.5,
+    rentRange: { min: 5.0, max: 8.5 },
     agentFeePercent: 2.98,
     trend: "stable",
     hotspots: ["Magdeburg", "Halle", "Dessau"],
@@ -166,6 +196,8 @@ export const MARKET_DATA_BY_STATE: Record<
   SH: {
     avgPricePerSqm: 3000,
     priceRange: { min: 2000, max: 5500 },
+    avgRentPerSqm: 9.5,
+    rentRange: { min: 7.0, max: 12.5 },
     agentFeePercent: 3.57,
     trend: "stable",
     hotspots: ["Kiel", "Lübeck", "Flensburg"],
@@ -173,6 +205,8 @@ export const MARKET_DATA_BY_STATE: Record<
   TH: {
     avgPricePerSqm: 1900,
     priceRange: { min: 1300, max: 3200 },
+    avgRentPerSqm: 6.5,
+    rentRange: { min: 5.0, max: 8.5 },
     agentFeePercent: 2.98,
     trend: "stable",
     hotspots: ["Erfurt", "Jena", "Weimar"],
