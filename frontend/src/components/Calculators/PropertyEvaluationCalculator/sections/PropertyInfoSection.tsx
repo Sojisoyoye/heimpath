@@ -88,7 +88,12 @@ function PropertyInfoSection(props: IProps) {
       <CardContent className="space-y-4 pt-4">
         {/* Address */}
         <div className="space-y-2">
-          <Label htmlFor="address">Address</Label>
+          <Label htmlFor="address">
+            Address{" "}
+            <span className="font-normal text-muted-foreground">
+              (optional)
+            </span>
+          </Label>
           <Input
             id="address"
             type="text"
@@ -101,7 +106,9 @@ function PropertyInfoSection(props: IProps) {
         {/* Size and Price */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="squareMeters">Living Space (m²)</Label>
+            <Label htmlFor="squareMeters">
+              Living Space (m²) <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="squareMeters"
               type="number"

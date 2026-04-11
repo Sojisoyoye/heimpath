@@ -373,21 +373,25 @@ function PropertyEvaluationCalculator(
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header */}
-      <div className="flex items-start gap-4">
-        {journeyId && (
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/journeys/$journeyId" params={{ journeyId }}>
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-        )}
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">Property Evaluation Calculator</h1>
-          <p className="text-muted-foreground">
-            Analyze investment property cashflow and returns
-          </p>
+      <div className="space-y-3 sm:space-y-0 sm:flex sm:items-start sm:gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          {journeyId && (
+            <Button variant="ghost" size="icon" className="shrink-0" asChild>
+              <Link to="/journeys/$journeyId" params={{ journeyId }}>
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </Button>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold">
+              Property Evaluation Calculator
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Analyze investment property cashflow and returns
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={handleReset}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Reset
