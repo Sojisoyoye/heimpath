@@ -363,7 +363,7 @@ function PropertyEvaluationCalculator(
     <div className={cn("space-y-6", className)}>
       {/* Header */}
       <div className="space-y-3 sm:space-y-0 sm:flex sm:items-start sm:gap-4">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="flex items-start gap-3 sm:flex-1 min-w-0">
           {journeyId && (
             <Button variant="ghost" size="icon" className="shrink-0" asChild>
               <Link to="/journeys/$journeyId" params={{ journeyId }}>
