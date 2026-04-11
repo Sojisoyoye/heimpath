@@ -3,8 +3,10 @@
  * Inputs for rental income, depreciation, tax settings, and forecast assumptions
  */
 
-import { Banknote } from "lucide-react"
+import { Banknote, Info } from "lucide-react"
+import { GERMAN_STATES } from "@/common/constants"
 import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
+import { MARKET_DATA_BY_STATE } from "@/common/constants/propertyGoals"
 import { cn } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,6 +18,7 @@ interface IProps {
   values: RentInputs
   squareMeters: number
   totalAllocableCosts: number
+  stateCode?: string
   onChange: (updates: Partial<RentInputs>) => void
   className?: string
 }
@@ -36,8 +39,19 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
 
 /** Default component. Rent, Taxes, Forecast section. */
 function RentSection(props: IProps) {
-  const { values, squareMeters, totalAllocableCosts, onChange, className } =
-    props
+  const {
+    values,
+    squareMeters,
+    totalAllocableCosts,
+    stateCode,
+    onChange,
+    className,
+  } = props
+
+  const marketData = stateCode ? MARKET_DATA_BY_STATE[stateCode] : undefined
+  const stateName = stateCode
+    ? GERMAN_STATES.find((s) => s.code === stateCode)?.name
+    : undefined
 
   const handleNumberChange = (field: keyof RentInputs, value: string) => {
     const num = parseFloat(value) || 0
@@ -91,6 +105,15 @@ function RentSection(props: IProps) {
             />
           </div>
         </div>
+        {marketData && stateName && (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Info className="h-3 w-3 shrink-0" />
+            Average in {stateName}:{" "}
+            {CURRENCY_FORMATTER.format(marketData.avgRentPerSqm)}/m² (range:{" "}
+            {CURRENCY_FORMATTER.format(marketData.rentRange.min)} –{" "}
+            {CURRENCY_FORMATTER.format(marketData.rentRange.max)})
+          </p>
+        )}
 
         {/* Rent summary */}
         {squareMeters > 0 && (
