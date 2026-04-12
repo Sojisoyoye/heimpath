@@ -85,14 +85,17 @@ function DocumentUploadForm(props: IProps) {
         return
       }
       setValidationError(null)
-      uploadMutation.mutate(file, {
-        onSuccess: (data) => {
-          navigate({
-            to: "/documents/$documentId",
-            params: { documentId: data.id },
-          })
+      uploadMutation.mutate(
+        { file },
+        {
+          onSuccess: (data) => {
+            navigate({
+              to: "/documents/$documentId",
+              params: { documentId: data.id },
+            })
+          },
         },
-      })
+      )
     },
     [validateFile, uploadMutation, navigate],
   )

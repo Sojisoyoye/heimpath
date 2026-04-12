@@ -5,6 +5,8 @@ processing status, and retrieving translations with clause detection
 and risk warnings.
 """
 
+import uuid
+
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -14,6 +16,7 @@ from fastapi import (
     UploadFile,
     status,
 )
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
@@ -71,6 +74,7 @@ def _build_detail_response(document: Document) -> DocumentDetailResponse:
         status=document.status,
         error_message=document.error_message,
         share_id=document.share_id,
+        journey_step_id=document.journey_step_id,
         created_at=document.created_at,
         translation=translation_response,
     )
@@ -85,6 +89,7 @@ async def upload_document(
     file: UploadFile,
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
+    journey_step_id: uuid.UUID | None = Query(default=None),
     session: AsyncSession = Depends(get_async_session),
 ) -> DocumentUploadResponse:
     """
@@ -123,12 +128,20 @@ async def upload_document(
             file_content=content,
             filename=file.filename or "document.pdf",
             is_premium=is_premium,
+            journey_step_id=journey_step_id,
         )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+    except IntegrityError as e:
+        if journey_step_id is not None and "journey_step_id" in str(e.orig):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid journey_step_id: step does not exist",
+            )
+        raise
 
     # Queue background processing
     background_tasks.add_task(
@@ -144,6 +157,7 @@ async def upload_document(
         page_count=document.page_count,
         document_type=document.document_type,
         status=document.status,
+        journey_step_id=document.journey_step_id,
     )
 
 
@@ -190,6 +204,39 @@ async def get_shared_document(
     return _build_detail_response(document)
 
 
+@router.get("/by-step/{step_id}", response_model=list[DocumentSummary])
+async def get_documents_by_step(
+    step_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: AsyncSession = Depends(get_async_session),
+) -> list[DocumentSummary]:
+    """
+    Get all documents linked to a journey step.
+
+    Returns documents owned by the current user that were uploaded
+    for the specified journey step.
+    """
+    documents = await document_service.get_documents_by_step_id(
+        session=session,
+        step_id=step_id,
+        user_id=current_user.id,
+    )
+    return [
+        DocumentSummary(
+            id=str(doc.id),
+            original_filename=doc.original_filename,
+            file_size_bytes=doc.file_size_bytes,
+            page_count=doc.page_count,
+            document_type=doc.document_type,
+            status=doc.status,
+            share_id=doc.share_id,
+            journey_step_id=doc.journey_step_id,
+            created_at=doc.created_at,
+        )
+        for doc in documents
+    ]
+
+
 @router.get("/", response_model=DocumentListResponse)
 async def list_documents(
     current_user: CurrentUser,
@@ -225,6 +272,7 @@ async def list_documents(
                 document_type=doc.document_type,
                 status=doc.status,
                 share_id=doc.share_id,
+                journey_step_id=doc.journey_step_id,
                 created_at=doc.created_at,
             )
             for doc in documents

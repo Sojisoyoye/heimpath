@@ -23,6 +23,7 @@ export interface DocumentSummary {
   documentType: DocumentType
   status: DocumentStatus
   shareId: string | null
+  journeyStepId: string | null
   createdAt: string
 }
 
@@ -69,6 +70,7 @@ export interface DocumentDetail {
   status: DocumentStatus
   errorMessage: string | null
   shareId: string | null
+  journeyStepId: string | null
   createdAt: string
   translation: DocumentTranslation | null
 }

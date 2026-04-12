@@ -10,6 +10,7 @@ import type {
   DocumentListResponse,
   DocumentShareResponse,
   DocumentStatusInfo,
+  DocumentSummary,
   DocumentTranslation,
   DocumentUsageInfo,
 } from "@/models/document"
@@ -23,6 +24,7 @@ interface UploadResponse {
   pageCount: number
   documentType: string
   status: string
+  journeyStepId: string | null
 }
 
 /******************************************************************************
@@ -33,17 +35,37 @@ class DocumentServiceClass {
   /**
    * Upload a PDF document for translation
    */
-  async uploadDocument(file: File): Promise<UploadResponse> {
+  async uploadDocument(
+    file: File,
+    journeyStepId?: string,
+  ): Promise<UploadResponse> {
     const formData = new FormData()
     formData.append("file", file)
 
+    const url = journeyStepId
+      ? `${PATHS.DOCUMENTS.UPLOAD}?journey_step_id=${encodeURIComponent(journeyStepId)}`
+      : PATHS.DOCUMENTS.UPLOAD
+
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
-      url: PATHS.DOCUMENTS.UPLOAD,
+      url,
       formData: { file },
       mediaType: "multipart/form-data",
     })
     return transformKeys<UploadResponse>(response)
+  }
+
+  /**
+   * Get documents linked to a specific journey step
+   */
+  async getDocumentsByStep(stepId: string): Promise<DocumentSummary[]> {
+    const response = await request<Record<string, unknown>[]>(OpenAPI, {
+      method: "GET",
+      url: PATHS.DOCUMENTS.BY_STEP(stepId),
+    })
+    return (response as Record<string, unknown>[]).map((doc) =>
+      transformKeys<DocumentSummary>(doc),
+    )
   }
 
   /**

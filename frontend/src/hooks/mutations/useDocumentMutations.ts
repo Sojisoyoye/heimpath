@@ -7,15 +7,26 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { queryKeys } from "@/query/queryKeys"
 import { DocumentService } from "@/services/DocumentService"
 
+interface UploadDocumentArgs {
+  file: File
+  journeyStepId?: string
+}
+
 export function useUploadDocument() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (file: File) => DocumentService.uploadDocument(file),
-    onSuccess: () => {
+    mutationFn: ({ file, journeyStepId }: UploadDocumentArgs) =>
+      DocumentService.uploadDocument(file, journeyStepId),
+    onSuccess: (_data, { journeyStepId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.documents.all,
       })
+      if (journeyStepId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.documents.byStep(journeyStepId),
+        })
+      }
     },
   })
 }

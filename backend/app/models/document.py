@@ -79,6 +79,14 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         index=True,
     )
 
+    # Optional link to a journey step
+    journey_step_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("journey_step.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     # File metadata
     original_filename = Column(String(500), nullable=False)
     stored_filename = Column(String(500), nullable=False)

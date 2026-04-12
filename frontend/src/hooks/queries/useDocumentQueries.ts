@@ -70,3 +70,11 @@ export function useDocumentUsage() {
     queryFn: () => DocumentService.getUsage(),
   })
 }
+
+export function useStepDocuments(stepId: string) {
+  return useQuery({
+    queryKey: queryKeys.documents.byStep(stepId),
+    queryFn: () => DocumentService.getDocumentsByStep(stepId),
+    enabled: !!stepId,
+  })
+}

@@ -185,6 +185,7 @@ async def save_upload(
     file_content: bytes,
     filename: str,
     is_premium: bool,
+    journey_step_id: uuid.UUID | None = None,
 ) -> Document:
     """Validate, save, and register an uploaded PDF document.
 
@@ -194,6 +195,7 @@ async def save_upload(
         file_content: Raw file bytes.
         filename: Original filename.
         is_premium: Whether user has premium subscription.
+        journey_step_id: Optional journey step to link the document to.
 
     Returns:
         Created Document database record.
@@ -235,6 +237,7 @@ async def save_upload(
     # Create DB record
     document = Document(
         user_id=user_id,
+        journey_step_id=journey_step_id,
         original_filename=filename,
         stored_filename=stored_filename,
         file_path=file_path,
@@ -590,6 +593,29 @@ async def delete_document(
 
     await session.delete(document)
     await session.commit()
+
+
+async def get_documents_by_step_id(
+    session: AsyncSession,
+    step_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> list[Document]:
+    """Get all documents linked to a journey step, owned by user.
+
+    Args:
+        session: Async database session.
+        step_id: Journey step UUID.
+        user_id: User UUID for ownership check.
+
+    Returns:
+        List of documents linked to the step.
+    """
+    result = await session.execute(
+        select(Document)
+        .where(Document.journey_step_id == step_id, Document.user_id == user_id)
+        .order_by(Document.created_at.desc())
+    )
+    return list(result.scalars().all())
 
 
 async def count_user_documents(
