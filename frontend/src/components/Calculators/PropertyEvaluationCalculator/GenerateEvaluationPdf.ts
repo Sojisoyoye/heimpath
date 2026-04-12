@@ -234,31 +234,16 @@ function ensureSpace(doc: jsPDF, y: number, needed: number): number {
   return y
 }
 
-/******************************************************************************
-                              Export
-******************************************************************************/
-
-/** Generate and download a branded PDF evaluation report. */
-export function generateEvaluationPdf(
+/** Add the Property Overview section (shared by both variants). */
+function addPropertyOverview(
+  doc: jsPDF,
+  sectionNum: number,
   state: PropertyEvaluationState,
   results: EvaluationResults,
-): void {
-  const doc = new jsPDF({ unit: "mm", format: "a4" })
-  const date = new Date().toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  })
-
-  // Header
-  let y = addHeader(doc, state.propertyInfo.address, date)
-
-  // Cashflow highlight
-  y = addCashflowHighlight(doc, results, y)
-
-  // 1. Property Overview
-  y = ensureSpace(doc, y, 50)
-  y = addSectionTitle(doc, "1. Property Overview", y)
+  startY: number,
+): number {
+  let y = ensureSpace(doc, startY, 50)
+  y = addSectionTitle(doc, `${sectionNum}. Property Overview`, y)
   y = addTable(
     doc,
     [
@@ -277,63 +262,19 @@ export function generateEvaluationPdf(
     ],
     y,
   )
-  y += 6
+  return y + 6
+}
 
-  // 2. Rent & Yield
-  y = ensureSpace(doc, y, 50)
-  y = addSectionTitle(doc, "2. Rent & Yield", y)
-  y = addTable(
-    doc,
-    [
-      ["Rent per m²", eur2(state.rent.rentPerSqm)],
-      ["Parking Rent", eur(state.rent.parkingRent)],
-      ["Cold Rent (monthly)", eur(results.coldRentMonthly)],
-      ["Warm Rent (monthly)", eur(results.warmRentMonthly)],
-      ["Net Cold Rent (yearly)", eur(results.netColdRentYearly)],
-      ["Gross Rental Yield", pct(results.grossRentalYield)],
-      ["Net Rental Yield", pct(results.netRentalYield)],
-      ["Cold Rent Factor (Kaufpreisfaktor)", factor(results.coldRentFactor)],
-    ],
-    y,
-  )
-  y += 6
-
-  // 3. Operating Costs
-  y = ensureSpace(doc, y, 40)
-  y = addSectionTitle(doc, "3. Operating Costs", y)
-  y = addTable(
-    doc,
-    [
-      [
-        "Allocable Hausgeld",
-        `${eur(state.operatingCosts.hausgeldAllocable)} / mo`,
-      ],
-      [
-        "Property Tax (Grundsteuer)",
-        `${eur(state.operatingCosts.propertyTaxMonthly)} / mo`,
-      ],
-      ["Total Allocable Costs", `${eur(results.totalAllocableCosts)} / mo`],
-      [
-        "Non-Allocable Hausgeld",
-        `${eur(state.operatingCosts.hausgeldNonAllocable)} / mo`,
-      ],
-      [
-        "Reserves (Instandhaltungsrücklage)",
-        `${eur(state.operatingCosts.reservesPortion)} / mo`,
-      ],
-      [
-        "Total Non-Allocable Costs",
-        `${eur(results.totalNonAllocableCosts)} / mo`,
-      ],
-      ["Total Hausgeld", `${eur(results.totalHausgeld)} / mo`],
-    ],
-    y,
-  )
-  y += 6
-
-  // 4. Financing
-  y = ensureSpace(doc, y, 50)
-  y = addSectionTitle(doc, "4. Financing", y)
+/** Add the Financing section (shared by both variants). */
+function addFinancingSection(
+  doc: jsPDF,
+  sectionNum: number,
+  state: PropertyEvaluationState,
+  results: EvaluationResults,
+  startY: number,
+): number {
+  let y = ensureSpace(doc, startY, 50)
+  y = addSectionTitle(doc, `${sectionNum}. Financing`, y)
   y = addTable(
     doc,
     [
@@ -352,67 +293,227 @@ export function generateEvaluationPdf(
     ],
     y,
   )
-  y += 6
+  return y + 6
+}
 
-  // 5. Monthly Cashflow
-  y = ensureSpace(doc, y, 50)
-  y = addSectionTitle(doc, "5. Monthly Cashflow", y)
-  y = addTable(
-    doc,
-    [
-      ["Warm Rent", eur(results.warmRentMonthly)],
-      ["– Non-Allocable Costs", eur(results.totalNonAllocableCosts)],
-      ["– Debt Service", eur(results.debtServiceMonthly)],
-      ["= Cashflow Before Tax", eur(results.cashflowBeforeTax)],
-      ["– Tax / + Tax Benefit", eur(results.taxMonthly)],
-      ["= Cashflow After Tax", eur(results.cashflowAfterTax)],
-    ],
-    y,
-  )
-  y += 6
+/** Add the owner-occupier cost highlight box. */
+function addOwnerCostHighlight(
+  doc: jsPDF,
+  results: EvaluationResults,
+  y: number,
+): number {
+  const boxHeight = 18
+  const monthlyCost = results.totalHausgeld + results.debtServiceMonthly
 
-  // 6. Tax Calculation
-  y = ensureSpace(doc, y, 50)
-  y = addSectionTitle(doc, "6. Tax Calculation", y)
-  y = addTable(
-    doc,
-    [
-      ["AfA Depreciation Rate", pct(state.rent.depreciationRatePercent)],
-      ["Building Share", pct(state.rent.buildingSharePercent)],
-      ["Depreciation (yearly)", eur(results.depreciationYearly)],
-      ["Depreciation (monthly)", eur2(results.depreciationMonthly)],
-      ["Interest Expense (yearly)", eur(results.interestYearly)],
-      ["Marginal Tax Rate", pct(state.rent.marginalTaxRatePercent)],
-      ["Taxable Income (monthly)", eur2(results.taxableCashflowMonthly)],
-      ["Tax / Benefit (yearly)", eur(results.taxYearly)],
-      ["Tax / Benefit (monthly)", eur2(results.taxMonthly)],
-    ],
-    y,
-  )
-  y += 6
+  // Blue border box
+  doc.setDrawColor(...BRAND_BLUE)
+  doc.setLineWidth(0.6)
+  doc.setFillColor(255, 255, 255)
+  doc.rect(PAGE_MARGIN, y, CONTENT_WIDTH, boxHeight, "S")
 
-  // 7. Return on Equity
-  y = ensureSpace(doc, y, 30)
-  y = addSectionTitle(doc, "7. Return on Equity", y)
-  addTable(
-    doc,
-    [
-      ["Return on Equity (with appreciation)", pct(results.returnOnEquity)],
+  // Label
+  doc.setFontSize(9)
+  doc.setTextColor(...TEXT_MUTED)
+  doc.setFont("helvetica", "normal")
+  doc.text("Monthly Cost of Ownership", PAGE_MARGIN + 4, y + 7)
+
+  // Value
+  doc.setFontSize(16)
+  doc.setTextColor(...BRAND_BLUE)
+  doc.setFont("helvetica", "bold")
+  doc.text(`${eur(monthlyCost)} / mo`, PAGE_MARGIN + 4, y + 14.5)
+
+  return y + boxHeight + 8
+}
+
+/******************************************************************************
+                              Export
+******************************************************************************/
+
+/** Generate and download a branded PDF evaluation report. */
+export function generateEvaluationPdf(
+  state: PropertyEvaluationState,
+  results: EvaluationResults,
+  isOwnerOccupier?: boolean,
+): void {
+  const doc = new jsPDF({ unit: "mm", format: "a4" })
+  const date = new Date().toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+
+  // Header
+  let y = addHeader(doc, state.propertyInfo.address, date)
+
+  if (isOwnerOccupier) {
+    // Owner-occupier variant: cost of ownership focus
+    y = addOwnerCostHighlight(doc, results, y)
+    y = addPropertyOverview(doc, 1, state, results, y)
+
+    // 2. Operating Costs
+    y = ensureSpace(doc, y, 40)
+    y = addSectionTitle(doc, "2. Operating Costs", y)
+    y = addTable(
+      doc,
       [
-        "Return on Equity (without appreciation)",
-        pct(results.returnOnEquityWithoutAppreciation),
+        ["Total Hausgeld", `${eur(results.totalHausgeld)} / mo`],
+        [
+          "Allocable Hausgeld",
+          `${eur(state.operatingCosts.hausgeldAllocable)} / mo`,
+        ],
+        [
+          "Property Tax (Grundsteuer)",
+          `${eur(state.operatingCosts.propertyTaxMonthly)} / mo`,
+        ],
+        [
+          "Non-Allocable Hausgeld",
+          `${eur(state.operatingCosts.hausgeldNonAllocable)} / mo`,
+        ],
+        [
+          "Reserves (Instandhaltungsrücklage)",
+          `${eur(state.operatingCosts.reservesPortion)} / mo`,
+        ],
       ],
+      y,
+    )
+    y += 6
+
+    y = addFinancingSection(doc, 3, state, results, y)
+
+    // 4. Monthly Cost Breakdown
+    const monthlyCost = results.totalHausgeld + results.debtServiceMonthly
+    y = ensureSpace(doc, y, 40)
+    y = addSectionTitle(doc, "4. Monthly Cost Breakdown", y)
+    addTable(
+      doc,
       [
-        "Value Increase Assumption",
-        `${pct(state.rent.valueIncreasePercent)} p.a.`,
+        ["Management Costs (Hausgeld)", eur(results.totalHausgeld)],
+        ["Interest", eur(results.monthlyInterest)],
+        ["Repayment / Acquittance", eur(results.monthlyRepayment)],
+        ["Total Monthly Cost", eur(monthlyCost)],
       ],
+      y,
+    )
+  } else {
+    // Investment variant: full cashflow analysis
+    y = addCashflowHighlight(doc, results, y)
+    y = addPropertyOverview(doc, 1, state, results, y)
+
+    // 2. Rent & Yield
+    y = ensureSpace(doc, y, 50)
+    y = addSectionTitle(doc, "2. Rent & Yield", y)
+    y = addTable(
+      doc,
       [
-        "Equity Interest Opportunity Cost",
-        `${pct(state.rent.equityInterestPercent)} p.a.`,
+        ["Rent per m²", eur2(state.rent.rentPerSqm)],
+        ["Parking Rent", eur(state.rent.parkingRent)],
+        ["Cold Rent (monthly)", eur(results.coldRentMonthly)],
+        ["Warm Rent (monthly)", eur(results.warmRentMonthly)],
+        ["Net Cold Rent (yearly)", eur(results.netColdRentYearly)],
+        ["Gross Rental Yield", pct(results.grossRentalYield)],
+        ["Net Rental Yield", pct(results.netRentalYield)],
+        ["Cold Rent Factor (Kaufpreisfaktor)", factor(results.coldRentFactor)],
       ],
-    ],
-    y,
-  )
+      y,
+    )
+    y += 6
+
+    // 3. Operating Costs
+    y = ensureSpace(doc, y, 40)
+    y = addSectionTitle(doc, "3. Operating Costs", y)
+    y = addTable(
+      doc,
+      [
+        [
+          "Allocable Hausgeld",
+          `${eur(state.operatingCosts.hausgeldAllocable)} / mo`,
+        ],
+        [
+          "Property Tax (Grundsteuer)",
+          `${eur(state.operatingCosts.propertyTaxMonthly)} / mo`,
+        ],
+        ["Total Allocable Costs", `${eur(results.totalAllocableCosts)} / mo`],
+        [
+          "Non-Allocable Hausgeld",
+          `${eur(state.operatingCosts.hausgeldNonAllocable)} / mo`,
+        ],
+        [
+          "Reserves (Instandhaltungsrücklage)",
+          `${eur(state.operatingCosts.reservesPortion)} / mo`,
+        ],
+        [
+          "Total Non-Allocable Costs",
+          `${eur(results.totalNonAllocableCosts)} / mo`,
+        ],
+        ["Total Hausgeld", `${eur(results.totalHausgeld)} / mo`],
+      ],
+      y,
+    )
+    y += 6
+
+    y = addFinancingSection(doc, 4, state, results, y)
+
+    // 5. Monthly Cashflow
+    y = ensureSpace(doc, y, 50)
+    y = addSectionTitle(doc, "5. Monthly Cashflow", y)
+    y = addTable(
+      doc,
+      [
+        ["Warm Rent", eur(results.warmRentMonthly)],
+        ["– Non-Allocable Costs", eur(results.totalNonAllocableCosts)],
+        ["– Debt Service", eur(results.debtServiceMonthly)],
+        ["= Cashflow Before Tax", eur(results.cashflowBeforeTax)],
+        ["– Tax / + Tax Benefit", eur(results.taxMonthly)],
+        ["= Cashflow After Tax", eur(results.cashflowAfterTax)],
+      ],
+      y,
+    )
+    y += 6
+
+    // 6. Tax Calculation
+    y = ensureSpace(doc, y, 50)
+    y = addSectionTitle(doc, "6. Tax Calculation", y)
+    y = addTable(
+      doc,
+      [
+        ["AfA Depreciation Rate", pct(state.rent.depreciationRatePercent)],
+        ["Building Share", pct(state.rent.buildingSharePercent)],
+        ["Depreciation (yearly)", eur(results.depreciationYearly)],
+        ["Depreciation (monthly)", eur2(results.depreciationMonthly)],
+        ["Interest Expense (yearly)", eur(results.interestYearly)],
+        ["Marginal Tax Rate", pct(state.rent.marginalTaxRatePercent)],
+        ["Taxable Income (monthly)", eur2(results.taxableCashflowMonthly)],
+        ["Tax / Benefit (yearly)", eur(results.taxYearly)],
+        ["Tax / Benefit (monthly)", eur2(results.taxMonthly)],
+      ],
+      y,
+    )
+    y += 6
+
+    // 7. Return on Equity
+    y = ensureSpace(doc, y, 30)
+    y = addSectionTitle(doc, "7. Return on Equity", y)
+    addTable(
+      doc,
+      [
+        ["Return on Equity (with appreciation)", pct(results.returnOnEquity)],
+        [
+          "Return on Equity (without appreciation)",
+          pct(results.returnOnEquityWithoutAppreciation),
+        ],
+        [
+          "Value Increase Assumption",
+          `${pct(state.rent.valueIncreasePercent)} p.a.`,
+        ],
+        [
+          "Equity Interest Opportunity Cost",
+          `${pct(state.rent.equityInterestPercent)} p.a.`,
+        ],
+      ],
+      y,
+    )
+  }
 
   // Footer on all pages
   addFooter(doc)

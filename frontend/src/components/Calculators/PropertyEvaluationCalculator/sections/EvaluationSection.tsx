@@ -3,7 +3,7 @@
  * Displays calculated results: yields, cashflow, tax, and return on equity
  */
 
-import { Calculator, Info, TrendingDown, TrendingUp } from "lucide-react"
+import { Calculator, Home, Info, TrendingDown, TrendingUp } from "lucide-react"
 import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
 import { cn } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import type { EvaluationResults } from "../types"
 
 interface IProps {
   results: EvaluationResults | null
+  isOwnerOccupier?: boolean
   className?: string
 }
 
@@ -76,9 +77,226 @@ function EmptyState() {
   )
 }
 
+/** Owner-occupier results view. */
+function OwnerOccupierView(props: { results: EvaluationResults }) {
+  const { results } = props
+  const monthlyCost = results.totalHausgeld + results.debtServiceMonthly
+
+  return (
+    <CardContent className="space-y-4 pt-4">
+      {/* Hero: Monthly Cost of Ownership */}
+      <div className="rounded-lg border-2 border-blue-300 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-950/30">
+        <div className="mb-2 flex items-center gap-2">
+          <Home className="h-5 w-5 text-blue-600" />
+          <span className="text-sm font-medium">Monthly Cost of Ownership</span>
+        </div>
+        <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          {CURRENCY_FORMATTER.format(monthlyCost)} / month
+        </span>
+      </div>
+
+      {/* Monthly Cost Breakdown */}
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">
+          Monthly Cost Breakdown
+        </p>
+        <ResultLine
+          label="Management Costs (Hausgeld)"
+          value={CURRENCY_FORMATTER.format(results.totalHausgeld)}
+        />
+        <ResultLine
+          label="Interest"
+          value={CURRENCY_FORMATTER.format(results.monthlyInterest)}
+        />
+        <ResultLine
+          label="Repayment / Acquittance"
+          value={CURRENCY_FORMATTER.format(results.monthlyRepayment)}
+        />
+        <Separator />
+        <ResultLine
+          label="Total Monthly Cost"
+          value={CURRENCY_FORMATTER.format(monthlyCost)}
+          highlight
+        />
+      </div>
+    </CardContent>
+  )
+}
+
+/** Investment results view. */
+function InvestorView(props: { results: EvaluationResults }) {
+  const { results } = props
+  const CashflowIcon = results.isPositiveCashflow ? TrendingUp : TrendingDown
+
+  return (
+    <CardContent className="space-y-4 pt-4">
+      {/* Main cashflow display */}
+      <div
+        className={cn(
+          "rounded-lg p-4 border-2",
+          results.isPositiveCashflow
+            ? "bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-700"
+            : "bg-red-50 border-red-300 dark:bg-red-950/30 dark:border-red-700",
+        )}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <CashflowIcon
+            className={cn(
+              "h-5 w-5",
+              results.isPositiveCashflow ? "text-green-600" : "text-red-600",
+            )}
+          />
+          <span className="text-sm font-medium">Cashflow after Taxes</span>
+        </div>
+        <span
+          className={cn(
+            "text-2xl font-bold",
+            results.isPositiveCashflow
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400",
+          )}
+        >
+          {CURRENCY_FORMATTER.format(results.cashflowAfterTax)} / month
+        </span>
+      </div>
+
+      {/* Rent and Rental Yield */}
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">
+          Rent and Rental Yield
+        </p>
+        <ResultLine
+          label="Net Cold Rent per Year"
+          value={CURRENCY_FORMATTER.format(results.netColdRentYearly)}
+        />
+        <ResultLine
+          label="Gross Rental Yield"
+          value={PERCENT_FORMATTER.format(results.grossRentalYield / 100)}
+          highlight
+          info="Annual cold rent / Purchase price"
+        />
+        <ResultLine
+          label="Factor of Cold Rent vs. Price"
+          value={results.coldRentFactor.toFixed(1)}
+          info="Purchase price / Annual cold rent (Kaufpreisfaktor)"
+        />
+      </div>
+
+      <Separator />
+
+      {/* Cashflow per Month */}
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">
+          Cashflow per Month
+        </p>
+        <ResultLine
+          label="Warm Rent"
+          value={CURRENCY_FORMATTER.format(results.warmRentMonthly)}
+        />
+        <ResultLine
+          label="- Management Costs"
+          value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeld)}`}
+        />
+        <ResultLine
+          label="- Interest"
+          value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterest)}`}
+        />
+        <ResultLine
+          label="- Repayment / Acquittance"
+          value={`- ${CURRENCY_FORMATTER.format(results.monthlyRepayment)}`}
+        />
+        <ResultLine
+          label="= Cashflow"
+          value={CURRENCY_FORMATTER.format(results.cashflowBeforeTax)}
+          highlight
+        />
+        <div className="text-xs text-muted-foreground italic py-1">
+          your surplus before taxes
+        </div>
+        <ResultLine
+          label={results.taxMonthly >= 0 ? "- Taxes" : "- Tax Benefit"}
+          value={`- ${CURRENCY_FORMATTER.format(Math.abs(results.taxMonthly))}`}
+        />
+        <ResultLine
+          label="= Cashflow after Taxes"
+          value={CURRENCY_FORMATTER.format(results.cashflowAfterTax)}
+          highlight
+        />
+      </div>
+
+      <Separator />
+
+      {/* Tax Calculation */}
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">
+          Tax Calculation
+        </p>
+        <ResultLine
+          label="Warm Rent"
+          value={CURRENCY_FORMATTER.format(results.warmRentMonthly)}
+        />
+        <ResultLine
+          label="- Management Costs"
+          value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeld)}`}
+        />
+        <ResultLine
+          label="- Interest"
+          value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterest)}`}
+        />
+        <ResultLine
+          label="- Depreciation (AfA)"
+          value={`- ${CURRENCY_FORMATTER.format(results.depreciationMonthly)}`}
+          info="Tax-deductible depreciation on building value"
+        />
+        <ResultLine
+          label="= Taxable Cashflow"
+          value={CURRENCY_FORMATTER.format(results.taxableCashflowMonthly)}
+          highlight
+        />
+        <ResultLine
+          label={results.taxMonthly >= 0 ? "= Taxes" : "= Tax Benefit"}
+          value={
+            results.taxMonthly >= 0
+              ? CURRENCY_FORMATTER.format(results.taxMonthly)
+              : `- ${CURRENCY_FORMATTER.format(Math.abs(results.taxMonthly))}`
+          }
+          highlight
+          info={
+            results.taxMonthly >= 0
+              ? "Subtracted from cashflow"
+              : "Negative taxable income creates a tax benefit (added to cashflow)"
+          }
+        />
+      </div>
+
+      <Separator />
+
+      {/* Return on Equity in Year 1 */}
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">
+          Return on Equity in Year 1
+        </p>
+        <ResultLine
+          label="Return on Equity"
+          value={PERCENT_FORMATTER.format(results.returnOnEquity / 100)}
+          highlight
+          info="(Annual cashflow + appreciation) / Equity"
+        />
+        <ResultLine
+          label="Without Appreciation"
+          value={PERCENT_FORMATTER.format(
+            results.returnOnEquityWithoutAppreciation / 100,
+          )}
+          info="Annual cashflow / Equity"
+        />
+      </div>
+    </CardContent>
+  )
+}
+
 /** Default component. Evaluation results section. */
 function EvaluationSection(props: IProps) {
-  const { results, className } = props
+  const { results, isOwnerOccupier, className } = props
 
   if (!results) {
     return (
@@ -96,8 +314,6 @@ function EvaluationSection(props: IProps) {
     )
   }
 
-  const CashflowIcon = results.isPositiveCashflow ? TrendingUp : TrendingDown
-
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className={cn("py-3", SECTION_COLORS.evaluation)}>
@@ -106,168 +322,11 @@ function EvaluationSection(props: IProps) {
           Evaluation
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pt-4">
-        {/* Main cashflow display */}
-        <div
-          className={cn(
-            "rounded-lg p-4 border-2",
-            results.isPositiveCashflow
-              ? "bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-700"
-              : "bg-red-50 border-red-300 dark:bg-red-950/30 dark:border-red-700",
-          )}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <CashflowIcon
-              className={cn(
-                "h-5 w-5",
-                results.isPositiveCashflow ? "text-green-600" : "text-red-600",
-              )}
-            />
-            <span className="text-sm font-medium">Cashflow after Taxes</span>
-          </div>
-          <span
-            className={cn(
-              "text-2xl font-bold",
-              results.isPositiveCashflow
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400",
-            )}
-          >
-            {CURRENCY_FORMATTER.format(results.cashflowAfterTax)} / month
-          </span>
-        </div>
-
-        {/* Rent and Rental Yield */}
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Rent and Rental Yield
-          </p>
-          <ResultLine
-            label="Net Cold Rent per Year"
-            value={CURRENCY_FORMATTER.format(results.netColdRentYearly)}
-          />
-          <ResultLine
-            label="Gross Rental Yield"
-            value={PERCENT_FORMATTER.format(results.grossRentalYield / 100)}
-            highlight
-            info="Annual cold rent / Purchase price"
-          />
-          <ResultLine
-            label="Factor of Cold Rent vs. Price"
-            value={results.coldRentFactor.toFixed(1)}
-            info="Purchase price / Annual cold rent (Kaufpreisfaktor)"
-          />
-        </div>
-
-        <Separator />
-
-        {/* Cashflow per Month */}
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Cashflow per Month
-          </p>
-          <ResultLine
-            label="Warm Rent"
-            value={CURRENCY_FORMATTER.format(results.warmRentMonthly)}
-          />
-          <ResultLine
-            label="- Management Costs"
-            value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeld)}`}
-          />
-          <ResultLine
-            label="- Interest"
-            value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterest)}`}
-          />
-          <ResultLine
-            label="- Repayment / Acquittance"
-            value={`- ${CURRENCY_FORMATTER.format(results.monthlyRepayment)}`}
-          />
-          <ResultLine
-            label="= Cashflow"
-            value={CURRENCY_FORMATTER.format(results.cashflowBeforeTax)}
-            highlight
-          />
-          <div className="text-xs text-muted-foreground italic py-1">
-            your surplus before taxes
-          </div>
-          <ResultLine
-            label={results.taxMonthly >= 0 ? "- Taxes" : "- Tax Benefit"}
-            value={`- ${CURRENCY_FORMATTER.format(Math.abs(results.taxMonthly))}`}
-          />
-          <ResultLine
-            label="= Cashflow after Taxes"
-            value={CURRENCY_FORMATTER.format(results.cashflowAfterTax)}
-            highlight
-          />
-        </div>
-
-        <Separator />
-
-        {/* Tax Calculation */}
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Tax Calculation
-          </p>
-          <ResultLine
-            label="Warm Rent"
-            value={CURRENCY_FORMATTER.format(results.warmRentMonthly)}
-          />
-          <ResultLine
-            label="- Management Costs"
-            value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeld)}`}
-          />
-          <ResultLine
-            label="- Interest"
-            value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterest)}`}
-          />
-          <ResultLine
-            label="- Depreciation (AfA)"
-            value={`- ${CURRENCY_FORMATTER.format(results.depreciationMonthly)}`}
-            info="Tax-deductible depreciation on building value"
-          />
-          <ResultLine
-            label="= Taxable Cashflow"
-            value={CURRENCY_FORMATTER.format(results.taxableCashflowMonthly)}
-            highlight
-          />
-          <ResultLine
-            label={results.taxMonthly >= 0 ? "= Taxes" : "= Tax Benefit"}
-            value={
-              results.taxMonthly >= 0
-                ? CURRENCY_FORMATTER.format(results.taxMonthly)
-                : `- ${CURRENCY_FORMATTER.format(Math.abs(results.taxMonthly))}`
-            }
-            highlight
-            info={
-              results.taxMonthly >= 0
-                ? "Subtracted from cashflow"
-                : "Negative taxable income creates a tax benefit (added to cashflow)"
-            }
-          />
-        </div>
-
-        <Separator />
-
-        {/* Return on Equity in Year 1 */}
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Return on Equity in Year 1
-          </p>
-          <ResultLine
-            label="Return on Equity"
-            value={PERCENT_FORMATTER.format(results.returnOnEquity / 100)}
-            highlight
-            info="(Annual cashflow + appreciation) / Equity"
-          />
-          <ResultLine
-            label="Without Appreciation"
-            value={PERCENT_FORMATTER.format(
-              results.returnOnEquityWithoutAppreciation / 100,
-            )}
-            info="Annual cashflow / Equity"
-          />
-        </div>
-      </CardContent>
+      {isOwnerOccupier ? (
+        <OwnerOccupierView results={results} />
+      ) : (
+        <InvestorView results={results} />
+      )}
     </Card>
   )
 }

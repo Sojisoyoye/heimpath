@@ -162,6 +162,7 @@ export interface PropertyGoals {
   min_size_sqm?: number
   max_size_sqm?: number
   additional_notes?: string
+  property_use?: "live_in" | "rent_out"
   is_completed?: boolean
 }
 
@@ -178,5 +179,6 @@ export interface PropertyGoalsUpdate {
   min_size_sqm?: number
   max_size_sqm?: number
   additional_notes?: string
+  property_use?: "live_in" | "rent_out"
   is_completed?: boolean
 }

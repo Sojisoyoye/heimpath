@@ -356,6 +356,7 @@ export type DocumentDetailResponse = {
     status: DocumentStatusEnum;
     error_message?: (string | null);
     share_id?: (string | null);
+    journey_step_id?: (string | null);
     created_at: string;
     translation?: (DocumentTranslationResponse | null);
 };
@@ -420,6 +421,7 @@ export type DocumentSummary = {
     document_type: DocumentTypeEnum;
     status: DocumentStatusEnum;
     share_id?: (string | null);
+    journey_step_id?: (string | null);
     created_at: string;
 };
 
@@ -458,6 +460,7 @@ export type DocumentUploadResponse = {
     page_count: number;
     document_type: DocumentTypeEnum;
     status: DocumentStatusEnum;
+    journey_step_id?: (string | null);
 };
 
 /**
@@ -1248,6 +1251,7 @@ export type PropertyGoals = {
     min_size_sqm?: (number | null);
     max_size_sqm?: (number | null);
     additional_notes?: (string | null);
+    property_use?: ('live_in' | 'rent_out' | null);
     is_completed?: boolean;
 };
 
@@ -1266,6 +1270,7 @@ export type PropertyGoalsUpdate = {
     min_size_sqm?: (number | null);
     max_size_sqm?: (number | null);
     additional_notes?: (string | null);
+    property_use?: ('live_in' | 'rent_out' | null);
     is_completed?: (boolean | null);
 };
 
@@ -2013,6 +2018,7 @@ export type DashboardGetDashboardOverviewResponse = (DashboardOverviewResponse);
 
 export type DocumentsUploadDocumentData = {
     formData: Body_documents_upload_document;
+    journeyStepId?: (string | null);
 };
 
 export type DocumentsUploadDocumentResponse = (DocumentUploadResponse);
@@ -2024,6 +2030,12 @@ export type DocumentsGetSharedDocumentData = {
 };
 
 export type DocumentsGetSharedDocumentResponse = (DocumentDetailResponse);
+
+export type DocumentsGetDocumentsByStepData = {
+    stepId: string;
+};
+
+export type DocumentsGetDocumentsByStepResponse = (Array<DocumentSummary>);
 
 export type DocumentsListDocumentsData = {
     documentType?: (DocumentType | null);
