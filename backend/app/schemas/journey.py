@@ -69,6 +69,9 @@ class PropertyGoals(BaseModel):
     # Additional notes (optional text input)
     additional_notes: str | None = Field(default=None, max_length=1000)
 
+    # Property use intent
+    property_use: Literal["live_in", "rent_out"] | None = None
+
     # Completion status
     is_completed: bool = False
 
@@ -87,6 +90,7 @@ class PropertyGoalsUpdate(BaseModel):
     min_size_sqm: int | None = Field(default=None, ge=10)
     max_size_sqm: int | None = Field(default=None, ge=10)
     additional_notes: str | None = Field(default=None, max_length=1000)
+    property_use: Literal["live_in", "rent_out"] | None = None
     is_completed: bool | None = None
 
 

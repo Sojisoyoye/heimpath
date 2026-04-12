@@ -25,6 +25,7 @@ import {
   FLOOR_OPTIONS,
   PROPERTY_FEATURES,
   PROPERTY_TYPES,
+  PROPERTY_USE_OPTIONS,
   ROOM_OPTIONS,
 } from "@/common/constants"
 import { cn } from "@/common/utils"
@@ -142,6 +143,7 @@ function PropertyGoalsForm(props: IProps) {
     has_elevator_required: initialGoals?.has_elevator_required || false,
     features: initialGoals?.features || [],
     additional_notes: initialGoals?.additional_notes || "",
+    property_use: initialGoals?.property_use,
     is_completed: initialGoals?.is_completed || false,
   })
 
@@ -160,6 +162,7 @@ function PropertyGoalsForm(props: IProps) {
         has_elevator_required: initialGoals.has_elevator_required || false,
         features: initialGoals.features || [],
         additional_notes: initialGoals.additional_notes || "",
+        property_use: initialGoals.property_use,
         is_completed: initialGoals.is_completed || false,
       })
     }
@@ -223,6 +226,29 @@ function PropertyGoalsForm(props: IProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
+        {/* Property Use */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">
+            What do you plan to do with this property?
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {PROPERTY_USE_OPTIONS.map((option) => (
+              <SelectionButton
+                key={option.value}
+                selected={goals.property_use === option.value}
+                onClick={() =>
+                  setGoals((prev) => ({
+                    ...prev,
+                    property_use: option.value,
+                  }))
+                }
+              >
+                {option.label}
+              </SelectionButton>
+            ))}
+          </div>
+        </div>
+
         {/* Property Type */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Property Type</Label>

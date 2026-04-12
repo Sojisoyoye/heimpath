@@ -1159,6 +1159,18 @@ export const DocumentDetailResponseSchema = {
             ],
             title: 'Share Id'
         },
+        journey_step_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Step Id'
+        },
         created_at: {
             type: 'string',
             format: 'date-time',
@@ -1345,6 +1357,18 @@ export const DocumentSummarySchema = {
             ],
             title: 'Share Id'
         },
+        journey_step_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Step Id'
+        },
         created_at: {
             type: 'string',
             format: 'date-time',
@@ -1467,6 +1491,18 @@ export const DocumentUploadResponseSchema = {
         },
         status: {
             '$ref': '#/components/schemas/DocumentStatusEnum'
+        },
+        journey_step_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Step Id'
         }
     },
     type: 'object',
@@ -4269,6 +4305,18 @@ export const PropertyGoalsSchema = {
             ],
             title: 'Additional Notes'
         },
+        property_use: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['live_in', 'rent_out']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Property Use'
+        },
         is_completed: {
             type: 'boolean',
             title: 'Is Completed',
@@ -4414,6 +4462,18 @@ export const PropertyGoalsUpdateSchema = {
                 }
             ],
             title: 'Additional Notes'
+        },
+        property_use: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['live_in', 'rent_out']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Property Use'
         },
         is_completed: {
             anyOf: [

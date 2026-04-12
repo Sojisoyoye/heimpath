@@ -3,6 +3,11 @@
  * Options for Step 1: Define Your Property Goals
  */
 
+export const PROPERTY_USE_OPTIONS = [
+  { value: "live_in", label: "Live in (Selbstnutzer)" },
+  { value: "rent_out", label: "Rent out (Kapitalanlage)" },
+] as const
+
 export const ROOM_OPTIONS = [
   { value: 1, label: "1 Room" },
   { value: 2, label: "2 Rooms" },

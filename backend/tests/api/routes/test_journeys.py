@@ -685,3 +685,71 @@ def test_unknown_location_skips_insight_generation(
     r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
     # "Berlin" is not a recognised state code → insights should remain None
     assert r.json()["market_insights"] is None
+
+
+def test_property_use_live_in_round_trips(client: TestClient, db: Session) -> None:
+    """Test that property_use 'live_in' round-trips through PATCH and GET."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)
+    journey_id = journey["id"]
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "property_use": "live_in",
+            "is_completed": True,
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["property_use"] == "live_in"
+
+    # Verify via GET property-goals
+    r = client.get(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["property_use"] == "live_in"
+
+    # Verify via GET journey detail
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    assert r.status_code == 200
+    assert r.json()["property_goals"]["property_use"] == "live_in"
+
+
+def test_property_use_rent_out_round_trips(client: TestClient, db: Session) -> None:
+    """Test that property_use 'rent_out' round-trips through PATCH and GET."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)
+    journey_id = journey["id"]
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "property_use": "rent_out",
+            "is_completed": False,
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["property_use"] == "rent_out"
+
+
+def test_property_use_invalid_value_returns_422(
+    client: TestClient, db: Session
+) -> None:
+    """Test that an invalid property_use value returns 422."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)
+    journey_id = journey["id"]
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "property_use": "invalid_value",
+        },
+    )
+    assert r.status_code == 422

@@ -233,8 +233,16 @@ function SavedEvaluations(props: {
 function PropertyEvaluationCalculator(
   props: PropertyEvaluationCalculatorProps,
 ) {
-  const { journeyId, journeyStepId, initialState, initialBudget, className } =
-    props
+  const {
+    journeyId,
+    journeyStepId,
+    initialState,
+    initialBudget,
+    propertyUse,
+    className,
+  } = props
+
+  const isOwnerOccupier = propertyUse === "live_in"
 
   const [state, setState] = useState<PropertyEvaluationState>(() =>
     loadFromStorage(journeyId, initialState, initialBudget),
@@ -242,7 +250,14 @@ function PropertyEvaluationCalculator(
   const [saveName, setSaveName] = useState("")
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
-  const { results } = usePropertyEvaluation(state)
+  const effectiveState = isOwnerOccupier
+    ? {
+        ...state,
+        rent: { ...state.rent, rentPerSqm: 0, parkingRent: 0 },
+      }
+    : state
+
+  const { results } = usePropertyEvaluation(effectiveState)
 
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const saveEvaluation = useSavePropertyEvaluation()
@@ -300,7 +315,7 @@ function PropertyEvaluationCalculator(
     if (!results) return
     try {
       const { generateEvaluationPdf } = await import("./GenerateEvaluationPdf")
-      generateEvaluationPdf(state, results)
+      generateEvaluationPdf(state, results, isOwnerOccupier)
     } catch {
       showErrorToast("Failed to generate PDF. Please try again.")
     }
@@ -376,7 +391,9 @@ function PropertyEvaluationCalculator(
               Property Evaluation Calculator
             </h1>
             <p className="text-sm text-muted-foreground">
-              Analyze investment property cashflow and returns
+              {isOwnerOccupier
+                ? "Analyze your monthly cost of ownership"
+                : "Analyze investment property cashflow and returns"}
             </p>
           </div>
         </div>
@@ -405,13 +422,15 @@ function PropertyEvaluationCalculator(
             values={state.propertyInfo}
             onChange={updatePropertyInfo}
           />
-          <RentSection
-            values={state.rent}
-            squareMeters={state.propertyInfo.squareMeters}
-            totalAllocableCosts={totalAllocableCosts}
-            stateCode={initialState}
-            onChange={updateRent}
-          />
+          {!isOwnerOccupier && (
+            <RentSection
+              values={state.rent}
+              squareMeters={state.propertyInfo.squareMeters}
+              totalAllocableCosts={totalAllocableCosts}
+              stateCode={initialState}
+              onChange={updateRent}
+            />
+          )}
           <OperatingCostsSection
             values={state.operatingCosts}
             coldRentMonthly={results?.coldRentMonthly ?? 0}
@@ -427,7 +446,10 @@ function PropertyEvaluationCalculator(
 
         {/* Results section - sticky on desktop */}
         <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
-          <EvaluationSection results={results} />
+          <EvaluationSection
+            results={results}
+            isOwnerOccupier={isOwnerOccupier}
+          />
 
           {/* Save Section */}
           <Card>

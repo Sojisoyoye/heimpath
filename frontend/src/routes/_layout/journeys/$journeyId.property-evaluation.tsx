@@ -68,6 +68,7 @@ function PropertyEvaluationPage() {
       journeyStepId={evaluationStep?.id}
       initialState={journey?.property_location}
       initialBudget={journey?.budget_euros}
+      propertyUse={journey?.property_goals?.property_use}
     />
   )
 }
