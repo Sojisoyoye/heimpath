@@ -9,6 +9,7 @@ import {
   type UserPublic,
   UsersService,
 } from "@/client"
+import { queryClient } from "@/query/client"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
@@ -39,6 +40,7 @@ const useAuth = (redirectTo?: string) => {
     const response = await LoginService.loginAccessToken({
       formData: data,
     })
+    queryClient.clear()
     localStorage.setItem("access_token", response.access_token)
   }
 
@@ -55,7 +57,15 @@ const useAuth = (redirectTo?: string) => {
   })
 
   const logout = () => {
+    queryClient.clear()
     localStorage.removeItem("access_token")
+    localStorage.removeItem("heimpath-wizard-state")
+    localStorage.removeItem("heimpath-wizard-step")
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("property-evaluation-")) {
+        localStorage.removeItem(key)
+      }
+    }
     navigate({ to: "/login" })
   }
 

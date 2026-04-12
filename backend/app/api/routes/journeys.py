@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
 from app.api.deps import CurrentUser, get_db
-from app.models.journey import Journey, JourneyStep, JourneyTask
+from app.models.journey import Journey, JourneyStep, JourneyTask, StepStatus
 from app.models.notification import NotificationType
 from app.schemas.journey import (
     JourneyCreate,
@@ -87,6 +87,9 @@ def _build_step_response(step: JourneyStep) -> JourneyStepResponse:
 
 def _build_journey_response(journey: Journey) -> JourneyResponse:
     steps = [_build_step_summary(s) for s in journey.steps]
+    total = len(journey.steps)
+    completed = sum(1 for s in journey.steps if s.status == StepStatus.COMPLETED)
+    pct = round((completed / total) * 100, 1) if total > 0 else 0
     return JourneyResponse(
         id=journey.id,
         title=journey.title,
@@ -110,6 +113,9 @@ def _build_journey_response(journey: Journey) -> JourneyResponse:
         is_active=journey.is_active,
         created_at=journey.created_at,
         steps=steps,
+        progress_percentage=pct,
+        completed_steps=completed,
+        total_steps=total,
     )
 
 

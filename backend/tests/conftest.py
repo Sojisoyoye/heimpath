@@ -2,6 +2,8 @@ from collections.abc import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -18,6 +20,8 @@ from tests.utils.utils import get_superuser_token_headers
 # Sync fixtures (backward compatibility)
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
     with Session(engine) as session:
         init_db(session)
         yield session

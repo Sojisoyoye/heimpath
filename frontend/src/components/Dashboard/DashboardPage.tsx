@@ -243,6 +243,7 @@ function QuickActions(props: { journeyId?: string }) {
       label: "Evaluate Property",
       icon: TrendingUp,
       to: "/calculators" as const,
+      search: { tab: "property-evaluation" } as const,
       color: "text-teal-600",
     },
     {
@@ -266,7 +267,10 @@ function QuickActions(props: { journeyId?: string }) {
             className="justify-start gap-3"
             asChild
           >
-            <Link to={action.to}>
+            <Link
+              to={action.to}
+              {...("search" in action ? { search: action.search } : {})}
+            >
               <action.icon className={cn("h-4 w-4", action.color)} />
               {action.label}
             </Link>

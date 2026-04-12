@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { ArrowRight, TrendingUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { isLoggedIn } from "@/hooks/useAuth"
 
 /******************************************************************************
                               Components
@@ -9,6 +10,8 @@ import { Button } from "@/components/ui/button"
 
 /** Property evaluation CTA banner for the landing page. */
 function PropertyEvaluationCtaSection() {
+  const loggedIn = isLoggedIn()
+
   return (
     <section className="bg-gradient-to-r from-teal-50 to-blue-50 py-16 dark:from-teal-950/20 dark:to-blue-950/20 md:py-20">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-8 px-4 md:flex-row md:px-6">
@@ -26,23 +29,34 @@ function PropertyEvaluationCtaSection() {
           </p>
         </div>
         <div className="flex shrink-0 flex-col gap-3">
-          <Button size="lg" asChild>
-            <Link
-              to="/signup"
-              search={{ redirect: "/calculators?tab=property-evaluation" }}
-            >
-              Get Started Free
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button size="lg" variant="outline" asChild>
-            <Link
-              to="/login"
-              search={{ redirect: "/calculators?tab=property-evaluation" }}
-            >
-              Sign In to Evaluate
-            </Link>
-          </Button>
+          {loggedIn ? (
+            <Button size="lg" asChild>
+              <Link to="/calculators" search={{ tab: "property-evaluation" }}>
+                Evaluate Property
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button size="lg" asChild>
+                <Link
+                  to="/signup"
+                  search={{ redirect: "/calculators?tab=property-evaluation" }}
+                >
+                  Get Started Free
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link
+                  to="/login"
+                  search={{ redirect: "/calculators?tab=property-evaluation" }}
+                >
+                  Sign In to Evaluate
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </section>

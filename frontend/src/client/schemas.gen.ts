@@ -2405,6 +2405,21 @@ export const JourneyDetailResponseSchema = {
             type: 'array',
             title: 'Steps',
             default: []
+        },
+        progress_percentage: {
+            type: 'number',
+            title: 'Progress Percentage',
+            default: 0
+        },
+        completed_steps: {
+            type: 'integer',
+            title: 'Completed Steps',
+            default: 0
+        },
+        total_steps: {
+            type: 'integer',
+            title: 'Total Steps',
+            default: 0
         }
     },
     type: 'object',
@@ -2708,6 +2723,21 @@ export const JourneyResponseSchema = {
             type: 'array',
             title: 'Steps',
             default: []
+        },
+        progress_percentage: {
+            type: 'number',
+            title: 'Progress Percentage',
+            default: 0
+        },
+        completed_steps: {
+            type: 'integer',
+            title: 'Completed Steps',
+            default: 0
+        },
+        total_steps: {
+            type: 'integer',
+            title: 'Total Steps',
+            default: 0
         }
     },
     type: 'object',

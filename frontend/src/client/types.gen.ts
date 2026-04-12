@@ -737,6 +737,9 @@ export type JourneyDetailResponse = {
     is_active: boolean;
     created_at: string;
     steps?: Array<JourneyStepResponse>;
+    progress_percentage?: number;
+    completed_steps?: number;
+    total_steps?: number;
 };
 
 /**
@@ -806,6 +809,9 @@ export type JourneyResponse = {
     is_active: boolean;
     created_at: string;
     steps?: Array<JourneyStepSummary>;
+    progress_percentage?: number;
+    completed_steps?: number;
+    total_steps?: number;
 };
 
 /**
