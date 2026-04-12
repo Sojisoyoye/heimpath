@@ -19,6 +19,7 @@ from app.models.journey import (
     StepStatus,
 )
 from app.schemas.journey import QuestionnaireAnswers
+from app.services.calculator_service import COST_DEFAULTS, STATE_RATES
 
 
 class JourneyError(Exception):
@@ -165,6 +166,8 @@ STEP_TEMPLATES: list[StepTemplate] = [
             {"title": "Compare with market averages", "is_required": True},
         ],
     ),
+    # Task order matters: _personalize_buying_costs() accesses tasks by index
+    # (0=transfer tax, 1=notary, 2=land registry, 3=agent commission).
     StepTemplate(
         step_number=5,
         phase=JourneyPhase.RESEARCH,
@@ -501,6 +504,113 @@ STEP_TEMPLATES: list[StepTemplate] = [
 ]
 
 
+def _format_eur(amount: float) -> str:
+    """Format a float as a rounded EUR string (e.g. '18,000 EUR')."""
+    return f"{amount:,.0f} EUR"
+
+
+def _personalize_cost_task(
+    original: dict[str, Any],
+    title: str,
+    pct: float,
+    budget: int,
+    cost_suffix: str = "",
+) -> tuple[dict[str, Any], str]:
+    """Build a personalized cost task and its estimated_costs string.
+
+    Args:
+        original: Original task dict to spread into the result.
+        title: Personalized task title.
+        pct: Cost percentage rate.
+        budget: User's budget in euros.
+        cost_suffix: Optional suffix inside the parentheses (e.g. ", if applicable").
+
+    Returns:
+        (task_dict, cost_label) tuple.
+    """
+    amount = budget * (pct / 100)
+    desc = f"Estimated: {_format_eur(amount)} ({pct}% of {_format_eur(budget)})"
+    cost_label = f"{_format_eur(amount)} ({pct}%{cost_suffix})"
+    return {**original, "title": title, "description": desc}, cost_label
+
+
+def _personalize_buying_costs(
+    template: StepTemplate, answers: QuestionnaireAnswers
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Personalize Step 5 buying-cost tasks using the user's budget and state.
+
+    Returns a (tasks, estimated_costs) tuple ready to be stored on the step.
+    """
+    budget = answers.budget_euros
+    state_entry = STATE_RATES.get(answers.property_location)
+    fallback_costs = template.estimated_costs or {}
+
+    notary_pct = COST_DEFAULTS.notary_fee_percent
+    registry_pct = COST_DEFAULTS.land_registry_fee_percent
+    agent_pct = COST_DEFAULTS.agent_commission_percent
+
+    tasks: list[dict[str, Any]] = []
+    estimated_costs: dict[str, Any] = {}
+
+    # --- Transfer tax task (state-dependent) ---
+    original_tax_task = template.tasks[0]
+    if state_entry:
+        state_name, tax_rate = state_entry
+        title = f"Calculate Grunderwerbsteuer ({tax_rate}% in {state_name})"
+        if budget is not None:
+            task, cost_label = _personalize_cost_task(
+                original_tax_task, title, tax_rate, budget
+            )
+            tasks.append(task)
+        else:
+            tasks.append({**original_tax_task, "title": title, "description": None})
+            cost_label = f"{tax_rate}% in {state_name}"
+        estimated_costs["grunderwerbsteuer"] = cost_label
+    else:
+        tasks.append(original_tax_task)
+        estimated_costs["grunderwerbsteuer"] = fallback_costs.get(
+            "grunderwerbsteuer", "3.5-6.5% (varies by state)"
+        )
+
+    # --- Notary, land registry, agent tasks (budget-dependent only) ---
+    cost_specs: list[tuple[int, str, float, str, str]] = [
+        (1, f"Estimate notary fees ({notary_pct}%)", notary_pct, "notary_fees", ""),
+        (
+            2,
+            f"Factor in land registry fees ({registry_pct}%)",
+            registry_pct,
+            "land_registry",
+            "",
+        ),
+        (
+            3,
+            f"Budget for agent commission ({agent_pct}%)",
+            agent_pct,
+            "agent_commission",
+            ", if applicable",
+        ),
+    ]
+    for idx, title, pct, cost_key, suffix in cost_specs:
+        original = template.tasks[idx]
+        if budget is not None:
+            task, cost_label = _personalize_cost_task(
+                original, title, pct, budget, cost_suffix=suffix
+            )
+            tasks.append(task)
+            estimated_costs[cost_key] = cost_label
+        else:
+            tasks.append(original)
+            estimated_costs[cost_key] = fallback_costs.get(cost_key, f"{pct}%")
+
+    # --- Total estimated ---
+    if budget is not None:
+        tax_rate_val = state_entry[1] if state_entry else 0
+        total = budget * ((tax_rate_val + notary_pct + registry_pct + agent_pct) / 100)
+        estimated_costs["total_estimated"] = _format_eur(total)
+
+    return tasks, estimated_costs
+
+
 def _matches_conditions(
     conditions: dict[str, Any] | None, answers: QuestionnaireAnswers
 ) -> bool:
@@ -598,6 +708,14 @@ def generate_journey(
             if mapped_prereqs:
                 prerequisites = [p for p in mapped_prereqs if p is not None]
 
+        # Personalize buying costs step with user's budget and state
+        tasks_data = template.tasks
+        step_estimated_costs = template.estimated_costs
+        if template.content_key == "buying_costs":
+            tasks_data, step_estimated_costs = _personalize_buying_costs(
+                template, answers
+            )
+
         step = JourneyStep(
             journey_id=journey.id,
             step_number=current_step,
@@ -608,14 +726,14 @@ def generate_journey(
             content_key=template.content_key,
             prerequisites=prerequisites,
             related_laws=template.related_laws,
-            estimated_costs=template.estimated_costs,
+            estimated_costs=step_estimated_costs,
         )
         session.add(step)
         session.flush()
 
         # Create tasks for this step, filtering by task-level conditions
         task_order = 0
-        for task_data in template.tasks:
+        for task_data in tasks_data:
             if not _matches_conditions(task_data.get("conditions"), answers):
                 continue
             task = JourneyTask(
