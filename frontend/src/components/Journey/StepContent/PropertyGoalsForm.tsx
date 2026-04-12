@@ -23,15 +23,18 @@ import { useEffect, useState } from "react"
 import {
   BATHROOM_OPTIONS,
   FLOOR_OPTIONS,
+  MARKET_DATA_BY_STATE,
   PROPERTY_FEATURES,
   PROPERTY_TYPES,
   PROPERTY_USE_OPTIONS,
   ROOM_OPTIONS,
 } from "@/common/constants"
 import { cn } from "@/common/utils"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useUpdatePropertyGoals } from "@/hooks/mutations/useJourneyMutations"
@@ -41,6 +44,7 @@ import { BudgetInput } from "../BudgetInput"
 interface IProps {
   journeyId: string
   initialGoals?: PropertyGoals
+  propertyLocation?: string
   onComplete?: () => void
   className?: string
 }
@@ -131,7 +135,8 @@ function FeatureCheckbox(props: {
 
 /** Default component. Property goals form. */
 function PropertyGoalsForm(props: IProps) {
-  const { journeyId, initialGoals, onComplete, className } = props
+  const { journeyId, initialGoals, propertyLocation, onComplete, className } =
+    props
 
   const [goals, setGoals] = useState<PropertyGoals>({
     preferred_property_type: initialGoals?.preferred_property_type || "",
@@ -144,6 +149,7 @@ function PropertyGoalsForm(props: IProps) {
     features: initialGoals?.features || [],
     additional_notes: initialGoals?.additional_notes || "",
     property_use: initialGoals?.property_use,
+    preferred_area: initialGoals?.preferred_area || "",
     is_completed: initialGoals?.is_completed || false,
   })
 
@@ -163,6 +169,7 @@ function PropertyGoalsForm(props: IProps) {
         features: initialGoals.features || [],
         additional_notes: initialGoals.additional_notes || "",
         property_use: initialGoals.property_use,
+        preferred_area: initialGoals.preferred_area || "",
         is_completed: initialGoals.is_completed || false,
       })
     }
@@ -247,6 +254,53 @@ function PropertyGoalsForm(props: IProps) {
               </SelectionButton>
             ))}
           </div>
+        </div>
+
+        {/* Preferred Area */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">
+            Preferred Area (Optional)
+          </Label>
+          <Input
+            placeholder="e.g. Munich, Kreuzberg..."
+            value={goals.preferred_area || ""}
+            onChange={(e) =>
+              setGoals((prev) => ({
+                ...prev,
+                preferred_area: e.target.value,
+              }))
+            }
+          />
+          {propertyLocation &&
+            MARKET_DATA_BY_STATE[propertyLocation]?.hotspots && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-muted-foreground self-center">
+                  Suggestions:
+                </span>
+                {MARKET_DATA_BY_STATE[propertyLocation].hotspots.map(
+                  (hotspot) => (
+                    <Badge
+                      key={hotspot}
+                      variant={
+                        goals.preferred_area?.toLowerCase() ===
+                        hotspot.toLowerCase()
+                          ? "default"
+                          : "outline"
+                      }
+                      className="cursor-pointer"
+                      onClick={() =>
+                        setGoals((prev) => ({
+                          ...prev,
+                          preferred_area: hotspot,
+                        }))
+                      }
+                    >
+                      {hotspot}
+                    </Badge>
+                  ),
+                )}
+              </div>
+            )}
         </div>
 
         {/* Property Type */}

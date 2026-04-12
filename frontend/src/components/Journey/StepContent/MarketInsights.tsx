@@ -259,6 +259,12 @@ function MarketInsights(props: IProps) {
         <CardTitle className="flex items-center gap-2 text-base">
           <BarChart3 className="h-4 w-4" />
           Market Insights: {stateInfo.name}
+          {marketInsights?.preferred_area && (
+            <span className="font-normal">
+              {" "}
+              &mdash; {marketInsights.preferred_area}
+            </span>
+          )}
         </CardTitle>
         <CardDescription>
           Based on your property goals
@@ -435,11 +441,19 @@ function MarketInsights(props: IProps) {
             Popular Areas in {stateInfo.name}
           </h4>
           <div className="flex flex-wrap gap-2">
-            {marketData.hotspots.map((hotspot) => (
-              <Badge key={hotspot} variant="outline">
-                {hotspot}
-              </Badge>
-            ))}
+            {marketData.hotspots.map((hotspot) => {
+              const isSelected =
+                marketInsights?.preferred_area?.toLowerCase() ===
+                hotspot.toLowerCase()
+              return (
+                <Badge
+                  key={hotspot}
+                  variant={isSelected ? "default" : "outline"}
+                >
+                  {hotspot}
+                </Badge>
+              )
+            })}
           </div>
         </div>
 

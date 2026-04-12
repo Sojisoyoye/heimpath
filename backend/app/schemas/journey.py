@@ -34,6 +34,7 @@ class MarketInsightsData(BaseModel):
     adjusted_min_price_per_sqm: float
     adjusted_max_price_per_sqm: float
     estimated_size_sqm: int | None = None
+    preferred_area: str | None = None
     generated_at: str
 
 
@@ -72,6 +73,9 @@ class PropertyGoals(BaseModel):
     # Property use intent
     property_use: Literal["live_in", "rent_out"] | None = None
 
+    # Preferred area / neighborhood within the selected state
+    preferred_area: str | None = Field(default=None, max_length=100)
+
     # Completion status
     is_completed: bool = False
 
@@ -91,6 +95,7 @@ class PropertyGoalsUpdate(BaseModel):
     max_size_sqm: int | None = Field(default=None, ge=10)
     additional_notes: str | None = Field(default=None, max_length=1000)
     property_use: Literal["live_in", "rent_out"] | None = None
+    preferred_area: str | None = Field(default=None, max_length=100)
     is_completed: bool | None = None
 
 

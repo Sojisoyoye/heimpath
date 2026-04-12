@@ -146,6 +146,7 @@ export interface MarketInsightsData {
   adjusted_min_price_per_sqm: number
   adjusted_max_price_per_sqm: number
   estimated_size_sqm?: number
+  preferred_area?: string
   generated_at: string
 }
 
@@ -163,6 +164,7 @@ export interface PropertyGoals {
   max_size_sqm?: number
   additional_notes?: string
   property_use?: "live_in" | "rent_out"
+  preferred_area?: string
   is_completed?: boolean
 }
 
@@ -180,5 +182,6 @@ export interface PropertyGoalsUpdate {
   max_size_sqm?: number
   additional_notes?: string
   property_use?: "live_in" | "rent_out"
+  preferred_area?: string
   is_completed?: boolean
 }

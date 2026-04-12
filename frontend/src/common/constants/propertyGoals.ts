@@ -219,6 +219,117 @@ export const MARKET_DATA_BY_STATE: Record<
 }
 
 /**
+ * City-level market data for hotspot cities within each state
+ * Used to refine market insights when a preferred area is specified
+ */
+export const CITY_MARKET_DATA: Record<
+  string,
+  Record<
+    string,
+    {
+      avgPricePerSqm: number
+      priceRange: { min: number; max: number }
+    }
+  >
+> = {
+  BW: {
+    Stuttgart: { avgPricePerSqm: 4800, priceRange: { min: 3200, max: 7500 } },
+    Freiburg: { avgPricePerSqm: 4200, priceRange: { min: 2800, max: 6500 } },
+    Karlsruhe: { avgPricePerSqm: 3600, priceRange: { min: 2400, max: 5500 } },
+  },
+  BY: {
+    Munich: { avgPricePerSqm: 7500, priceRange: { min: 5000, max: 12000 } },
+    Nuremberg: { avgPricePerSqm: 3800, priceRange: { min: 2500, max: 6000 } },
+    Augsburg: { avgPricePerSqm: 3500, priceRange: { min: 2300, max: 5500 } },
+  },
+  BE: {
+    Mitte: { avgPricePerSqm: 6500, priceRange: { min: 4500, max: 10000 } },
+    "Prenzlauer Berg": {
+      avgPricePerSqm: 5800,
+      priceRange: { min: 4000, max: 8500 },
+    },
+    Kreuzberg: { avgPricePerSqm: 5500, priceRange: { min: 3800, max: 8000 } },
+  },
+  BB: {
+    Potsdam: { avgPricePerSqm: 3800, priceRange: { min: 2500, max: 6000 } },
+    Cottbus: { avgPricePerSqm: 2200, priceRange: { min: 1400, max: 3500 } },
+    "Brandenburg an der Havel": {
+      avgPricePerSqm: 2400,
+      priceRange: { min: 1600, max: 3800 },
+    },
+  },
+  HB: {
+    "Bremen-Mitte": {
+      avgPricePerSqm: 3200,
+      priceRange: { min: 2200, max: 5000 },
+    },
+    Schwachhausen: {
+      avgPricePerSqm: 3500,
+      priceRange: { min: 2400, max: 5500 },
+    },
+    "Horn-Lehe": { avgPricePerSqm: 3000, priceRange: { min: 2000, max: 4800 } },
+  },
+  HH: {
+    Eppendorf: { avgPricePerSqm: 7000, priceRange: { min: 5000, max: 11000 } },
+    Winterhude: { avgPricePerSqm: 6500, priceRange: { min: 4500, max: 10000 } },
+    Eimsbüttel: { avgPricePerSqm: 6000, priceRange: { min: 4200, max: 9500 } },
+  },
+  HE: {
+    Frankfurt: { avgPricePerSqm: 5200, priceRange: { min: 3500, max: 8500 } },
+    Wiesbaden: { avgPricePerSqm: 4000, priceRange: { min: 2800, max: 6500 } },
+    Darmstadt: { avgPricePerSqm: 3800, priceRange: { min: 2600, max: 6000 } },
+  },
+  MV: {
+    Rostock: { avgPricePerSqm: 2800, priceRange: { min: 1800, max: 4500 } },
+    Schwerin: { avgPricePerSqm: 2400, priceRange: { min: 1500, max: 4000 } },
+    Greifswald: { avgPricePerSqm: 2600, priceRange: { min: 1700, max: 4200 } },
+  },
+  NI: {
+    Hannover: { avgPricePerSqm: 3200, priceRange: { min: 2200, max: 5000 } },
+    Braunschweig: {
+      avgPricePerSqm: 2800,
+      priceRange: { min: 1900, max: 4500 },
+    },
+    Oldenburg: { avgPricePerSqm: 2700, priceRange: { min: 1800, max: 4200 } },
+  },
+  NW: {
+    Düsseldorf: { avgPricePerSqm: 4200, priceRange: { min: 2800, max: 7000 } },
+    Cologne: { avgPricePerSqm: 4000, priceRange: { min: 2700, max: 6500 } },
+    Münster: { avgPricePerSqm: 3800, priceRange: { min: 2500, max: 6000 } },
+  },
+  RP: {
+    Mainz: { avgPricePerSqm: 3200, priceRange: { min: 2200, max: 5000 } },
+    Koblenz: { avgPricePerSqm: 2600, priceRange: { min: 1800, max: 4000 } },
+    Trier: { avgPricePerSqm: 2800, priceRange: { min: 1900, max: 4200 } },
+  },
+  SL: {
+    Saarbrücken: { avgPricePerSqm: 2200, priceRange: { min: 1500, max: 3500 } },
+    Neunkirchen: { avgPricePerSqm: 1800, priceRange: { min: 1200, max: 2800 } },
+    Homburg: { avgPricePerSqm: 1900, priceRange: { min: 1300, max: 3000 } },
+  },
+  SN: {
+    Leipzig: { avgPricePerSqm: 3000, priceRange: { min: 2000, max: 5000 } },
+    Dresden: { avgPricePerSqm: 2800, priceRange: { min: 1900, max: 4500 } },
+    Chemnitz: { avgPricePerSqm: 1800, priceRange: { min: 1200, max: 3000 } },
+  },
+  ST: {
+    Magdeburg: { avgPricePerSqm: 2000, priceRange: { min: 1300, max: 3200 } },
+    Halle: { avgPricePerSqm: 2100, priceRange: { min: 1400, max: 3400 } },
+    Dessau: { avgPricePerSqm: 1500, priceRange: { min: 1000, max: 2500 } },
+  },
+  SH: {
+    Kiel: { avgPricePerSqm: 3200, priceRange: { min: 2200, max: 5200 } },
+    Lübeck: { avgPricePerSqm: 3400, priceRange: { min: 2300, max: 5500 } },
+    Flensburg: { avgPricePerSqm: 2800, priceRange: { min: 1900, max: 4500 } },
+  },
+  TH: {
+    Erfurt: { avgPricePerSqm: 2200, priceRange: { min: 1500, max: 3500 } },
+    Jena: { avgPricePerSqm: 2600, priceRange: { min: 1800, max: 4200 } },
+    Weimar: { avgPricePerSqm: 2400, priceRange: { min: 1600, max: 3800 } },
+  },
+}
+
+/**
  * Property type price multipliers
  * Relative to apartment prices
  */

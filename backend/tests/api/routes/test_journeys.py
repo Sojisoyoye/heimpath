@@ -737,6 +737,181 @@ def test_property_use_rent_out_round_trips(client: TestClient, db: Session) -> N
     assert r.json()["property_use"] == "rent_out"
 
 
+def test_preferred_area_round_trips(client: TestClient, db: Session) -> None:
+    """Test that preferred_area round-trips through PATCH and GET."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)
+    journey_id = journey["id"]
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "preferred_area": "Mitte",
+            "is_completed": True,
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["preferred_area"] == "Mitte"
+
+    # Verify via GET property-goals
+    r = client.get(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+    )
+    assert r.json()["preferred_area"] == "Mitte"
+
+    # Verify via GET journey detail
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    assert r.json()["property_goals"]["preferred_area"] == "Mitte"
+    # Market insights should also record the preferred area
+    assert r.json()["market_insights"]["preferred_area"] == "Mitte"
+
+
+def test_preferred_area_city_level_insights(client: TestClient, db: Session) -> None:
+    """Setting preferred_area to a known city uses city-level pricing."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)  # BE
+    journey_id = journey["id"]
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "preferred_area": "Mitte",
+            "is_completed": True,
+        },
+    )
+    assert r.status_code == 200
+
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    insights = r.json()["market_insights"]
+    # Mitte city data: avg_price_per_sqm = 6500 (vs Berlin state = 5200)
+    assert insights["avg_price_per_sqm"] == 6500
+    assert insights["price_range_min"] == 4500
+    assert insights["price_range_max"] == 10000
+
+
+def test_preferred_area_unknown_falls_back_to_state(
+    client: TestClient, db: Session
+) -> None:
+    """An unknown preferred_area falls back to state-level pricing."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)  # BE
+    journey_id = journey["id"]
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "preferred_area": "Neufahrn",
+            "is_completed": True,
+        },
+    )
+    assert r.status_code == 200
+
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    insights = r.json()["market_insights"]
+    # Falls back to Berlin state averages
+    assert insights["avg_price_per_sqm"] == 5200
+    assert insights["preferred_area"] == "Neufahrn"
+
+
+def test_changing_preferred_area_regenerates_insights(
+    client: TestClient, db: Session
+) -> None:
+    """Changing preferred_area regenerates market insights with new city data."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)  # BE
+    journey_id = journey["id"]
+
+    # First: complete with Mitte
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "preferred_area": "Mitte",
+            "is_completed": True,
+        },
+    )
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    first_insights = r.json()["market_insights"]
+    assert first_insights["preferred_area"] == "Mitte"
+    assert first_insights["avg_price_per_sqm"] == 6500
+
+    # Second: change to Kreuzberg
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={"preferred_area": "Kreuzberg"},
+    )
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    second_insights = r.json()["market_insights"]
+    assert second_insights["preferred_area"] == "Kreuzberg"
+    assert second_insights["avg_price_per_sqm"] == 5500
+    assert second_insights["generated_at"] != first_insights["generated_at"]
+
+
+def test_clearing_preferred_area_regenerates_state_level_insights(
+    client: TestClient,
+    db: Session,
+) -> None:
+    """Clearing preferred_area regenerates insights with state-level data."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)  # BE
+    journey_id = journey["id"]
+
+    # Set city-level area first
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "preferred_area": "Mitte",
+            "is_completed": True,
+        },
+    )
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    assert r.json()["market_insights"]["avg_price_per_sqm"] == 6500
+
+    # Clear preferred_area → should fall back to state-level
+    client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={"preferred_area": None},
+    )
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    insights = r.json()["market_insights"]
+    assert insights["preferred_area"] is None
+    assert insights["avg_price_per_sqm"] == 5200  # Berlin state average
+
+
+def test_preferred_area_case_insensitive_match(client: TestClient, db: Session) -> None:
+    """City matching is case-insensitive."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey_with_state_location(client, headers)  # BE
+    journey_id = journey["id"]
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/journeys/{journey_id}/property-goals",
+        headers=headers,
+        json={
+            "preferred_property_type": "apartment",
+            "preferred_area": "mitte",  # lowercase
+            "is_completed": True,
+        },
+    )
+    assert r.status_code == 200
+
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    insights = r.json()["market_insights"]
+    assert insights["avg_price_per_sqm"] == 6500  # city-level data used
+
+
 def test_property_use_invalid_value_returns_422(
     client: TestClient, db: Session
 ) -> None:
