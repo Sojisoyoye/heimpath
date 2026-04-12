@@ -414,8 +414,8 @@ class TestStepTemplates:
     """Tests for step template ordering and content."""
 
     def test_step_templates_total_count(self) -> None:
-        """Test that there are 17 step templates."""
-        assert len(STEP_TEMPLATES) == 17
+        """Test that there are 19 step templates."""
+        assert len(STEP_TEMPLATES) == 19
 
     def test_find_property_is_step_3(self) -> None:
         """Test that Find a Property (property_search) is step 3."""
@@ -479,6 +479,77 @@ class TestStepTemplates:
         assert len(required) == 5
         assert len(optional) == 2
 
+    def test_proof_of_funds_template_exists(self) -> None:
+        """Test that proof_of_funds template exists with correct attributes."""
+        template = next(
+            (t for t in STEP_TEMPLATES if t.content_key == "proof_of_funds"),
+            None,
+        )
+        assert template is not None
+        assert template.step_number == 18
+        assert template.phase == JourneyPhase.PREPARATION
+        assert template.conditions == {"financing_type": ["cash"]}
+        assert template.prerequisites == [5]
+        assert len(template.tasks) == 4
+        assert all(t["is_required"] for t in template.tasks)
+
+    def test_proof_of_funds_included_for_cash_buyer(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that proof_of_funds step is included for cash buyers."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "proof_of_funds"
+        )
+        assert _should_include_step(template, cash_buyer_answers)
+
+    def test_proof_of_funds_excluded_for_mortgage_buyer(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that proof_of_funds step is excluded for mortgage buyers."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "proof_of_funds"
+        )
+        assert not _should_include_step(template, sample_answers)
+
+    def test_loan_commitment_template_exists(self) -> None:
+        """Test that loan_commitment template exists with correct attributes."""
+        template = next(
+            (t for t in STEP_TEMPLATES if t.content_key == "loan_commitment"),
+            None,
+        )
+        assert template is not None
+        assert template.step_number == 19
+        assert template.phase == JourneyPhase.BUYING
+        assert template.conditions == {"financing_type": ["mortgage", "mixed"]}
+        assert template.prerequisites == [13]
+        assert len(template.tasks) == 4
+        assert all(t["is_required"] for t in template.tasks)
+
+    def test_loan_commitment_included_for_mortgage_buyer(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that loan_commitment step is included for mortgage buyers."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "loan_commitment"
+        )
+        assert _should_include_step(template, sample_answers)
+
+    def test_loan_commitment_excluded_for_cash_buyer(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that loan_commitment step is excluded for cash buyers."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "loan_commitment"
+        )
+        assert not _should_include_step(template, cash_buyer_answers)
+
+    def test_notary_signing_prerequisites_include_loan_commitment(self) -> None:
+        """Test that notary signing (step 14) has prerequisites [13, 19]."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "notary_signing"
+        )
+        assert template.prerequisites == [13, 19]
+
     def test_research_phase_steps_order(self) -> None:
         """Test that steps 1-5 are RESEARCH phase with correct content_keys."""
         expected = [
@@ -495,6 +566,89 @@ class TestStepTemplates:
         ):
             assert template.step_number == expected_num
             assert template.content_key == expected_key
+
+
+def _generate_steps(answers: QuestionnaireAnswers) -> list[JourneyStep]:
+    """Generate journey steps from answers and return the JourneyStep objects added to the session."""
+    mock_session = MagicMock()
+    mock_session.exec.return_value.first.return_value = None
+
+    generate_journey(
+        session=mock_session,
+        user_id=uuid.uuid4(),
+        title="Test Journey",
+        answers=answers,
+    )
+
+    return [
+        call.args[0]
+        for call in mock_session.add.call_args_list
+        if isinstance(call.args[0], JourneyStep)
+    ]
+
+
+class TestJourneyStepGeneration:
+    """Tests for step generation with new conditional steps."""
+
+    def test_cash_buyer_includes_proof_of_funds(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that a cash buyer journey includes 'Prepare Proof of Funds'."""
+        steps = _generate_steps(cash_buyer_answers)
+        step_titles = [s.title for s in steps]
+        assert "Prepare Proof of Funds" in step_titles
+
+    def test_cash_buyer_excludes_loan_commitment(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that a cash buyer journey does NOT include 'Secure Final Loan Commitment'."""
+        steps = _generate_steps(cash_buyer_answers)
+        step_titles = [s.title for s in steps]
+        assert "Secure Final Loan Commitment" not in step_titles
+
+    def test_mortgage_buyer_includes_loan_commitment(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that a mortgage buyer journey includes 'Secure Final Loan Commitment'."""
+        steps = _generate_steps(sample_answers)
+        step_titles = [s.title for s in steps]
+        assert "Secure Final Loan Commitment" in step_titles
+
+    def test_mortgage_buyer_excludes_proof_of_funds(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that a mortgage buyer journey does NOT include 'Prepare Proof of Funds'."""
+        steps = _generate_steps(sample_answers)
+        step_titles = [s.title for s in steps]
+        assert "Prepare Proof of Funds" not in step_titles
+
+    def test_cash_buyer_notary_signing_prereq_excludes_loan_commitment(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that for cash buyers, Step 14 prereq resolves to just [remapped 13].
+
+        Step 19 (loan commitment) is excluded for cash buyers, so its prerequisite
+        reference in Step 14 is silently dropped by the remap logic.
+        """
+        steps = _generate_steps(cash_buyer_answers)
+        notary_step = next(
+            (s for s in steps if s.title == "Sign at the Notary"), None
+        )
+        assert notary_step is not None
+        assert notary_step.prerequisites is not None
+        assert len(notary_step.prerequisites) == 1
+
+    def test_mortgage_buyer_notary_signing_has_two_prereqs(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that for mortgage buyers, Step 14 prereqs include both 13 and 19 (remapped)."""
+        steps = _generate_steps(sample_answers)
+        notary_step = next(
+            (s for s in steps if s.title == "Sign at the Notary"), None
+        )
+        assert notary_step is not None
+        assert notary_step.prerequisites is not None
+        assert len(notary_step.prerequisites) == 2
 
 
 def _make_task(

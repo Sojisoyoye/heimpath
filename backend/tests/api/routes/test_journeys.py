@@ -129,6 +129,22 @@ def test_create_journey_cash_buyer_excludes_mortgage_steps(
     # Check that no mortgage-related steps are included
     step_titles = [step["title"] for step in data["steps"]]
     assert "Get Mortgage Pre-Approval" not in step_titles
+    assert "Secure Final Loan Commitment" not in step_titles
+
+    # Cash buyers should get Prepare Proof of Funds
+    assert "Prepare Proof of Funds" in step_titles
+
+
+def test_create_journey_mortgage_buyer_includes_loan_commitment(
+    client: TestClient, db: Session
+) -> None:
+    """Test that mortgage buyers get the loan commitment step but not proof of funds."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)  # default is mortgage
+
+    step_titles = [step["title"] for step in journey["steps"]]
+    assert "Secure Final Loan Commitment" in step_titles
+    assert "Prepare Proof of Funds" not in step_titles
 
 
 def test_list_journeys(client: TestClient, db: Session) -> None:
