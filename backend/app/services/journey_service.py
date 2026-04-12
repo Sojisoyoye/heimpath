@@ -114,16 +114,41 @@ STEP_TEMPLATES: list[StepTemplate] = [
         step_number=3,
         phase=JourneyPhase.RESEARCH,
         title="Find a Property",
-        description="Search for properties matching your criteria.",
+        description="Search for properties matching your criteria and gather key information during viewings.",
         estimated_duration_days=30,
         content_key="property_search",
         prerequisites=[2],
         tasks=[
             {"title": "Set up alerts on ImmoScout24, Immowelt", "is_required": True},
             {"title": "Contact local Makler (agents)", "is_required": False},
-            {"title": "Schedule viewings", "is_required": True},
+            {"title": "Schedule and attend viewings", "is_required": True},
             {"title": "Take notes and photos at viewings", "is_required": True},
+            {
+                "title": "Request the property exposé from the agent",
+                "is_required": True,
+            },
+            {
+                "title": "Check the Grundbuchauszug (land registry extract)",
+                "is_required": True,
+            },
+            {
+                "title": "Review the Energieausweis (energy certificate)",
+                "is_required": True,
+            },
+            {
+                "title": "Verify building permits and planning permissions",
+                "is_required": False,
+            },
+            {
+                "title": "Check for encumbrances or easements on the property",
+                "is_required": False,
+            },
+            {
+                "title": "Consider commissioning a building survey",
+                "is_required": False,
+            },
         ],
+        related_laws=["GBO (Grundbuchordnung)", "EnEV (Energieeinsparverordnung)"],
     ),
     StepTemplate(
         step_number=4,

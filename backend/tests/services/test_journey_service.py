@@ -424,6 +424,29 @@ class TestStepTemplates:
         assert template.content_key == "property_search"
         assert template.phase == JourneyPhase.RESEARCH
 
+    def test_step_3_property_search_tasks(self) -> None:
+        """Test that step 3 has 10 tasks: 6 required, 4 optional."""
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "property_search")
+        assert len(template.tasks) == 10
+        required = [t for t in template.tasks if t["is_required"]]
+        optional = [t for t in template.tasks if not t["is_required"]]
+        assert len(required) == 6
+        assert len(optional) == 4
+
+    def test_step_3_includes_research_tasks(self) -> None:
+        """Test that step 3 includes property research tasks like exposé and land registry."""
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "property_search")
+        task_titles = [t["title"] for t in template.tasks]
+        assert any("exposé" in t for t in task_titles)
+        assert any("Grundbuchauszug" in t for t in task_titles)
+        assert any("Energieausweis" in t for t in task_titles)
+
+    def test_step_3_has_related_laws(self) -> None:
+        """Test that step 3 references relevant German laws."""
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "property_search")
+        assert template.related_laws is not None
+        assert len(template.related_laws) > 0
+
     def test_property_evaluation_template_exists(self) -> None:
         """Test that property_evaluation template exists with correct attributes."""
         template = next(
