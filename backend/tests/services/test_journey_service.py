@@ -497,18 +497,14 @@ class TestStepTemplates:
         self, cash_buyer_answers: QuestionnaireAnswers
     ) -> None:
         """Test that proof_of_funds step is included for cash buyers."""
-        template = next(
-            t for t in STEP_TEMPLATES if t.content_key == "proof_of_funds"
-        )
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "proof_of_funds")
         assert _should_include_step(template, cash_buyer_answers)
 
     def test_proof_of_funds_excluded_for_mortgage_buyer(
         self, sample_answers: QuestionnaireAnswers
     ) -> None:
         """Test that proof_of_funds step is excluded for mortgage buyers."""
-        template = next(
-            t for t in STEP_TEMPLATES if t.content_key == "proof_of_funds"
-        )
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "proof_of_funds")
         assert not _should_include_step(template, sample_answers)
 
     def test_loan_commitment_template_exists(self) -> None:
@@ -529,25 +525,19 @@ class TestStepTemplates:
         self, sample_answers: QuestionnaireAnswers
     ) -> None:
         """Test that loan_commitment step is included for mortgage buyers."""
-        template = next(
-            t for t in STEP_TEMPLATES if t.content_key == "loan_commitment"
-        )
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "loan_commitment")
         assert _should_include_step(template, sample_answers)
 
     def test_loan_commitment_excluded_for_cash_buyer(
         self, cash_buyer_answers: QuestionnaireAnswers
     ) -> None:
         """Test that loan_commitment step is excluded for cash buyers."""
-        template = next(
-            t for t in STEP_TEMPLATES if t.content_key == "loan_commitment"
-        )
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "loan_commitment")
         assert not _should_include_step(template, cash_buyer_answers)
 
     def test_notary_signing_prerequisites_include_loan_commitment(self) -> None:
         """Test that notary signing (step 14) has prerequisites [13, 19]."""
-        template = next(
-            t for t in STEP_TEMPLATES if t.content_key == "notary_signing"
-        )
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "notary_signing")
         assert template.prerequisites == [13, 19]
 
     def test_research_phase_steps_order(self) -> None:
@@ -631,9 +621,7 @@ class TestJourneyStepGeneration:
         reference in Step 14 is silently dropped by the remap logic.
         """
         steps = _generate_steps(cash_buyer_answers)
-        notary_step = next(
-            (s for s in steps if s.title == "Sign at the Notary"), None
-        )
+        notary_step = next((s for s in steps if s.title == "Sign at the Notary"), None)
         assert notary_step is not None
         assert notary_step.prerequisites is not None
         assert len(notary_step.prerequisites) == 1
@@ -643,9 +631,7 @@ class TestJourneyStepGeneration:
     ) -> None:
         """Test that for mortgage buyers, Step 14 prereqs include both 13 and 19 (remapped)."""
         steps = _generate_steps(sample_answers)
-        notary_step = next(
-            (s for s in steps if s.title == "Sign at the Notary"), None
-        )
+        notary_step = next((s for s in steps if s.title == "Sign at the Notary"), None)
         assert notary_step is not None
         assert notary_step.prerequisites is not None
         assert len(notary_step.prerequisites) == 2
