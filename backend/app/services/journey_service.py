@@ -308,7 +308,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
         prerequisites=[3],
         tasks=[
             {
-                "title": "Request property exposé from agent",
+                "title": "Review the property exposé",
                 "is_required": True,
             },
             {
@@ -324,6 +324,10 @@ STEP_TEMPLATES: list[StepTemplate] = [
             {"title": "Consider hiring a property surveyor", "is_required": False},
             {
                 "title": "Review HOA documents (Teilungserklärung)",
+                "is_required": False,
+            },
+            {
+                "title": "Consider hiring a real estate lawyer (Immobilienanwalt)",
                 "is_required": False,
             },
         ],

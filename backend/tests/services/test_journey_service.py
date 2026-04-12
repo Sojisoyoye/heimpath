@@ -494,13 +494,32 @@ class TestStepTemplates:
         assert len(optional) == 1
 
     def test_step_10_due_diligence_tasks(self) -> None:
-        """Test that step 10 (due_diligence) has 7 tasks: 5 required, 2 optional."""
+        """Test that step 10 (due_diligence) has 8 tasks: 5 required, 3 optional."""
         template = next(t for t in STEP_TEMPLATES if t.content_key == "due_diligence")
-        assert len(template.tasks) == 7
+        assert len(template.tasks) == 8
         required = [t for t in template.tasks if t["is_required"]]
         optional = [t for t in template.tasks if not t["is_required"]]
         assert len(required) == 5
-        assert len(optional) == 2
+        assert len(optional) == 3
+
+    def test_step_10_expose_task_says_review_not_request(self) -> None:
+        """Test that step 10 exposé task says 'Review' not 'Request'."""
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "due_diligence")
+        expose_tasks = [t for t in template.tasks if "exposé" in t["title"].lower()]
+        assert len(expose_tasks) == 1
+        assert expose_tasks[0]["title"] == "Review the property exposé"
+        assert "Request" not in expose_tasks[0]["title"]
+
+    def test_step_10_includes_lawyer_task(self) -> None:
+        """Test that step 10 includes an optional task for hiring a real estate lawyer."""
+        template = next(t for t in STEP_TEMPLATES if t.content_key == "due_diligence")
+        lawyer_tasks = [t for t in template.tasks if "Immobilienanwalt" in t["title"]]
+        assert len(lawyer_tasks) == 1
+        assert (
+            lawyer_tasks[0]["title"]
+            == "Consider hiring a real estate lawyer (Immobilienanwalt)"
+        )
+        assert lawyer_tasks[0]["is_required"] is False
 
     def test_proof_of_funds_template_exists(self) -> None:
         """Test that proof_of_funds template exists with correct attributes."""
