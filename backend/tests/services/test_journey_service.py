@@ -20,7 +20,9 @@ from app.services.journey_service import (
     STEP_TEMPLATES,
     JourneyNotFoundError,
     StepNotFoundError,
+    StepTemplate,
     _matches_conditions,
+    _personalize_buying_costs,
     _should_include_step,
     _sync_step_status_from_tasks,
     generate_journey,
@@ -1227,3 +1229,136 @@ class TestStep4StatusTransitions:
         assert tasks[3].is_completed is False
         assert mock_step.status == StepStatus.NOT_STARTED
         assert mock_step.started_at is None
+
+
+class TestPersonalizeBuyingCosts:
+    """Tests for _personalize_buying_costs helper."""
+
+    @pytest.fixture
+    def buying_costs_template(self) -> StepTemplate:
+        """Return the buying_costs StepTemplate."""
+        return next(t for t in STEP_TEMPLATES if t.content_key == "buying_costs")
+
+    def test_budget_and_valid_state_personalizes_titles_and_descriptions(
+        self, buying_costs_template: StepTemplate
+    ) -> None:
+        """Budget + valid state → titles show state rate, descriptions show EUR amounts."""
+        answers = QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="BE",  # Berlin, 6.0%
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=300_000,
+        )
+
+        tasks, costs = _personalize_buying_costs(buying_costs_template, answers)
+
+        # Transfer tax task personalized to Berlin 6.0%
+        assert "6.0%" in tasks[0]["title"]
+        assert "Berlin" in tasks[0]["title"]
+        assert tasks[0]["description"] is not None
+        assert "18,000 EUR" in tasks[0]["description"]
+
+        # Notary fees task shows EUR amount
+        assert tasks[1]["description"] is not None
+        assert "4,500 EUR" in tasks[1]["description"]
+
+        # Land registry fees task shows EUR amount
+        assert tasks[2]["description"] is not None
+        assert "1,500 EUR" in tasks[2]["description"]
+
+        # Agent commission task shows EUR amount
+        assert tasks[3]["description"] is not None
+        assert "10,710 EUR" in tasks[3]["description"]
+
+    def test_no_budget_with_valid_state_shows_rate_without_amounts(
+        self, buying_costs_template: StepTemplate
+    ) -> None:
+        """No budget + valid state → titles show state rate, no EUR amounts in descriptions."""
+        answers = QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="BY",  # Bayern, 3.5%
+            financing_type=FinancingType.CASH,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=None,
+        )
+
+        tasks, costs = _personalize_buying_costs(buying_costs_template, answers)
+
+        # Transfer tax title personalized to Bayern
+        assert "3.5%" in tasks[0]["title"]
+        assert "Bayern" in tasks[0]["title"]
+        # No description (no budget to compute amounts)
+        assert tasks[0]["description"] is None
+
+        # Non-state tasks fall back to originals (no budget)
+        assert tasks[1].get("description") is None
+        assert tasks[2].get("description") is None
+        assert tasks[3].get("description") is None
+
+    def test_budget_with_unknown_state_falls_back_for_tax_only(
+        self, buying_costs_template: StepTemplate
+    ) -> None:
+        """Budget + unknown state → transfer tax uses original, notary/registry still personalized."""
+        answers = QuestionnaireAnswers(
+            property_type=PropertyType.HOUSE,
+            property_location="Frankfurt",  # Not a state code
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=False,
+            has_german_residency=True,
+            budget_euros=500_000,
+        )
+
+        tasks, costs = _personalize_buying_costs(buying_costs_template, answers)
+
+        # Transfer tax task uses original (unknown state)
+        assert tasks[0]["title"] == buying_costs_template.tasks[0]["title"]
+        assert tasks[0].get("description") is None
+
+        # Notary and registry are still personalized with budget
+        assert "7,500 EUR" in tasks[1]["description"]
+        assert "2,500 EUR" in tasks[2]["description"]
+        assert "17,850 EUR" in tasks[3]["description"]
+
+    def test_budget_and_valid_state_estimated_costs_personalized(
+        self, buying_costs_template: StepTemplate
+    ) -> None:
+        """Budget + valid state → estimated_costs dict has EUR amounts and total_estimated."""
+        answers = QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="BE",  # Berlin, 6.0%
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=300_000,
+        )
+
+        _tasks, costs = _personalize_buying_costs(buying_costs_template, answers)
+
+        assert "18,000 EUR" in costs["grunderwerbsteuer"]
+        assert "4,500 EUR" in costs["notary_fees"]
+        assert "1,500 EUR" in costs["land_registry"]
+        assert "10,710 EUR" in costs["agent_commission"]
+        assert "total_estimated" in costs
+        # Total: 300000 * (6.0 + 1.5 + 0.5 + 3.57) / 100 = 34,710
+        assert "34,710 EUR" in costs["total_estimated"]
+
+    def test_no_budget_estimated_costs_has_no_total(
+        self, buying_costs_template: StepTemplate
+    ) -> None:
+        """No budget → estimated_costs has no total_estimated key."""
+        answers = QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="BE",
+            financing_type=FinancingType.CASH,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=None,
+        )
+
+        _tasks, costs = _personalize_buying_costs(buying_costs_template, answers)
+
+        assert "total_estimated" not in costs
+        assert "6.0%" in costs["grunderwerbsteuer"]

@@ -51,6 +51,11 @@ function TaskCheckbox(props: IProps) {
         )}
       >
         {task.title}
+        {task.description && (
+          <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+            {task.description}
+          </span>
+        )}
       </label>
     </div>
   )

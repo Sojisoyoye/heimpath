@@ -47,7 +47,7 @@ export interface JourneyStep {
   completed_at?: string
   content_key?: string
   related_laws?: string
-  estimated_costs?: string
+  estimated_costs?: Record<string, string>
   tasks: JourneyTask[]
 }
 
