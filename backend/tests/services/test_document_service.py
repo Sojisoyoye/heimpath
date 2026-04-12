@@ -197,3 +197,4 @@ class TestGetDocumentsByStepId:
 
         assert "document.journey_step_id" in compiled
         assert "document.user_id" in compiled
+        assert "ORDER BY document.created_at DESC" in compiled
