@@ -177,8 +177,8 @@ class TestGetDocumentsByStepId:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_filters_by_user_ownership(self) -> None:
-        """Ensure the query filters by both step_id and user_id."""
+    async def test_query_filters_by_both_step_and_user(self) -> None:
+        """Ensure the SQL query contains WHERE clauses for both step_id and user_id."""
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
 
@@ -190,5 +190,10 @@ class TestGetDocumentsByStepId:
 
         await get_documents_by_step_id(mock_session, step_id, user_id)
 
-        # Verify execute was called (query contains both filters)
-        mock_session.execute.assert_called_once()
+        # Extract the compiled SQL from the call args
+        call_args = mock_session.execute.call_args
+        query = call_args[0][0]
+        compiled = str(query.compile(compile_kwargs={"literal_binds": False}))
+
+        assert "document.journey_step_id" in compiled
+        assert "document.user_id" in compiled

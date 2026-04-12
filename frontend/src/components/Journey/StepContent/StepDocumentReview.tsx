@@ -3,6 +3,7 @@
  * Inline document upload and summary for journey review steps
  */
 
+import { useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import {
   AlertCircle,
@@ -11,13 +12,13 @@ import {
   Loader2,
   Upload,
 } from "lucide-react"
-import { useCallback, useState } from "react"
-
+import { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { useUploadDocument } from "@/hooks/mutations"
 import { useDocumentStatus, useStepDocuments } from "@/hooks/queries"
 import type { DocumentSummary } from "@/models/document"
+import { queryKeys } from "@/query/queryKeys"
 
 interface IProps {
   stepId: string
@@ -44,43 +45,68 @@ const STATUS_BADGE_STYLES: Record<string, string> = {
 ******************************************************************************/
 
 /** Single document card with status and warnings. */
-function DocumentCard(props: { doc: DocumentSummary }) {
-  const { doc } = props
+function DocumentCard(props: { doc: DocumentSummary; stepId: string }) {
+  const { doc, stepId } = props
+  const queryClient = useQueryClient()
   const isProcessing = doc.status === "uploaded" || doc.status === "processing"
+  const hasInvalidated = useRef(false)
 
   const { data: statusData } = useDocumentStatus(doc.id, isProcessing)
   const currentStatus = statusData?.status ?? doc.status
+  const errorMessage = statusData?.errorMessage ?? null
+
+  // Refresh the parent step documents query when processing finishes
+  useEffect(() => {
+    if (hasInvalidated.current) return
+    if (currentStatus === "completed" || currentStatus === "failed") {
+      hasInvalidated.current = true
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.byStep(stepId),
+      })
+    }
+  }, [currentStatus, stepId, queryClient])
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{doc.originalFilename}</p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Badge
-              variant="outline"
-              className={cn("text-xs", STATUS_BADGE_STYLES[currentStatus])}
-            >
-              {currentStatus === "processing" && (
-                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-              )}
-              {currentStatus}
-            </Badge>
-            <span>{doc.pageCount} pages</span>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">
+              {doc.originalFilename}
+            </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Badge
+                variant="outline"
+                className={cn("text-xs", STATUS_BADGE_STYLES[currentStatus])}
+              >
+                {currentStatus === "processing" && (
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                )}
+                {currentStatus}
+              </Badge>
+              <span>{doc.pageCount} pages</span>
+            </div>
           </div>
         </div>
+
+        {currentStatus === "completed" && (
+          <Link
+            to="/documents/$documentId"
+            params={{ documentId: doc.id }}
+            className="flex shrink-0 items-center gap-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            View Translation
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+        )}
       </div>
 
-      {currentStatus === "completed" && (
-        <Link
-          to="/documents/$documentId"
-          params={{ documentId: doc.id }}
-          className="flex shrink-0 items-center gap-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
-        >
-          View Translation
-          <ExternalLink className="h-3 w-3" />
-        </Link>
+      {currentStatus === "failed" && errorMessage && (
+        <div className="flex items-center gap-2 px-1 text-xs text-destructive">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{errorMessage}</span>
+        </div>
       )}
     </div>
   )
@@ -230,7 +256,7 @@ function StepDocumentReview(props: IProps) {
       {documents.length > 0 && (
         <div className="space-y-2">
           {documents.map((doc) => (
-            <DocumentCard key={doc.id} doc={doc} />
+            <DocumentCard key={doc.id} doc={doc} stepId={stepId} />
           ))}
         </div>
       )}

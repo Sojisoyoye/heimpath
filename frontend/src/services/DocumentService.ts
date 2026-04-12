@@ -43,7 +43,7 @@ class DocumentServiceClass {
     formData.append("file", file)
 
     const url = journeyStepId
-      ? `${PATHS.DOCUMENTS.UPLOAD}?journey_step_id=${journeyStepId}`
+      ? `${PATHS.DOCUMENTS.UPLOAD}?journey_step_id=${encodeURIComponent(journeyStepId)}`
       : PATHS.DOCUMENTS.UPLOAD
 
     const response = await request<Record<string, unknown>>(OpenAPI, {
