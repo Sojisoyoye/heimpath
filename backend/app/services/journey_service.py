@@ -62,7 +62,9 @@ class StepTemplate:
     estimated_costs: dict[str, Any] | None = None
 
 
-# Step templates for the German property buying journey
+# Step templates for the German property buying journey.
+# step_number is a stable template identifier, not a list position — gaps and
+# non-sequential values are expected when conditional steps are inserted.
 STEP_TEMPLATES: list[StepTemplate] = [
     # RESEARCH PHASE
     StepTemplate(
@@ -221,6 +223,37 @@ STEP_TEMPLATES: list[StepTemplate] = [
         conditions={"financing_type": ["mortgage", "mixed"]},
     ),
     StepTemplate(
+        step_number=18,
+        phase=JourneyPhase.PREPARATION,
+        title="Prepare Proof of Funds",
+        description="As a cash buyer, you need to prove you have the funds available. Prepare bank documentation and plan your transfer.",
+        estimated_duration_days=7,
+        content_key="proof_of_funds",
+        tasks=[
+            {
+                "title": "Gather recent bank statements (last 3-6 months)",
+                "is_required": True,
+            },
+            {
+                "title": "Request a proof of funds letter from your bank",
+                "is_required": True,
+            },
+            {
+                "title": "Open a German bank account if you don't have one",
+                "is_required": True,
+            },
+            {
+                "title": "Plan your funds transfer (exchange rates, fees, timing)",
+                "is_required": True,
+            },
+        ],
+        conditions={"financing_type": ["cash"]},
+        prerequisites=[5],
+        related_laws=[
+            "GwG §10-11 (Sorgfaltspflichten — Anti-money laundering due diligence)"
+        ],
+    ),
+    StepTemplate(
         step_number=9,
         phase=JourneyPhase.PREPARATION,
         title="Prepare Required Documents",
@@ -318,13 +351,45 @@ STEP_TEMPLATES: list[StepTemplate] = [
         related_laws=["BGB §311b (Formvorschriften)"],
     ),
     StepTemplate(
+        step_number=19,
+        phase=JourneyPhase.BUYING,
+        title="Secure Final Loan Commitment",
+        description="After reviewing the purchase contract, submit it to your bank to receive the binding loan commitment (Darlehenszusage) before the notary appointment.",
+        estimated_duration_days=14,
+        content_key="loan_commitment",
+        tasks=[
+            {
+                "title": "Submit the purchase contract draft to your bank",
+                "is_required": True,
+            },
+            {
+                "title": "Complete any remaining loan application documents",
+                "is_required": True,
+            },
+            {
+                "title": "Receive the formal loan commitment (Darlehenszusage)",
+                "is_required": True,
+            },
+            {
+                "title": "Review and sign the loan agreement (Darlehensvertrag)",
+                "is_required": True,
+            },
+        ],
+        conditions={"financing_type": ["mortgage", "mixed"]},
+        prerequisites=[13],
+        related_laws=[
+            "BGB §488-505 (Darlehensvertrag)",
+            "BGB §492 (Schriftform bei Verbraucherdarlehen)",
+        ],
+    ),
+    StepTemplate(
         step_number=14,
         phase=JourneyPhase.BUYING,
         title="Sign at the Notary",
         description="Attend the notary appointment and sign the purchase contract.",
         estimated_duration_days=1,
         content_key="notary_signing",
-        prerequisites=[13],
+        prerequisites=[13, 19],
         tasks=[
             {"title": "Bring valid ID to appointment", "is_required": True},
             {"title": "Listen to full contract reading", "is_required": True},
