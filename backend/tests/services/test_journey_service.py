@@ -20,6 +20,7 @@ from app.services.journey_service import (
     STEP_TEMPLATES,
     JourneyNotFoundError,
     StepNotFoundError,
+    _matches_conditions,
     _should_include_step,
     _sync_step_status_from_tasks,
     generate_journey,
@@ -600,6 +601,36 @@ class TestStepTemplates:
             assert template.content_key == expected_key
 
 
+def _generate_steps_with_tasks(
+    answers: QuestionnaireAnswers,
+) -> dict[str, list[JourneyTask]]:
+    """Generate journey and return a dict mapping step title -> list of tasks.
+
+    Since mock sessions don't assign real IDs, we group by add-call order:
+    each JourneyStep is followed by its JourneyTask objects until the next step.
+    """
+    mock_session = MagicMock()
+    mock_session.exec.return_value.first.return_value = None
+
+    generate_journey(
+        session=mock_session,
+        user_id=uuid.uuid4(),
+        title="Test Journey",
+        answers=answers,
+    )
+
+    result: dict[str, list[JourneyTask]] = {}
+    current_step_title: str | None = None
+    for call in mock_session.add.call_args_list:
+        obj = call.args[0]
+        if isinstance(obj, JourneyStep):
+            current_step_title = obj.title
+            result[current_step_title] = []
+        elif isinstance(obj, JourneyTask) and current_step_title is not None:
+            result[current_step_title].append(obj)
+    return result
+
+
 def _generate_steps(answers: QuestionnaireAnswers) -> list[JourneyStep]:
     """Generate journey steps from answers and return the JourneyStep objects added to the session."""
     mock_session = MagicMock()
@@ -677,6 +708,128 @@ class TestJourneyStepGeneration:
         assert notary_step is not None
         assert notary_step.prerequisites is not None
         assert len(notary_step.prerequisites) == 2
+
+
+class TestMatchesConditions:
+    """Tests for the _matches_conditions helper."""
+
+    def test_none_conditions_always_matches(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that None conditions always match."""
+        assert _matches_conditions(None, sample_answers)
+
+    def test_matches_bool_condition(self, sample_answers: QuestionnaireAnswers) -> None:
+        """Test that boolean condition matches."""
+        assert _matches_conditions({"has_german_residency": True}, sample_answers)
+
+    def test_rejects_bool_condition(self, sample_answers: QuestionnaireAnswers) -> None:
+        """Test that boolean condition rejects non-match."""
+        assert not _matches_conditions({"has_german_residency": False}, sample_answers)
+
+    def test_matches_list_condition(self, sample_answers: QuestionnaireAnswers) -> None:
+        """Test that list condition matches."""
+        assert _matches_conditions(
+            {"financing_type": ["mortgage", "mixed"]}, sample_answers
+        )
+
+    def test_rejects_list_condition(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that list condition rejects non-match."""
+        assert not _matches_conditions(
+            {"financing_type": ["mortgage", "mixed"]}, cash_buyer_answers
+        )
+
+
+class TestTailoredDocumentTasks:
+    """Tests for Step 9 task-level conditional filtering."""
+
+    def test_documents_prep_included_for_all_buyers(
+        self,
+        sample_answers: QuestionnaireAnswers,
+        cash_buyer_answers: QuestionnaireAnswers,
+    ) -> None:
+        """Test that Prepare Required Documents step is included for all buyers."""
+        for answers in [sample_answers, cash_buyer_answers]:
+            steps_with_tasks = _generate_steps_with_tasks(answers)
+            assert "Prepare Required Documents" in steps_with_tasks
+
+    def test_resident_mortgage_gets_universal_and_mortgage_tasks(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that a resident mortgage buyer gets universal + mortgage tasks, not non-resident tasks."""
+        doc_tasks = _generate_steps_with_tasks(sample_answers)[
+            "Prepare Required Documents"
+        ]
+        task_titles = [t.title for t in doc_tasks]
+
+        # Universal tasks
+        assert "Obtain proof of identity (passport/ID)" in task_titles
+        assert "Get proof of address in Germany" in task_titles
+        assert "Prepare recent bank statements" in task_titles
+        # Mortgage tasks
+        assert "Gather salary statements and employment contract" in task_titles
+        assert "Request your SCHUFA credit report" in task_titles
+        # Non-resident tasks should NOT be present
+        assert (
+            "Get apostilled or translated copies of personal documents"
+            not in task_titles
+        )
+        assert (
+            "Obtain proof of legal residency or visa documentation" not in task_titles
+        )
+
+    def test_non_resident_mortgage_gets_all_tasks(
+        self, non_resident_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that a non-resident mortgage buyer gets universal + non-resident + mortgage tasks."""
+        doc_tasks = _generate_steps_with_tasks(non_resident_answers)[
+            "Prepare Required Documents"
+        ]
+        task_titles = [t.title for t in doc_tasks]
+
+        # All 7 tasks should be present
+        assert len(doc_tasks) == 7
+        assert (
+            "Get apostilled or translated copies of personal documents" in task_titles
+        )
+        assert "Obtain proof of legal residency or visa documentation" in task_titles
+        assert "Gather salary statements and employment contract" in task_titles
+        assert "Request your SCHUFA credit report" in task_titles
+
+    def test_cash_resident_gets_only_universal_tasks(
+        self, cash_buyer_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that a cash-paying resident gets only universal tasks."""
+        doc_tasks = _generate_steps_with_tasks(cash_buyer_answers)[
+            "Prepare Required Documents"
+        ]
+        task_titles = [t.title for t in doc_tasks]
+
+        # Only 3 universal tasks
+        assert len(doc_tasks) == 3
+        assert "Obtain proof of identity (passport/ID)" in task_titles
+        assert "Get proof of address in Germany" in task_titles
+        assert "Prepare recent bank statements" in task_titles
+        # No conditional tasks
+        assert "Gather salary statements and employment contract" not in task_titles
+        assert "Request your SCHUFA credit report" not in task_titles
+        assert (
+            "Get apostilled or translated copies of personal documents"
+            not in task_titles
+        )
+
+    def test_task_order_is_sequential(
+        self, non_resident_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that task order values are sequential after filtering."""
+        doc_tasks = _generate_steps_with_tasks(non_resident_answers)[
+            "Prepare Required Documents"
+        ]
+        sorted_tasks = sorted(doc_tasks, key=lambda t: t.order)
+        orders = [t.order for t in sorted_tasks]
+        assert orders == list(range(len(doc_tasks)))
 
 
 def _make_task(

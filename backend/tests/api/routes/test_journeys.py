@@ -389,6 +389,42 @@ def test_journey_with_non_resident_includes_document_prep(
     step_titles = [step["title"] for step in data["steps"]]
     assert "Prepare Required Documents" in step_titles
 
+    # Fetch full details to check tasks
+    journey_id = data["id"]
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    detail = r.json()
+    doc_step = next(
+        s for s in detail["steps"] if s["title"] == "Prepare Required Documents"
+    )
+    task_titles = [t["title"] for t in doc_step["tasks"]]
+    assert "Get apostilled or translated copies of personal documents" in task_titles
+
+
+def test_resident_journey_includes_document_prep(
+    client: TestClient, db: Session
+) -> None:
+    """Test that residents also get document preparation step with tailored tasks."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)  # default is resident mortgage
+    journey_id = journey["id"]
+
+    step_titles = [step["title"] for step in journey["steps"]]
+    assert "Prepare Required Documents" in step_titles
+
+    # Fetch full details to check tasks
+    r = client.get(f"{settings.API_V1_STR}/journeys/{journey_id}", headers=headers)
+    detail = r.json()
+    doc_step = next(
+        s for s in detail["steps"] if s["title"] == "Prepare Required Documents"
+    )
+    task_titles = [t["title"] for t in doc_step["tasks"]]
+
+    # Resident should have mortgage tasks but NOT non-resident tasks
+    assert "Gather salary statements and employment contract" in task_titles
+    assert (
+        "Get apostilled or translated copies of personal documents" not in task_titles
+    )
+
 
 def test_update_property_goals_first_save(client: TestClient, db: Session) -> None:
     """Test saving property goals for the first time (property_goals starts as null)."""
