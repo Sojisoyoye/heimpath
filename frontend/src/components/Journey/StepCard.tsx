@@ -29,6 +29,7 @@ import { ProgressBar } from "./ProgressBar"
 import { MarketInsights } from "./StepContent/MarketInsights"
 import { PropertyEvaluationSummary } from "./StepContent/PropertyEvaluationSummary"
 import { PropertyGoalsForm } from "./StepContent/PropertyGoalsForm"
+import { StepDocumentReview } from "./StepContent/StepDocumentReview"
 import { TaskCheckbox } from "./TaskCheckbox"
 
 interface IProps {
@@ -102,6 +103,8 @@ const STEP_CONTENT_REGISTRY: Record<
   property_evaluation: (p) => (
     <PropertyEvaluationSummary journeyId={p.journeyId} stepId={p.step.id} />
   ),
+  due_diligence: (p) => <StepDocumentReview stepId={p.step.id} />,
+  review_contract: (p) => <StepDocumentReview stepId={p.step.id} />,
 }
 
 /******************************************************************************

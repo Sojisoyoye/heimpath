@@ -101,6 +101,8 @@ export const queryKeys = {
     shared: (shareId: string) =>
       [...queryKeys.documents.all, "shared", shareId] as const,
     usage: () => [...queryKeys.documents.all, "usage"] as const,
+    byStep: (stepId: string) =>
+      [...queryKeys.documents.all, "byStep", stepId] as const,
   },
 
   // Notification queries

@@ -40,6 +40,7 @@ class DocumentUploadResponse(BaseModel):
     page_count: int
     document_type: DocumentTypeEnum
     status: DocumentStatusEnum
+    journey_step_id: uuid.UUID | None = None
 
 
 class DocumentSummary(BaseModel):
@@ -54,6 +55,7 @@ class DocumentSummary(BaseModel):
     document_type: DocumentTypeEnum
     status: DocumentStatusEnum
     share_id: str | None = None
+    journey_step_id: uuid.UUID | None = None
     created_at: datetime
 
 
@@ -126,6 +128,7 @@ class DocumentDetailResponse(BaseModel):
     status: DocumentStatusEnum
     error_message: str | None = None
     share_id: str | None = None
+    journey_step_id: uuid.UUID | None = None
     created_at: datetime
     translation: DocumentTranslationResponse | None = None
 
