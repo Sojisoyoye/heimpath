@@ -282,20 +282,38 @@ STEP_TEMPLATES: list[StepTemplate] = [
         step_number=9,
         phase=JourneyPhase.PREPARATION,
         title="Prepare Required Documents",
-        description="Gather all documents needed for the property purchase.",
+        description="Gather all documents needed for the property purchase, tailored to your situation.",
         estimated_duration_days=7,
         content_key="documents_prep",
         prerequisites=[5],
         tasks=[
+            # Universal tasks — all buyers
             {"title": "Obtain proof of identity (passport/ID)", "is_required": True},
             {"title": "Get proof of address in Germany", "is_required": True},
-            {"title": "Prepare bank statements", "is_required": True},
+            {"title": "Prepare recent bank statements", "is_required": True},
+            # Non-resident tasks
             {
-                "title": "Gather employment contract/proof of income",
+                "title": "Get apostilled or translated copies of personal documents",
                 "is_required": True,
+                "conditions": {"has_german_residency": False},
+            },
+            {
+                "title": "Obtain proof of legal residency or visa documentation",
+                "is_required": True,
+                "conditions": {"has_german_residency": False},
+            },
+            # Mortgage/mixed tasks
+            {
+                "title": "Gather salary statements and employment contract",
+                "is_required": True,
+                "conditions": {"financing_type": ["mortgage", "mixed"]},
+            },
+            {
+                "title": "Request your SCHUFA credit report",
+                "is_required": True,
+                "conditions": {"financing_type": ["mortgage", "mixed"]},
             },
         ],
-        conditions={"has_german_residency": False},
     ),
     # BUYING PHASE
     StepTemplate(
@@ -483,12 +501,17 @@ STEP_TEMPLATES: list[StepTemplate] = [
 ]
 
 
-def _should_include_step(template: StepTemplate, answers: QuestionnaireAnswers) -> bool:
-    """Check if a step should be included based on questionnaire answers."""
-    if template.conditions is None:
+def _matches_conditions(
+    conditions: dict[str, Any] | None, answers: QuestionnaireAnswers
+) -> bool:
+    """Check if a set of conditions matches the questionnaire answers.
+
+    Used for both step-level and task-level conditional inclusion.
+    """
+    if conditions is None:
         return True
 
-    for field, valid_values in template.conditions.items():
+    for field, valid_values in conditions.items():
         answer_value = getattr(answers, field, None)
         if answer_value is None:
             continue
@@ -507,6 +530,11 @@ def _should_include_step(template: StepTemplate, answers: QuestionnaireAnswers) 
                 return False
 
     return True
+
+
+def _should_include_step(template: StepTemplate, answers: QuestionnaireAnswers) -> bool:
+    """Check if a step should be included based on questionnaire answers."""
+    return _matches_conditions(template.conditions, answers)
 
 
 def generate_journey(
@@ -585,11 +613,14 @@ def generate_journey(
         session.add(step)
         session.flush()
 
-        # Create tasks for this step
-        for i, task_data in enumerate(template.tasks):
+        # Create tasks for this step, filtering by task-level conditions
+        task_order = 0
+        for task_data in template.tasks:
+            if not _matches_conditions(task_data.get("conditions"), answers):
+                continue
             task = JourneyTask(
                 step_id=step.id,
-                order=i,
+                order=task_order,
                 title=task_data["title"],
                 is_required=task_data.get("is_required", True),
                 description=task_data.get("description"),
@@ -597,6 +628,7 @@ def generate_journey(
                 resource_type=task_data.get("resource_type"),
             )
             session.add(task)
+            task_order += 1
 
     session.commit()
     session.refresh(journey)
