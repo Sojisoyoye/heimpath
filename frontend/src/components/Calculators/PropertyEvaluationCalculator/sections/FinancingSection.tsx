@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { FormRow } from "../FormRow"
 import type { FinancingInputs } from "../types"
 
 interface IProps {
@@ -45,8 +46,8 @@ function FinancingSection(props: IProps) {
   const debtServiceMonthly = monthlyInterest + monthlyRepayment
 
   const loanLabel = values.includeAcquisitionCosts
-    ? "Loan (% of total investment)"
-    : "Loan (% of purchase price)"
+    ? "Loan (% of total inv.)"
+    : "Loan (% of price)"
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -59,7 +60,7 @@ function FinancingSection(props: IProps) {
           Retrieve from bank offer
         </p>
       </CardHeader>
-      <CardContent className="space-y-4 pt-4">
+      <CardContent className="space-y-3 pt-4">
         {/* 110% financing toggle */}
         <div className="flex items-start gap-3">
           <Checkbox
@@ -97,55 +98,46 @@ function FinancingSection(props: IProps) {
         )}
 
         {/* Loan settings */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="loanPercent">{loanLabel}</Label>
-            <Input
-              id="loanPercent"
-              type="number"
-              step="5"
-              min="0"
-              max="100"
-              placeholder="e.g., 100"
-              value={values.loanPercent || ""}
-              onChange={(e) =>
-                handleNumberChange("loanPercent", e.target.value)
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="interestRate">Interest Rate (%)</Label>
-            <Input
-              id="interestRate"
-              type="number"
-              step="0.1"
-              min="0"
-              max="15"
-              placeholder="e.g., 4.0"
-              value={values.interestRatePercent || ""}
-              onChange={(e) =>
-                handleNumberChange("interestRatePercent", e.target.value)
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="repaymentRate">
-              Initial Repayment / Acquittance (%)
-            </Label>
-            <Input
-              id="repaymentRate"
-              type="number"
-              step="0.5"
-              min="0"
-              max="10"
-              placeholder="e.g., 2.0"
-              value={values.repaymentRatePercent || ""}
-              onChange={(e) =>
-                handleNumberChange("repaymentRatePercent", e.target.value)
-              }
-            />
-          </div>
-        </div>
+        <FormRow htmlFor="loanPercent" label={loanLabel}>
+          <Input
+            id="loanPercent"
+            type="number"
+            step="5"
+            min="0"
+            max="100"
+            placeholder="e.g., 100"
+            value={values.loanPercent || ""}
+            onChange={(e) => handleNumberChange("loanPercent", e.target.value)}
+          />
+        </FormRow>
+        <FormRow htmlFor="interestRate" label="Interest Rate (%)">
+          <Input
+            id="interestRate"
+            type="number"
+            step="0.1"
+            min="0"
+            max="15"
+            placeholder="e.g., 4.0"
+            value={values.interestRatePercent || ""}
+            onChange={(e) =>
+              handleNumberChange("interestRatePercent", e.target.value)
+            }
+          />
+        </FormRow>
+        <FormRow htmlFor="repaymentRate" label="Repayment Rate (%)">
+          <Input
+            id="repaymentRate"
+            type="number"
+            step="0.5"
+            min="0"
+            max="10"
+            placeholder="e.g., 2.0"
+            value={values.repaymentRatePercent || ""}
+            onChange={(e) =>
+              handleNumberChange("repaymentRatePercent", e.target.value)
+            }
+          />
+        </FormRow>
 
         {/* Financing summary */}
         {purchasePrice > 0 && (
