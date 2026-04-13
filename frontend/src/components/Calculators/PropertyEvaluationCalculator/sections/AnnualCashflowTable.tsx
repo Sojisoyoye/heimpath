@@ -4,6 +4,7 @@
  */
 
 import { cn } from "@/common/utils"
+import { EUR_FORMATTER_0 as EUR_FORMATTER } from "@/common/utils/formatters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AnnualCashflowRow } from "../types"
 
@@ -11,16 +12,6 @@ interface IProps {
   rows: AnnualCashflowRow[]
   className?: string
 }
-
-/******************************************************************************
-                              Constants
-******************************************************************************/
-
-const EUR_FORMATTER = new Intl.NumberFormat("de-DE", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-})
 
 /******************************************************************************
                               Components

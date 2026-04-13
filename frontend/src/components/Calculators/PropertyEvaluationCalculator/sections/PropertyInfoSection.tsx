@@ -6,6 +6,7 @@
 import { Home } from "lucide-react"
 import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
 import { cn } from "@/common/utils"
+import { EUR_FORMATTER_0 as CURRENCY_FORMATTER } from "@/common/utils/formatters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,16 +18,6 @@ interface IProps {
   onChange: (updates: Partial<PropertyInfoInputs>) => void
   className?: string
 }
-
-/******************************************************************************
-                              Constants
-******************************************************************************/
-
-const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-})
 
 /******************************************************************************
                               Components

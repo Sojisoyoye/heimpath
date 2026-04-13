@@ -13,6 +13,10 @@ import {
 } from "lucide-react"
 import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
 import { cn } from "@/common/utils"
+import {
+  EUR_FORMATTER_2 as CURRENCY_FORMATTER,
+  PERCENT_FORMATTER,
+} from "@/common/utils/formatters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import type { EvaluationResults } from "../types"
@@ -23,22 +27,6 @@ interface IProps {
   isLoading?: boolean
   className?: string
 }
-
-/******************************************************************************
-                              Constants
-******************************************************************************/
-
-const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 2,
-})
-
-const PERCENT_FORMATTER = new Intl.NumberFormat("de-DE", {
-  style: "percent",
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-})
 
 /******************************************************************************
                               Functions

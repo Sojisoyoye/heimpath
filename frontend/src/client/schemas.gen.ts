@@ -141,8 +141,7 @@ export const AnnualCashflowRowResponseSchema = {
         }
     },
     type: 'object',
-    title: 'AnnualCashflowRowResponse',
-    description: 'One row of the annual cashflow table.'
+    title: 'AnnualCashflowRowResponse'
 } as const;
 
 export const ArticleCategorySchema = {
@@ -4419,14 +4418,6 @@ export const PropertyEvaluationCalculateResponseSchema = {
             title: 'Personal Marginal Tax Rate',
             default: 0
         },
-        annual_rows: {
-            items: {
-                '$ref': '#/components/schemas/AnnualCashflowRowResponse'
-            },
-            type: 'array',
-            title: 'Annual Rows',
-            default: []
-        },
         total_operational_cf: {
             type: 'number',
             title: 'Total Operational Cf',
@@ -4456,11 +4447,18 @@ export const PropertyEvaluationCalculateResponseSchema = {
             type: 'number',
             title: 'Final Equity Kpi',
             default: 0
+        },
+        annual_rows: {
+            items: {
+                '$ref': '#/components/schemas/AnnualCashflowRowResponse'
+            },
+            type: 'array',
+            title: 'Annual Rows',
+            default: []
         }
     },
     type: 'object',
-    title: 'PropertyEvaluationCalculateResponse',
-    description: 'Full calculation result from the /calculate endpoint.'
+    title: 'PropertyEvaluationCalculateResponse'
 } as const;
 
 export const PropertyEvaluationCreateSchema = {
