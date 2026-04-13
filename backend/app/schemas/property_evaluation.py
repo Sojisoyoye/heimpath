@@ -1,9 +1,61 @@
 """Property evaluation calculator request/response schemas."""
 
+import dataclasses
+import typing
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, create_model
+
+from app.services.property_evaluation_calculator import (
+    AnnualCashflowRow,
+    EvaluationResult,
+)
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _pydantic_from_dataclass(
+    dc_cls: type,
+    model_name: str,
+    *,
+    exclude_fields: set[str] | None = None,
+    overrides: dict[str, tuple] | None = None,
+) -> type[BaseModel]:
+    """Create a Pydantic model mirroring a dataclass's field definitions.
+
+    Uses ``typing.get_type_hints()`` to resolve forward-ref annotations
+    (from ``__future__ import annotations`` in the calculator module).
+    """
+    exclude = exclude_fields or set()
+    hints = typing.get_type_hints(dc_cls)
+    field_defs: dict[str, tuple] = {}
+
+    for f in dataclasses.fields(dc_cls):
+        if f.name in exclude:
+            continue
+        default = (
+            f.default
+            if f.default is not dataclasses.MISSING
+            else (
+                f.default_factory()
+                if f.default_factory is not dataclasses.MISSING
+                else ...
+            )
+        )
+        field_defs[f.name] = (hints[f.name], default)
+
+    if overrides:
+        field_defs.update(overrides)
+
+    return create_model(
+        model_name,
+        __config__=ConfigDict(from_attributes=True),
+        **field_defs,
+    )
+
 
 # ---------------------------------------------------------------------------
 # /calculate endpoint schemas
@@ -64,99 +116,17 @@ class PropertyEvaluationCalculateRequest(BaseModel):
     analysis_years: int = 11
 
 
-class AnnualCashflowRowResponse(BaseModel):
-    """One row of the annual cashflow table."""
+AnnualCashflowRowResponse = _pydantic_from_dataclass(
+    AnnualCashflowRow,
+    "AnnualCashflowRowResponse",
+)
 
-    model_config = ConfigDict(from_attributes=True)
-
-    year: int = 0
-    cold_rent: float = 0.0
-    management_annual: float = 0.0
-    operational_cf: float = 0.0
-    loan_balance_start: float = 0.0
-    interest: float = 0.0
-    repayment: float = 0.0
-    loan_balance_end: float = 0.0
-    financing_cf: float = 0.0
-    net_cf_pretax: float = 0.0
-    renovation_deduction: float = 0.0
-    earnings_before_tax: float = 0.0
-    tax_effect_marginal: float = 0.0
-    net_cf_after_tax: float = 0.0
-    taxable_income_adjusted: float = 0.0
-    income_tax_adjusted: float = 0.0
-    actual_tax_saving: float = 0.0
-    property_value: float = 0.0
-    equity_buildup_accumulated: float = 0.0
-    equity_contribution: float = 0.0
-
-
-class PropertyEvaluationCalculateResponse(BaseModel):
-    """Full calculation result from the /calculate endpoint."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    # Property Purchase
-    price_per_m2: float = 0.0
-    broker_fee_amount: float = 0.0
-    notary_fee_amount: float = 0.0
-    land_registry_fee_amount: float = 0.0
-    property_transfer_tax_amount: float = 0.0
-    total_closing_costs: float = 0.0
-    total_closing_costs_pct: float = 0.0
-    total_investment: float = 0.0
-
-    # Rent
-    apartment_cold_rent_monthly: float = 0.0
-    total_cold_rent_monthly: float = 0.0
-    allocable_costs_monthly: float = 0.0
-    warm_rent_monthly: float = 0.0
-
-    # Management Costs
-    non_allocable_costs_monthly: float = 0.0
-    total_hausgeld_monthly: float = 0.0
-    non_allocable_as_pct_of_cold_rent: float = 0.0
-
-    # Depreciation
-    afa_basis: float = 0.0
-    annual_afa: float = 0.0
-    monthly_afa_display: float = 0.0
-
-    # Financing
-    loan_amount: float = 0.0
-    equity: float = 0.0
-    annual_debt_service: float = 0.0
-    monthly_debt_service: float = 0.0
-    monthly_interest_yr1: float = 0.0
-    monthly_repayment_yr1: float = 0.0
-
-    # Rental Yield
-    net_cold_rent_annual: float = 0.0
-    gross_rental_yield: float = 0.0
-    factor_cold_rent_vs_price: float = 0.0
-
-    # Monthly Cashflow
-    monthly_cashflow_pretax: float = 0.0
-    monthly_taxable_property_income: float = 0.0
-    monthly_tax_benefit: float = 0.0
-    monthly_cashflow_after_tax: float = 0.0
-
-    # Tax Context
-    personal_taxable_income: float = 0.0
-    base_income_tax: float = 0.0
-    avg_tax_rate_display: float = 0.0
-    personal_marginal_tax_rate: float = 0.0
-
-    # Annual Cashflow Table
-    annual_rows: list[AnnualCashflowRowResponse] = []
-
-    # Summary KPIs
-    total_operational_cf: float = 0.0
-    total_financing_cf: float = 0.0
-    total_net_cf_before_tax: float = 0.0
-    total_net_cf_after_tax: float = 0.0
-    total_equity_invested: float = 0.0
-    final_equity_kpi: float = 0.0
+PropertyEvaluationCalculateResponse = _pydantic_from_dataclass(
+    EvaluationResult,
+    "PropertyEvaluationCalculateResponse",
+    exclude_fields={"annual_rows"},
+    overrides={"annual_rows": (list[AnnualCashflowRowResponse], [])},
+)
 
 
 # ---------------------------------------------------------------------------

@@ -105,6 +105,48 @@ def calculate_results(inputs: dict) -> dict:
     return _result_to_dict(result)
 
 
+def _request_to_nested_dict(request: PropertyEvaluationCalculateRequest) -> dict:
+    """Map the flat /calculate request to the nested dict format expected by _inputs_from_dict."""
+    return {
+        "property_info": {
+            "address": request.address,
+            "square_meters": request.square_meters,
+            "purchase_price": request.purchase_price,
+            "broker_fee_percent": request.broker_fee_percent,
+            "notary_fee_percent": request.notary_fee_percent,
+            "land_registry_fee_percent": request.land_registry_fee_percent,
+            "transfer_tax_percent": request.property_transfer_tax_percent,
+        },
+        "rent": {
+            "rent_per_sqm": request.rent_per_m2,
+            "parking_rent": request.parking_space_rent,
+            "building_share_percent": request.building_share_percent,
+            "depreciation_rate_percent": request.afa_rate_percent,
+            "personal_taxable_income": request.personal_taxable_income,
+            "marginal_tax_rate_percent": request.marginal_tax_rate_percent,
+            "cost_increase_percent": request.cost_increase_percent,
+            "rent_increase_percent": request.rent_increase_percent,
+            "value_increase_percent": request.value_increase_percent,
+            "equity_interest_percent": request.equity_interest_percent,
+            "renovation_year": request.renovation_year,
+            "renovation_cost": request.renovation_cost,
+            "start_year": request.start_year,
+            "analysis_years": request.analysis_years,
+        },
+        "operating_costs": {
+            "hausgeld_allocable": request.base_allocable_costs,
+            "property_tax_monthly": request.property_tax_monthly,
+            "hausgeld_non_allocable": request.base_non_allocable_costs,
+            "reserves_portion": request.reserves_monthly,
+        },
+        "financing": {
+            "loan_percent": request.loan_percent,
+            "interest_rate_percent": request.interest_rate_percent,
+            "repayment_rate_percent": request.initial_repayment_rate_percent,
+        },
+    }
+
+
 def calculate_from_request(
     request: PropertyEvaluationCalculateRequest,
 ) -> EvaluationResult:
@@ -113,37 +155,7 @@ def calculate_from_request(
     Converts percent-scale request fields to decimal-scale rates,
     runs the full calculation, and returns the typed result.
     """
-    eval_inputs = EvaluationInputs(
-        address=request.address,
-        square_meters=request.square_meters,
-        purchase_price=request.purchase_price,
-        rent_per_m2=request.rent_per_m2,
-        parking_space_rent=request.parking_space_rent,
-        broker_fee_rate=request.broker_fee_percent / 100,
-        notary_fee_rate=request.notary_fee_percent / 100,
-        land_registry_fee_rate=request.land_registry_fee_percent / 100,
-        property_transfer_tax_rate=request.property_transfer_tax_percent / 100,
-        base_allocable_costs=request.base_allocable_costs,
-        property_tax_monthly=request.property_tax_monthly,
-        base_non_allocable_costs=request.base_non_allocable_costs,
-        reserves_monthly=request.reserves_monthly,
-        building_share_pct=request.building_share_percent / 100,
-        afa_rate=request.afa_rate_percent / 100,
-        loan_pct_of_purchase=request.loan_percent / 100,
-        interest_rate=request.interest_rate_percent / 100,
-        initial_repayment_rate=request.initial_repayment_rate_percent / 100,
-        personal_taxable_income=request.personal_taxable_income,
-        personal_marginal_tax_rate=request.marginal_tax_rate_percent / 100,
-        cost_increase_pa=request.cost_increase_percent / 100,
-        rent_increase_pa=request.rent_increase_percent / 100,
-        value_increase_pa=request.value_increase_percent / 100,
-        interest_on_equity_pa=request.equity_interest_percent / 100,
-        renovation_year=request.renovation_year,
-        renovation_cost=request.renovation_cost,
-        start_year=request.start_year,
-        analysis_years=request.analysis_years,
-    )
-    return calculate(eval_inputs)
+    return calculate(_inputs_from_dict(_request_to_nested_dict(request)))
 
 
 # ---------------------------------------------------------------------------

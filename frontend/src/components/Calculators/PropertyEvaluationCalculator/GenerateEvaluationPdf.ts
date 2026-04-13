@@ -5,6 +5,13 @@
 
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import {
+  formatEur as eur,
+  formatEur2 as eur2,
+  formatFactor as factor,
+  formatPct as pct,
+  formatPctFromDecimal as pctFromDecimal,
+} from "@/common/utils/formatters"
 import type {
   EvaluationResults,
   PropertyEvaluationState,
@@ -25,39 +32,6 @@ const CONTENT_WIDTH = 170 // A4 width (210) minus 2 * margin
 /******************************************************************************
                               Functions
 ******************************************************************************/
-
-/** Format a number as EUR currency string. */
-function eur(amount: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
-
-/** Format a number as EUR with 2 decimal places. */
-function eur2(amount: number): string {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
-
-/** Format a number as percentage. */
-function pct(value: number): string {
-  return `${value.toFixed(2)} %`
-}
-
-/** Format a decimal as percentage (e.g. 0.042 -> "4.20 %"). */
-function pctFromDecimal(value: number): string {
-  return `${(value * 100).toFixed(2)} %`
-}
-
-/** Format a number as a factor (e.g. 33.15x). */
-function factor(value: number): string {
-  return `${value.toFixed(1)}x`
-}
 
 /** Add branded header to the PDF. */
 function addHeader(doc: jsPDF, address: string, date: string): number {

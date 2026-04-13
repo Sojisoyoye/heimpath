@@ -16,9 +16,6 @@ export type ActivityItem = {
  */
 export type ActivityType = 'journey_started' | 'step_completed' | 'document_uploaded' | 'calculation_saved' | 'roi_calculated' | 'financing_assessed' | 'law_bookmarked';
 
-/**
- * One row of the annual cashflow table.
- */
 export type AnnualCashflowRowResponse = {
     year?: number;
     cold_rent?: number;
@@ -1252,9 +1249,6 @@ export type PropertyEvaluationCalculateRequest = {
     analysis_years?: number;
 };
 
-/**
- * Full calculation result from the /calculate endpoint.
- */
 export type PropertyEvaluationCalculateResponse = {
     price_per_m2?: number;
     broker_fee_amount?: number;
@@ -1291,13 +1285,13 @@ export type PropertyEvaluationCalculateResponse = {
     base_income_tax?: number;
     avg_tax_rate_display?: number;
     personal_marginal_tax_rate?: number;
-    annual_rows?: Array<AnnualCashflowRowResponse>;
     total_operational_cf?: number;
     total_financing_cf?: number;
     total_net_cf_before_tax?: number;
     total_net_cf_after_tax?: number;
     total_equity_invested?: number;
     final_equity_kpi?: number;
+    annual_rows?: Array<AnnualCashflowRowResponse>;
 };
 
 export type PropertyEvaluationCreate = {
