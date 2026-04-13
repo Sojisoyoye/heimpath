@@ -37,6 +37,17 @@ export const EVALUATION_DEFAULTS = {
   // Rent defaults
   RENT_PER_SQM: 12.0,
   PARKING_RENT: 50,
+
+  // Tax context
+  PERSONAL_TAXABLE_INCOME: 0,
+
+  // Renovation
+  RENOVATION_YEAR: 0,
+  RENOVATION_COST: 0,
+
+  // Analysis period
+  START_YEAR: new Date().getFullYear(),
+  ANALYSIS_YEARS: 11,
 } as const
 
 export const SECTION_COLORS = {

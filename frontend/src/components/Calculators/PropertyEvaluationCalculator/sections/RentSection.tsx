@@ -211,6 +211,119 @@ function RentSection(props: IProps) {
           </div>
         </div>
 
+        {/* Tax Context subsection */}
+        <div className="space-y-3 border-t pt-4">
+          <p className="text-sm font-medium text-muted-foreground">
+            Tax Context
+          </p>
+          <div className="grid gap-4 sm:grid-cols-1">
+            <div className="space-y-2">
+              <Label htmlFor="personalTaxableIncome">
+                Personal Taxable Income (EUR/year)
+                <FieldTooltip text="Your annual taxable income from employment or other sources. Used for progressive tax calculation (§32a EStG)" />
+              </Label>
+              <Input
+                id="personalTaxableIncome"
+                type="number"
+                step="1000"
+                min="0"
+                placeholder="e.g., 60000"
+                value={values.personalTaxableIncome || ""}
+                onChange={(e) =>
+                  handleNumberChange("personalTaxableIncome", e.target.value)
+                }
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Renovation subsection */}
+        <div className="space-y-3 border-t pt-4">
+          <p className="text-sm font-medium text-muted-foreground">
+            Renovation
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="renovationYear">
+                Renovation Year
+                <FieldTooltip text="Year number (1-10) when renovation occurs. Set to 0 for no renovation" />
+              </Label>
+              <Input
+                id="renovationYear"
+                type="number"
+                step="1"
+                min="0"
+                max="20"
+                placeholder="0 = none"
+                value={values.renovationYear || ""}
+                onChange={(e) =>
+                  handleNumberChange("renovationYear", e.target.value)
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="renovationCost">
+                Renovation Cost (EUR)
+                <FieldTooltip text="Total renovation cost, tax-deductible in the renovation year" />
+              </Label>
+              <Input
+                id="renovationCost"
+                type="number"
+                step="1000"
+                min="0"
+                placeholder="e.g., 15000"
+                value={values.renovationCost || ""}
+                onChange={(e) =>
+                  handleNumberChange("renovationCost", e.target.value)
+                }
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Analysis Period subsection */}
+        <div className="space-y-3 border-t pt-4">
+          <p className="text-sm font-medium text-muted-foreground">
+            Analysis Period
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="startYear">
+                Start Year
+                <FieldTooltip text="First year of the investment analysis" />
+              </Label>
+              <Input
+                id="startYear"
+                type="number"
+                step="1"
+                min="2020"
+                max="2040"
+                value={values.startYear || ""}
+                onChange={(e) =>
+                  handleNumberChange("startYear", e.target.value)
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="analysisYears">
+                Analysis Years
+                <FieldTooltip text="Number of years to project (last year is the exit/sale year)" />
+              </Label>
+              <Input
+                id="analysisYears"
+                type="number"
+                step="1"
+                min="2"
+                max="30"
+                value={values.analysisYears || ""}
+                onChange={(e) =>
+                  handleNumberChange("analysisYears", e.target.value)
+                }
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Forecast subsection */}
         <div className="space-y-3 border-t pt-4">
           <p className="text-sm font-medium text-muted-foreground">Forecast</p>

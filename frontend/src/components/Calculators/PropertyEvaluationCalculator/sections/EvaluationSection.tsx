@@ -3,7 +3,14 @@
  * Displays calculated results: yields, cashflow, tax, and return on equity
  */
 
-import { Calculator, Home, Info, TrendingDown, TrendingUp } from "lucide-react"
+import {
+  Calculator,
+  Home,
+  Info,
+  Loader2,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react"
 import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
 import { cn } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,6 +20,7 @@ import type { EvaluationResults } from "../types"
 interface IProps {
   results: EvaluationResults | null
   isOwnerOccupier?: boolean
+  isLoading?: boolean
   className?: string
 }
 
@@ -77,10 +85,20 @@ function EmptyState() {
   )
 }
 
+/** Loading spinner overlay. */
+function LoadingOverlay() {
+  return (
+    <div className="flex items-center justify-center py-4">
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <span className="ml-2 text-sm text-muted-foreground">Calculating...</span>
+    </div>
+  )
+}
+
 /** Owner-occupier results view. */
 function OwnerOccupierView(props: { results: EvaluationResults }) {
   const { results } = props
-  const monthlyCost = results.totalHausgeld + results.debtServiceMonthly
+  const monthlyCost = results.totalHausgeldMonthly + results.monthlyDebtService
 
   return (
     <CardContent className="space-y-4 pt-4">
@@ -102,15 +120,15 @@ function OwnerOccupierView(props: { results: EvaluationResults }) {
         </p>
         <ResultLine
           label="Management Costs (Hausgeld)"
-          value={CURRENCY_FORMATTER.format(results.totalHausgeld)}
+          value={CURRENCY_FORMATTER.format(results.totalHausgeldMonthly)}
         />
         <ResultLine
           label="Interest"
-          value={CURRENCY_FORMATTER.format(results.monthlyInterest)}
+          value={CURRENCY_FORMATTER.format(results.monthlyInterestYr1)}
         />
         <ResultLine
           label="Repayment / Acquittance"
-          value={CURRENCY_FORMATTER.format(results.monthlyRepayment)}
+          value={CURRENCY_FORMATTER.format(results.monthlyRepaymentYr1)}
         />
         <Separator />
         <ResultLine
@@ -126,7 +144,8 @@ function OwnerOccupierView(props: { results: EvaluationResults }) {
 /** Investment results view. */
 function InvestorView(props: { results: EvaluationResults }) {
   const { results } = props
-  const CashflowIcon = results.isPositiveCashflow ? TrendingUp : TrendingDown
+  const isPositive = results.monthlyCashflowAfterTax >= 0
+  const CashflowIcon = isPositive ? TrendingUp : TrendingDown
 
   return (
     <CardContent className="space-y-4 pt-4">
@@ -134,7 +153,7 @@ function InvestorView(props: { results: EvaluationResults }) {
       <div
         className={cn(
           "rounded-lg p-4 border-2",
-          results.isPositiveCashflow
+          isPositive
             ? "bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-700"
             : "bg-red-50 border-red-300 dark:bg-red-950/30 dark:border-red-700",
         )}
@@ -143,7 +162,7 @@ function InvestorView(props: { results: EvaluationResults }) {
           <CashflowIcon
             className={cn(
               "h-5 w-5",
-              results.isPositiveCashflow ? "text-green-600" : "text-red-600",
+              isPositive ? "text-green-600" : "text-red-600",
             )}
           />
           <span className="text-sm font-medium">Cashflow after Taxes</span>
@@ -151,12 +170,12 @@ function InvestorView(props: { results: EvaluationResults }) {
         <span
           className={cn(
             "text-2xl font-bold",
-            results.isPositiveCashflow
+            isPositive
               ? "text-green-600 dark:text-green-400"
               : "text-red-600 dark:text-red-400",
           )}
         >
-          {CURRENCY_FORMATTER.format(results.cashflowAfterTax)} / month
+          {CURRENCY_FORMATTER.format(results.monthlyCashflowAfterTax)} / month
         </span>
       </div>
 
@@ -167,17 +186,17 @@ function InvestorView(props: { results: EvaluationResults }) {
         </p>
         <ResultLine
           label="Net Cold Rent per Year"
-          value={CURRENCY_FORMATTER.format(results.netColdRentYearly)}
+          value={CURRENCY_FORMATTER.format(results.netColdRentAnnual)}
         />
         <ResultLine
           label="Gross Rental Yield"
-          value={PERCENT_FORMATTER.format(results.grossRentalYield / 100)}
+          value={PERCENT_FORMATTER.format(results.grossRentalYield)}
           highlight
           info="Annual cold rent / Purchase price"
         />
         <ResultLine
           label="Factor of Cold Rent vs. Price"
-          value={results.coldRentFactor.toFixed(1)}
+          value={results.factorColdRentVsPrice.toFixed(1)}
           info="Purchase price / Annual cold rent (Kaufpreisfaktor)"
         />
       </div>
@@ -195,31 +214,37 @@ function InvestorView(props: { results: EvaluationResults }) {
         />
         <ResultLine
           label="- Management Costs"
-          value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeld)}`}
+          value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeldMonthly)}`}
         />
         <ResultLine
           label="- Interest"
-          value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterest)}`}
+          value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterestYr1)}`}
         />
         <ResultLine
           label="- Repayment / Acquittance"
-          value={`- ${CURRENCY_FORMATTER.format(results.monthlyRepayment)}`}
+          value={`- ${CURRENCY_FORMATTER.format(results.monthlyRepaymentYr1)}`}
         />
         <ResultLine
           label="= Cashflow"
-          value={CURRENCY_FORMATTER.format(results.cashflowBeforeTax)}
+          value={CURRENCY_FORMATTER.format(results.monthlyCashflowPretax)}
           highlight
         />
         <div className="text-xs text-muted-foreground italic py-1">
           your surplus before taxes
         </div>
         <ResultLine
-          label={results.taxMonthly >= 0 ? "- Taxes" : "- Tax Benefit"}
-          value={`- ${CURRENCY_FORMATTER.format(Math.abs(results.taxMonthly))}`}
+          label={
+            results.monthlyTaxBenefit >= 0 ? "- Tax Benefit" : "- Taxes"
+          }
+          value={
+            results.monthlyTaxBenefit >= 0
+              ? `+ ${CURRENCY_FORMATTER.format(results.monthlyTaxBenefit)}`
+              : `- ${CURRENCY_FORMATTER.format(Math.abs(results.monthlyTaxBenefit))}`
+          }
         />
         <ResultLine
           label="= Cashflow after Taxes"
-          value={CURRENCY_FORMATTER.format(results.cashflowAfterTax)}
+          value={CURRENCY_FORMATTER.format(results.monthlyCashflowAfterTax)}
           highlight
         />
       </div>
@@ -237,66 +262,77 @@ function InvestorView(props: { results: EvaluationResults }) {
         />
         <ResultLine
           label="- Management Costs"
-          value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeld)}`}
+          value={`- ${CURRENCY_FORMATTER.format(results.totalHausgeldMonthly)}`}
         />
         <ResultLine
           label="- Interest"
-          value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterest)}`}
+          value={`- ${CURRENCY_FORMATTER.format(results.monthlyInterestYr1)}`}
         />
         <ResultLine
           label="- Depreciation (AfA)"
-          value={`- ${CURRENCY_FORMATTER.format(results.depreciationMonthly)}`}
+          value={`- ${CURRENCY_FORMATTER.format(results.monthlyAfaDisplay)}`}
           info="Tax-deductible depreciation on building value"
         />
         <ResultLine
-          label="= Taxable Cashflow"
-          value={CURRENCY_FORMATTER.format(results.taxableCashflowMonthly)}
+          label="= Taxable Property Income"
+          value={CURRENCY_FORMATTER.format(
+            results.monthlyTaxablePropertyIncome,
+          )}
           highlight
         />
         <ResultLine
-          label={results.taxMonthly >= 0 ? "= Taxes" : "= Tax Benefit"}
+          label={
+            results.monthlyTaxBenefit >= 0 ? "= Tax Benefit" : "= Taxes"
+          }
           value={
-            results.taxMonthly >= 0
-              ? CURRENCY_FORMATTER.format(results.taxMonthly)
-              : `- ${CURRENCY_FORMATTER.format(Math.abs(results.taxMonthly))}`
+            results.monthlyTaxBenefit >= 0
+              ? CURRENCY_FORMATTER.format(results.monthlyTaxBenefit)
+              : `- ${CURRENCY_FORMATTER.format(Math.abs(results.monthlyTaxBenefit))}`
           }
           highlight
           info={
-            results.taxMonthly >= 0
-              ? "Subtracted from cashflow"
-              : "Negative taxable income creates a tax benefit (added to cashflow)"
+            results.monthlyTaxBenefit >= 0
+              ? "Negative taxable income creates a tax benefit (added to cashflow)"
+              : "Subtracted from cashflow"
           }
         />
       </div>
 
       <Separator />
 
-      {/* Return on Equity in Year 1 */}
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">
-          Return on Equity in Year 1
-        </p>
-        <ResultLine
-          label="Return on Equity"
-          value={PERCENT_FORMATTER.format(results.returnOnEquity / 100)}
-          highlight
-          info="(Annual cashflow + appreciation) / Equity"
-        />
-        <ResultLine
-          label="Without Appreciation"
-          value={PERCENT_FORMATTER.format(
-            results.returnOnEquityWithoutAppreciation / 100,
-          )}
-          info="Annual cashflow / Equity"
-        />
-      </div>
+      {/* KPI Summary */}
+      {results.annualRows.length > 0 && (
+        <>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">
+              {results.annualRows.length}-Year KPI Summary
+            </p>
+            <ResultLine
+              label="Total Net CF After Tax"
+              value={CURRENCY_FORMATTER.format(results.totalNetCfAfterTax)}
+              highlight
+            />
+            <ResultLine
+              label="Total Equity Invested"
+              value={CURRENCY_FORMATTER.format(results.totalEquityInvested)}
+            />
+            <ResultLine
+              label="Final Equity KPI"
+              value={CURRENCY_FORMATTER.format(results.finalEquityKpi)}
+              highlight
+              info="Equity buildup minus total equity invested"
+            />
+          </div>
+          <Separator />
+        </>
+      )}
     </CardContent>
   )
 }
 
 /** Default component. Evaluation results section. */
 function EvaluationSection(props: IProps) {
-  const { results, isOwnerOccupier, className } = props
+  const { results, isOwnerOccupier, isLoading, className } = props
 
   if (!results) {
     return (
@@ -308,18 +344,21 @@ function EvaluationSection(props: IProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <EmptyState />
+          {isLoading ? <LoadingOverlay /> : <EmptyState />}
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn("overflow-hidden relative", className)}>
       <CardHeader className={cn("py-3", SECTION_COLORS.evaluation)}>
         <CardTitle className="flex items-center gap-2 text-base">
           <Calculator className="h-4 w-4" />
           Evaluation
+          {isLoading && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground ml-auto" />
+          )}
         </CardTitle>
       </CardHeader>
       {isOwnerOccupier ? (

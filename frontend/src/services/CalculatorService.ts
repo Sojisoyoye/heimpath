@@ -19,8 +19,10 @@ import type {
   StateRatesResponse,
 } from "@/models/calculator"
 import type {
+  EvaluationResults,
   PropertyEvaluationInput,
   PropertyEvaluationRecord,
+  PropertyEvaluationState,
   PropertyEvaluationSummary,
 } from "@/models/propertyEvaluation"
 import { PATHS } from "./common/Paths"
@@ -275,6 +277,57 @@ class CalculatorServiceClass {
   // -------------------------------------------------------------------------
   // Property Evaluation
   // -------------------------------------------------------------------------
+
+  /** Run property evaluation calculation without saving */
+  async calculatePropertyEvaluation(
+    state: PropertyEvaluationState,
+  ): Promise<EvaluationResults> {
+    const body = this._flattenInputsForApi(state)
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS_CALCULATE,
+      body,
+      mediaType: "application/json",
+    })
+    return transformKeys<EvaluationResults>(response)
+  }
+
+  /** Flatten nested PropertyEvaluationState to flat API request body */
+  private _flattenInputsForApi(
+    state: PropertyEvaluationState,
+  ): Record<string, unknown> {
+    const { propertyInfo, rent, operatingCosts, financing } = state
+    return {
+      address: propertyInfo.address,
+      square_meters: propertyInfo.squareMeters,
+      purchase_price: propertyInfo.purchasePrice,
+      rent_per_m2: rent.rentPerSqm,
+      parking_space_rent: rent.parkingRent,
+      broker_fee_percent: propertyInfo.brokerFeePercent,
+      notary_fee_percent: propertyInfo.notaryFeePercent,
+      land_registry_fee_percent: propertyInfo.landRegistryFeePercent,
+      property_transfer_tax_percent: propertyInfo.transferTaxPercent,
+      base_allocable_costs: operatingCosts.hausgeldAllocable,
+      property_tax_monthly: operatingCosts.propertyTaxMonthly,
+      base_non_allocable_costs: operatingCosts.hausgeldNonAllocable,
+      reserves_monthly: operatingCosts.reservesPortion,
+      building_share_percent: rent.buildingSharePercent,
+      afa_rate_percent: rent.depreciationRatePercent,
+      loan_percent: financing.loanPercent,
+      interest_rate_percent: financing.interestRatePercent,
+      initial_repayment_rate_percent: financing.repaymentRatePercent,
+      personal_taxable_income: rent.personalTaxableIncome,
+      marginal_tax_rate_percent: rent.marginalTaxRatePercent,
+      cost_increase_percent: rent.costIncreasePercent,
+      rent_increase_percent: rent.rentIncreasePercent,
+      value_increase_percent: rent.valueIncreasePercent,
+      equity_interest_percent: rent.equityInterestPercent,
+      renovation_year: rent.renovationYear,
+      renovation_cost: rent.renovationCost,
+      start_year: rent.startYear,
+      analysis_years: rent.analysisYears,
+    }
+  }
 
   /** Save a property evaluation */
   async savePropertyEvaluation(
