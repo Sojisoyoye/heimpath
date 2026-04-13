@@ -359,7 +359,9 @@ class TestAnnualTable:
         # After renovation year, CF should increase year over year
         # Year 2 is inflated by 5000€ renovation deduction, year 3 drops back
         for i in range(3, 10):
-            assert self.rows[i].net_cf_after_tax > self.rows[i - 1].net_cf_after_tax - 10
+            assert (
+                self.rows[i].net_cf_after_tax > self.rows[i - 1].net_cf_after_tax - 10
+            )
 
     # Exit year includes property sale
     def test_net_cf_after_tax_exit(self):

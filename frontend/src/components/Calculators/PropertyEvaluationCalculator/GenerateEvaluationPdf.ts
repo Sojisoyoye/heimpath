@@ -362,10 +362,7 @@ export function generateEvaluationPdf(
       doc,
       [
         ["Total Hausgeld", `${eur(results.totalHausgeldMonthly)} / mo`],
-        [
-          "Allocable Costs",
-          `${eur(results.allocableCostsMonthly)} / mo`,
-        ],
+        ["Allocable Costs", `${eur(results.allocableCostsMonthly)} / mo`],
         [
           "Property Tax (Grundsteuer)",
           `${eur(state.operatingCosts.propertyTaxMonthly)} / mo`,
@@ -412,10 +409,7 @@ export function generateEvaluationPdf(
         ["Cold Rent (monthly)", eur(results.totalColdRentMonthly)],
         ["Warm Rent (monthly)", eur(results.warmRentMonthly)],
         ["Net Cold Rent (yearly)", eur(results.netColdRentAnnual)],
-        [
-          "Gross Rental Yield",
-          pctFromDecimal(results.grossRentalYield),
-        ],
+        ["Gross Rental Yield", pctFromDecimal(results.grossRentalYield)],
         [
           "Cold Rent Factor (Kaufpreisfaktor)",
           factor(results.factorColdRentVsPrice),
@@ -431,10 +425,7 @@ export function generateEvaluationPdf(
     y = addTable(
       doc,
       [
-        [
-          "Allocable Costs",
-          `${eur(results.allocableCostsMonthly)} / mo`,
-        ],
+        ["Allocable Costs", `${eur(results.allocableCostsMonthly)} / mo`],
         [
           "Non-Allocable Costs",
           `${eur(results.nonAllocableCostsMonthly)} / mo`,
@@ -458,15 +449,10 @@ export function generateEvaluationPdf(
         ["- Debt Service", eur(results.monthlyDebtService)],
         ["= Cashflow Before Tax", eur(results.monthlyCashflowPretax)],
         [
-          results.monthlyTaxBenefit >= 0
-            ? "+ Tax Benefit"
-            : "- Tax",
+          results.monthlyTaxBenefit >= 0 ? "+ Tax Benefit" : "- Tax",
           eur2(results.monthlyTaxBenefit),
         ],
-        [
-          "= Cashflow After Tax",
-          eur(results.monthlyCashflowAfterTax),
-        ],
+        ["= Cashflow After Tax", eur(results.monthlyCashflowAfterTax)],
       ],
       y,
     )
@@ -483,10 +469,7 @@ export function generateEvaluationPdf(
         ["AfA Basis", eur(results.afaBasis)],
         ["Annual AfA", eur(results.annualAfa)],
         ["Monthly AfA (display)", eur2(results.monthlyAfaDisplay)],
-        [
-          "Marginal Tax Rate",
-          pctFromDecimal(results.personalMarginalTaxRate),
-        ],
+        ["Marginal Tax Rate", pctFromDecimal(results.personalMarginalTaxRate)],
         [
           "Taxable Property Income (monthly)",
           eur2(results.monthlyTaxablePropertyIncome),

@@ -37,6 +37,114 @@ export const ActivityTypeSchema = {
     description: 'Types of user activity tracked on the dashboard.'
 } as const;
 
+export const AnnualCashflowRowResponseSchema = {
+    properties: {
+        year: {
+            type: 'integer',
+            title: 'Year',
+            default: 0
+        },
+        cold_rent: {
+            type: 'number',
+            title: 'Cold Rent',
+            default: 0
+        },
+        management_annual: {
+            type: 'number',
+            title: 'Management Annual',
+            default: 0
+        },
+        operational_cf: {
+            type: 'number',
+            title: 'Operational Cf',
+            default: 0
+        },
+        loan_balance_start: {
+            type: 'number',
+            title: 'Loan Balance Start',
+            default: 0
+        },
+        interest: {
+            type: 'number',
+            title: 'Interest',
+            default: 0
+        },
+        repayment: {
+            type: 'number',
+            title: 'Repayment',
+            default: 0
+        },
+        loan_balance_end: {
+            type: 'number',
+            title: 'Loan Balance End',
+            default: 0
+        },
+        financing_cf: {
+            type: 'number',
+            title: 'Financing Cf',
+            default: 0
+        },
+        net_cf_pretax: {
+            type: 'number',
+            title: 'Net Cf Pretax',
+            default: 0
+        },
+        renovation_deduction: {
+            type: 'number',
+            title: 'Renovation Deduction',
+            default: 0
+        },
+        earnings_before_tax: {
+            type: 'number',
+            title: 'Earnings Before Tax',
+            default: 0
+        },
+        tax_effect_marginal: {
+            type: 'number',
+            title: 'Tax Effect Marginal',
+            default: 0
+        },
+        net_cf_after_tax: {
+            type: 'number',
+            title: 'Net Cf After Tax',
+            default: 0
+        },
+        taxable_income_adjusted: {
+            type: 'number',
+            title: 'Taxable Income Adjusted',
+            default: 0
+        },
+        income_tax_adjusted: {
+            type: 'number',
+            title: 'Income Tax Adjusted',
+            default: 0
+        },
+        actual_tax_saving: {
+            type: 'number',
+            title: 'Actual Tax Saving',
+            default: 0
+        },
+        property_value: {
+            type: 'number',
+            title: 'Property Value',
+            default: 0
+        },
+        equity_buildup_accumulated: {
+            type: 'number',
+            title: 'Equity Buildup Accumulated',
+            default: 0
+        },
+        equity_contribution: {
+            type: 'number',
+            title: 'Equity Contribution',
+            default: 0
+        }
+    },
+    type: 'object',
+    title: 'AnnualCashflowRowResponse',
+    description: 'One row of the annual cashflow table.'
+} as const;
+
 export const ArticleCategorySchema = {
     type: 'string',
     enum: ['buying_process', 'costs_and_taxes', 'regulations', 'common_pitfalls'],
@@ -3982,6 +4090,377 @@ export const ProjectionYearSchema = {
     required: ['year', 'property_value', 'equity', 'cumulative_cash_flow', 'total_return', 'total_return_percent'],
     title: 'ProjectionYear',
     description: 'Single year projection data.'
+} as const;
+
+export const PropertyEvaluationCalculateRequestSchema = {
+    properties: {
+        address: {
+            type: 'string',
+            title: 'Address',
+            default: ''
+        },
+        square_meters: {
+            type: 'number',
+            title: 'Square Meters',
+            default: 0
+        },
+        purchase_price: {
+            type: 'number',
+            title: 'Purchase Price',
+            default: 0
+        },
+        rent_per_m2: {
+            type: 'number',
+            title: 'Rent Per M2',
+            default: 0
+        },
+        parking_space_rent: {
+            type: 'number',
+            title: 'Parking Space Rent',
+            default: 0
+        },
+        broker_fee_percent: {
+            type: 'number',
+            title: 'Broker Fee Percent',
+            default: 3.57
+        },
+        notary_fee_percent: {
+            type: 'number',
+            title: 'Notary Fee Percent',
+            default: 1.5
+        },
+        land_registry_fee_percent: {
+            type: 'number',
+            title: 'Land Registry Fee Percent',
+            default: 0.5
+        },
+        property_transfer_tax_percent: {
+            type: 'number',
+            title: 'Property Transfer Tax Percent',
+            default: 5
+        },
+        base_allocable_costs: {
+            type: 'number',
+            title: 'Base Allocable Costs',
+            default: 0
+        },
+        property_tax_monthly: {
+            type: 'number',
+            title: 'Property Tax Monthly',
+            default: 0
+        },
+        base_non_allocable_costs: {
+            type: 'number',
+            title: 'Base Non Allocable Costs',
+            default: 0
+        },
+        reserves_monthly: {
+            type: 'number',
+            title: 'Reserves Monthly',
+            default: 0
+        },
+        building_share_percent: {
+            type: 'number',
+            title: 'Building Share Percent',
+            default: 70
+        },
+        afa_rate_percent: {
+            type: 'number',
+            title: 'Afa Rate Percent',
+            default: 2
+        },
+        loan_percent: {
+            type: 'number',
+            title: 'Loan Percent',
+            default: 100
+        },
+        interest_rate_percent: {
+            type: 'number',
+            title: 'Interest Rate Percent',
+            default: 4
+        },
+        initial_repayment_rate_percent: {
+            type: 'number',
+            title: 'Initial Repayment Rate Percent',
+            default: 2
+        },
+        personal_taxable_income: {
+            type: 'number',
+            title: 'Personal Taxable Income',
+            default: 0
+        },
+        marginal_tax_rate_percent: {
+            type: 'number',
+            title: 'Marginal Tax Rate Percent',
+            default: 42
+        },
+        cost_increase_percent: {
+            type: 'number',
+            title: 'Cost Increase Percent',
+            default: 2
+        },
+        rent_increase_percent: {
+            type: 'number',
+            title: 'Rent Increase Percent',
+            default: 2
+        },
+        value_increase_percent: {
+            type: 'number',
+            title: 'Value Increase Percent',
+            default: 2
+        },
+        equity_interest_percent: {
+            type: 'number',
+            title: 'Equity Interest Percent',
+            default: 5
+        },
+        renovation_year: {
+            type: 'integer',
+            title: 'Renovation Year',
+            default: 0
+        },
+        renovation_cost: {
+            type: 'number',
+            title: 'Renovation Cost',
+            default: 0
+        },
+        start_year: {
+            type: 'integer',
+            title: 'Start Year'
+        },
+        analysis_years: {
+            type: 'integer',
+            title: 'Analysis Years',
+            default: 11
+        }
+    },
+    type: 'object',
+    title: 'PropertyEvaluationCalculateRequest',
+    description: `Flat request model for the /calculate endpoint.
+
+All percent-scale values (e.g. broker_fee_percent=3.57 means 3.57%).
+Every field has a default so the frontend only sends what it has.`
+} as const;
+
+export const PropertyEvaluationCalculateResponseSchema = {
+    properties: {
+        price_per_m2: {
+            type: 'number',
+            title: 'Price Per M2',
+            default: 0
+        },
+        broker_fee_amount: {
+            type: 'number',
+            title: 'Broker Fee Amount',
+            default: 0
+        },
+        notary_fee_amount: {
+            type: 'number',
+            title: 'Notary Fee Amount',
+            default: 0
+        },
+        land_registry_fee_amount: {
+            type: 'number',
+            title: 'Land Registry Fee Amount',
+            default: 0
+        },
+        property_transfer_tax_amount: {
+            type: 'number',
+            title: 'Property Transfer Tax Amount',
+            default: 0
+        },
+        total_closing_costs: {
+            type: 'number',
+            title: 'Total Closing Costs',
+            default: 0
+        },
+        total_closing_costs_pct: {
+            type: 'number',
+            title: 'Total Closing Costs Pct',
+            default: 0
+        },
+        total_investment: {
+            type: 'number',
+            title: 'Total Investment',
+            default: 0
+        },
+        apartment_cold_rent_monthly: {
+            type: 'number',
+            title: 'Apartment Cold Rent Monthly',
+            default: 0
+        },
+        total_cold_rent_monthly: {
+            type: 'number',
+            title: 'Total Cold Rent Monthly',
+            default: 0
+        },
+        allocable_costs_monthly: {
+            type: 'number',
+            title: 'Allocable Costs Monthly',
+            default: 0
+        },
+        warm_rent_monthly: {
+            type: 'number',
+            title: 'Warm Rent Monthly',
+            default: 0
+        },
+        non_allocable_costs_monthly: {
+            type: 'number',
+            title: 'Non Allocable Costs Monthly',
+            default: 0
+        },
+        total_hausgeld_monthly: {
+            type: 'number',
+            title: 'Total Hausgeld Monthly',
+            default: 0
+        },
+        non_allocable_as_pct_of_cold_rent: {
+            type: 'number',
+            title: 'Non Allocable As Pct Of Cold Rent',
+            default: 0
+        },
+        afa_basis: {
+            type: 'number',
+            title: 'Afa Basis',
+            default: 0
+        },
+        annual_afa: {
+            type: 'number',
+            title: 'Annual Afa',
+            default: 0
+        },
+        monthly_afa_display: {
+            type: 'number',
+            title: 'Monthly Afa Display',
+            default: 0
+        },
+        loan_amount: {
+            type: 'number',
+            title: 'Loan Amount',
+            default: 0
+        },
+        equity: {
+            type: 'number',
+            title: 'Equity',
+            default: 0
+        },
+        annual_debt_service: {
+            type: 'number',
+            title: 'Annual Debt Service',
+            default: 0
+        },
+        monthly_debt_service: {
+            type: 'number',
+            title: 'Monthly Debt Service',
+            default: 0
+        },
+        monthly_interest_yr1: {
+            type: 'number',
+            title: 'Monthly Interest Yr1',
+            default: 0
+        },
+        monthly_repayment_yr1: {
+            type: 'number',
+            title: 'Monthly Repayment Yr1',
+            default: 0
+        },
+        net_cold_rent_annual: {
+            type: 'number',
+            title: 'Net Cold Rent Annual',
+            default: 0
+        },
+        gross_rental_yield: {
+            type: 'number',
+            title: 'Gross Rental Yield',
+            default: 0
+        },
+        factor_cold_rent_vs_price: {
+            type: 'number',
+            title: 'Factor Cold Rent Vs Price',
+            default: 0
+        },
+        monthly_cashflow_pretax: {
+            type: 'number',
+            title: 'Monthly Cashflow Pretax',
+            default: 0
+        },
+        monthly_taxable_property_income: {
+            type: 'number',
+            title: 'Monthly Taxable Property Income',
+            default: 0
+        },
+        monthly_tax_benefit: {
+            type: 'number',
+            title: 'Monthly Tax Benefit',
+            default: 0
+        },
+        monthly_cashflow_after_tax: {
+            type: 'number',
+            title: 'Monthly Cashflow After Tax',
+            default: 0
+        },
+        personal_taxable_income: {
+            type: 'number',
+            title: 'Personal Taxable Income',
+            default: 0
+        },
+        base_income_tax: {
+            type: 'number',
+            title: 'Base Income Tax',
+            default: 0
+        },
+        avg_tax_rate_display: {
+            type: 'number',
+            title: 'Avg Tax Rate Display',
+            default: 0
+        },
+        personal_marginal_tax_rate: {
+            type: 'number',
+            title: 'Personal Marginal Tax Rate',
+            default: 0
+        },
+        annual_rows: {
+            items: {
+                '$ref': '#/components/schemas/AnnualCashflowRowResponse'
+            },
+            type: 'array',
+            title: 'Annual Rows',
+            default: []
+        },
+        total_operational_cf: {
+            type: 'number',
+            title: 'Total Operational Cf',
+            default: 0
+        },
+        total_financing_cf: {
+            type: 'number',
+            title: 'Total Financing Cf',
+            default: 0
+        },
+        total_net_cf_before_tax: {
+            type: 'number',
+            title: 'Total Net Cf Before Tax',
+            default: 0
+        },
+        total_net_cf_after_tax: {
+            type: 'number',
+            title: 'Total Net Cf After Tax',
+            default: 0
+        },
+        total_equity_invested: {
+            type: 'number',
+            title: 'Total Equity Invested',
+            default: 0
+        },
+        final_equity_kpi: {
+            type: 'number',
+            title: 'Final Equity Kpi',
+            default: 0
+        }
+    },
+    type: 'object',
+    title: 'PropertyEvaluationCalculateResponse',
+    description: 'Full calculation result from the /calculate endpoint.'
 } as const;
 
 export const PropertyEvaluationCreateSchema = {

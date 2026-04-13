@@ -493,11 +493,9 @@ function PropertyEvaluationCalculator(
       </div>
 
       {/* Annual Cashflow Table */}
-      {!isOwnerOccupier &&
-        results &&
-        results.annualRows.length > 0 && (
-          <AnnualCashflowTable rows={results.annualRows} />
-        )}
+      {!isOwnerOccupier && results && results.annualRows.length > 0 && (
+        <AnnualCashflowTable rows={results.annualRows} />
+      )}
 
       {/* Saved Evaluations */}
       {savedEvals && savedEvals.data.length > 0 && (
