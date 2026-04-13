@@ -41,6 +41,27 @@ const PERCENT_FORMATTER = new Intl.NumberFormat("de-DE", {
 })
 
 /******************************************************************************
+                              Functions
+******************************************************************************/
+
+/** Format tax impact: positive = benefit ("+"), negative = tax ("-"). */
+function formatTaxImpact(value: number): {
+  label: string
+  formatted: string
+} {
+  if (value >= 0) {
+    return {
+      label: "Tax Benefit",
+      formatted: `+ ${CURRENCY_FORMATTER.format(value)}`,
+    }
+  }
+  return {
+    label: "Taxes",
+    formatted: `- ${CURRENCY_FORMATTER.format(Math.abs(value))}`,
+  }
+}
+
+/******************************************************************************
                               Components
 ******************************************************************************/
 
@@ -233,14 +254,8 @@ function InvestorView(props: { results: EvaluationResults }) {
           your surplus before taxes
         </div>
         <ResultLine
-          label={
-            results.monthlyTaxBenefit >= 0 ? "- Tax Benefit" : "- Taxes"
-          }
-          value={
-            results.monthlyTaxBenefit >= 0
-              ? `+ ${CURRENCY_FORMATTER.format(results.monthlyTaxBenefit)}`
-              : `- ${CURRENCY_FORMATTER.format(Math.abs(results.monthlyTaxBenefit))}`
-          }
+          label={`- ${formatTaxImpact(results.monthlyTaxBenefit).label}`}
+          value={formatTaxImpact(results.monthlyTaxBenefit).formatted}
         />
         <ResultLine
           label="= Cashflow after Taxes"
@@ -281,14 +296,8 @@ function InvestorView(props: { results: EvaluationResults }) {
           highlight
         />
         <ResultLine
-          label={
-            results.monthlyTaxBenefit >= 0 ? "= Tax Benefit" : "= Taxes"
-          }
-          value={
-            results.monthlyTaxBenefit >= 0
-              ? CURRENCY_FORMATTER.format(results.monthlyTaxBenefit)
-              : `- ${CURRENCY_FORMATTER.format(Math.abs(results.monthlyTaxBenefit))}`
-          }
+          label={`= ${formatTaxImpact(results.monthlyTaxBenefit).label}`}
+          value={formatTaxImpact(results.monthlyTaxBenefit).formatted}
           highlight
           info={
             results.monthlyTaxBenefit >= 0

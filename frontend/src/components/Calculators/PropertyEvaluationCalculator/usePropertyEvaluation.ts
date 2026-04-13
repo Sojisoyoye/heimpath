@@ -3,9 +3,9 @@
  * Calls the server-side calculation engine via a debounced API mutation
  */
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
-import { useCalculatePropertyEvaluation } from "@/hooks/mutations/useCalculatorMutations"
+import { CalculatorService } from "@/services/CalculatorService"
 import type { EvaluationResults, PropertyEvaluationState } from "./types"
 
 /******************************************************************************
@@ -34,12 +34,38 @@ function usePropertyEvaluation(
   state: PropertyEvaluationState,
 ): UsePropertyEvaluationResult {
   const [results, setResults] = useState<EvaluationResults | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const calculate = useCalculatePropertyEvaluation()
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef(false)
 
   const isValid =
     state.propertyInfo.purchasePrice > 0 && state.propertyInfo.squareMeters > 0
+
+  const doCalculate = useCallback(
+    async (input: PropertyEvaluationState) => {
+      abortRef.current = false
+      setIsLoading(true)
+      try {
+        const data =
+          await CalculatorService.calculatePropertyEvaluation(input)
+        if (!abortRef.current) {
+          setResults(data)
+          setError(null)
+        }
+      } catch (err) {
+        if (!abortRef.current) {
+          setResults(null)
+          setError(err as Error)
+        }
+      } finally {
+        if (!abortRef.current) {
+          setIsLoading(false)
+        }
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!isValid) {
@@ -53,29 +79,21 @@ function usePropertyEvaluation(
     }
 
     timerRef.current = setTimeout(() => {
-      calculate.mutate(state, {
-        onSuccess: (data) => {
-          setResults(data)
-          setError(null)
-        },
-        onError: (err) => {
-          setError(err as Error)
-        },
-      })
+      doCalculate(state)
     }, DEBOUNCE_MS)
 
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }
+      abortRef.current = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, isValid])
+  }, [state, isValid, doCalculate])
 
   return {
     results,
     isValid,
-    isLoading: calculate.isPending,
+    isLoading,
     error,
   }
 }

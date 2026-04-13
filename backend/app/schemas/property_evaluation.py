@@ -61,7 +61,7 @@ class PropertyEvaluationCalculateRequest(BaseModel):
     renovation_cost: float = 0.0
 
     # Analysis configuration
-    start_year: int = 2025
+    start_year: int = Field(default_factory=lambda: datetime.now().year)
     analysis_years: int = 11
 
 

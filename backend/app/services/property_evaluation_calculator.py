@@ -289,6 +289,7 @@ def calc_management_costs(inp: EvaluationInputs, res: EvaluationResult) -> None:
     """Section 2.3 — Monthly Management Costs (Hausgeld)."""
     res.non_allocable_costs_monthly = inp.base_non_allocable_costs + inp.reserves_monthly
     res.total_hausgeld_monthly = res.allocable_costs_monthly + res.non_allocable_costs_monthly
+    # Guard: returns 0 when cold rent is zero (e.g. owner-occupier mode)
     res.non_allocable_as_pct_of_cold_rent = (
         res.non_allocable_costs_monthly / res.apartment_cold_rent_monthly
         if res.apartment_cold_rent_monthly
@@ -297,7 +298,12 @@ def calc_management_costs(inp: EvaluationInputs, res: EvaluationResult) -> None:
 
 
 def calc_depreciation(inp: EvaluationInputs, res: EvaluationResult) -> None:
-    """Section 2.4 — Depreciation (AfA)."""
+    """Section 2.4 — Depreciation (AfA).
+
+    Note: afa_basis uses total_investment (includes closing costs) for display,
+    but annual_afa uses purchase_price per spec — the tax-deductible AfA is
+    based on the building's share of the purchase price only.
+    """
     res.afa_basis = res.total_investment * inp.building_share_pct
     res.annual_afa = inp.purchase_price * inp.building_share_pct * inp.afa_rate
     res.monthly_afa_display = res.afa_basis * inp.afa_rate / 12

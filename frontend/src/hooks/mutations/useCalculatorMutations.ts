@@ -9,10 +9,7 @@ import type {
   HiddenCostCalculationInput,
   ROICalculationInput,
 } from "@/models/calculator"
-import type {
-  PropertyEvaluationInput,
-  PropertyEvaluationState,
-} from "@/models/propertyEvaluation"
+import type { PropertyEvaluationInput } from "@/models/propertyEvaluation"
 import { queryKeys } from "@/query/queryKeys"
 import { CalculatorService } from "@/services/CalculatorService"
 
@@ -136,14 +133,6 @@ export function useDeleteFinancingAssessment() {
 // ---------------------------------------------------------------------------
 // Property Evaluation
 // ---------------------------------------------------------------------------
-
-/** Calculate property evaluation (no auth, no save) */
-export function useCalculatePropertyEvaluation() {
-  return useMutation({
-    mutationFn: (state: PropertyEvaluationState) =>
-      CalculatorService.calculatePropertyEvaluation(state),
-  })
-}
 
 /** Save a property evaluation */
 export function useSavePropertyEvaluation() {

@@ -34,6 +34,11 @@ function AnnualCashflowTable(props: IProps) {
 
   const exitIndex = rows.length - 1
 
+  const totalColdRent = rows.reduce((sum, r) => sum + r.coldRent, 0)
+  const totalInterest = rows.reduce((sum, r) => sum + r.interest, 0)
+  const totalRepayment = rows.reduce((sum, r) => sum + r.repayment, 0)
+  const totalNetCfAfterTax = rows.reduce((sum, r) => sum + r.netCfAfterTax, 0)
+
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="py-3">
@@ -118,6 +123,32 @@ function AnnualCashflowTable(props: IProps) {
                 )
               })}
             </tbody>
+            <tfoot>
+              <tr className="border-t-2 bg-muted/50 font-semibold">
+                <td className="px-3 py-2 whitespace-nowrap">Total</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">
+                  {EUR_FORMATTER.format(totalColdRent)}
+                </td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">
+                  {EUR_FORMATTER.format(totalInterest)}
+                </td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">
+                  {EUR_FORMATTER.format(totalRepayment)}
+                </td>
+                <td
+                  className={cn(
+                    "px-3 py-2 text-right whitespace-nowrap",
+                    totalNetCfAfterTax >= 0
+                      ? "text-green-600"
+                      : "text-red-600",
+                  )}
+                >
+                  {EUR_FORMATTER.format(totalNetCfAfterTax)}
+                </td>
+                <td className="px-3 py-2" />
+                <td className="px-3 py-2" />
+              </tr>
+            </tfoot>
           </table>
         </div>
       </CardContent>

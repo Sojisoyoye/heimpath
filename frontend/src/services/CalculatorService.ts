@@ -292,7 +292,8 @@ class CalculatorServiceClass {
     return transformKeys<EvaluationResults>(response)
   }
 
-  /** Flatten nested PropertyEvaluationState to flat API request body */
+  /** Flatten nested PropertyEvaluationState to flat API request body.
+   * Field mapping must stay in sync with PropertyEvaluationCalculateRequest schema. */
   private _flattenInputsForApi(
     state: PropertyEvaluationState,
   ): Record<string, unknown> {

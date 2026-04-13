@@ -204,8 +204,13 @@ def save_evaluation(
         state_code=state_code,
         inputs=data.inputs,
         cashflow_after_tax=results["monthly_cashflow_after_tax"],
+        # Store as percentage for display in saved evaluations list
         gross_rental_yield=results["gross_rental_yield"] * 100,
-        return_on_equity=results.get("final_equity_kpi", 0),
+        return_on_equity=(
+            results.get("final_equity_kpi", 0) / results["total_equity_invested"]
+            if results.get("total_equity_invested", 0) > 0
+            else 0.0
+        ),
         is_positive_cashflow=results["monthly_cashflow_after_tax"] >= 0,
         results=results,
     )
