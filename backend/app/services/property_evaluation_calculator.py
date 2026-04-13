@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-
 # ---------------------------------------------------------------------------
 # Input dataclass
 # ---------------------------------------------------------------------------
@@ -244,12 +243,14 @@ def compute_loan_schedule_monthly(
             year_interest += interest_m
             year_repayment += principal_m
 
-        schedule.append({
-            "balance_start": balance_start,
-            "interest": year_interest,
-            "repayment": year_repayment,
-            "balance_end": balance,
-        })
+        schedule.append(
+            {
+                "balance_start": balance_start,
+                "interest": year_interest,
+                "repayment": year_repayment,
+                "balance_end": balance,
+            }
+        )
 
     return schedule
 
@@ -280,15 +281,21 @@ def calc_property_purchase(inp: EvaluationInputs, res: EvaluationResult) -> None
 def calc_rent(inp: EvaluationInputs, res: EvaluationResult) -> None:
     """Section 2.2 — Rent."""
     res.apartment_cold_rent_monthly = inp.rent_per_m2 * inp.square_meters
-    res.total_cold_rent_monthly = res.apartment_cold_rent_monthly + inp.parking_space_rent
+    res.total_cold_rent_monthly = (
+        res.apartment_cold_rent_monthly + inp.parking_space_rent
+    )
     res.allocable_costs_monthly = inp.base_allocable_costs + inp.property_tax_monthly
     res.warm_rent_monthly = res.total_cold_rent_monthly + res.allocable_costs_monthly
 
 
 def calc_management_costs(inp: EvaluationInputs, res: EvaluationResult) -> None:
     """Section 2.3 — Monthly Management Costs (Hausgeld)."""
-    res.non_allocable_costs_monthly = inp.base_non_allocable_costs + inp.reserves_monthly
-    res.total_hausgeld_monthly = res.allocable_costs_monthly + res.non_allocable_costs_monthly
+    res.non_allocable_costs_monthly = (
+        inp.base_non_allocable_costs + inp.reserves_monthly
+    )
+    res.total_hausgeld_monthly = (
+        res.allocable_costs_monthly + res.non_allocable_costs_monthly
+    )
     # Guard: returns 0 when cold rent is zero (e.g. owner-occupier mode)
     res.non_allocable_as_pct_of_cold_rent = (
         res.non_allocable_costs_monthly / res.apartment_cold_rent_monthly
@@ -413,7 +420,9 @@ def calc_annual_model(inp: EvaluationInputs, res: EvaluationResult) -> None:
         row.property_value = pp * (1 + inp.value_increase_pa) ** n
 
         # 4.4 Cold rent (total cold rent × 12, with annual growth)
-        row.cold_rent = res.total_cold_rent_monthly * 12 * (1 + inp.rent_increase_pa) ** (n - 1)
+        row.cold_rent = (
+            res.total_cold_rent_monthly * 12 * (1 + inp.rent_increase_pa) ** (n - 1)
+        )
 
         # 4.5 Management costs (constant)
         row.management_annual = management_annual
@@ -449,21 +458,31 @@ def calc_annual_model(inp: EvaluationInputs, res: EvaluationResult) -> None:
         )
 
         if row.earnings_before_tax < 0:
-            row.tax_effect_marginal = abs(row.earnings_before_tax) * inp.personal_marginal_tax_rate
+            row.tax_effect_marginal = (
+                abs(row.earnings_before_tax) * inp.personal_marginal_tax_rate
+            )
         else:
-            row.tax_effect_marginal = -row.earnings_before_tax * inp.personal_marginal_tax_rate
+            row.tax_effect_marginal = (
+                -row.earnings_before_tax * inp.personal_marginal_tax_rate
+            )
 
         # 4.11 Tax calculation (progressive method)
-        row.taxable_income_adjusted = inp.personal_taxable_income + row.earnings_before_tax
+        row.taxable_income_adjusted = (
+            inp.personal_taxable_income + row.earnings_before_tax
+        )
         row.income_tax_adjusted = german_income_tax(row.taxable_income_adjusted)
         row.actual_tax_saving = res.base_income_tax - row.income_tax_adjusted
 
         # Exit year (n == analysis_years): add property sale proceeds
         if n == n_years:
             # Loan balance at end of year 10 (before exit year)
-            loan_at_exit = loan_schedule[n - 2]["balance_end"] if n >= 2 else res.loan_amount
+            loan_at_exit = (
+                loan_schedule[n - 2]["balance_end"] if n >= 2 else res.loan_amount
+            )
             net_sale_proceeds = row.property_value - loan_at_exit
-            row.net_cf_after_tax = row.net_cf_pretax + row.tax_effect_marginal + net_sale_proceeds
+            row.net_cf_after_tax = (
+                row.net_cf_pretax + row.tax_effect_marginal + net_sale_proceeds
+            )
         else:
             row.net_cf_after_tax = row.net_cf_pretax + row.tax_effect_marginal
 
@@ -491,7 +510,9 @@ def calc_annual_model(inp: EvaluationInputs, res: EvaluationResult) -> None:
     # 4.14 Final equity KPI
     if rows:
         last_row = rows[-1]
-        res.final_equity_kpi = last_row.equity_buildup_accumulated - total_equity_invested
+        res.final_equity_kpi = (
+            last_row.equity_buildup_accumulated - total_equity_invested
+        )
 
 
 # ---------------------------------------------------------------------------

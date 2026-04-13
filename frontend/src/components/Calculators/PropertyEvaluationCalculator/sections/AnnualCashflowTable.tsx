@@ -42,9 +42,7 @@ function AnnualCashflowTable(props: IProps) {
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="py-3">
-        <CardTitle className="text-base">
-          Annual Cashflow Projection
-        </CardTitle>
+        <CardTitle className="text-base">Annual Cashflow Projection</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -138,9 +136,7 @@ function AnnualCashflowTable(props: IProps) {
                 <td
                   className={cn(
                     "px-3 py-2 text-right whitespace-nowrap",
-                    totalNetCfAfterTax >= 0
-                      ? "text-green-600"
-                      : "text-red-600",
+                    totalNetCfAfterTax >= 0 ? "text-green-600" : "text-red-600",
                   )}
                 >
                   {EUR_FORMATTER.format(totalNetCfAfterTax)}

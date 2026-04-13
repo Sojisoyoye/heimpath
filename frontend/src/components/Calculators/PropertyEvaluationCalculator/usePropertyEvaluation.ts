@@ -42,30 +42,26 @@ function usePropertyEvaluation(
   const isValid =
     state.propertyInfo.purchasePrice > 0 && state.propertyInfo.squareMeters > 0
 
-  const doCalculate = useCallback(
-    async (input: PropertyEvaluationState) => {
-      abortRef.current = false
-      setIsLoading(true)
-      try {
-        const data =
-          await CalculatorService.calculatePropertyEvaluation(input)
-        if (!abortRef.current) {
-          setResults(data)
-          setError(null)
-        }
-      } catch (err) {
-        if (!abortRef.current) {
-          setResults(null)
-          setError(err as Error)
-        }
-      } finally {
-        if (!abortRef.current) {
-          setIsLoading(false)
-        }
+  const doCalculate = useCallback(async (input: PropertyEvaluationState) => {
+    abortRef.current = false
+    setIsLoading(true)
+    try {
+      const data = await CalculatorService.calculatePropertyEvaluation(input)
+      if (!abortRef.current) {
+        setResults(data)
+        setError(null)
       }
-    },
-    [],
-  )
+    } catch (err) {
+      if (!abortRef.current) {
+        setResults(null)
+        setError(err as Error)
+      }
+    } finally {
+      if (!abortRef.current) {
+        setIsLoading(false)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!isValid) {
