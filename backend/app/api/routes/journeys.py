@@ -505,10 +505,15 @@ async def update_property_goals(
 
     journey.property_goals = existing_goals
 
-    # Auto-generate market insights when Step 1 is completed for the first time.
-    # Insights are only computed once; re-saving an already-completed form does
-    # not overwrite previously generated insights.
-    if existing_goals.get("is_completed") and journey.market_insights is None:
+    # Auto-generate market insights when Step 1 is completed for the first time,
+    # or regenerate when the preferred_area changes.
+    new_area = existing_goals.get("preferred_area")
+    current_area = (journey.market_insights or {}).get("preferred_area")
+    area_changed = new_area != current_area
+
+    if existing_goals.get("is_completed") and (
+        journey.market_insights is None or area_changed
+    ):
         journey.market_insights = compute_market_insights(
             property_location=journey.property_location,
             property_type=journey.property_type,

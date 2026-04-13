@@ -3667,6 +3667,17 @@ export const MarketInsightsDataSchema = {
             ],
             title: 'Estimated Size Sqm'
         },
+        preferred_area: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Preferred Area'
+        },
         generated_at: {
             type: 'string',
             title: 'Generated At'
@@ -4317,6 +4328,18 @@ export const PropertyGoalsSchema = {
             ],
             title: 'Property Use'
         },
+        preferred_area: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Preferred Area'
+        },
         is_completed: {
             type: 'boolean',
             title: 'Is Completed',
@@ -4474,6 +4497,18 @@ export const PropertyGoalsUpdateSchema = {
                 }
             ],
             title: 'Property Use'
+        },
+        preferred_area: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Preferred Area'
         },
         is_completed: {
             anyOf: [

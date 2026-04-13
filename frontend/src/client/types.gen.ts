@@ -1078,6 +1078,7 @@ export type MarketInsightsData = {
     adjusted_min_price_per_sqm: number;
     adjusted_max_price_per_sqm: number;
     estimated_size_sqm?: (number | null);
+    preferred_area?: (string | null);
     generated_at: string;
 };
 
@@ -1252,6 +1253,7 @@ export type PropertyGoals = {
     max_size_sqm?: (number | null);
     additional_notes?: (string | null);
     property_use?: ('live_in' | 'rent_out' | null);
+    preferred_area?: (string | null);
     is_completed?: boolean;
 };
 
@@ -1271,6 +1273,7 @@ export type PropertyGoalsUpdate = {
     max_size_sqm?: (number | null);
     additional_notes?: (string | null);
     property_use?: ('live_in' | 'rent_out' | null);
+    preferred_area?: (string | null);
     is_completed?: (boolean | null);
 };
 

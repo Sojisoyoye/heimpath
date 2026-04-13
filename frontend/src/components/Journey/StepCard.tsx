@@ -89,7 +89,11 @@ const STEP_CONTENT_REGISTRY: Record<
   (props: IStepContentProps) => ReactNode
 > = {
   research_goals: (p) => (
-    <PropertyGoalsForm journeyId={p.journeyId} initialGoals={p.propertyGoals} />
+    <PropertyGoalsForm
+      journeyId={p.journeyId}
+      initialGoals={p.propertyGoals}
+      propertyLocation={p.propertyLocation}
+    />
   ),
   market_research: (p) => (
     <MarketInsights

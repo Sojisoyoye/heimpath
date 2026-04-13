@@ -149,6 +149,238 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     },
 }
 
+# ---------------------------------------------------------------------------
+# City-level market data: per-state → per-city pricing
+# Covers the hotspot cities listed in MARKET_DATA_BY_STATE.
+# ---------------------------------------------------------------------------
+
+CITY_MARKET_DATA: dict[str, dict[str, dict]] = {
+    "BW": {
+        "Stuttgart": {
+            "avg_price_per_sqm": 4800,
+            "price_range": {"min": 3200, "max": 7500},
+        },
+        "Freiburg": {
+            "avg_price_per_sqm": 4200,
+            "price_range": {"min": 2800, "max": 6500},
+        },
+        "Karlsruhe": {
+            "avg_price_per_sqm": 3600,
+            "price_range": {"min": 2400, "max": 5500},
+        },
+    },
+    "BY": {
+        "Munich": {
+            "avg_price_per_sqm": 7500,
+            "price_range": {"min": 5000, "max": 12000},
+        },
+        "Nuremberg": {
+            "avg_price_per_sqm": 3800,
+            "price_range": {"min": 2500, "max": 6000},
+        },
+        "Augsburg": {
+            "avg_price_per_sqm": 3500,
+            "price_range": {"min": 2300, "max": 5500},
+        },
+    },
+    "BE": {
+        "Mitte": {
+            "avg_price_per_sqm": 6500,
+            "price_range": {"min": 4500, "max": 10000},
+        },
+        "Prenzlauer Berg": {
+            "avg_price_per_sqm": 5800,
+            "price_range": {"min": 4000, "max": 8500},
+        },
+        "Kreuzberg": {
+            "avg_price_per_sqm": 5500,
+            "price_range": {"min": 3800, "max": 8000},
+        },
+    },
+    "BB": {
+        "Potsdam": {
+            "avg_price_per_sqm": 3800,
+            "price_range": {"min": 2500, "max": 6000},
+        },
+        "Cottbus": {
+            "avg_price_per_sqm": 2200,
+            "price_range": {"min": 1400, "max": 3500},
+        },
+        "Brandenburg an der Havel": {
+            "avg_price_per_sqm": 2400,
+            "price_range": {"min": 1600, "max": 3800},
+        },
+    },
+    "HB": {
+        "Bremen-Mitte": {
+            "avg_price_per_sqm": 3200,
+            "price_range": {"min": 2200, "max": 5000},
+        },
+        "Schwachhausen": {
+            "avg_price_per_sqm": 3500,
+            "price_range": {"min": 2400, "max": 5500},
+        },
+        "Horn-Lehe": {
+            "avg_price_per_sqm": 3000,
+            "price_range": {"min": 2000, "max": 4800},
+        },
+    },
+    "HH": {
+        "Eppendorf": {
+            "avg_price_per_sqm": 7000,
+            "price_range": {"min": 5000, "max": 11000},
+        },
+        "Winterhude": {
+            "avg_price_per_sqm": 6500,
+            "price_range": {"min": 4500, "max": 10000},
+        },
+        "Eimsbüttel": {
+            "avg_price_per_sqm": 6000,
+            "price_range": {"min": 4200, "max": 9500},
+        },
+    },
+    "HE": {
+        "Frankfurt": {
+            "avg_price_per_sqm": 5200,
+            "price_range": {"min": 3500, "max": 8500},
+        },
+        "Wiesbaden": {
+            "avg_price_per_sqm": 4000,
+            "price_range": {"min": 2800, "max": 6500},
+        },
+        "Darmstadt": {
+            "avg_price_per_sqm": 3800,
+            "price_range": {"min": 2600, "max": 6000},
+        },
+    },
+    "MV": {
+        "Rostock": {
+            "avg_price_per_sqm": 2800,
+            "price_range": {"min": 1800, "max": 4500},
+        },
+        "Schwerin": {
+            "avg_price_per_sqm": 2400,
+            "price_range": {"min": 1500, "max": 4000},
+        },
+        "Greifswald": {
+            "avg_price_per_sqm": 2600,
+            "price_range": {"min": 1700, "max": 4200},
+        },
+    },
+    "NI": {
+        "Hannover": {
+            "avg_price_per_sqm": 3200,
+            "price_range": {"min": 2200, "max": 5000},
+        },
+        "Braunschweig": {
+            "avg_price_per_sqm": 2800,
+            "price_range": {"min": 1900, "max": 4500},
+        },
+        "Oldenburg": {
+            "avg_price_per_sqm": 2700,
+            "price_range": {"min": 1800, "max": 4200},
+        },
+    },
+    "NW": {
+        "Düsseldorf": {
+            "avg_price_per_sqm": 4200,
+            "price_range": {"min": 2800, "max": 7000},
+        },
+        "Cologne": {
+            "avg_price_per_sqm": 4000,
+            "price_range": {"min": 2700, "max": 6500},
+        },
+        "Münster": {
+            "avg_price_per_sqm": 3800,
+            "price_range": {"min": 2500, "max": 6000},
+        },
+    },
+    "RP": {
+        "Mainz": {
+            "avg_price_per_sqm": 3200,
+            "price_range": {"min": 2200, "max": 5000},
+        },
+        "Koblenz": {
+            "avg_price_per_sqm": 2600,
+            "price_range": {"min": 1800, "max": 4000},
+        },
+        "Trier": {
+            "avg_price_per_sqm": 2800,
+            "price_range": {"min": 1900, "max": 4200},
+        },
+    },
+    "SL": {
+        "Saarbrücken": {
+            "avg_price_per_sqm": 2200,
+            "price_range": {"min": 1500, "max": 3500},
+        },
+        "Neunkirchen": {
+            "avg_price_per_sqm": 1800,
+            "price_range": {"min": 1200, "max": 2800},
+        },
+        "Homburg": {
+            "avg_price_per_sqm": 1900,
+            "price_range": {"min": 1300, "max": 3000},
+        },
+    },
+    "SN": {
+        "Leipzig": {
+            "avg_price_per_sqm": 3000,
+            "price_range": {"min": 2000, "max": 5000},
+        },
+        "Dresden": {
+            "avg_price_per_sqm": 2800,
+            "price_range": {"min": 1900, "max": 4500},
+        },
+        "Chemnitz": {
+            "avg_price_per_sqm": 1800,
+            "price_range": {"min": 1200, "max": 3000},
+        },
+    },
+    "ST": {
+        "Magdeburg": {
+            "avg_price_per_sqm": 2000,
+            "price_range": {"min": 1300, "max": 3200},
+        },
+        "Halle": {
+            "avg_price_per_sqm": 2100,
+            "price_range": {"min": 1400, "max": 3400},
+        },
+        "Dessau": {
+            "avg_price_per_sqm": 1500,
+            "price_range": {"min": 1000, "max": 2500},
+        },
+    },
+    "SH": {
+        "Kiel": {
+            "avg_price_per_sqm": 3200,
+            "price_range": {"min": 2200, "max": 5200},
+        },
+        "Lübeck": {
+            "avg_price_per_sqm": 3400,
+            "price_range": {"min": 2300, "max": 5500},
+        },
+        "Flensburg": {
+            "avg_price_per_sqm": 2800,
+            "price_range": {"min": 1900, "max": 4500},
+        },
+    },
+    "TH": {
+        "Erfurt": {
+            "avg_price_per_sqm": 2200,
+            "price_range": {"min": 1500, "max": 3500},
+        },
+        "Jena": {
+            "avg_price_per_sqm": 2600,
+            "price_range": {"min": 1800, "max": 4200},
+        },
+        "Weimar": {
+            "avg_price_per_sqm": 2400,
+            "price_range": {"min": 1600, "max": 3800},
+        },
+    },
+}
+
 # Price multipliers relative to apartment prices — mirrors frontend
 PROPERTY_TYPE_MULTIPLIERS: dict[str, float] = {
     "apartment": 1.0,
@@ -157,6 +389,18 @@ PROPERTY_TYPE_MULTIPLIERS: dict[str, float] = {
     "commercial": 1.4,
     "land": 0.4,
 }
+
+
+def _find_city_data(state_code: str, preferred_area: str | None) -> dict | None:
+    """Look up city-level data for a preferred area (case-insensitive)."""
+    if not preferred_area:
+        return None
+    cities = CITY_MARKET_DATA.get(state_code, {})
+    area_lower = preferred_area.lower()
+    for city_name, data in cities.items():
+        if city_name.lower() == area_lower:
+            return data
+    return None
 
 
 def compute_market_insights(
@@ -190,10 +434,22 @@ def compute_market_insights(
 
     multiplier = PROPERTY_TYPE_MULTIPLIERS.get(effective_type, 1.0)
 
-    avg_price = state_data["avg_price_per_sqm"]
+    # Try city-level pricing when a preferred_area is specified
+    preferred_area: str | None = goals.get("preferred_area")
+    city_data = _find_city_data(property_location, preferred_area)
+
+    if city_data:
+        avg_price = city_data["avg_price_per_sqm"]
+        price_min = city_data["price_range"]["min"]
+        price_max = city_data["price_range"]["max"]
+    else:
+        avg_price = state_data["avg_price_per_sqm"]
+        price_min = state_data["price_range"]["min"]
+        price_max = state_data["price_range"]["max"]
+
     adjusted_avg = round(avg_price * multiplier)
-    adjusted_min = round(state_data["price_range"]["min"] * multiplier)
-    adjusted_max = round(state_data["price_range"]["max"] * multiplier)
+    adjusted_min = round(price_min * multiplier)
+    adjusted_max = round(price_max * multiplier)
 
     estimated_sqm: int | None = None
     if budget_euros and adjusted_avg > 0:
@@ -203,8 +459,8 @@ def compute_market_insights(
         "state_code": property_location,
         "state_name": state_info["name"],
         "avg_price_per_sqm": avg_price,
-        "price_range_min": state_data["price_range"]["min"],
-        "price_range_max": state_data["price_range"]["max"],
+        "price_range_min": price_min,
+        "price_range_max": price_max,
         "agent_fee_percent": state_data["agent_fee_percent"],
         "trend": state_data["trend"],
         "hotspots": state_data["hotspots"],
@@ -215,5 +471,6 @@ def compute_market_insights(
         "adjusted_min_price_per_sqm": adjusted_min,
         "adjusted_max_price_per_sqm": adjusted_max,
         "estimated_size_sqm": estimated_sqm,
+        "preferred_area": preferred_area,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
