@@ -9,8 +9,7 @@ import { cn } from "@/common/utils"
 import { EUR_FORMATTER_0 as CURRENCY_FORMATTER } from "@/common/utils/formatters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { FieldTooltip } from "../FieldTooltip"
+import { FormRow } from "../FormRow"
 import type { PropertyInfoInputs } from "../types"
 
 interface IProps {
@@ -20,7 +19,7 @@ interface IProps {
 }
 
 /******************************************************************************
-                              Components
+                              Functions
 ******************************************************************************/
 
 /** Format number with thousand separators. */
@@ -34,6 +33,10 @@ function parseNumber(value: string): number {
   const cleaned = value.replace(/[^\d]/g, "")
   return cleaned ? parseInt(cleaned, 10) : 0
 }
+
+/******************************************************************************
+                              Components
+******************************************************************************/
 
 /** Default component. Property information section. */
 function PropertyInfoSection(props: IProps) {
@@ -77,15 +80,8 @@ function PropertyInfoSection(props: IProps) {
           Retrieve from Expose
         </p>
       </CardHeader>
-      <CardContent className="space-y-4 pt-4">
-        {/* Address */}
-        <div className="space-y-2">
-          <Label htmlFor="address">
-            Address{" "}
-            <span className="font-normal text-muted-foreground">
-              (optional)
-            </span>
-          </Label>
+      <CardContent className="space-y-3 pt-4">
+        <FormRow htmlFor="address" label="Address" optional>
           <Input
             id="address"
             type="text"
@@ -93,41 +89,37 @@ function PropertyInfoSection(props: IProps) {
             value={values.address}
             onChange={(e) => onChange({ address: e.target.value })}
           />
-        </div>
-
-        {/* Size and Price */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="squareMeters">
-              Living Space (m²) <span className="text-destructive">*</span>
-              <FieldTooltip text="Total usable living area in square meters, as listed in the property exposé (Wohnfläche)" />
-            </Label>
-            <Input
-              id="squareMeters"
-              type="number"
-              step="0.1"
-              min="0"
-              placeholder="e.g., 25.7"
-              value={values.squareMeters || ""}
-              onChange={(e) =>
-                handlePercentChange("squareMeters", e.target.value)
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="purchasePrice">Purchase Price (EUR)</Label>
-            <Input
-              id="purchasePrice"
-              type="text"
-              inputMode="numeric"
-              placeholder="e.g., 240,000"
-              value={formatNumber(values.purchasePrice)}
-              onChange={(e) =>
-                handleNumberChange("purchasePrice", e.target.value)
-              }
-            />
-          </div>
-        </div>
+        </FormRow>
+        <FormRow
+          htmlFor="squareMeters"
+          label="Living Space (m²)"
+          tooltip="Total usable living area in square meters, as listed in the property exposé (Wohnfläche)"
+          required
+        >
+          <Input
+            id="squareMeters"
+            type="number"
+            step="0.1"
+            min="0"
+            placeholder="e.g., 25.7"
+            value={values.squareMeters || ""}
+            onChange={(e) =>
+              handlePercentChange("squareMeters", e.target.value)
+            }
+          />
+        </FormRow>
+        <FormRow htmlFor="purchasePrice" label="Purchase Price (EUR)">
+          <Input
+            id="purchasePrice"
+            type="text"
+            inputMode="numeric"
+            placeholder="e.g., 240,000"
+            value={formatNumber(values.purchasePrice)}
+            onChange={(e) =>
+              handleNumberChange("purchasePrice", e.target.value)
+            }
+          />
+        </FormRow>
 
         {/* Price per sqm display */}
         {pricePerSqm > 0 && (
@@ -146,76 +138,74 @@ function PropertyInfoSection(props: IProps) {
           <p className="text-sm font-medium text-muted-foreground">
             Transaction Costs
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="brokerFee">
-                Broker Fee (%)
-                <FieldTooltip text="Maklergebühr — agent commission, typically 3-7% split between buyer and seller" />
-              </Label>
-              <Input
-                id="brokerFee"
-                type="number"
-                step="0.01"
-                min="0"
-                max="10"
-                value={values.brokerFeePercent || ""}
-                onChange={(e) =>
-                  handlePercentChange("brokerFeePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notaryFee">
-                Notary Fee (%)
-                <FieldTooltip text="Notargebühren — legally required for property transfer, typically ~1.5% of purchase price" />
-              </Label>
-              <Input
-                id="notaryFee"
-                type="number"
-                step="0.01"
-                min="0"
-                max="5"
-                value={values.notaryFeePercent || ""}
-                onChange={(e) =>
-                  handlePercentChange("notaryFeePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="landRegistryFee">
-                Land Registry Fee (%)
-                <FieldTooltip text="Grundbuchgebühren — fee for registering ownership in the Grundbuch, typically ~0.5%" />
-              </Label>
-              <Input
-                id="landRegistryFee"
-                type="number"
-                step="0.01"
-                min="0"
-                max="2"
-                value={values.landRegistryFeePercent || ""}
-                onChange={(e) =>
-                  handlePercentChange("landRegistryFeePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="transferTax">
-                Transfer Tax (%)
-                <FieldTooltip text="Grunderwerbsteuer — varies by state (Bundesland), from 3.5% to 6.5% of purchase price" />
-              </Label>
-              <Input
-                id="transferTax"
-                type="number"
-                step="0.1"
-                min="0"
-                max="10"
-                value={values.transferTaxPercent || ""}
-                onChange={(e) =>
-                  handlePercentChange("transferTaxPercent", e.target.value)
-                }
-              />
-            </div>
-          </div>
+          <FormRow
+            htmlFor="brokerFee"
+            label="Broker Fee (%)"
+            tooltip="Maklergebühr — agent commission, typically 3-7% split between buyer and seller"
+          >
+            <Input
+              id="brokerFee"
+              type="number"
+              step="0.01"
+              min="0"
+              max="10"
+              value={values.brokerFeePercent || ""}
+              onChange={(e) =>
+                handlePercentChange("brokerFeePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="notaryFee"
+            label="Notary Fee (%)"
+            tooltip="Notargebühren — legally required for property transfer, typically ~1.5% of purchase price"
+          >
+            <Input
+              id="notaryFee"
+              type="number"
+              step="0.01"
+              min="0"
+              max="5"
+              value={values.notaryFeePercent || ""}
+              onChange={(e) =>
+                handlePercentChange("notaryFeePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="landRegistryFee"
+            label="Land Registry Fee (%)"
+            tooltip="Grundbuchgebühren — fee for registering ownership in the Grundbuch, typically ~0.5%"
+          >
+            <Input
+              id="landRegistryFee"
+              type="number"
+              step="0.01"
+              min="0"
+              max="2"
+              value={values.landRegistryFeePercent || ""}
+              onChange={(e) =>
+                handlePercentChange("landRegistryFeePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="transferTax"
+            label="Transfer Tax (%)"
+            tooltip="Grunderwerbsteuer — varies by state (Bundesland), from 3.5% to 6.5% of purchase price"
+          >
+            <Input
+              id="transferTax"
+              type="number"
+              step="0.1"
+              min="0"
+              max="10"
+              value={values.transferTaxPercent || ""}
+              onChange={(e) =>
+                handlePercentChange("transferTaxPercent", e.target.value)
+              }
+            />
+          </FormRow>
         </div>
 
         {/* Total incidental costs display */}

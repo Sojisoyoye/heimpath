@@ -11,8 +11,7 @@ import { cn } from "@/common/utils"
 import { EUR_FORMATTER_2 as CURRENCY_FORMATTER } from "@/common/utils/formatters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { FieldTooltip } from "../FieldTooltip"
+import { FormRow } from "../FormRow"
 import type { RentInputs } from "../types"
 
 interface IProps {
@@ -60,42 +59,37 @@ function RentSection(props: IProps) {
           Rent, Taxes, Forecast
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pt-4">
+      <CardContent className="space-y-3 pt-4">
         {/* Monthly Rent subsection */}
         <p className="text-sm font-medium text-muted-foreground">
           Monthly Rent (retrieve from Expose)
         </p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="rentPerSqm">
-              Rent per m² (EUR)
-              <FieldTooltip text="Monthly cold rent (Kaltmiete) per square meter, excluding utilities and operating costs" />
-            </Label>
-            <Input
-              id="rentPerSqm"
-              type="number"
-              step="0.5"
-              min="0"
-              placeholder="e.g., 12"
-              value={values.rentPerSqm || ""}
-              onChange={(e) => handleNumberChange("rentPerSqm", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="parkingRent">Parking Rent (EUR/month)</Label>
-            <Input
-              id="parkingRent"
-              type="number"
-              step="10"
-              min="0"
-              placeholder="e.g., 50"
-              value={values.parkingRent || ""}
-              onChange={(e) =>
-                handleNumberChange("parkingRent", e.target.value)
-              }
-            />
-          </div>
-        </div>
+        <FormRow
+          htmlFor="rentPerSqm"
+          label="Rent per m² (EUR)"
+          tooltip="Monthly cold rent (Kaltmiete) per square meter, excluding utilities and operating costs"
+        >
+          <Input
+            id="rentPerSqm"
+            type="number"
+            step="0.5"
+            min="0"
+            placeholder="e.g., 12"
+            value={values.rentPerSqm || ""}
+            onChange={(e) => handleNumberChange("rentPerSqm", e.target.value)}
+          />
+        </FormRow>
+        <FormRow htmlFor="parkingRent" label="Parking Rent (EUR/mo)">
+          <Input
+            id="parkingRent"
+            type="number"
+            step="10"
+            min="0"
+            placeholder="e.g., 50"
+            value={values.parkingRent || ""}
+            onChange={(e) => handleNumberChange("parkingRent", e.target.value)}
+          />
+        </FormRow>
         {marketData && stateName && (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Info className="h-3 w-3 shrink-0" />
@@ -143,63 +137,58 @@ function RentSection(props: IProps) {
         {/* Taxes subsection */}
         <div className="space-y-3 border-t pt-4">
           <p className="text-sm font-medium text-muted-foreground">Taxes</p>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="depreciationRate">
-                Depreciation Rate (%)
-                <FieldTooltip text="AfA (Absetzung für Abnutzung) — tax-deductible building wear. 2% for buildings built after 1924, 2.5% for older" />
-              </Label>
-              <Input
-                id="depreciationRate"
-                type="number"
-                step="0.1"
-                min="0"
-                max="5"
-                value={values.depreciationRatePercent || ""}
-                onChange={(e) =>
-                  handleNumberChange("depreciationRatePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="buildingShare">
-                Building Share (%)
-                <FieldTooltip text="Percentage of purchase price attributable to the building (not land). Used for depreciation calculation" />
-              </Label>
-              <Input
-                id="buildingShare"
-                type="number"
-                step="5"
-                min="0"
-                max="100"
-                value={values.buildingSharePercent || ""}
-                onChange={(e) =>
-                  handleNumberChange("buildingSharePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="marginalTaxRate">
-                Marginal Tax Rate (%)
-                <FieldTooltip text="Your personal income tax rate in Germany (Einkommensteuer). Standard brackets range from 14% to 45%" />
-              </Label>
-              <Input
-                id="marginalTaxRate"
-                type="number"
-                step="1"
-                min="0"
-                max="50"
-                placeholder="e.g., 42"
-                value={values.marginalTaxRatePercent || ""}
-                onChange={(e) =>
-                  handleNumberChange("marginalTaxRatePercent", e.target.value)
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Personal income tax bracket
-              </p>
-            </div>
-          </div>
+          <FormRow
+            htmlFor="depreciationRate"
+            label="Depreciation Rate (%)"
+            tooltip="AfA (Absetzung für Abnutzung) — tax-deductible building wear. 2% for buildings built after 1924, 2.5% for older"
+          >
+            <Input
+              id="depreciationRate"
+              type="number"
+              step="0.1"
+              min="0"
+              max="5"
+              value={values.depreciationRatePercent || ""}
+              onChange={(e) =>
+                handleNumberChange("depreciationRatePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="buildingShare"
+            label="Building Share (%)"
+            tooltip="Percentage of purchase price attributable to the building (not land). Used for depreciation calculation"
+          >
+            <Input
+              id="buildingShare"
+              type="number"
+              step="5"
+              min="0"
+              max="100"
+              value={values.buildingSharePercent || ""}
+              onChange={(e) =>
+                handleNumberChange("buildingSharePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="marginalTaxRate"
+            label="Marginal Tax Rate (%)"
+            tooltip="Your personal income tax rate in Germany (Einkommensteuer). Standard brackets range from 14% to 45%"
+          >
+            <Input
+              id="marginalTaxRate"
+              type="number"
+              step="1"
+              min="0"
+              max="50"
+              placeholder="e.g., 42"
+              value={values.marginalTaxRatePercent || ""}
+              onChange={(e) =>
+                handleNumberChange("marginalTaxRatePercent", e.target.value)
+              }
+            />
+          </FormRow>
         </div>
 
         {/* Tax Context subsection */}
@@ -207,25 +196,23 @@ function RentSection(props: IProps) {
           <p className="text-sm font-medium text-muted-foreground">
             Tax Context
           </p>
-          <div className="grid gap-4 sm:grid-cols-1">
-            <div className="space-y-2">
-              <Label htmlFor="personalTaxableIncome">
-                Personal Taxable Income (EUR/year)
-                <FieldTooltip text="Your annual taxable income from employment or other sources. Used for progressive tax calculation (§32a EStG)" />
-              </Label>
-              <Input
-                id="personalTaxableIncome"
-                type="number"
-                step="1000"
-                min="0"
-                placeholder="e.g., 60000"
-                value={values.personalTaxableIncome || ""}
-                onChange={(e) =>
-                  handleNumberChange("personalTaxableIncome", e.target.value)
-                }
-              />
-            </div>
-          </div>
+          <FormRow
+            htmlFor="personalTaxableIncome"
+            label="Taxable Income (EUR/yr)"
+            tooltip="Your annual taxable income from employment or other sources. Used for progressive tax calculation (§32a EStG)"
+          >
+            <Input
+              id="personalTaxableIncome"
+              type="number"
+              step="1000"
+              min="0"
+              placeholder="e.g., 60000"
+              value={values.personalTaxableIncome || ""}
+              onChange={(e) =>
+                handleNumberChange("personalTaxableIncome", e.target.value)
+              }
+            />
+          </FormRow>
         </div>
 
         {/* Renovation subsection */}
@@ -233,43 +220,41 @@ function RentSection(props: IProps) {
           <p className="text-sm font-medium text-muted-foreground">
             Renovation
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="renovationYear">
-                Renovation Year
-                <FieldTooltip text="Year number (1-10) when renovation occurs. Set to 0 for no renovation" />
-              </Label>
-              <Input
-                id="renovationYear"
-                type="number"
-                step="1"
-                min="0"
-                max="20"
-                placeholder="0 = none"
-                value={values.renovationYear || ""}
-                onChange={(e) =>
-                  handleNumberChange("renovationYear", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="renovationCost">
-                Renovation Cost (EUR)
-                <FieldTooltip text="Total renovation cost, tax-deductible in the renovation year" />
-              </Label>
-              <Input
-                id="renovationCost"
-                type="number"
-                step="1000"
-                min="0"
-                placeholder="e.g., 15000"
-                value={values.renovationCost || ""}
-                onChange={(e) =>
-                  handleNumberChange("renovationCost", e.target.value)
-                }
-              />
-            </div>
-          </div>
+          <FormRow
+            htmlFor="renovationYear"
+            label="Renovation Year"
+            tooltip="Year number (1-10) when renovation occurs. Set to 0 for no renovation"
+          >
+            <Input
+              id="renovationYear"
+              type="number"
+              step="1"
+              min="0"
+              max="20"
+              placeholder="0 = none"
+              value={values.renovationYear || ""}
+              onChange={(e) =>
+                handleNumberChange("renovationYear", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="renovationCost"
+            label="Renovation Cost (EUR)"
+            tooltip="Total renovation cost, tax-deductible in the renovation year"
+          >
+            <Input
+              id="renovationCost"
+              type="number"
+              step="1000"
+              min="0"
+              placeholder="e.g., 15000"
+              value={values.renovationCost || ""}
+              onChange={(e) =>
+                handleNumberChange("renovationCost", e.target.value)
+              }
+            />
+          </FormRow>
         </div>
 
         {/* Analysis Period subsection */}
@@ -277,117 +262,111 @@ function RentSection(props: IProps) {
           <p className="text-sm font-medium text-muted-foreground">
             Analysis Period
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="startYear">
-                Start Year
-                <FieldTooltip text="First year of the investment analysis" />
-              </Label>
-              <Input
-                id="startYear"
-                type="number"
-                step="1"
-                min="2020"
-                max="2040"
-                value={values.startYear || ""}
-                onChange={(e) =>
-                  handleNumberChange("startYear", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="analysisYears">
-                Analysis Years
-                <FieldTooltip text="Number of years to project (last year is the exit/sale year)" />
-              </Label>
-              <Input
-                id="analysisYears"
-                type="number"
-                step="1"
-                min="2"
-                max="30"
-                value={values.analysisYears || ""}
-                onChange={(e) =>
-                  handleNumberChange("analysisYears", e.target.value)
-                }
-              />
-            </div>
-          </div>
+          <FormRow
+            htmlFor="startYear"
+            label="Start Year"
+            tooltip="First year of the investment analysis"
+          >
+            <Input
+              id="startYear"
+              type="number"
+              step="1"
+              min="2020"
+              max="2040"
+              value={values.startYear || ""}
+              onChange={(e) => handleNumberChange("startYear", e.target.value)}
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="analysisYears"
+            label="Analysis Years"
+            tooltip="Number of years to project (last year is the exit/sale year)"
+          >
+            <Input
+              id="analysisYears"
+              type="number"
+              step="1"
+              min="2"
+              max="30"
+              value={values.analysisYears || ""}
+              onChange={(e) =>
+                handleNumberChange("analysisYears", e.target.value)
+              }
+            />
+          </FormRow>
         </div>
 
         {/* Forecast subsection */}
         <div className="space-y-3 border-t pt-4">
           <p className="text-sm font-medium text-muted-foreground">Forecast</p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="costIncrease">
-                Cost Increase p.a. (%)
-                <FieldTooltip text="Expected annual increase in operating costs, typically tracking inflation" />
-              </Label>
-              <Input
-                id="costIncrease"
-                type="number"
-                step="0.1"
-                min="0"
-                max="10"
-                value={values.costIncreasePercent || ""}
-                onChange={(e) =>
-                  handleNumberChange("costIncreasePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="rentIncrease">
-                Rent Increase p.a. (%)
-                <FieldTooltip text="Expected annual rent increase. Subject to Mietpreisbremse (rent cap) in regulated areas" />
-              </Label>
-              <Input
-                id="rentIncrease"
-                type="number"
-                step="0.1"
-                min="0"
-                max="10"
-                value={values.rentIncreasePercent || ""}
-                onChange={(e) =>
-                  handleNumberChange("rentIncreasePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="valueIncrease">
-                Value Increase p.a. (%)
-                <FieldTooltip text="Expected annual property value appreciation rate" />
-              </Label>
-              <Input
-                id="valueIncrease"
-                type="number"
-                step="0.1"
-                min="0"
-                max="10"
-                value={values.valueIncreasePercent || ""}
-                onChange={(e) =>
-                  handleNumberChange("valueIncreasePercent", e.target.value)
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="equityInterest">
-                Interest on Equity p.a. (%)
-                <FieldTooltip text="Opportunity cost — what your equity could earn if invested elsewhere (e.g., stock market returns)" />
-              </Label>
-              <Input
-                id="equityInterest"
-                type="number"
-                step="0.5"
-                min="0"
-                max="20"
-                value={values.equityInterestPercent || ""}
-                onChange={(e) =>
-                  handleNumberChange("equityInterestPercent", e.target.value)
-                }
-              />
-            </div>
-          </div>
+          <FormRow
+            htmlFor="costIncrease"
+            label="Cost Increase p.a. (%)"
+            tooltip="Expected annual increase in operating costs, typically tracking inflation"
+          >
+            <Input
+              id="costIncrease"
+              type="number"
+              step="0.1"
+              min="0"
+              max="10"
+              value={values.costIncreasePercent || ""}
+              onChange={(e) =>
+                handleNumberChange("costIncreasePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="rentIncrease"
+            label="Rent Increase p.a. (%)"
+            tooltip="Expected annual rent increase. Subject to Mietpreisbremse (rent cap) in regulated areas"
+          >
+            <Input
+              id="rentIncrease"
+              type="number"
+              step="0.1"
+              min="0"
+              max="10"
+              value={values.rentIncreasePercent || ""}
+              onChange={(e) =>
+                handleNumberChange("rentIncreasePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="valueIncrease"
+            label="Value Increase p.a. (%)"
+            tooltip="Expected annual property value appreciation rate"
+          >
+            <Input
+              id="valueIncrease"
+              type="number"
+              step="0.1"
+              min="0"
+              max="10"
+              value={values.valueIncreasePercent || ""}
+              onChange={(e) =>
+                handleNumberChange("valueIncreasePercent", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="equityInterest"
+            label="Equity Interest p.a. (%)"
+            tooltip="Opportunity cost — what your equity could earn if invested elsewhere (e.g., stock market returns)"
+          >
+            <Input
+              id="equityInterest"
+              type="number"
+              step="0.5"
+              min="0"
+              max="20"
+              value={values.equityInterestPercent || ""}
+              onChange={(e) =>
+                handleNumberChange("equityInterestPercent", e.target.value)
+              }
+            />
+          </FormRow>
         </div>
       </CardContent>
     </Card>

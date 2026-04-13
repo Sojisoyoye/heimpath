@@ -9,8 +9,7 @@ import { cn } from "@/common/utils"
 import { EUR_FORMATTER_2 as CURRENCY_FORMATTER } from "@/common/utils/formatters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { FieldTooltip } from "../FieldTooltip"
+import { FormRow } from "../FormRow"
 import type { OperatingCostsInputs } from "../types"
 
 interface IProps {
@@ -36,7 +35,6 @@ function OperatingCostsSection(props: IProps) {
     onChange({ [field]: num })
   }
 
-  // Derive display values
   const totalAllocable = values.hausgeldAllocable + values.propertyTaxMonthly
   const totalNonAllocable = values.hausgeldNonAllocable + values.reservesPortion
   const overallHausgeld = totalAllocable + totalNonAllocable
@@ -51,7 +49,7 @@ function OperatingCostsSection(props: IProps) {
           Operating Costs
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pt-4">
+      <CardContent className="space-y-3 pt-4">
         {/* Monthly Management Costs summary */}
         <p className="text-sm font-medium text-muted-foreground">
           Monthly Management Costs
@@ -92,48 +90,40 @@ function OperatingCostsSection(props: IProps) {
           <p className="text-sm font-medium text-muted-foreground">
             Allocable and Non-Allocable Costs (retrieve from Abrechnung)
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="hausgeldAllocable">
-                House Allowance - Allocable (EUR/month)
-                <FieldTooltip text="Umlagefähige Nebenkosten — costs passed through to the tenant (heating, water, garbage, cleaning, etc.)" />
-              </Label>
-              <Input
-                id="hausgeldAllocable"
-                type="number"
-                step="10"
-                min="0"
-                placeholder="e.g., 116"
-                value={values.hausgeldAllocable || ""}
-                onChange={(e) =>
-                  handleNumberChange("hausgeldAllocable", e.target.value)
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Allocable portion passed to tenant
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="propertyTaxMonthly">
-                Property Tax (EUR/month)
-                <FieldTooltip text="Grundsteuer — municipal property tax, allocable to the tenant under German law" />
-              </Label>
-              <Input
-                id="propertyTaxMonthly"
-                type="number"
-                step="1"
-                min="0"
-                placeholder="e.g., 7"
-                value={values.propertyTaxMonthly || ""}
-                onChange={(e) =>
-                  handleNumberChange("propertyTaxMonthly", e.target.value)
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Grundsteuer - allocable to tenant
-              </p>
-            </div>
-          </div>
+          <FormRow
+            htmlFor="hausgeldAllocable"
+            label="Allocable Hausgeld (EUR/mo)"
+            tooltip="Umlagefähige Nebenkosten — costs passed through to the tenant (heating, water, garbage, cleaning, etc.)"
+          >
+            <Input
+              id="hausgeldAllocable"
+              type="number"
+              step="10"
+              min="0"
+              placeholder="e.g., 116"
+              value={values.hausgeldAllocable || ""}
+              onChange={(e) =>
+                handleNumberChange("hausgeldAllocable", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="propertyTaxMonthly"
+            label="Property Tax (EUR/mo)"
+            tooltip="Grundsteuer — municipal property tax, allocable to the tenant under German law"
+          >
+            <Input
+              id="propertyTaxMonthly"
+              type="number"
+              step="1"
+              min="0"
+              placeholder="e.g., 7"
+              value={values.propertyTaxMonthly || ""}
+              onChange={(e) =>
+                handleNumberChange("propertyTaxMonthly", e.target.value)
+              }
+            />
+          </FormRow>
 
           {/* Computed total allocable */}
           <div className="rounded-md bg-muted/50 p-2">
@@ -143,48 +133,40 @@ function OperatingCostsSection(props: IProps) {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="hausgeldNonAllocable">
-                House Allowance - Non-allocable (EUR/month)
-                <FieldTooltip text="Nicht umlagefähige Kosten — landlord-only costs that cannot be passed to the tenant (property management fees, etc.)" />
-              </Label>
-              <Input
-                id="hausgeldNonAllocable"
-                type="number"
-                step="10"
-                min="0"
-                placeholder="e.g., 23"
-                value={values.hausgeldNonAllocable || ""}
-                onChange={(e) =>
-                  handleNumberChange("hausgeldNonAllocable", e.target.value)
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Non-allocable landlord expense
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reservesPortion">
-                Reserves (EUR/month)
-                <FieldTooltip text="Instandhaltungsrücklage — mandatory repair fund contribution for the building, set by the HOA" />
-              </Label>
-              <Input
-                id="reservesPortion"
-                type="number"
-                step="1"
-                min="0"
-                placeholder="e.g., 7"
-                value={values.reservesPortion || ""}
-                onChange={(e) =>
-                  handleNumberChange("reservesPortion", e.target.value)
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Instandhaltungsrücklage
-              </p>
-            </div>
-          </div>
+          <FormRow
+            htmlFor="hausgeldNonAllocable"
+            label="Non-alloc. Hausgeld (EUR/mo)"
+            tooltip="Nicht umlagefähige Kosten — landlord-only costs that cannot be passed to the tenant (property management fees, etc.)"
+          >
+            <Input
+              id="hausgeldNonAllocable"
+              type="number"
+              step="10"
+              min="0"
+              placeholder="e.g., 23"
+              value={values.hausgeldNonAllocable || ""}
+              onChange={(e) =>
+                handleNumberChange("hausgeldNonAllocable", e.target.value)
+              }
+            />
+          </FormRow>
+          <FormRow
+            htmlFor="reservesPortion"
+            label="Reserves (EUR/month)"
+            tooltip="Instandhaltungsrücklage — mandatory repair fund contribution for the building, set by the HOA"
+          >
+            <Input
+              id="reservesPortion"
+              type="number"
+              step="1"
+              min="0"
+              placeholder="e.g., 7"
+              value={values.reservesPortion || ""}
+              onChange={(e) =>
+                handleNumberChange("reservesPortion", e.target.value)
+              }
+            />
+          </FormRow>
 
           {/* Computed total non-allocable */}
           <div className="rounded-md bg-muted/50 p-2">
