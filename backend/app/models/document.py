@@ -12,6 +12,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -141,9 +142,13 @@ class DocumentTranslation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     target_language = Column(String(10), nullable=False, default="en")
 
     # Translation content (JSON)
-    translated_pages = Column(JSONB, nullable=False, default=list)
-    clauses_detected = Column(JSONB, nullable=False, default=list)
-    risk_warnings = Column(JSONB, nullable=False, default=list)
+    translated_pages = Column(
+        MutableList.as_mutable(JSONB), nullable=False, default=list
+    )
+    clauses_detected = Column(
+        MutableList.as_mutable(JSONB), nullable=False, default=list
+    )
+    risk_warnings = Column(MutableList.as_mutable(JSONB), nullable=False, default=list)
 
     # Timing
     processing_started_at = Column(DateTime(timezone=True), nullable=True)

@@ -14,6 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -94,7 +95,7 @@ class Article(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # Content
     excerpt = Column(Text, nullable=False)
     content = Column(Text, nullable=False)
-    key_takeaways = Column(JSONB, nullable=False, default=list)
+    key_takeaways = Column(MutableList.as_mutable(JSONB), nullable=False, default=list)
 
     # Metadata
     reading_time_minutes = Column(Integer, nullable=False, default=1)
@@ -102,8 +103,10 @@ class Article(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     author_name = Column(String(255), nullable=False)
 
     # Related resources (stored as JSONB)
-    related_law_ids = Column(JSONB, nullable=True, default=list)
-    related_calculator_types = Column(JSONB, nullable=True, default=list)
+    related_law_ids = Column(MutableList.as_mutable(JSONB), nullable=True, default=list)
+    related_calculator_types = Column(
+        MutableList.as_mutable(JSONB), nullable=True, default=list
+    )
 
     # Full-text search
     search_vector = Column(TSVECTOR)

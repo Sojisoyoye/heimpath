@@ -13,6 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -116,10 +117,10 @@ class Journey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     target_purchase_date = Column(DateTime(timezone=True), nullable=True)
 
     # Property goals (Step 1 user input)
-    property_goals = Column(JSONB, nullable=True)
+    property_goals = Column(MutableDict.as_mutable(JSONB), nullable=True)
 
     # Market insights (generated after Step 1 completion)
-    market_insights = Column(JSONB, nullable=True)
+    market_insights = Column(MutableDict.as_mutable(JSONB), nullable=True)
 
     # Progress tracking
     started_at = Column(DateTime(timezone=True), nullable=True)
@@ -171,11 +172,17 @@ class JourneyStep(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Content references
     content_key = Column(String(100), nullable=True)  # Key to fetch related content
-    related_laws = Column(JSONB, nullable=True)  # JSON array of related law references
-    estimated_costs = Column(JSONB, nullable=True)  # JSON object with cost breakdown
+    related_laws = Column(
+        MutableList.as_mutable(JSONB), nullable=True
+    )  # JSON array of related law references
+    estimated_costs = Column(
+        MutableDict.as_mutable(JSONB), nullable=True
+    )  # JSON object with cost breakdown
 
     # Prerequisites (step numbers that must be completed first)
-    prerequisites = Column(JSONB, nullable=True)  # JSON array of step numbers
+    prerequisites = Column(
+        MutableList.as_mutable(JSONB), nullable=True
+    )  # JSON array of step numbers
 
     # Relationships
     journey = relationship("Journey", back_populates="steps")

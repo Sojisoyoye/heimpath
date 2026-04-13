@@ -497,28 +497,27 @@ async def update_property_goals(
             detail="Journey not found",
         )
 
-    existing_goals = dict(journey.property_goals) if journey.property_goals else {}
+    if journey.property_goals is None:
+        journey.property_goals = {}
 
     update_data = request.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        existing_goals[field] = value
-
-    journey.property_goals = existing_goals
+        journey.property_goals[field] = value
 
     # Auto-generate market insights when Step 1 is completed for the first time,
     # or regenerate when the preferred_area changes.
-    new_area = existing_goals.get("preferred_area")
+    new_area = journey.property_goals.get("preferred_area")
     current_area = (journey.market_insights or {}).get("preferred_area")
     area_changed = new_area != current_area
 
-    if existing_goals.get("is_completed") and (
+    if journey.property_goals.get("is_completed") and (
         journey.market_insights is None or area_changed
     ):
         journey.market_insights = compute_market_insights(
             property_location=journey.property_location,
             property_type=journey.property_type,
             budget_euros=journey.budget_euros,
-            property_goals=existing_goals,
+            property_goals=journey.property_goals,
         )
 
     session.add(journey)
