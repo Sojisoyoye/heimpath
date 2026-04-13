@@ -19,7 +19,6 @@ export { ProgressBar } from "./ProgressBar"
 export { PropertyTypeSelector } from "./PropertyTypeSelector"
 export { ResidencySelector } from "./ResidencySelector"
 export { StepCard } from "./StepCard"
-export { StepTabView } from "./StepTabView"
 // Step content components
 export {
   MarketInsights,
@@ -27,7 +26,8 @@ export {
   PropertyGoalsForm,
   StepBody,
 } from "./StepContent"
-export { ViewModeToggle } from "./ViewModeToggle"
+export { StepTabView } from "./StepTabView"
 export { TaskCheckbox } from "./TaskCheckbox"
 export { TimelineSelector } from "./TimelineSelector"
+export { ViewModeToggle } from "./ViewModeToggle"
 export { WizardStepIndicator } from "./WizardStepIndicator"
