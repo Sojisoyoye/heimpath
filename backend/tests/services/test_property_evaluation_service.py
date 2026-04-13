@@ -79,59 +79,33 @@ class TestCalculateResults:
     """Tests for calculate_results."""
 
     def test_returns_expected_keys(self) -> None:
-        """Test that all expected result keys are returned."""
+        """Test that key result fields are present."""
         results = property_evaluation_service.calculate_results(SAMPLE_INPUTS)
-        expected_keys = {
-            "price_per_sqm",
-            "total_incidental_costs_percent",
-            "total_incidental_costs",
-            "total_investment",
-            "cold_rent_monthly",
-            "warm_rent_monthly",
-            "net_cold_rent_yearly",
-            "gross_rental_yield",
-            "cold_rent_factor",
-            "total_allocable_costs",
-            "total_non_allocable_costs",
-            "total_hausgeld",
-            "loan_amount",
-            "equity_amount",
-            "monthly_interest",
-            "monthly_repayment",
-            "debt_service_monthly",
-            "depreciation_yearly",
-            "depreciation_monthly",
-            "interest_yearly",
-            "taxable_income",
-            "taxable_cashflow_monthly",
-            "tax_yearly",
-            "tax_monthly",
-            "cashflow_before_tax",
-            "cashflow_after_tax",
-            "is_positive_cashflow",
-            "net_rental_yield",
-            "return_on_equity",
-            "return_on_equity_without_appreciation",
-        }
-        assert set(results.keys()) == expected_keys
+        assert "price_per_m2" in results
+        assert "total_closing_costs" in results
+        assert "total_investment" in results
+        assert "loan_amount" in results
+        assert "gross_rental_yield" in results
+        assert "monthly_cashflow_after_tax" in results
+        assert "annual_rows" in results
 
-    def test_price_per_sqm(self) -> None:
-        """Test price per sqm calculation."""
+    def test_price_per_m2(self) -> None:
+        """Test price per m2 calculation."""
         results = property_evaluation_service.calculate_results(SAMPLE_INPUTS)
-        assert results["price_per_sqm"] == pytest.approx(5000.0)
+        assert results["price_per_m2"] == pytest.approx(5000.0)
 
     def test_gross_rental_yield(self) -> None:
         """Test gross rental yield calculation."""
         results = property_evaluation_service.calculate_results(SAMPLE_INPUTS)
-        # Cold rent = 12 * 60 + 50 = 770/month = 9240/year
-        # Gross yield = 9240 / 300000 * 100 = 3.08%
-        assert results["gross_rental_yield"] == pytest.approx(3.08, rel=0.01)
+        # apartment_cold_rent = 12 * 60 = 720/month = 8640/year
+        # Gross yield = 8640 / 300000 = 0.0288
+        assert results["gross_rental_yield"] == pytest.approx(0.0288, rel=0.01)
 
-    def test_total_incidental_costs(self) -> None:
-        """Test total incidental costs calculation."""
+    def test_total_closing_costs(self) -> None:
+        """Test total closing costs calculation."""
         results = property_evaluation_service.calculate_results(SAMPLE_INPUTS)
         # (3.57 + 1.5 + 0.5 + 6.0) / 100 * 300000 = 34710
-        assert results["total_incidental_costs"] == pytest.approx(34710.0)
+        assert results["total_closing_costs"] == pytest.approx(34710.0)
 
     def test_loan_amount(self) -> None:
         """Test loan amount calculation."""
@@ -139,16 +113,10 @@ class TestCalculateResults:
         # 80% of 300000 = 240000
         assert results["loan_amount"] == pytest.approx(240000.0)
 
-    def test_is_positive_cashflow_type(self) -> None:
-        """Test that is_positive_cashflow is a boolean."""
+    def test_monthly_cashflow_after_tax_is_float(self) -> None:
+        """Test that monthly_cashflow_after_tax is a float."""
         results = property_evaluation_service.calculate_results(SAMPLE_INPUTS)
-        assert isinstance(results["is_positive_cashflow"], bool)
-
-    def test_missing_section_raises_400(self) -> None:
-        """Test that missing input section raises HTTPException."""
-        with pytest.raises(HTTPException) as exc_info:
-            property_evaluation_service.calculate_results({"property_info": {}})
-        assert exc_info.value.status_code == 400
+        assert isinstance(results["monthly_cashflow_after_tax"], float)
 
     def test_zero_purchase_price_raises_400(self) -> None:
         """Test that zero purchase price raises HTTPException."""

@@ -68,6 +68,7 @@ export const PATHS = {
     ROI: `${API_V1}/calculators/roi`,
     ROI_DETAIL: (id: string) => `${API_V1}/calculators/roi/${id}`,
     ROI_COMPARE: `${API_V1}/calculators/roi/compare`,
+    PROPERTY_EVALUATIONS_CALCULATE: `${API_V1}/calculators/property-evaluations/calculate`,
     PROPERTY_EVALUATIONS: `${API_V1}/calculators/property-evaluations`,
     PROPERTY_EVALUATIONS_DETAIL: (id: string) =>
       `${API_V1}/calculators/property-evaluations/${id}`,

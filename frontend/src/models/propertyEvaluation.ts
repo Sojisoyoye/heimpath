@@ -23,6 +23,11 @@ export interface RentInputs {
   valueIncreasePercent: number
   equityInterestPercent: number
   marginalTaxRatePercent: number
+  personalTaxableIncome: number
+  renovationYear: number
+  renovationCost: number
+  startYear: number
+  analysisYears: number
 }
 
 export interface OperatingCostsInputs {
@@ -39,50 +44,91 @@ export interface FinancingInputs {
   includeAcquisitionCosts: boolean
 }
 
+export interface AnnualCashflowRow {
+  year: number
+  coldRent: number
+  managementAnnual: number
+  operationalCf: number
+  loanBalanceStart: number
+  interest: number
+  repayment: number
+  loanBalanceEnd: number
+  financingCf: number
+  netCfPretax: number
+  renovationDeduction: number
+  earningsBeforeTax: number
+  taxEffectMarginal: number
+  netCfAfterTax: number
+  taxableIncomeAdjusted: number
+  incomeTaxAdjusted: number
+  actualTaxSaving: number
+  propertyValue: number
+  equityBuildupAccumulated: number
+  equityContribution: number
+}
+
 export interface EvaluationResults {
-  // Property metrics
-  pricePerSqm: number
-  totalIncidentalCostsPercent: number
-  totalIncidentalCosts: number
+  // Property Purchase
+  pricePerM2: number
+  brokerFeeAmount: number
+  notaryFeeAmount: number
+  landRegistryFeeAmount: number
+  propertyTransferTaxAmount: number
+  totalClosingCosts: number
+  totalClosingCostsPct: number
   totalInvestment: number
 
-  // Rent metrics
-  coldRentMonthly: number
+  // Rent
+  apartmentColdRentMonthly: number
+  totalColdRentMonthly: number
+  allocableCostsMonthly: number
   warmRentMonthly: number
-  netColdRentYearly: number
-  grossRentalYield: number
-  coldRentFactor: number
 
-  // Operating costs (derived)
-  totalAllocableCosts: number
-  totalNonAllocableCosts: number
-  totalHausgeld: number
+  // Management Costs
+  nonAllocableCostsMonthly: number
+  totalHausgeldMonthly: number
+  nonAllocableAsPctOfColdRent: number
 
-  // Financing metrics
+  // Depreciation
+  afaBasis: number
+  annualAfa: number
+  monthlyAfaDisplay: number
+
+  // Financing
   loanAmount: number
-  equityAmount: number
-  monthlyInterest: number
-  monthlyRepayment: number
-  debtServiceMonthly: number
+  equity: number
+  annualDebtService: number
+  monthlyDebtService: number
+  monthlyInterestYr1: number
+  monthlyRepaymentYr1: number
 
-  // Tax calculation
-  depreciationYearly: number
-  depreciationMonthly: number
-  interestYearly: number
-  taxableIncome: number
-  taxableCashflowMonthly: number
-  taxYearly: number
-  taxMonthly: number
+  // Rental Yield
+  netColdRentAnnual: number
+  grossRentalYield: number
+  factorColdRentVsPrice: number
 
-  // Cashflow
-  cashflowBeforeTax: number
-  cashflowAfterTax: number
-  isPositiveCashflow: boolean
+  // Monthly Cashflow
+  monthlyCashflowPretax: number
+  monthlyTaxablePropertyIncome: number
+  monthlyTaxBenefit: number
+  monthlyCashflowAfterTax: number
 
-  // Return metrics
-  netRentalYield: number
-  returnOnEquity: number
-  returnOnEquityWithoutAppreciation: number
+  // Tax Context
+  personalTaxableIncome: number
+  baseIncomeTax: number
+  avgTaxRateDisplay: number
+  personalMarginalTaxRate: number
+
+  // Annual Cashflow Table
+  annualRows: AnnualCashflowRow[]
+
+  // Summary KPIs
+  totalOperationalCf: number
+  totalFinancingCf: number
+  totalNetCfBeforeTax: number
+  totalNetCfAfterTax: number
+  totalEquityInvested: number
+  finalEquityKpi: number
 }
 
 export interface PropertyEvaluationState {

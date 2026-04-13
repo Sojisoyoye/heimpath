@@ -4,6 +4,7 @@
  */
 
 export type {
+  AnnualCashflowRow,
   EvaluationResults,
   FinancingInputs,
   OperatingCostsInputs,

@@ -4,6 +4,7 @@ Handles evaluation calculations, CRUD operations for saved evaluations,
 and auto-completion of journey tasks.
 """
 
+import dataclasses
 import secrets
 import uuid
 from datetime import datetime, timezone
@@ -13,37 +14,83 @@ from sqlmodel import Session, select
 
 from app.models.journey import JourneyTask
 from app.models.property_evaluation import PropertyEvaluation
-from app.schemas.property_evaluation import PropertyEvaluationCreate
+from app.schemas.property_evaluation import (
+    PropertyEvaluationCalculateRequest,
+    PropertyEvaluationCreate,
+)
+from app.services.property_evaluation_calculator import (
+    EvaluationInputs,
+    EvaluationResult,
+    calculate,
+)
 
 # ---------------------------------------------------------------------------
 # Calculation
 # ---------------------------------------------------------------------------
 
 
+def _inputs_from_dict(inputs: dict) -> EvaluationInputs:
+    """Convert nested frontend dict to flat EvaluationInputs.
+
+    Handles the nested format with property_info, rent, operating_costs,
+    financing sub-dicts and percent-scale values -> decimal-scale rates.
+    """
+    property_info = inputs.get("property_info", {})
+    rent = inputs.get("rent", {})
+    operating_costs = inputs.get("operating_costs", {})
+    financing = inputs.get("financing", {})
+
+    return EvaluationInputs(
+        address=property_info.get("address", ""),
+        square_meters=property_info.get("square_meters", 0),
+        purchase_price=property_info.get("purchase_price", 0),
+        rent_per_m2=rent.get("rent_per_sqm", 0),
+        parking_space_rent=rent.get("parking_rent", 0),
+        broker_fee_rate=property_info.get("broker_fee_percent", 0) / 100,
+        notary_fee_rate=property_info.get("notary_fee_percent", 0) / 100,
+        land_registry_fee_rate=property_info.get("land_registry_fee_percent", 0) / 100,
+        property_transfer_tax_rate=property_info.get("transfer_tax_percent", 0) / 100,
+        base_allocable_costs=operating_costs.get("hausgeld_allocable", 0),
+        property_tax_monthly=operating_costs.get("property_tax_monthly", 0),
+        base_non_allocable_costs=operating_costs.get("hausgeld_non_allocable", 0),
+        reserves_monthly=operating_costs.get("reserves_portion", 0),
+        building_share_pct=rent.get("building_share_percent", 70) / 100,
+        afa_rate=rent.get("depreciation_rate_percent", 2) / 100,
+        loan_pct_of_purchase=financing.get("loan_percent", 100) / 100,
+        interest_rate=financing.get("interest_rate_percent", 4) / 100,
+        initial_repayment_rate=financing.get("repayment_rate_percent", 2) / 100,
+        personal_taxable_income=rent.get("personal_taxable_income", 0),
+        personal_marginal_tax_rate=rent.get("marginal_tax_rate_percent", 42) / 100,
+        cost_increase_pa=rent.get("cost_increase_percent", 2) / 100,
+        rent_increase_pa=rent.get("rent_increase_percent", 2) / 100,
+        value_increase_pa=rent.get("value_increase_percent", 1.5) / 100,
+        interest_on_equity_pa=rent.get("equity_interest_percent", 5) / 100,
+        renovation_year=rent.get("renovation_year", 0),
+        renovation_cost=rent.get("renovation_cost", 0),
+        start_year=rent.get("start_year", 2025),
+        analysis_years=rent.get("analysis_years", 11),
+    )
+
+
+def _result_to_dict(result: EvaluationResult) -> dict:
+    """Convert EvaluationResult dataclass to a plain dict."""
+    return dataclasses.asdict(result)
+
+
 def calculate_results(inputs: dict) -> dict:
-    """Mirror frontend usePropertyEvaluation logic server-side.
+    """Compute property evaluation results from a nested frontend dict.
 
     Args:
         inputs: PropertyEvaluationState dict with propertyInfo, rent,
                 operatingCosts, financing sub-objects.
 
     Returns:
-        EvaluationResults dict.
+        EvaluationResult as a dict.
 
     Raises:
         HTTPException: If required inputs are missing or invalid.
     """
-    try:
-        property_info = inputs["property_info"]
-        rent = inputs["rent"]
-        operating_costs = inputs["operating_costs"]
-        financing = inputs["financing"]
-    except KeyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Missing required input section: {e}",
-        )
-
+    property_info = inputs.get("property_info", {})
     purchase_price = property_info.get("purchase_price", 0)
     square_meters = property_info.get("square_meters", 0)
 
@@ -53,130 +100,50 @@ def calculate_results(inputs: dict) -> dict:
             detail="purchase_price and square_meters must be positive",
         )
 
-    # Property metrics
-    price_per_sqm = purchase_price / square_meters
+    eval_inputs = _inputs_from_dict(inputs)
+    result = calculate(eval_inputs)
+    return _result_to_dict(result)
 
-    total_incidental_costs_percent = (
-        property_info.get("broker_fee_percent", 0)
-        + property_info.get("notary_fee_percent", 0)
-        + property_info.get("land_registry_fee_percent", 0)
-        + property_info.get("transfer_tax_percent", 0)
+
+def calculate_from_request(
+    request: PropertyEvaluationCalculateRequest,
+) -> EvaluationResult:
+    """Typed calculation path for the /calculate endpoint.
+
+    Converts percent-scale request fields to decimal-scale rates,
+    runs the full calculation, and returns the typed result.
+    """
+    eval_inputs = EvaluationInputs(
+        address=request.address,
+        square_meters=request.square_meters,
+        purchase_price=request.purchase_price,
+        rent_per_m2=request.rent_per_m2,
+        parking_space_rent=request.parking_space_rent,
+        broker_fee_rate=request.broker_fee_percent / 100,
+        notary_fee_rate=request.notary_fee_percent / 100,
+        land_registry_fee_rate=request.land_registry_fee_percent / 100,
+        property_transfer_tax_rate=request.property_transfer_tax_percent / 100,
+        base_allocable_costs=request.base_allocable_costs,
+        property_tax_monthly=request.property_tax_monthly,
+        base_non_allocable_costs=request.base_non_allocable_costs,
+        reserves_monthly=request.reserves_monthly,
+        building_share_pct=request.building_share_percent / 100,
+        afa_rate=request.afa_rate_percent / 100,
+        loan_pct_of_purchase=request.loan_percent / 100,
+        interest_rate=request.interest_rate_percent / 100,
+        initial_repayment_rate=request.initial_repayment_rate_percent / 100,
+        personal_taxable_income=request.personal_taxable_income,
+        personal_marginal_tax_rate=request.marginal_tax_rate_percent / 100,
+        cost_increase_pa=request.cost_increase_percent / 100,
+        rent_increase_pa=request.rent_increase_percent / 100,
+        value_increase_pa=request.value_increase_percent / 100,
+        interest_on_equity_pa=request.equity_interest_percent / 100,
+        renovation_year=request.renovation_year,
+        renovation_cost=request.renovation_cost,
+        start_year=request.start_year,
+        analysis_years=request.analysis_years,
     )
-    total_incidental_costs = purchase_price * (total_incidental_costs_percent / 100)
-    total_investment = purchase_price + total_incidental_costs
-
-    # Operating costs
-    hausgeld_allocable = operating_costs.get("hausgeld_allocable", 0)
-    property_tax_monthly = operating_costs.get("property_tax_monthly", 0)
-    hausgeld_non_allocable = operating_costs.get("hausgeld_non_allocable", 0)
-    reserves_portion = operating_costs.get("reserves_portion", 0)
-
-    total_allocable_costs = hausgeld_allocable + property_tax_monthly
-    total_non_allocable_costs = hausgeld_non_allocable + reserves_portion
-    total_hausgeld = total_allocable_costs + total_non_allocable_costs
-
-    # Rent metrics
-    rent_per_sqm = rent.get("rent_per_sqm", 0)
-    parking_rent = rent.get("parking_rent", 0)
-    base_rent_monthly = rent_per_sqm * square_meters
-    cold_rent_monthly = base_rent_monthly + parking_rent
-    warm_rent_monthly = cold_rent_monthly + total_allocable_costs
-    net_cold_rent_yearly = cold_rent_monthly * 12
-
-    gross_rental_yield = (
-        (net_cold_rent_yearly / purchase_price) * 100 if purchase_price else 0
-    )
-    cold_rent_factor = (
-        purchase_price / net_cold_rent_yearly if net_cold_rent_yearly > 0 else 0
-    )
-
-    # Financing
-    loan_percent = financing.get("loan_percent", 0)
-    interest_rate_percent = financing.get("interest_rate_percent", 0)
-    repayment_rate_percent = financing.get("repayment_rate_percent", 0)
-
-    loan_amount = purchase_price * (loan_percent / 100)
-    equity_amount = total_investment - loan_amount
-
-    monthly_interest = (loan_amount * (interest_rate_percent / 100)) / 12
-    monthly_repayment = (loan_amount * (repayment_rate_percent / 100)) / 12
-    debt_service_monthly = monthly_interest + monthly_repayment
-
-    # Tax
-    building_share_percent = rent.get("building_share_percent", 0)
-    depreciation_rate_percent = rent.get("depreciation_rate_percent", 0)
-    marginal_tax_rate_percent = rent.get("marginal_tax_rate_percent", 0)
-
-    building_value = (
-        purchase_price * (building_share_percent / 100) + total_incidental_costs
-    )
-    depreciation_yearly = building_value * (depreciation_rate_percent / 100)
-    depreciation_monthly = depreciation_yearly / 12
-    interest_yearly = monthly_interest * 12
-
-    taxable_cashflow_monthly = (
-        warm_rent_monthly - total_hausgeld - monthly_interest - depreciation_monthly
-    )
-    taxable_income = taxable_cashflow_monthly * 12
-    tax_yearly = taxable_income * (marginal_tax_rate_percent / 100)
-    tax_monthly = tax_yearly / 12
-
-    # Cashflow
-    cashflow_before_tax = warm_rent_monthly - total_hausgeld - debt_service_monthly
-    cashflow_after_tax = cashflow_before_tax - abs(tax_monthly)
-    is_positive_cashflow = cashflow_after_tax >= 0
-
-    # Returns
-    net_cold_rent_after_costs = net_cold_rent_yearly - total_non_allocable_costs * 12
-    net_rental_yield = (
-        (net_cold_rent_after_costs / purchase_price) * 100 if purchase_price else 0
-    )
-
-    annual_cashflow = cashflow_after_tax * 12
-    value_increase_percent = rent.get("value_increase_percent", 0)
-    annual_appreciation = purchase_price * (value_increase_percent / 100)
-
-    return_on_equity = (
-        ((annual_cashflow + annual_appreciation) / equity_amount) * 100
-        if equity_amount > 0
-        else 0
-    )
-    return_on_equity_without_appreciation = (
-        (annual_cashflow / equity_amount) * 100 if equity_amount > 0 else 0
-    )
-
-    return {
-        "price_per_sqm": price_per_sqm,
-        "total_incidental_costs_percent": total_incidental_costs_percent,
-        "total_incidental_costs": total_incidental_costs,
-        "total_investment": total_investment,
-        "cold_rent_monthly": cold_rent_monthly,
-        "warm_rent_monthly": warm_rent_monthly,
-        "net_cold_rent_yearly": net_cold_rent_yearly,
-        "gross_rental_yield": gross_rental_yield,
-        "cold_rent_factor": cold_rent_factor,
-        "total_allocable_costs": total_allocable_costs,
-        "total_non_allocable_costs": total_non_allocable_costs,
-        "total_hausgeld": total_hausgeld,
-        "loan_amount": loan_amount,
-        "equity_amount": equity_amount,
-        "monthly_interest": monthly_interest,
-        "monthly_repayment": monthly_repayment,
-        "debt_service_monthly": debt_service_monthly,
-        "depreciation_yearly": depreciation_yearly,
-        "depreciation_monthly": depreciation_monthly,
-        "interest_yearly": interest_yearly,
-        "taxable_income": taxable_income,
-        "taxable_cashflow_monthly": taxable_cashflow_monthly,
-        "tax_yearly": tax_yearly,
-        "tax_monthly": tax_monthly,
-        "cashflow_before_tax": cashflow_before_tax,
-        "cashflow_after_tax": cashflow_after_tax,
-        "is_positive_cashflow": is_positive_cashflow,
-        "net_rental_yield": net_rental_yield,
-        "return_on_equity": return_on_equity,
-        "return_on_equity_without_appreciation": return_on_equity_without_appreciation,
-    }
+    return calculate(eval_inputs)
 
 
 # ---------------------------------------------------------------------------
@@ -236,10 +203,15 @@ def save_evaluation(
         square_meters=square_meters,
         state_code=state_code,
         inputs=data.inputs,
-        cashflow_after_tax=results["cashflow_after_tax"],
-        gross_rental_yield=results["gross_rental_yield"],
-        return_on_equity=results["return_on_equity"],
-        is_positive_cashflow=results["is_positive_cashflow"],
+        cashflow_after_tax=results["monthly_cashflow_after_tax"],
+        # Store as percentage for display in saved evaluations list
+        gross_rental_yield=results["gross_rental_yield"] * 100,
+        return_on_equity=(
+            results.get("final_equity_kpi", 0) / results["total_equity_invested"]
+            if results.get("total_equity_invested", 0) > 0
+            else 0.0
+        ),
+        is_positive_cashflow=results["monthly_cashflow_after_tax"] >= 0,
         results=results,
     )
     session.add(evaluation)

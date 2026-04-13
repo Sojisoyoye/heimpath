@@ -6,7 +6,7 @@ including saving, sharing, and comparing scenarios.
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
 from app.api.deps import CurrentUser, get_db
@@ -20,6 +20,8 @@ from app.schemas.calculator import (
     StateRatesResponse,
 )
 from app.schemas.property_evaluation import (
+    PropertyEvaluationCalculateRequest,
+    PropertyEvaluationCalculateResponse,
     PropertyEvaluationCreate,
     PropertyEvaluationListResponse,
     PropertyEvaluationResponse,
@@ -333,6 +335,29 @@ async def list_step_property_evaluations(
     )
     summaries = [PropertyEvaluationSummary.model_validate(ev) for ev in evaluations]
     return PropertyEvaluationListResponse(data=summaries, count=len(summaries))
+
+
+@router.post(
+    "/property-evaluations/calculate",
+    response_model=PropertyEvaluationCalculateResponse,
+)
+async def calculate_property_evaluation(
+    request: PropertyEvaluationCalculateRequest,
+) -> PropertyEvaluationCalculateResponse:
+    """
+    Run property evaluation calculation without saving.
+
+    No authentication required. Pure calculation, no persistence.
+    """
+    if request.purchase_price <= 0 or request.square_meters <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="purchase_price and square_meters must be positive",
+        )
+    result = property_evaluation_service.calculate_from_request(request)
+    return PropertyEvaluationCalculateResponse.model_validate(
+        result, from_attributes=True
+    )
 
 
 @router.post(

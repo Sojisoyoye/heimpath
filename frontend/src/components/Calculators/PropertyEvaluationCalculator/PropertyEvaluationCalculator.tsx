@@ -35,6 +35,7 @@ import type { PropertyEvaluationSummary } from "@/models/propertyEvaluation"
 import { CalculatorService } from "@/services/CalculatorService"
 import { handleError } from "@/utils"
 import {
+  AnnualCashflowTable,
   EvaluationSection,
   FinancingSection,
   OperatingCostsSection,
@@ -95,6 +96,11 @@ function createInitialState(
       valueIncreasePercent: EVALUATION_DEFAULTS.VALUE_INCREASE_PERCENT,
       equityInterestPercent: EVALUATION_DEFAULTS.EQUITY_INTEREST_PERCENT,
       marginalTaxRatePercent: EVALUATION_DEFAULTS.MARGINAL_TAX_RATE_PERCENT,
+      personalTaxableIncome: EVALUATION_DEFAULTS.PERSONAL_TAXABLE_INCOME,
+      renovationYear: EVALUATION_DEFAULTS.RENOVATION_YEAR,
+      renovationCost: EVALUATION_DEFAULTS.RENOVATION_COST,
+      startYear: EVALUATION_DEFAULTS.START_YEAR,
+      analysisYears: EVALUATION_DEFAULTS.ANALYSIS_YEARS,
     },
     operatingCosts: {
       hausgeldAllocable: EVALUATION_DEFAULTS.HAUSGELD_ALLOCABLE,
@@ -119,6 +125,8 @@ function loadFromStorage(
 ): PropertyEvaluationState {
   const storageKey = STORAGE_KEY_PREFIX + (journeyId || "standalone")
 
+  const defaults = createInitialState(initialStateCode, initialBudget)
+
   try {
     const stored = localStorage.getItem(storageKey)
     if (stored) {
@@ -130,7 +138,18 @@ function loadFromStorage(
         parsed?.rent &&
         !("allocableCostsPerSqm" in parsed.rent)
       ) {
-        return parsed as PropertyEvaluationState
+        // Merge defaults for any missing new fields (backward compat)
+        return {
+          ...defaults,
+          ...parsed,
+          rent: { ...defaults.rent, ...parsed.rent },
+          propertyInfo: { ...defaults.propertyInfo, ...parsed.propertyInfo },
+          operatingCosts: {
+            ...defaults.operatingCosts,
+            ...parsed.operatingCosts,
+          },
+          financing: { ...defaults.financing, ...parsed.financing },
+        } as PropertyEvaluationState
       }
       // Old format detected: discard and use fresh defaults
       localStorage.removeItem(storageKey)
@@ -139,7 +158,7 @@ function loadFromStorage(
     // Ignore parse errors
   }
 
-  return createInitialState(initialStateCode, initialBudget)
+  return defaults
 }
 
 /** Save state to localStorage. */
@@ -257,7 +276,7 @@ function PropertyEvaluationCalculator(
       }
     : state
 
-  const { results } = usePropertyEvaluation(effectiveState)
+  const { results, isLoading } = usePropertyEvaluation(effectiveState)
 
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const saveEvaluation = useSavePropertyEvaluation()
@@ -433,7 +452,7 @@ function PropertyEvaluationCalculator(
           )}
           <OperatingCostsSection
             values={state.operatingCosts}
-            coldRentMonthly={results?.coldRentMonthly ?? 0}
+            coldRentMonthly={results?.totalColdRentMonthly ?? 0}
             onChange={updateOperatingCosts}
           />
           <FinancingSection
@@ -449,6 +468,7 @@ function PropertyEvaluationCalculator(
           <EvaluationSection
             results={results}
             isOwnerOccupier={isOwnerOccupier}
+            isLoading={isLoading}
           />
 
           {/* Save Section */}
@@ -471,6 +491,11 @@ function PropertyEvaluationCalculator(
           </Card>
         </div>
       </div>
+
+      {/* Annual Cashflow Table */}
+      {!isOwnerOccupier && results && results.annualRows.length > 0 && (
+        <AnnualCashflowTable rows={results.annualRows} />
+      )}
 
       {/* Saved Evaluations */}
       {savedEvals && savedEvals.data.length > 0 && (

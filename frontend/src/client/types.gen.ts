@@ -17,6 +17,32 @@ export type ActivityItem = {
 export type ActivityType = 'journey_started' | 'step_completed' | 'document_uploaded' | 'calculation_saved' | 'roi_calculated' | 'financing_assessed' | 'law_bookmarked';
 
 /**
+ * One row of the annual cashflow table.
+ */
+export type AnnualCashflowRowResponse = {
+    year?: number;
+    cold_rent?: number;
+    management_annual?: number;
+    operational_cf?: number;
+    loan_balance_start?: number;
+    interest?: number;
+    repayment?: number;
+    loan_balance_end?: number;
+    financing_cf?: number;
+    net_cf_pretax?: number;
+    renovation_deduction?: number;
+    earnings_before_tax?: number;
+    tax_effect_marginal?: number;
+    net_cf_after_tax?: number;
+    taxable_income_adjusted?: number;
+    income_tax_adjusted?: number;
+    actual_tax_saving?: number;
+    property_value?: number;
+    equity_buildup_accumulated?: number;
+    equity_contribution?: number;
+};
+
+/**
  * Categories for content library articles.
  */
 export type ArticleCategory = 'buying_process' | 'costs_and_taxes' | 'regulations' | 'common_pitfalls';
@@ -1189,6 +1215,91 @@ export type ProjectionYear = {
     total_return_percent: number;
 };
 
+/**
+ * Flat request model for the /calculate endpoint.
+ *
+ * All percent-scale values (e.g. broker_fee_percent=3.57 means 3.57%).
+ * Every field has a default so the frontend only sends what it has.
+ */
+export type PropertyEvaluationCalculateRequest = {
+    address?: string;
+    square_meters?: number;
+    purchase_price?: number;
+    rent_per_m2?: number;
+    parking_space_rent?: number;
+    broker_fee_percent?: number;
+    notary_fee_percent?: number;
+    land_registry_fee_percent?: number;
+    property_transfer_tax_percent?: number;
+    base_allocable_costs?: number;
+    property_tax_monthly?: number;
+    base_non_allocable_costs?: number;
+    reserves_monthly?: number;
+    building_share_percent?: number;
+    afa_rate_percent?: number;
+    loan_percent?: number;
+    interest_rate_percent?: number;
+    initial_repayment_rate_percent?: number;
+    personal_taxable_income?: number;
+    marginal_tax_rate_percent?: number;
+    cost_increase_percent?: number;
+    rent_increase_percent?: number;
+    value_increase_percent?: number;
+    equity_interest_percent?: number;
+    renovation_year?: number;
+    renovation_cost?: number;
+    start_year?: number;
+    analysis_years?: number;
+};
+
+/**
+ * Full calculation result from the /calculate endpoint.
+ */
+export type PropertyEvaluationCalculateResponse = {
+    price_per_m2?: number;
+    broker_fee_amount?: number;
+    notary_fee_amount?: number;
+    land_registry_fee_amount?: number;
+    property_transfer_tax_amount?: number;
+    total_closing_costs?: number;
+    total_closing_costs_pct?: number;
+    total_investment?: number;
+    apartment_cold_rent_monthly?: number;
+    total_cold_rent_monthly?: number;
+    allocable_costs_monthly?: number;
+    warm_rent_monthly?: number;
+    non_allocable_costs_monthly?: number;
+    total_hausgeld_monthly?: number;
+    non_allocable_as_pct_of_cold_rent?: number;
+    afa_basis?: number;
+    annual_afa?: number;
+    monthly_afa_display?: number;
+    loan_amount?: number;
+    equity?: number;
+    annual_debt_service?: number;
+    monthly_debt_service?: number;
+    monthly_interest_yr1?: number;
+    monthly_repayment_yr1?: number;
+    net_cold_rent_annual?: number;
+    gross_rental_yield?: number;
+    factor_cold_rent_vs_price?: number;
+    monthly_cashflow_pretax?: number;
+    monthly_taxable_property_income?: number;
+    monthly_tax_benefit?: number;
+    monthly_cashflow_after_tax?: number;
+    personal_taxable_income?: number;
+    base_income_tax?: number;
+    avg_tax_rate_display?: number;
+    personal_marginal_tax_rate?: number;
+    annual_rows?: Array<AnnualCashflowRowResponse>;
+    total_operational_cf?: number;
+    total_financing_cf?: number;
+    total_net_cf_before_tax?: number;
+    total_net_cf_after_tax?: number;
+    total_equity_invested?: number;
+    final_equity_kpi?: number;
+};
+
 export type PropertyEvaluationCreate = {
     name?: (string | null);
     journey_step_id?: (string | null);
@@ -1996,6 +2107,12 @@ export type CalculatorsListStepPropertyEvaluationsData = {
 };
 
 export type CalculatorsListStepPropertyEvaluationsResponse = (PropertyEvaluationListResponse);
+
+export type CalculatorsCalculatePropertyEvaluationData = {
+    requestBody: PropertyEvaluationCalculateRequest;
+};
+
+export type CalculatorsCalculatePropertyEvaluationResponse = (PropertyEvaluationCalculateResponse);
 
 export type CalculatorsListPropertyEvaluationsResponse = (PropertyEvaluationListResponse);
 

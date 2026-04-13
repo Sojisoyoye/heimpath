@@ -49,6 +49,11 @@ function pct(value: number): string {
   return `${value.toFixed(2)} %`
 }
 
+/** Format a decimal as percentage (e.g. 0.042 -> "4.20 %"). */
+function pctFromDecimal(value: number): string {
+  return `${(value * 100).toFixed(2)} %`
+}
+
 /** Format a number as a factor (e.g. 33.15x). */
 function factor(value: number): string {
   return `${value.toFixed(1)}x`
@@ -106,9 +111,8 @@ function addCashflowHighlight(
   y: number,
 ): number {
   const boxHeight = 18
-  const color: [number, number, number] = results.isPositiveCashflow
-    ? [...GREEN]
-    : [...RED]
+  const isPositive = results.monthlyCashflowAfterTax >= 0
+  const color: [number, number, number] = isPositive ? [...GREEN] : [...RED]
 
   // Border box
   doc.setDrawColor(color[0], color[1], color[2])
@@ -126,20 +130,24 @@ function addCashflowHighlight(
   doc.setFontSize(16)
   doc.setTextColor(color[0], color[1], color[2])
   doc.setFont("helvetica", "bold")
-  doc.text(`${eur(results.cashflowAfterTax)} / mo`, PAGE_MARGIN + 4, y + 14.5)
+  doc.text(
+    `${eur(results.monthlyCashflowAfterTax)} / mo`,
+    PAGE_MARGIN + 4,
+    y + 14.5,
+  )
 
   // Yield on the right side
   doc.setFontSize(9)
   doc.setTextColor(...TEXT_MUTED)
   doc.setFont("helvetica", "normal")
   doc.text(
-    `Gross Yield: ${pct(results.grossRentalYield)}`,
+    `Gross Yield: ${pctFromDecimal(results.grossRentalYield)}`,
     PAGE_MARGIN + CONTENT_WIDTH - 4,
     y + 7,
     { align: "right" },
   )
   doc.text(
-    `Net Yield: ${pct(results.netRentalYield)}`,
+    `Factor: ${factor(results.factorColdRentVsPrice)}`,
     PAGE_MARGIN + CONTENT_WIDTH - 4,
     y + 14.5,
     { align: "right" },
@@ -249,14 +257,14 @@ function addPropertyOverview(
     [
       ["Purchase Price", eur(state.propertyInfo.purchasePrice)],
       ["Living Space", `${state.propertyInfo.squareMeters} m²`],
-      ["Price per m²", eur2(results.pricePerSqm)],
+      ["Price per m²", eur2(results.pricePerM2)],
       ["Broker Fee", pct(state.propertyInfo.brokerFeePercent)],
       ["Notary Fee", pct(state.propertyInfo.notaryFeePercent)],
       ["Land Registry Fee", pct(state.propertyInfo.landRegistryFeePercent)],
       ["Transfer Tax", pct(state.propertyInfo.transferTaxPercent)],
       [
-        "Total Incidental Costs",
-        `${eur(results.totalIncidentalCosts)} (${pct(results.totalIncidentalCostsPercent)})`,
+        "Total Closing Costs",
+        `${eur(results.totalClosingCosts)} (${pctFromDecimal(results.totalClosingCostsPct)})`,
       ],
       ["Total Investment", eur(results.totalInvestment)],
     ],
@@ -279,17 +287,13 @@ function addFinancingSection(
     doc,
     [
       ["Loan Percentage", pct(state.financing.loanPercent)],
-      [
-        "110% Financing",
-        state.financing.includeAcquisitionCosts ? "Yes" : "No",
-      ],
       ["Loan Amount", eur(results.loanAmount)],
-      ["Equity Required", eur(results.equityAmount)],
+      ["Equity Required", eur(results.equity)],
       ["Interest Rate", pct(state.financing.interestRatePercent)],
       ["Repayment Rate", pct(state.financing.repaymentRatePercent)],
-      ["Monthly Interest", eur(results.monthlyInterest)],
-      ["Monthly Repayment", eur(results.monthlyRepayment)],
-      ["Total Debt Service", `${eur(results.debtServiceMonthly)} / mo`],
+      ["Monthly Interest (Yr 1)", eur(results.monthlyInterestYr1)],
+      ["Monthly Repayment (Yr 1)", eur(results.monthlyRepaymentYr1)],
+      ["Total Debt Service", `${eur(results.monthlyDebtService)} / mo`],
     ],
     y,
   )
@@ -303,7 +307,7 @@ function addOwnerCostHighlight(
   y: number,
 ): number {
   const boxHeight = 18
-  const monthlyCost = results.totalHausgeld + results.debtServiceMonthly
+  const monthlyCost = results.totalHausgeldMonthly + results.monthlyDebtService
 
   // Blue border box
   doc.setDrawColor(...BRAND_BLUE)
@@ -357,22 +361,15 @@ export function generateEvaluationPdf(
     y = addTable(
       doc,
       [
-        ["Total Hausgeld", `${eur(results.totalHausgeld)} / mo`],
-        [
-          "Allocable Hausgeld",
-          `${eur(state.operatingCosts.hausgeldAllocable)} / mo`,
-        ],
+        ["Total Hausgeld", `${eur(results.totalHausgeldMonthly)} / mo`],
+        ["Allocable Costs", `${eur(results.allocableCostsMonthly)} / mo`],
         [
           "Property Tax (Grundsteuer)",
           `${eur(state.operatingCosts.propertyTaxMonthly)} / mo`,
         ],
         [
-          "Non-Allocable Hausgeld",
-          `${eur(state.operatingCosts.hausgeldNonAllocable)} / mo`,
-        ],
-        [
-          "Reserves (Instandhaltungsrücklage)",
-          `${eur(state.operatingCosts.reservesPortion)} / mo`,
+          "Non-Allocable Costs",
+          `${eur(results.nonAllocableCostsMonthly)} / mo`,
         ],
       ],
       y,
@@ -382,15 +379,16 @@ export function generateEvaluationPdf(
     y = addFinancingSection(doc, 3, state, results, y)
 
     // 4. Monthly Cost Breakdown
-    const monthlyCost = results.totalHausgeld + results.debtServiceMonthly
+    const monthlyCost =
+      results.totalHausgeldMonthly + results.monthlyDebtService
     y = ensureSpace(doc, y, 40)
     y = addSectionTitle(doc, "4. Monthly Cost Breakdown", y)
     addTable(
       doc,
       [
-        ["Management Costs (Hausgeld)", eur(results.totalHausgeld)],
-        ["Interest", eur(results.monthlyInterest)],
-        ["Repayment / Acquittance", eur(results.monthlyRepayment)],
+        ["Management Costs (Hausgeld)", eur(results.totalHausgeldMonthly)],
+        ["Interest", eur(results.monthlyInterestYr1)],
+        ["Repayment / Acquittance", eur(results.monthlyRepaymentYr1)],
         ["Total Monthly Cost", eur(monthlyCost)],
       ],
       y,
@@ -408,12 +406,14 @@ export function generateEvaluationPdf(
       [
         ["Rent per m²", eur2(state.rent.rentPerSqm)],
         ["Parking Rent", eur(state.rent.parkingRent)],
-        ["Cold Rent (monthly)", eur(results.coldRentMonthly)],
+        ["Cold Rent (monthly)", eur(results.totalColdRentMonthly)],
         ["Warm Rent (monthly)", eur(results.warmRentMonthly)],
-        ["Net Cold Rent (yearly)", eur(results.netColdRentYearly)],
-        ["Gross Rental Yield", pct(results.grossRentalYield)],
-        ["Net Rental Yield", pct(results.netRentalYield)],
-        ["Cold Rent Factor (Kaufpreisfaktor)", factor(results.coldRentFactor)],
+        ["Net Cold Rent (yearly)", eur(results.netColdRentAnnual)],
+        ["Gross Rental Yield", pctFromDecimal(results.grossRentalYield)],
+        [
+          "Cold Rent Factor (Kaufpreisfaktor)",
+          factor(results.factorColdRentVsPrice),
+        ],
       ],
       y,
     )
@@ -425,28 +425,12 @@ export function generateEvaluationPdf(
     y = addTable(
       doc,
       [
+        ["Allocable Costs", `${eur(results.allocableCostsMonthly)} / mo`],
         [
-          "Allocable Hausgeld",
-          `${eur(state.operatingCosts.hausgeldAllocable)} / mo`,
+          "Non-Allocable Costs",
+          `${eur(results.nonAllocableCostsMonthly)} / mo`,
         ],
-        [
-          "Property Tax (Grundsteuer)",
-          `${eur(state.operatingCosts.propertyTaxMonthly)} / mo`,
-        ],
-        ["Total Allocable Costs", `${eur(results.totalAllocableCosts)} / mo`],
-        [
-          "Non-Allocable Hausgeld",
-          `${eur(state.operatingCosts.hausgeldNonAllocable)} / mo`,
-        ],
-        [
-          "Reserves (Instandhaltungsrücklage)",
-          `${eur(state.operatingCosts.reservesPortion)} / mo`,
-        ],
-        [
-          "Total Non-Allocable Costs",
-          `${eur(results.totalNonAllocableCosts)} / mo`,
-        ],
-        ["Total Hausgeld", `${eur(results.totalHausgeld)} / mo`],
+        ["Total Hausgeld", `${eur(results.totalHausgeldMonthly)} / mo`],
       ],
       y,
     )
@@ -461,11 +445,14 @@ export function generateEvaluationPdf(
       doc,
       [
         ["Warm Rent", eur(results.warmRentMonthly)],
-        ["– Non-Allocable Costs", eur(results.totalNonAllocableCosts)],
-        ["– Debt Service", eur(results.debtServiceMonthly)],
-        ["= Cashflow Before Tax", eur(results.cashflowBeforeTax)],
-        ["– Tax / + Tax Benefit", eur(results.taxMonthly)],
-        ["= Cashflow After Tax", eur(results.cashflowAfterTax)],
+        ["- Management Costs", eur(results.totalHausgeldMonthly)],
+        ["- Debt Service", eur(results.monthlyDebtService)],
+        ["= Cashflow Before Tax", eur(results.monthlyCashflowPretax)],
+        [
+          results.monthlyTaxBenefit >= 0 ? "+ Tax Benefit" : "- Tax",
+          eur2(results.monthlyTaxBenefit),
+        ],
+        ["= Cashflow After Tax", eur(results.monthlyCashflowAfterTax)],
       ],
       y,
     )
@@ -479,40 +466,97 @@ export function generateEvaluationPdf(
       [
         ["AfA Depreciation Rate", pct(state.rent.depreciationRatePercent)],
         ["Building Share", pct(state.rent.buildingSharePercent)],
-        ["Depreciation (yearly)", eur(results.depreciationYearly)],
-        ["Depreciation (monthly)", eur2(results.depreciationMonthly)],
-        ["Interest Expense (yearly)", eur(results.interestYearly)],
-        ["Marginal Tax Rate", pct(state.rent.marginalTaxRatePercent)],
-        ["Taxable Income (monthly)", eur2(results.taxableCashflowMonthly)],
-        ["Tax / Benefit (yearly)", eur(results.taxYearly)],
-        ["Tax / Benefit (monthly)", eur2(results.taxMonthly)],
+        ["AfA Basis", eur(results.afaBasis)],
+        ["Annual AfA", eur(results.annualAfa)],
+        ["Monthly AfA (display)", eur2(results.monthlyAfaDisplay)],
+        ["Marginal Tax Rate", pctFromDecimal(results.personalMarginalTaxRate)],
+        [
+          "Taxable Property Income (monthly)",
+          eur2(results.monthlyTaxablePropertyIncome),
+        ],
+        [
+          results.monthlyTaxBenefit >= 0
+            ? "Tax Benefit (monthly)"
+            : "Tax (monthly)",
+          eur2(results.monthlyTaxBenefit),
+        ],
       ],
       y,
     )
     y += 6
 
-    // 7. Return on Equity
-    y = ensureSpace(doc, y, 30)
-    y = addSectionTitle(doc, "7. Return on Equity", y)
-    addTable(
-      doc,
-      [
-        ["Return on Equity (with appreciation)", pct(results.returnOnEquity)],
+    // 7. KPI Summary
+    if (results.annualRows.length > 0) {
+      y = ensureSpace(doc, y, 40)
+      y = addSectionTitle(
+        doc,
+        `7. ${results.annualRows.length}-Year KPI Summary`,
+        y,
+      )
+      y = addTable(
+        doc,
         [
-          "Return on Equity (without appreciation)",
-          pct(results.returnOnEquityWithoutAppreciation),
+          ["Total Net CF After Tax", eur(results.totalNetCfAfterTax)],
+          ["Total Equity Invested", eur(results.totalEquityInvested)],
+          ["Final Equity KPI", eur(results.finalEquityKpi)],
         ],
-        [
-          "Value Increase Assumption",
-          `${pct(state.rent.valueIncreasePercent)} p.a.`,
+        y,
+      )
+      y += 6
+
+      // 8. Annual Cashflow Projection
+      y = ensureSpace(doc, y, 30)
+      y = addSectionTitle(doc, "8. Annual Cashflow Projection", y)
+
+      autoTable(doc, {
+        startY: y,
+        margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
+        tableWidth: CONTENT_WIDTH,
+        head: [
+          [
+            "Year",
+            "Cold Rent",
+            "Interest",
+            "Repayment",
+            "Net CF Post-Tax",
+            "Prop. Value",
+            "Eq. Buildup",
+          ],
         ],
-        [
-          "Equity Interest Opportunity Cost",
-          `${pct(state.rent.equityInterestPercent)} p.a.`,
-        ],
-      ],
-      y,
-    )
+        body: results.annualRows.map((row) => [
+          String(row.year),
+          eur(row.coldRent),
+          eur(row.interest),
+          eur(row.repayment),
+          eur(row.netCfAfterTax),
+          eur(row.propertyValue),
+          eur(row.equityBuildupAccumulated),
+        ]),
+        theme: "grid",
+        styles: {
+          fontSize: 7,
+          cellPadding: { top: 1.5, bottom: 1.5, left: 2, right: 2 },
+          textColor: [...TEXT_DARK] as [number, number, number],
+        },
+        headStyles: {
+          fillColor: [...BRAND_BLUE] as [number, number, number],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+        },
+        columnStyles: {
+          0: { cellWidth: 14 },
+          1: { halign: "right" },
+          2: { halign: "right" },
+          3: { halign: "right" },
+          4: { halign: "right" },
+          5: { halign: "right" },
+          6: { halign: "right" },
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+      })
+    }
   }
 
   // Footer on all pages
