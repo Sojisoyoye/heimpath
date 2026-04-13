@@ -5,6 +5,7 @@
 
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Calendar, Home, MapPin, Trash2, Wallet } from "lucide-react"
+import { useState } from "react"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
@@ -22,6 +23,8 @@ import { JourneyProvider } from "./JourneyContext"
 import { PhaseIndicator } from "./PhaseIndicator"
 import { ProgressBar } from "./ProgressBar"
 import { StepCard } from "./StepCard"
+import { StepTabView } from "./StepTabView"
+import { type ViewMode, ViewModeToggle } from "./ViewModeToggle"
 
 interface IProps {
   journey?: JourneyPublic
@@ -171,6 +174,16 @@ function JourneyDetail(props: IProps) {
     className,
   } = props
 
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const stored = localStorage.getItem("heimpath-journey-view-mode")
+    return stored === "tab" ? "tab" : "list"
+  })
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode)
+    localStorage.setItem("heimpath-journey-view-mode", mode)
+  }
+
   if (isLoading || !journey) {
     return <JourneyDetailSkeleton />
   }
@@ -228,26 +241,38 @@ function JourneyDetail(props: IProps) {
         </div>
       </div>
 
-      {/* Phase indicator */}
-      <PhaseIndicator
-        currentPhase={journey.current_phase}
-        className="rounded-lg border bg-card p-4"
-      />
+      {/* Phase indicator + view toggle */}
+      <div className="flex items-center gap-3">
+        <PhaseIndicator
+          currentPhase={journey.current_phase}
+          className="flex-1 rounded-lg border bg-card p-4"
+        />
+        <ViewModeToggle viewMode={viewMode} onChange={handleViewModeChange} />
+      </div>
 
       {/* Main content */}
       <JourneyProvider journey={journey}>
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Steps list */}
+          {/* Steps */}
           <div className="lg:col-span-2 space-y-4">
-            {journey.steps.map((step) => (
-              <StepCard
-                key={step.id}
-                step={step}
-                isActive={step.step_number === journey.current_step_number}
+            {viewMode === "list" ? (
+              journey.steps.map((step) => (
+                <StepCard
+                  key={step.id}
+                  step={step}
+                  isActive={step.step_number === journey.current_step_number}
+                  onTaskToggle={onTaskToggle}
+                  onStepOpen={onStepOpen}
+                />
+              ))
+            ) : (
+              <StepTabView
+                steps={journey.steps}
+                activeStepNumber={journey.current_step_number}
                 onTaskToggle={onTaskToggle}
                 onStepOpen={onStepOpen}
               />
-            ))}
+            )}
           </div>
 
           {/* Sidebar — comes first on mobile via order-first, natural order on desktop */}

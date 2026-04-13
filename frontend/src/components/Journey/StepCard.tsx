@@ -4,7 +4,6 @@
  */
 
 import { Check, ChevronDown, ChevronRight, Circle, Clock } from "lucide-react"
-import type { ReactNode } from "react"
 import { useState } from "react"
 
 import { PHASE_COLORS } from "@/common/constants"
@@ -17,20 +16,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import type {
-  JourneyStep,
-  JourneyTask,
-  MarketInsightsData,
-  PropertyGoals,
-  StepStatus,
-} from "@/models/journey"
-import { useJourneyContext } from "./JourneyContext"
-import { ProgressBar } from "./ProgressBar"
-import { MarketInsights } from "./StepContent/MarketInsights"
-import { PropertyEvaluationSummary } from "./StepContent/PropertyEvaluationSummary"
-import { PropertyGoalsForm } from "./StepContent/PropertyGoalsForm"
-import { StepDocumentReview } from "./StepContent/StepDocumentReview"
-import { TaskCheckbox } from "./TaskCheckbox"
+import type { JourneyStep, StepStatus } from "@/models/journey"
+import { STEP_CONTENT_REGISTRY, StepBody } from "./StepContent/StepBody"
 
 interface IProps {
   step: JourneyStep
@@ -74,43 +61,6 @@ const STATUS_CONFIG: Record<
   },
 }
 
-interface IStepContentProps {
-  journeyId: string
-  step: JourneyStep
-  propertyLocation?: string
-  propertyType?: string
-  budgetEuros?: number
-  propertyGoals?: PropertyGoals
-  marketInsights?: MarketInsightsData
-}
-
-const STEP_CONTENT_REGISTRY: Record<
-  string,
-  (props: IStepContentProps) => ReactNode
-> = {
-  research_goals: (p) => (
-    <PropertyGoalsForm
-      journeyId={p.journeyId}
-      initialGoals={p.propertyGoals}
-      propertyLocation={p.propertyLocation}
-    />
-  ),
-  market_research: (p) => (
-    <MarketInsights
-      propertyLocation={p.propertyLocation}
-      propertyType={p.propertyType}
-      budgetEuros={p.budgetEuros}
-      propertyGoals={p.propertyGoals}
-      marketInsights={p.marketInsights}
-    />
-  ),
-  property_evaluation: (p) => (
-    <PropertyEvaluationSummary journeyId={p.journeyId} stepId={p.step.id} />
-  ),
-  due_diligence: (p) => <StepDocumentReview stepId={p.step.id} />,
-  review_contract: (p) => <StepDocumentReview stepId={p.step.id} />,
-}
-
 /******************************************************************************
                               Components
 ******************************************************************************/
@@ -136,72 +86,23 @@ function StatusBadge(props: { status: StepStatus }) {
   )
 }
 
-/** Inline task list with progress for a step. */
-function StepTasks(props: {
-  tasks: JourneyTask[]
-  stepId: string
-  stepStatus: StepStatus
-  onToggle?: (stepId: string, taskId: string, isCompleted: boolean) => void
-}) {
-  const { tasks, stepId, stepStatus, onToggle } = props
-
-  const completedTasks = tasks.filter((t) => t.is_completed).length
-  const totalTasks = tasks.length
-  const progressPercent =
-    totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
-  const isDisabled = stepStatus === "skipped"
-
-  const handleToggle = (taskId: string, isCompleted: boolean) => {
-    onToggle?.(stepId, taskId, isCompleted)
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-muted-foreground">Tasks</span>
-          <span className="text-sm text-muted-foreground">
-            {completedTasks} of {totalTasks}
-          </span>
-        </div>
-        <ProgressBar value={progressPercent} size="sm" />
-      </div>
-      <div className="space-y-2">
-        {tasks.map((task) => (
-          <TaskCheckbox
-            key={task.id}
-            task={task}
-            onToggle={handleToggle}
-            disabled={isDisabled}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /** Default component. Collapsible step card. */
 function StepCard(props: IProps) {
   const { step, isActive = false, onTaskToggle, onStepOpen, className } = props
-  const { journey } = useJourneyContext()
 
   const [isExpanded, setIsExpanded] = useState(isActive)
 
-  const contentRenderer = step.content_key
-    ? STEP_CONTENT_REGISTRY[step.content_key]
-    : undefined
+  const hasContentRenderer = step.content_key
+    ? !!STEP_CONTENT_REGISTRY[step.content_key]
+    : false
 
   const hasTasks = step.tasks.length > 0
   const hasBody =
-    !!contentRenderer || hasTasks || !!step.estimated_duration_days
+    hasContentRenderer || hasTasks || !!step.estimated_duration_days
 
   const handleToggleExpanded = () => {
     if (!hasBody) return
-    const opening = !isExpanded
-    setIsExpanded(opening)
-    if (opening && step.status === "not_started") {
-      onStepOpen?.(step.id)
-    }
+    setIsExpanded(!isExpanded)
   }
 
   return (
@@ -247,35 +148,12 @@ function StepCard(props: IProps) {
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="space-y-4 pt-0">
-          {contentRenderer && (
-            <div>
-              {contentRenderer({
-                journeyId: journey.id,
-                step,
-                propertyLocation: journey.property_location,
-                propertyType: journey.property_type,
-                budgetEuros: journey.budget_euros,
-                propertyGoals: journey.property_goals,
-                marketInsights: journey.market_insights,
-              })}
-            </div>
-          )}
-
-          {hasTasks && (
-            <StepTasks
-              tasks={step.tasks}
-              stepId={step.id}
-              stepStatus={step.status}
-              onToggle={onTaskToggle}
-            />
-          )}
-
-          {step.estimated_duration_days && (
-            <p className="text-xs text-muted-foreground">
-              Estimated duration: {step.estimated_duration_days} days
-            </p>
-          )}
+        <CardContent className="pt-0">
+          <StepBody
+            step={step}
+            onTaskToggle={onTaskToggle}
+            onStepOpen={onStepOpen}
+          />
         </CardContent>
       )}
     </Card>
