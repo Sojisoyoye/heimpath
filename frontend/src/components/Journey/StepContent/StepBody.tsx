@@ -5,7 +5,7 @@
  */
 
 import type { ReactNode } from "react"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 import type {
   JourneyStep,
@@ -128,16 +128,19 @@ function StepBody(props: IProps) {
 
   const hasTasks = step.tasks.length > 0
 
+  const onStepOpenRef = useRef(onStepOpen)
+  onStepOpenRef.current = onStepOpen
+
   useEffect(() => {
     if (step.status === "not_started") {
-      onStepOpen?.(step.id)
+      onStepOpenRef.current?.(step.id)
     }
-  }, [step.id, step.status, onStepOpen])
+  }, [step.id, step.status])
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       {contentRenderer && (
-        <div>
+        <div className="min-w-0">
           {contentRenderer({
             journeyId: journey.id,
             step,

@@ -80,7 +80,7 @@ function JourneyOverview(props: {
             <span className="font-medium">{financingLabel}</span>
           </div>
           {journey.budget_euros && (
-            <div className="flex items-start gap-2 text-sm">
+            <div className="hidden items-start gap-2 text-sm sm:flex">
               <span className="text-muted-foreground">Budget:</span>
               <span className="font-medium">
                 {formatEur(journey.budget_euros)}
@@ -89,9 +89,9 @@ function JourneyOverview(props: {
           )}
         </div>
 
-        <Separator />
+        <Separator className="hidden sm:block" />
 
-        <div className="space-y-3">
+        <div className="hidden space-y-3 sm:block">
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Started:</span>
@@ -117,7 +117,7 @@ function JourneyOverview(props: {
           )}
         </div>
 
-        <Separator />
+        <Separator className="hidden sm:block" />
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
@@ -199,14 +199,19 @@ function JourneyDetail(props: IProps) {
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header */}
-      <div className="flex items-start gap-3 sm:gap-4">
-        <Button variant="ghost" size="icon" className="shrink-0" asChild>
+      <div className="relative flex flex-col items-center sm:flex-row sm:items-start sm:gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-0 top-0 shrink-0 sm:static"
+          asChild
+        >
           <Link to="/journeys">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 text-center sm:text-left">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
             <h1 className="text-xl font-bold sm:text-2xl">
               {propertyLabel} in {stateName}
             </h1>
@@ -242,10 +247,10 @@ function JourneyDetail(props: IProps) {
       </div>
 
       {/* Phase indicator + view toggle */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <PhaseIndicator
           currentPhase={journey.current_phase}
-          className="flex-1 rounded-lg border bg-card p-4"
+          className="min-w-0 flex-1"
         />
         <ViewModeToggle viewMode={viewMode} onChange={handleViewModeChange} />
       </div>
@@ -275,8 +280,8 @@ function JourneyDetail(props: IProps) {
             )}
           </div>
 
-          {/* Sidebar — comes first on mobile via order-first, natural order on desktop */}
-          <div className="order-first lg:order-none space-y-6">
+          {/* Sidebar — comes after steps on mobile, natural order on desktop */}
+          <div className="order-last lg:order-none space-y-6">
             <JourneyOverview journey={journey} progress={progress} />
           </div>
         </div>

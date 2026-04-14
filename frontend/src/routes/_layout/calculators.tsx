@@ -56,26 +56,46 @@ function CalculatorsPage() {
       </div>
 
       <Tabs defaultValue={tab || "costs"}>
-        <TabsList>
-          <TabsTrigger value="costs" className="gap-2">
+        <TabsList className="flex w-full">
+          <TabsTrigger
+            value="costs"
+            className="gap-2"
+            aria-label="Hidden Costs"
+          >
             <Euro className="h-4 w-4" />
-            Hidden Costs
+            <span className="hidden sm:inline">Hidden Costs</span>
           </TabsTrigger>
-          <TabsTrigger value="roi" className="gap-2">
+          <TabsTrigger
+            value="roi"
+            className="gap-2"
+            aria-label="ROI Calculator"
+          >
             <TrendingUp className="h-4 w-4" />
-            ROI Calculator
+            <span className="hidden sm:inline">ROI Calculator</span>
           </TabsTrigger>
-          <TabsTrigger value="compare" className="gap-2">
+          <TabsTrigger
+            value="compare"
+            className="gap-2"
+            aria-label="State Comparison"
+          >
             <ArrowUpDown className="h-4 w-4" />
-            State Comparison
+            <span className="hidden sm:inline">State Comparison</span>
           </TabsTrigger>
-          <TabsTrigger value="financing" className="gap-2">
+          <TabsTrigger
+            value="financing"
+            className="gap-2"
+            aria-label="Financing"
+          >
             <Landmark className="h-4 w-4" />
-            Financing
+            <span className="hidden sm:inline">Financing</span>
           </TabsTrigger>
-          <TabsTrigger value="property-evaluation" className="gap-2">
+          <TabsTrigger
+            value="property-evaluation"
+            className="gap-2"
+            aria-label="Property Evaluation"
+          >
             <ClipboardList className="h-4 w-4" />
-            Property Evaluation
+            <span className="hidden sm:inline">Property Evaluation</span>
           </TabsTrigger>
         </TabsList>
 
