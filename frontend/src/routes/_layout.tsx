@@ -93,11 +93,13 @@ function useEmailVerification() {
 ******************************************************************************/
 
 /** Subtle header icon shown after the banner has been dismissed. */
-function UnverifiedEmailIndicator(props: {
-  onResend: () => void
-  isPending: boolean
-  isSuccess: boolean
-}) {
+function UnverifiedEmailIndicator(
+  props: Readonly<{
+    onResend: () => void
+    isPending: boolean
+    isSuccess: boolean
+  }>,
+) {
   const { onResend, isPending, isSuccess } = props
 
   return (
@@ -122,12 +124,14 @@ function UnverifiedEmailIndicator(props: {
 }
 
 /** Full banner shown on first visit or after RESHOW_DAYS. */
-function UnverifiedEmailBanner(props: {
-  onDismiss: () => void
-  onResend: () => void
-  isPending: boolean
-  isSuccess: boolean
-}) {
+function UnverifiedEmailBanner(
+  props: Readonly<{
+    onDismiss: () => void
+    onResend: () => void
+    isPending: boolean
+    isSuccess: boolean
+  }>,
+) {
   const { onDismiss, onResend, isPending, isSuccess } = props
 
   return (
