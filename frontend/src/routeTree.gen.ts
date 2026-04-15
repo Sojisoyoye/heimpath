@@ -26,6 +26,7 @@ import { Route as LayoutLawsIndexRouteImport } from './routes/_layout/laws/index
 import { Route as LayoutJourneysIndexRouteImport } from './routes/_layout/journeys/index'
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents/index'
 import { Route as LayoutArticlesIndexRouteImport } from './routes/_layout/articles/index'
+import { Route as SharedEvaluationShareIdRouteImport } from './routes/shared/evaluation.$shareId'
 import { Route as LayoutLawsBookmarksRouteImport } from './routes/_layout/laws/bookmarks'
 import { Route as LayoutLawsLawIdRouteImport } from './routes/_layout/laws/$lawId'
 import { Route as LayoutJourneysNewRouteImport } from './routes/_layout/journeys/new'
@@ -119,6 +120,11 @@ const LayoutArticlesIndexRoute = LayoutArticlesIndexRouteImport.update({
   path: '/articles/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const SharedEvaluationShareIdRoute = SharedEvaluationShareIdRouteImport.update({
+  id: '/shared/evaluation/$shareId',
+  path: '/shared/evaluation/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutLawsBookmarksRoute = LayoutLawsBookmarksRouteImport.update({
   id: '/laws/bookmarks',
   path: '/laws/bookmarks',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
+  '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/articles/': typeof LayoutArticlesIndexRoute
   '/documents/': typeof LayoutDocumentsIndexRoute
   '/journeys/': typeof LayoutJourneysIndexRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
+  '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/articles': typeof LayoutArticlesIndexRoute
   '/documents': typeof LayoutDocumentsIndexRoute
   '/journeys': typeof LayoutJourneysIndexRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/_layout/journeys/new': typeof LayoutJourneysNewRoute
   '/_layout/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/_layout/laws/bookmarks': typeof LayoutLawsBookmarksRoute
+  '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/_layout/articles/': typeof LayoutArticlesIndexRoute
   '/_layout/documents/': typeof LayoutDocumentsIndexRoute
   '/_layout/journeys/': typeof LayoutJourneysIndexRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/journeys/new'
     | '/laws/$lawId'
     | '/laws/bookmarks'
+    | '/shared/evaluation/$shareId'
     | '/articles/'
     | '/documents/'
     | '/journeys/'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/journeys/new'
     | '/laws/$lawId'
     | '/laws/bookmarks'
+    | '/shared/evaluation/$shareId'
     | '/articles'
     | '/documents'
     | '/journeys'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/_layout/journeys/new'
     | '/_layout/laws/$lawId'
     | '/_layout/laws/bookmarks'
+    | '/shared/evaluation/$shareId'
     | '/_layout/articles/'
     | '/_layout/documents/'
     | '/_layout/journeys/'
@@ -331,6 +343,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  SharedEvaluationShareIdRoute: typeof SharedEvaluationShareIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -453,6 +466,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/articles/'
       preLoaderRoute: typeof LayoutArticlesIndexRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/shared/evaluation/$shareId': {
+      id: '/shared/evaluation/$shareId'
+      path: '/shared/evaluation/$shareId'
+      fullPath: '/shared/evaluation/$shareId'
+      preLoaderRoute: typeof SharedEvaluationShareIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_layout/laws/bookmarks': {
       id: '/_layout/laws/bookmarks'
@@ -579,6 +599,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  SharedEvaluationShareIdRoute: SharedEvaluationShareIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
