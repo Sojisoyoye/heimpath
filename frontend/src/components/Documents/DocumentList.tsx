@@ -75,7 +75,11 @@ function DocumentList(props: IProps) {
     [debouncedSearch, documentType, statusFilter],
   )
 
-  const { data, isLoading, error } = useDocuments(page, pageSize, filters)
+  const { data, isLoading, error, refetch } = useDocuments(
+    page,
+    pageSize,
+    filters,
+  )
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -136,8 +140,11 @@ function DocumentList(props: IProps) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
+      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center space-y-2">
         <p className="text-sm text-destructive">Failed to load documents</p>
+        <Button variant="outline" size="sm" onClick={() => refetch()}>
+          Try again
+        </Button>
       </div>
     )
   }
@@ -204,11 +211,15 @@ function DocumentList(props: IProps) {
       ) : !data?.data.length ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-medium">No documents found</h3>
+          <h3 className="text-lg font-medium">
+            {debouncedSearch || documentType || statusFilter
+              ? "No documents found"
+              : "No documents yet"}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
             {debouncedSearch || documentType || statusFilter
               ? "Try adjusting your filters"
-              : "Upload a German real estate PDF to get started"}
+              : "Upload your first document to get started"}
           </p>
         </div>
       ) : (
