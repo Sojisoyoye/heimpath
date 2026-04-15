@@ -14,6 +14,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -29,9 +34,37 @@ export const Route = createFileRoute("/_layout")({
   },
 })
 
-/** Banner shown when the logged-in user has not yet verified their email. */
-function UnverifiedEmailBanner() {
-  const [dismissed, setDismissed] = useState(false)
+/******************************************************************************
+                              Constants
+******************************************************************************/
+
+const DISMISS_KEY = "heimpath-email-banner-dismissed-at"
+const RESHOW_DAYS = 7
+
+/******************************************************************************
+                              Helpers
+******************************************************************************/
+
+/** Check if the banner was dismissed less than RESHOW_DAYS ago. */
+function isBannerDismissed(): boolean {
+  const raw = localStorage.getItem(DISMISS_KEY)
+  if (!raw) return false
+  const dismissedAt = Number(raw)
+  const elapsed = Date.now() - dismissedAt
+  return elapsed < RESHOW_DAYS * 24 * 60 * 60 * 1000
+}
+
+/** Persist dismissal timestamp. */
+function dismissBanner(): void {
+  localStorage.setItem(DISMISS_KEY, String(Date.now()))
+}
+
+/******************************************************************************
+                              Hooks
+******************************************************************************/
+
+/** Shared hook for unverified-email state and resend action. */
+function useEmailVerification() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const { data: user } = useQuery<UserPublic | null, Error>({
@@ -50,7 +83,52 @@ function UnverifiedEmailBanner() {
     onError: handleError.bind(showErrorToast),
   })
 
-  if (dismissed || !user || user.email_verified !== false) return null
+  const isUnverified = !!user && user.email_verified === false
+
+  return { user, isUnverified, resendMutation }
+}
+
+/******************************************************************************
+                              Components
+******************************************************************************/
+
+/** Subtle header icon shown after the banner has been dismissed. */
+function UnverifiedEmailIndicator(props: {
+  onResend: () => void
+  isPending: boolean
+  isSuccess: boolean
+}) {
+  const { onResend, isPending, isSuccess } = props
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={onResend}
+          disabled={isPending || isSuccess}
+          className="relative rounded-md p-2 text-amber-600 hover:bg-amber-50 disabled:opacity-50 dark:text-amber-400 dark:hover:bg-amber-900/30"
+          aria-label="Email not verified — click to resend"
+        >
+          <MailWarning className="h-4 w-4" />
+          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {isPending ? "Sending…" : "Email not verified — click to resend"}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+/** Full banner shown on first visit or after RESHOW_DAYS. */
+function UnverifiedEmailBanner(props: {
+  onDismiss: () => void
+  onResend: () => void
+  isPending: boolean
+  isSuccess: boolean
+}) {
+  const { onDismiss, onResend, isPending, isSuccess } = props
 
   return (
     <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
@@ -59,18 +137,18 @@ function UnverifiedEmailBanner() {
         Your email address is not verified. Check your inbox or{" "}
         <button
           type="button"
-          onClick={() => resendMutation.mutate()}
-          disabled={resendMutation.isPending || resendMutation.isSuccess}
+          onClick={onResend}
+          disabled={isPending || isSuccess}
           className="font-medium underline underline-offset-2 hover:text-amber-900 disabled:opacity-50 dark:hover:text-amber-100"
         >
-          {resendMutation.isPending ? "Sending…" : "resend verification email"}
+          {isPending ? "Sending…" : "resend verification email"}
         </button>
         .
       </span>
       <button
         type="button"
         aria-label="Dismiss"
-        onClick={() => setDismissed(true)}
+        onClick={onDismiss}
         className="shrink-0 rounded p-0.5 hover:bg-amber-100 dark:hover:bg-amber-800"
       >
         <X className="h-4 w-4" />
@@ -79,7 +157,21 @@ function UnverifiedEmailBanner() {
   )
 }
 
+/** Default component. App shell with sidebar, header, and content area. */
 function Layout() {
+  const { isUnverified, resendMutation } = useEmailVerification()
+  const [dismissed, setDismissed] = useState(isBannerDismissed)
+
+  const showBanner = isUnverified && !dismissed
+  const showIndicator = isUnverified && dismissed
+
+  const handleDismiss = () => {
+    dismissBanner()
+    setDismissed(true)
+  }
+
+  const handleResend = () => resendMutation.mutate()
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -89,10 +181,24 @@ function Layout() {
           <div className="ml-auto flex items-center gap-2">
             <SearchTrigger />
             <NotificationBell />
+            {showIndicator && (
+              <UnverifiedEmailIndicator
+                onResend={handleResend}
+                isPending={resendMutation.isPending}
+                isSuccess={resendMutation.isSuccess}
+              />
+            )}
             <NavUserMenu />
           </div>
         </header>
-        <UnverifiedEmailBanner />
+        {showBanner && (
+          <UnverifiedEmailBanner
+            onDismiss={handleDismiss}
+            onResend={handleResend}
+            isPending={resendMutation.isPending}
+            isSuccess={resendMutation.isSuccess}
+          />
+        )}
         <main className="flex-1 p-6 md:p-8">
           <div className="mx-auto max-w-7xl">
             <Outlet />
@@ -103,5 +209,9 @@ function Layout() {
     </SidebarProvider>
   )
 }
+
+/******************************************************************************
+                              Export
+******************************************************************************/
 
 export default Layout
