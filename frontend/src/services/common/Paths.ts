@@ -24,8 +24,8 @@ export const PATHS = {
 
   // Journeys
   JOURNEYS: {
-    LIST: `${API_V1}/journeys`,
-    CREATE: `${API_V1}/journeys`,
+    LIST: `${API_V1}/journeys/`,
+    CREATE: `${API_V1}/journeys/`,
     DETAIL: (id: string) => `${API_V1}/journeys/${id}`,
     PROGRESS: (id: string) => `${API_V1}/journeys/${id}/progress`,
     NEXT_STEP: (id: string) => `${API_V1}/journeys/${id}/next-step`,
@@ -39,7 +39,7 @@ export const PATHS = {
 
   // Legal Knowledge Base
   LAWS: {
-    LIST: `${API_V1}/laws`,
+    LIST: `${API_V1}/laws/`,
     SEARCH: `${API_V1}/laws/search`,
     DETAIL: (id: string) => `${API_V1}/laws/${id}`,
     CATEGORIES: `${API_V1}/laws/categories`,
@@ -88,7 +88,7 @@ export const PATHS = {
 
   // Documents
   DOCUMENTS: {
-    LIST: `${API_V1}/documents`,
+    LIST: `${API_V1}/documents/`,
     UPLOAD: `${API_V1}/documents/upload`,
     USAGE: `${API_V1}/documents/usage`,
     BY_STEP: (stepId: string) => `${API_V1}/documents/by-step/${stepId}`,
@@ -102,7 +102,7 @@ export const PATHS = {
 
   // Notifications
   NOTIFICATIONS: {
-    LIST: `${API_V1}/notifications`,
+    LIST: `${API_V1}/notifications/`,
     MARK_ALL_READ: `${API_V1}/notifications/mark-all-read`,
     PREFERENCES: `${API_V1}/notifications/preferences`,
     READ: (id: string) => `${API_V1}/notifications/${id}/read`,
@@ -111,7 +111,7 @@ export const PATHS = {
 
   // Articles (Content Library)
   ARTICLES: {
-    LIST: `${API_V1}/articles`,
+    LIST: `${API_V1}/articles/`,
     SEARCH: `${API_V1}/articles/search`,
     DETAIL: (slug: string) => `${API_V1}/articles/${slug}`,
     CATEGORIES: `${API_V1}/articles/categories`,
@@ -120,12 +120,12 @@ export const PATHS = {
 
   // Search
   SEARCH: {
-    GLOBAL: `${API_V1}/search`,
+    GLOBAL: `${API_V1}/search/`,
   },
 
   // Dashboard
   DASHBOARD: {
-    OVERVIEW: `${API_V1}/dashboard`,
+    OVERVIEW: `${API_V1}/dashboard/`,
     ACTIVITY: `${API_V1}/dashboard/activity`,
     RECOMMENDATIONS: `${API_V1}/dashboard/recommendations`,
   },
