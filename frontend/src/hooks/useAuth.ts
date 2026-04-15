@@ -61,6 +61,7 @@ const useAuth = (redirectTo?: string) => {
     localStorage.removeItem("access_token")
     localStorage.removeItem("heimpath-wizard-state")
     localStorage.removeItem("heimpath-wizard-step")
+    localStorage.removeItem("heimpath-email-banner-dismissed-at")
     for (const key of Object.keys(localStorage)) {
       if (key.startsWith("property-evaluation-")) {
         localStorage.removeItem(key)
