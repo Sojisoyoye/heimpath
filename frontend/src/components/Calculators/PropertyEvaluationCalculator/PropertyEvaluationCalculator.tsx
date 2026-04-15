@@ -7,9 +7,11 @@ import { Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
   Download,
+  ExternalLink,
   Loader2,
   RefreshCw,
   Save,
+  Share2,
   Trash2,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
@@ -182,9 +184,10 @@ function SavedEvaluations(props: {
   evaluations: PropertyEvaluationSummary[]
   onDelete: (id: string) => void
   onLoad: (id: string) => void
+  onCopyShare: (shareId: string) => void
   loadingId: string | null
 }) {
-  const { evaluations, onDelete, onLoad, loadingId } = props
+  const { evaluations, onDelete, onLoad, onCopyShare, loadingId } = props
 
   return (
     <Card>
@@ -227,17 +230,33 @@ function SavedEvaluations(props: {
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
                 ) : (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDelete(ev.id)
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex shrink-0">
+                    {ev.shareId && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onCopyShare(ev.shareId as string)
+                        }}
+                        title="Copy share link"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete(ev.id)
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
               </button>
             )
@@ -267,6 +286,7 @@ function PropertyEvaluationCalculator(
     loadFromStorage(journeyId, initialState, initialBudget),
   )
   const [saveName, setSaveName] = useState("")
+  const [shareUrl, setShareUrl] = useState("")
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
   const effectiveState = isOwnerOccupier
@@ -342,6 +362,7 @@ function PropertyEvaluationCalculator(
 
   const handleSave = () => {
     if (!results) return
+    setShareUrl("")
     saveEvaluation.mutate(
       {
         name: saveName || undefined,
@@ -349,12 +370,32 @@ function PropertyEvaluationCalculator(
         inputs: state,
       },
       {
-        onSuccess: () => {
+        onSuccess: (saved) => {
           setSaveName("")
           showSuccessToast("Property evaluation saved")
+          if (saved.shareId) {
+            setShareUrl(
+              `${window.location.origin}/shared/evaluation/${saved.shareId}`,
+            )
+          }
         },
         onError: handleError.bind(showErrorToast),
       },
+    )
+  }
+
+  const handleCopyShareUrl = () => {
+    navigator.clipboard.writeText(shareUrl).then(
+      () => showSuccessToast("Share link copied to clipboard"),
+      () => showErrorToast("Failed to copy link"),
+    )
+  }
+
+  const handleCopyShareId = (shareId: string) => {
+    const url = `${window.location.origin}/shared/evaluation/${shareId}`
+    navigator.clipboard.writeText(url).then(
+      () => showSuccessToast("Share link copied to clipboard"),
+      () => showErrorToast("Failed to copy link"),
     )
   }
 
@@ -487,6 +528,24 @@ function PropertyEvaluationCalculator(
                 <Save className="h-4 w-4" />
                 {saveEvaluation.isPending ? "Saving..." : "Save Evaluation"}
               </Button>
+              {shareUrl && (
+                <div className="rounded-lg border p-3 space-y-2">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Share2 className="h-4 w-4" />
+                    Share Link
+                  </p>
+                  <div className="flex gap-2">
+                    <Input value={shareUrl} readOnly className="text-xs" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyShareUrl}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -503,6 +562,7 @@ function PropertyEvaluationCalculator(
           evaluations={savedEvals.data}
           onDelete={handleDelete}
           onLoad={handleLoad}
+          onCopyShare={handleCopyShareId}
           loadingId={loadingId}
         />
       )}
