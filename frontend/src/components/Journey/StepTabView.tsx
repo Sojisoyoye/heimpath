@@ -1,23 +1,16 @@
 /**
  * Step Tab View Component
- * Two-level tab navigation: phase pills (outer) → step tabs (inner)
+ * Phase pills to filter steps, then lists matching steps as cards
  * Alternative to the list view for viewing journey steps
  */
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
 import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { JourneyPhase, JourneyStep } from "@/models/journey"
-import { StepBody } from "./StepContent/StepBody"
+import { StepCard } from "./StepCard"
 
 interface IProps {
   steps: JourneyStep[]
@@ -38,27 +31,17 @@ function StepTabView(props: IProps) {
 
   const [selectedPhase, setSelectedPhase] = useState<JourneyPhase>(defaultPhase)
 
-  const stepsByPhase = useMemo(() => {
-    const grouped: Record<JourneyPhase, JourneyStep[]> = {
-      research: [],
-      preparation: [],
-      buying: [],
-      closing: [],
-    }
-    for (const step of steps) {
-      grouped[step.phase].push(step)
-    }
-    return grouped
-  }, [steps])
+  const stepsByPhase: Record<JourneyPhase, JourneyStep[]> = {
+    research: [],
+    preparation: [],
+    buying: [],
+    closing: [],
+  }
+  for (const step of steps) {
+    stepsByPhase[step.phase].push(step)
+  }
 
   const phaseSteps = stepsByPhase[selectedPhase]
-
-  const defaultStepId = useMemo(() => {
-    if (activeStep && activeStep.phase === selectedPhase) {
-      return activeStep.id
-    }
-    return phaseSteps[0]?.id ?? ""
-  }, [activeStep, selectedPhase, phaseSteps])
 
   return (
     <div className="space-y-4">
@@ -78,7 +61,7 @@ function StepTabView(props: IProps) {
               )}
             >
               {phase.label}
-              <span className="ml-1 text-xs text-muted-foreground">
+              <span className="ml-1 hidden text-xs text-muted-foreground sm:inline">
                 ({stepsByPhase[phase.key as JourneyPhase].length})
               </span>
             </TabsTrigger>
@@ -86,58 +69,16 @@ function StepTabView(props: IProps) {
         </TabsList>
       </Tabs>
 
-      {/* Step tabs within selected phase */}
-      {phaseSteps.length > 0 && (
-        <Tabs key={selectedPhase} defaultValue={defaultStepId}>
-          <TabsList className="flex w-full flex-wrap gap-1">
-            {phaseSteps.map((step) => (
-              <TabsTrigger
-                key={step.id}
-                value={step.id}
-                className={cn(
-                  "text-xs sm:text-sm",
-                  step.step_number === activeStepNumber &&
-                    "ring-2 ring-blue-600 ring-offset-1",
-                )}
-              >
-                <span className="mr-1 font-mono text-xs text-muted-foreground">
-                  {step.step_number}.
-                </span>
-                <span className="max-w-[12ch] truncate sm:max-w-[20ch]">
-                  {step.title}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {phaseSteps.map((step) => (
-            <TabsContent key={step.id} value={step.id}>
-              <Card>
-                <CardHeader>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      Step {step.step_number}
-                    </div>
-                    <CardTitle className="text-base sm:text-lg">
-                      {step.title}
-                    </CardTitle>
-                    {step.description && (
-                      <CardDescription>{step.description}</CardDescription>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <StepBody
-                    step={step}
-                    onTaskToggle={onTaskToggle}
-                    onStepOpen={onStepOpen}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          ))}
-        </Tabs>
-      )}
+      {/* Steps for selected phase */}
+      {phaseSteps.map((step) => (
+        <StepCard
+          key={step.id}
+          step={step}
+          isActive={step.step_number === activeStepNumber}
+          onTaskToggle={onTaskToggle}
+          onStepOpen={onStepOpen}
+        />
+      ))}
     </div>
   )
 }

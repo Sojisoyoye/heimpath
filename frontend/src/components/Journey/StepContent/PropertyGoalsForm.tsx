@@ -32,10 +32,16 @@ import {
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useUpdatePropertyGoals } from "@/hooks/mutations/useJourneyMutations"
 import type { PropertyGoals } from "@/models/journey"
@@ -89,7 +95,7 @@ function SelectionButton(props: {
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all",
+        "flex items-center justify-center rounded-md border-2 px-3 py-2 text-sm font-medium transition-all",
         selected
           ? "border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
           : "border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-muted/50",
@@ -115,20 +121,15 @@ function FeatureCheckbox(props: {
     <label
       htmlFor={checkboxId}
       className={cn(
-        "flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 transition-all",
+        "flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 transition-all",
         checked
           ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30"
           : "border-muted-foreground/20 hover:border-muted-foreground/40",
       )}
     >
-      <Checkbox
-        id={checkboxId}
-        checked={checked}
-        onCheckedChange={onChange}
-        className="h-5 w-5"
-      />
-      <Icon className="h-4 w-4 text-muted-foreground" />
-      <span className="text-sm font-medium">{feature.label}</span>
+      <Checkbox id={checkboxId} checked={checked} onCheckedChange={onChange} />
+      <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <span className="truncate text-xs font-medium">{feature.label}</span>
     </label>
   )
 }
@@ -222,262 +223,263 @@ function PropertyGoalsForm(props: IProps) {
     (goals.features?.length ?? 0) > 0
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Home className="h-4 w-4" />
+    <div className={cn("min-w-0 space-y-4", className)}>
+      <div className="flex items-center gap-2 rounded-md bg-blue-50 p-3 dark:bg-blue-950/30">
+        <Home className="h-4 w-4 shrink-0" />
+        <span className="text-sm font-semibold">
           Define Your Property Goals
-          {goals.is_completed && (
-            <Check className="ml-auto h-5 w-5 text-green-600" />
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-6">
-        {/* Property Use */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">
-            What do you plan to do with this property?
-          </Label>
-          <div className="grid grid-cols-2 gap-2">
-            {PROPERTY_USE_OPTIONS.map((option) => (
-              <SelectionButton
-                key={option.value}
-                selected={goals.property_use === option.value}
-                onClick={() =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    property_use: option.value,
-                  }))
-                }
-              >
-                {option.label}
-              </SelectionButton>
-            ))}
-          </div>
+        </span>
+        {goals.is_completed && (
+          <Check className="ml-auto h-5 w-5 shrink-0 text-green-600" />
+        )}
+      </div>
+      {/* Property Use */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">
+          What do you plan to do with this property?
+        </Label>
+        <div className="grid grid-cols-2 gap-2">
+          {PROPERTY_USE_OPTIONS.map((option) => (
+            <SelectionButton
+              key={option.value}
+              selected={goals.property_use === option.value}
+              onClick={() =>
+                setGoals((prev) => ({
+                  ...prev,
+                  property_use: option.value,
+                }))
+              }
+            >
+              {option.label}
+            </SelectionButton>
+          ))}
         </div>
+      </div>
 
-        {/* Preferred Area */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">
-            Preferred Area (Optional)
-          </Label>
-          <Input
-            placeholder="e.g. Munich, Kreuzberg..."
-            value={goals.preferred_area || ""}
-            onChange={(e) =>
-              setGoals((prev) => ({
-                ...prev,
-                preferred_area: e.target.value,
-              }))
-            }
-          />
-          {propertyLocation &&
-            MARKET_DATA_BY_STATE[propertyLocation]?.hotspots && (
-              <div className="flex flex-wrap gap-2">
-                <span className="text-xs text-muted-foreground self-center">
-                  Suggestions:
-                </span>
-                {MARKET_DATA_BY_STATE[propertyLocation].hotspots.map(
-                  (hotspot) => (
-                    <Badge
-                      key={hotspot}
-                      variant={
-                        goals.preferred_area?.toLowerCase() ===
-                        hotspot.toLowerCase()
-                          ? "default"
-                          : "outline"
-                      }
-                      className="cursor-pointer"
-                      onClick={() =>
-                        setGoals((prev) => ({
-                          ...prev,
-                          preferred_area: hotspot,
-                        }))
-                      }
-                    >
-                      {hotspot}
-                    </Badge>
-                  ),
-                )}
-              </div>
-            )}
-        </div>
-
-        {/* Property Type */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Property Type</Label>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {PROPERTY_TYPES.map((type) => (
-              <SelectionButton
-                key={type.value}
-                selected={goals.preferred_property_type === type.value}
-                onClick={() => handlePropertyTypeChange(type.value)}
-              >
-                {type.label.split(" ")[0]}
-              </SelectionButton>
-            ))}
-          </div>
-        </div>
-
-        {/* Budget */}
-        <BudgetInput
-          budgetMin={goals.budget_min_euros}
-          budgetMax={goals.budget_max_euros}
-          onBudgetMinChange={(v) =>
-            setGoals((prev) => ({ ...prev, budget_min_euros: v }))
-          }
-          onBudgetMaxChange={(v) =>
-            setGoals((prev) => ({ ...prev, budget_max_euros: v }))
+      {/* Preferred Area */}
+      <div className="space-y-1.5">
+        <Label className="text-sm font-medium">
+          Preferred Area
+          <span className="ml-1 font-normal text-muted-foreground">
+            (optional)
+          </span>
+        </Label>
+        <Input
+          placeholder="e.g. Munich, Kreuzberg..."
+          value={goals.preferred_area || ""}
+          onChange={(e) =>
+            setGoals((prev) => ({
+              ...prev,
+              preferred_area: e.target.value,
+            }))
           }
         />
+        {propertyLocation &&
+          MARKET_DATA_BY_STATE[propertyLocation]?.hotspots && (
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-xs text-muted-foreground self-center">
+                Suggestions:
+              </span>
+              {MARKET_DATA_BY_STATE[propertyLocation].hotspots.map(
+                (hotspot) => (
+                  <Badge
+                    key={hotspot}
+                    variant={
+                      goals.preferred_area?.toLowerCase() ===
+                      hotspot.toLowerCase()
+                        ? "default"
+                        : "outline"
+                    }
+                    className="cursor-pointer text-xs"
+                    onClick={() =>
+                      setGoals((prev) => ({
+                        ...prev,
+                        preferred_area: hotspot,
+                      }))
+                    }
+                  >
+                    {hotspot}
+                  </Badge>
+                ),
+              )}
+            </div>
+          )}
+      </div>
 
-        {/* Number of Rooms */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Minimum Rooms</Label>
-          <div className="flex flex-wrap gap-2">
+      {/* Property Type — inline select */}
+      <div className="flex items-center gap-3">
+        <Label className="shrink-0 text-sm font-medium">Property Type</Label>
+        <Select
+          value={goals.preferred_property_type}
+          onValueChange={handlePropertyTypeChange}
+        >
+          <SelectTrigger className="w-auto min-w-0 flex-1">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            {PROPERTY_TYPES.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Budget */}
+      <BudgetInput
+        budgetMin={goals.budget_min_euros}
+        budgetMax={goals.budget_max_euros}
+        onBudgetMinChange={(v) =>
+          setGoals((prev) => ({ ...prev, budget_min_euros: v }))
+        }
+        onBudgetMaxChange={(v) =>
+          setGoals((prev) => ({ ...prev, budget_max_euros: v }))
+        }
+      />
+
+      {/* Min. Rooms — inline */}
+      <div className="flex items-center gap-3">
+        <Label className="shrink-0 text-sm font-medium">Min. Rooms</Label>
+        <Select
+          value={goals.min_rooms?.toString() ?? ""}
+          onValueChange={(v) =>
+            setGoals((prev) => ({ ...prev, min_rooms: Number(v) }))
+          }
+        >
+          <SelectTrigger className="w-auto min-w-0 flex-1">
+            <SelectValue placeholder="Any" />
+          </SelectTrigger>
+          <SelectContent>
             {ROOM_OPTIONS.map((option) => (
-              <SelectionButton
-                key={option.value}
-                selected={goals.min_rooms === option.value}
-                onClick={() =>
-                  setGoals((prev) => ({ ...prev, min_rooms: option.value }))
-                }
-                className="min-w-[80px]"
-              >
+              <SelectItem key={option.value} value={option.value.toString()}>
                 {option.label}
-              </SelectionButton>
+              </SelectItem>
             ))}
-          </div>
-        </div>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {/* Number of Bathrooms */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Minimum Bathrooms</Label>
-          <div className="flex flex-wrap gap-2">
+      {/* Min. Bathrooms — inline */}
+      <div className="flex items-center gap-3">
+        <Label className="shrink-0 text-sm font-medium">Min. Bathrooms</Label>
+        <Select
+          value={goals.min_bathrooms?.toString() ?? ""}
+          onValueChange={(v) =>
+            setGoals((prev) => ({ ...prev, min_bathrooms: Number(v) }))
+          }
+        >
+          <SelectTrigger className="w-auto min-w-0 flex-1">
+            <SelectValue placeholder="Any" />
+          </SelectTrigger>
+          <SelectContent>
             {BATHROOM_OPTIONS.map((option) => (
-              <SelectionButton
-                key={option.value}
-                selected={goals.min_bathrooms === option.value}
-                onClick={() =>
-                  setGoals((prev) => ({ ...prev, min_bathrooms: option.value }))
-                }
-                className="min-w-[100px]"
-              >
+              <SelectItem key={option.value} value={option.value.toString()}>
                 {option.label}
-              </SelectionButton>
+              </SelectItem>
             ))}
-          </div>
-        </div>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {/* Floor Preference */}
-        <div
-          className={cn(
-            "space-y-3",
-            !isFloorRelevant && "opacity-50 pointer-events-none",
-          )}
-        >
-          <Label className="text-sm font-medium">Preferred Floor</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {FLOOR_OPTIONS.map((option) => (
-              <SelectionButton
-                key={option.value}
-                selected={goals.preferred_floor === option.value}
-                onClick={() =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    preferred_floor: option.value,
-                  }))
-                }
-              >
-                {option.label}
-              </SelectionButton>
-            ))}
-          </div>
-          {!isFloorRelevant && (
-            <p className="text-xs text-muted-foreground">
-              Floor preference is not applicable for this property type
-            </p>
-          )}
-        </div>
-
-        {/* Elevator Required */}
-        <label
-          htmlFor="elevator-required"
-          className={cn(
-            "flex cursor-pointer items-center gap-3",
-            !isFloorRelevant && "opacity-50 pointer-events-none",
-          )}
-        >
-          <Checkbox
-            id="elevator-required"
-            checked={goals.has_elevator_required}
-            disabled={!isFloorRelevant}
-            onCheckedChange={(checked) =>
-              setGoals((prev) => ({
-                ...prev,
-                has_elevator_required: checked === true,
-              }))
+      {/* Preferred Floor & Elevator — inline */}
+      {isFloorRelevant && (
+        <div className="flex items-center gap-3">
+          <Label className="shrink-0 text-sm font-medium">Floor</Label>
+          <Select
+            value={goals.preferred_floor}
+            onValueChange={(v) =>
+              setGoals((prev) => ({ ...prev, preferred_floor: v }))
             }
-          />
-          <span className="text-sm font-medium">Elevator Required</span>
-        </label>
-
-        {/* Must-Have Features */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Must-Have Features</Label>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {PROPERTY_FEATURES.map((feature) => (
-              <FeatureCheckbox
-                key={feature.value}
-                feature={feature}
-                checked={(goals.features || []).includes(feature.value)}
-                onChange={(checked) =>
-                  handleFeatureToggle(feature.value, checked)
-                }
-              />
-            ))}
-          </div>
+          >
+            <SelectTrigger className="w-auto min-w-0 flex-1">
+              <SelectValue placeholder="Any floor" />
+            </SelectTrigger>
+            <SelectContent>
+              {FLOOR_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <label
+            htmlFor="elevator-required"
+            className="flex shrink-0 cursor-pointer items-center gap-2"
+          >
+            <Checkbox
+              id="elevator-required"
+              checked={goals.has_elevator_required}
+              onCheckedChange={(checked) =>
+                setGoals((prev) => ({
+                  ...prev,
+                  has_elevator_required: checked === true,
+                }))
+              }
+            />
+            <span className="text-sm font-medium">Elevator</span>
+          </label>
         </div>
+      )}
 
-        {/* Additional Notes */}
-        <div className="space-y-2">
-          <Label htmlFor="notes" className="text-sm font-medium">
-            Additional Notes (Optional)
-          </Label>
-          <Textarea
-            id="notes"
-            placeholder="Describe any specific requirements or preferences..."
-            value={goals.additional_notes || ""}
-            onChange={(e) =>
-              setGoals((prev) => ({
-                ...prev,
-                additional_notes: e.target.value,
-              }))
-            }
-            className="min-h-[100px]"
-          />
+      {/* Must-Have Features */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Must-Have Features</Label>
+        <div className="grid grid-cols-2 gap-1.5">
+          {PROPERTY_FEATURES.map((feature) => (
+            <FeatureCheckbox
+              key={feature.value}
+              feature={feature}
+              checked={(goals.features || []).includes(feature.value)}
+              onChange={(checked) =>
+                handleFeatureToggle(feature.value, checked)
+              }
+            />
+          ))}
         </div>
+      </div>
 
-        {/* Save Button */}
-        <Button
-          onClick={handleSave}
-          disabled={isPending || !hasMinimumSelection}
-          className="w-full"
-        >
-          {isPending
-            ? "Saving..."
-            : goals.is_completed
-              ? "Update Goals"
-              : "Save & Continue"}
-        </Button>
+      {/* Additional Notes */}
+      <div className="space-y-1.5">
+        <Label htmlFor="notes" className="text-sm font-medium">
+          Additional Notes
+          <span className="ml-1 font-normal text-muted-foreground">
+            (optional)
+          </span>
+        </Label>
+        <Textarea
+          id="notes"
+          placeholder="Any specific requirements or preferences..."
+          value={goals.additional_notes || ""}
+          onChange={(e) =>
+            setGoals((prev) => ({
+              ...prev,
+              additional_notes: e.target.value,
+            }))
+          }
+          className="min-h-[80px]"
+        />
+      </div>
 
-        {goals.is_completed && (
-          <p className="text-center text-sm text-green-600">
-            Your property goals have been saved. You can update them anytime.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      {/* Save Button */}
+      <Button
+        onClick={handleSave}
+        disabled={isPending || !hasMinimumSelection}
+        className="w-full"
+      >
+        {isPending
+          ? "Saving..."
+          : goals.is_completed
+            ? "Update Goals"
+            : "Save & Continue"}
+      </Button>
+
+      {goals.is_completed && (
+        <p className="text-center text-sm text-green-600">
+          Your property goals have been saved. You can update them anytime.
+        </p>
+      )}
+    </div>
   )
 }
 

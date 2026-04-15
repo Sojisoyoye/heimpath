@@ -28,7 +28,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -51,6 +50,7 @@ import type {
   SchufaRating,
 } from "@/models/calculator"
 import { handleError } from "@/utils"
+import { FormRow } from "./common/FormRow"
 
 interface IProps {
   className?: string
@@ -682,48 +682,44 @@ function FinancingWizard(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Employment
               </h4>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Employment Status</Label>
-                  <Select
-                    value={inputs.employmentStatus}
-                    onValueChange={(v) =>
-                      setInputs((prev) => ({
-                        ...prev,
-                        employmentStatus: v as EmploymentStatus,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EMPLOYMENT_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="employmentYears">Years at Current Job</Label>
-                  <Input
-                    id="employmentYears"
-                    type="number"
-                    min="0"
-                    max="50"
-                    placeholder="e.g. 3"
-                    value={inputs.employmentYears}
-                    onChange={(e) =>
-                      setInputs((prev) => ({
-                        ...prev,
-                        employmentYears: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
+              <FormRow label="Employment Status">
+                <Select
+                  value={inputs.employmentStatus}
+                  onValueChange={(v) =>
+                    setInputs((prev) => ({
+                      ...prev,
+                      employmentStatus: v as EmploymentStatus,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EMPLOYMENT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormRow>
+              <FormRow htmlFor="employmentYears" label="Years at Current Job">
+                <Input
+                  id="employmentYears"
+                  type="number"
+                  min="0"
+                  max="50"
+                  placeholder="e.g. 3"
+                  value={inputs.employmentYears}
+                  onChange={(e) =>
+                    setInputs((prev) => ({
+                      ...prev,
+                      employmentYears: e.target.value,
+                    }))
+                  }
+                />
+              </FormRow>
             </div>
 
             {/* Income & Debt */}
@@ -731,51 +727,46 @@ function FinancingWizard(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Income & Debt
               </h4>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyNetIncome">Monthly Net Income</Label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="monthlyNetIncome"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="4,000"
-                      value={
-                        inputs.monthlyNetIncome
-                          ? parseInt(
-                              inputs.monthlyNetIncome,
-                              10,
-                            ).toLocaleString("de-DE")
-                          : ""
-                      }
-                      onChange={(e) => handlePriceInput("monthlyNetIncome", e)}
-                      className="pl-9"
-                    />
-                  </div>
+              <FormRow htmlFor="monthlyNetIncome" label="Monthly Net Income">
+                <div className="relative">
+                  <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="monthlyNetIncome"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="4,000"
+                    value={
+                      inputs.monthlyNetIncome
+                        ? parseInt(inputs.monthlyNetIncome, 10).toLocaleString(
+                            "de-DE",
+                          )
+                        : ""
+                    }
+                    onChange={(e) => handlePriceInput("monthlyNetIncome", e)}
+                    className="pl-9"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyDebt">Monthly Debt Payments</Label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="monthlyDebt"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="500"
-                      value={
-                        inputs.monthlyDebt
-                          ? parseInt(inputs.monthlyDebt, 10).toLocaleString(
-                              "de-DE",
-                            )
-                          : ""
-                      }
-                      onChange={(e) => handlePriceInput("monthlyDebt", e)}
-                      className="pl-9"
-                    />
-                  </div>
+              </FormRow>
+              <FormRow htmlFor="monthlyDebt" label="Monthly Debt Payments">
+                <div className="relative">
+                  <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="monthlyDebt"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="500"
+                    value={
+                      inputs.monthlyDebt
+                        ? parseInt(inputs.monthlyDebt, 10).toLocaleString(
+                            "de-DE",
+                          )
+                        : ""
+                    }
+                    onChange={(e) => handlePriceInput("monthlyDebt", e)}
+                    className="pl-9"
+                  />
                 </div>
-              </div>
+              </FormRow>
             </div>
 
             {/* Down Payment */}
@@ -783,10 +774,10 @@ function FinancingWizard(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Down Payment
               </h4>
-              <div className="space-y-2">
-                <Label htmlFor="availableDownPayment">
-                  Available Down Payment
-                </Label>
+              <FormRow
+                htmlFor="availableDownPayment"
+                label="Available Down Payment"
+              >
                 <div className="relative">
                   <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -808,7 +799,7 @@ function FinancingWizard(props: IProps) {
                     className="pl-9"
                   />
                 </div>
-              </div>
+              </FormRow>
             </div>
 
             {/* Credit & Residency */}
@@ -816,54 +807,50 @@ function FinancingWizard(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Credit & Residency
               </h4>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>SCHUFA Rating</Label>
-                  <Select
-                    value={inputs.schufaRating}
-                    onValueChange={(v) =>
-                      setInputs((prev) => ({
-                        ...prev,
-                        schufaRating: v as SchufaRating,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select rating" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SCHUFA_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Residency Status</Label>
-                  <Select
-                    value={inputs.residencyStatus}
-                    onValueChange={(v) =>
-                      setInputs((prev) => ({
-                        ...prev,
-                        residencyStatus: v as FinancingResidencyStatus,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RESIDENCY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <FormRow label="SCHUFA Rating">
+                <Select
+                  value={inputs.schufaRating}
+                  onValueChange={(v) =>
+                    setInputs((prev) => ({
+                      ...prev,
+                      schufaRating: v as SchufaRating,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select rating" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SCHUFA_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormRow>
+              <FormRow label="Residency Status">
+                <Select
+                  value={inputs.residencyStatus}
+                  onValueChange={(v) =>
+                    setInputs((prev) => ({
+                      ...prev,
+                      residencyStatus: v as FinancingResidencyStatus,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RESIDENCY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormRow>
             </div>
 
             <div className="flex gap-2">

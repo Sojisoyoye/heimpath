@@ -34,41 +34,51 @@ function PhaseStep(props: {
       className={cn(
         "flex items-center",
         variant === "horizontal"
-          ? "flex-col sm:flex-1 sm:flex-row"
+          ? "min-w-0 flex-row items-center sm:flex-1"
           : "flex-col",
       )}
     >
-      <div className="flex items-center gap-2">
-        <div
-          className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors",
-            isCompleted && "border-green-600 bg-green-600 text-white",
-            isCurrent &&
-              !isCompleted &&
-              "border-blue-600 bg-blue-600 text-white",
-            !isCurrent &&
-              !isCompleted &&
-              "border-muted-foreground/30 text-muted-foreground",
-          )}
-        >
-          {isCompleted ? <Check className="h-4 w-4" /> : phase.order}
+      <div className="flex flex-col items-center gap-0.5">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div
+            className={cn(
+              "flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-medium transition-colors sm:h-8 sm:w-8 sm:text-sm",
+              isCompleted && "border-green-600 bg-green-600 text-white",
+              isCurrent &&
+                !isCompleted &&
+                "border-blue-600 bg-blue-600 text-white",
+              !isCurrent &&
+                !isCompleted &&
+                "border-muted-foreground/30 text-muted-foreground",
+            )}
+          >
+            {isCompleted ? (
+              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+            ) : (
+              phase.order
+            )}
+          </div>
+          <span
+            className={cn(
+              "text-sm font-medium",
+              isCurrent && "text-foreground",
+              isCompleted && "text-green-600",
+              !isCurrent && !isCompleted && "text-muted-foreground",
+              variant === "horizontal" && "hidden sm:inline",
+            )}
+          >
+            {phase.label}
+          </span>
         </div>
-        <span
-          className={cn(
-            "text-sm font-medium",
-            isCurrent && "text-foreground",
-            isCompleted && "text-green-600",
-            !isCurrent && !isCompleted && "text-muted-foreground",
-          )}
-        >
-          {phase.label}
-        </span>
+        {isCurrent && !isCompleted && variant === "horizontal" && (
+          <div className="h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-blue-600 sm:hidden" />
+        )}
       </div>
 
       {!isLast && variant === "horizontal" && (
         <div
           className={cn(
-            "mt-2 mb-2 w-0.5 h-8 sm:mt-0 sm:mb-0 sm:mx-2 sm:w-auto sm:h-0.5 sm:flex-1",
+            "mx-1 h-0.5 w-4 sm:mx-2 sm:w-auto sm:flex-1",
             isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
           )}
         />
@@ -103,9 +113,7 @@ function PhaseIndicator(props: IProps) {
     <div
       className={cn(
         "flex",
-        variant === "horizontal"
-          ? "flex-col sm:flex-row sm:items-center"
-          : "flex-col",
+        variant === "horizontal" ? "flex-row items-center" : "flex-col",
         className,
       )}
     >

@@ -16,8 +16,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useStateComparison } from "@/hooks/queries/useCalculatorQueries"
+import { FormRow } from "./common/FormRow"
 
 interface IProps {
   className?: string
@@ -73,36 +73,35 @@ function StateComparison(props: IProps) {
             See how hidden costs vary across all 16 German states
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="comparePrice">Property Price</Label>
-              <div className="relative">
-                <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="comparePrice"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Enter property price"
-                  value={
-                    priceInput
-                      ? parseInt(priceInput, 10).toLocaleString("de-DE")
-                      : ""
-                  }
-                  onChange={handlePriceChange}
-                  className="pl-9"
-                />
-              </div>
+        <CardContent className="space-y-4">
+          <FormRow htmlFor="comparePrice" label="Property Price">
+            <div className="relative">
+              <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="comparePrice"
+                type="text"
+                inputMode="numeric"
+                placeholder="Enter property price"
+                value={
+                  priceInput
+                    ? parseInt(priceInput, 10).toLocaleString("de-DE")
+                    : ""
+                }
+                onChange={handlePriceChange}
+                className="pl-9"
+              />
             </div>
+          </FormRow>
+          <FormRow label="Include Agent">
             <Button
               variant={includeAgent ? "default" : "outline"}
               size="sm"
               onClick={() => setIncludeAgent(!includeAgent)}
               className="whitespace-nowrap"
             >
-              Agent: {includeAgent ? "Yes" : "No"}
+              {includeAgent ? "Yes" : "No"}
             </Button>
-          </div>
+          </FormRow>
         </CardContent>
       </Card>
 

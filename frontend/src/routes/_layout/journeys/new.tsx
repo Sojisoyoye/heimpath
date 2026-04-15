@@ -27,19 +27,21 @@ export const Route = createFileRoute("/_layout/journeys/new")({
 function NewJourneyPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="relative text-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          asChild
+          className="absolute left-0 top-0"
+        >
           <Link to="/journeys">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Create New Journey</h1>
-          <p className="text-muted-foreground">
-            Answer a few questions to get your personalized property buying
-            guide
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold">Create New Journey</h1>
+        <p className="text-muted-foreground">
+          Answer a few questions to get your personalized property buying guide
+        </p>
       </div>
 
       <JourneyWizard className="mx-auto max-w-4xl" />

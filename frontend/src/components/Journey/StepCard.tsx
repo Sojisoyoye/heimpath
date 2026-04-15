@@ -90,7 +90,7 @@ function StatusBadge(props: { status: StepStatus }) {
 function StepCard(props: IProps) {
   const { step, isActive = false, onTaskToggle, onStepOpen, className } = props
 
-  const [isExpanded, setIsExpanded] = useState(isActive)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const hasContentRenderer = step.content_key
     ? !!STEP_CONTENT_REGISTRY[step.content_key]
@@ -108,7 +108,7 @@ function StepCard(props: IProps) {
   return (
     <Card
       className={cn(
-        "transition-all",
+        "overflow-hidden transition-all",
         isActive && "ring-2 ring-blue-600 ring-offset-2",
         step.status === "completed" &&
           "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20",
@@ -120,7 +120,7 @@ function StepCard(props: IProps) {
         onClick={handleToggleExpanded}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-          <div className="flex-1 space-y-1">
+          <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-center gap-2">
               {hasBody &&
                 (isExpanded ? (
@@ -147,14 +147,23 @@ function StepCard(props: IProps) {
         </div>
       </CardHeader>
 
-      {isExpanded && (
-        <CardContent className="pt-0">
-          <StepBody
-            step={step}
-            onTaskToggle={onTaskToggle}
-            onStepOpen={onStepOpen}
-          />
-        </CardContent>
+      {hasBody && (
+        <div
+          className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+          style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
+        >
+          <div className="overflow-hidden">
+            <CardContent className="pt-0">
+              {isExpanded && (
+                <StepBody
+                  step={step}
+                  onTaskToggle={onTaskToggle}
+                  onStepOpen={onStepOpen}
+                />
+              )}
+            </CardContent>
+          </div>
+        </div>
       )}
     </Card>
   )

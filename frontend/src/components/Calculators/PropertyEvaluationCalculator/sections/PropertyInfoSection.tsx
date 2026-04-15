@@ -9,7 +9,7 @@ import { cn } from "@/common/utils"
 import { EUR_FORMATTER_0 as CURRENCY_FORMATTER } from "@/common/utils/formatters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { FormRow } from "../FormRow"
+import { FormRow } from "../../common/FormRow"
 import type { PropertyInfoInputs } from "../types"
 
 interface IProps {

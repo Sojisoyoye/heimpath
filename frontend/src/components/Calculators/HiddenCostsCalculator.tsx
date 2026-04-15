@@ -30,7 +30,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -45,6 +44,7 @@ import {
 } from "@/hooks/mutations/useCalculatorMutations"
 import { useUserCalculations } from "@/hooks/queries/useCalculatorQueries"
 import type { HiddenCostCalculationInput } from "@/models/calculator"
+import { FormRow } from "./common/FormRow"
 
 interface IProps {
   className?: string
@@ -304,8 +304,7 @@ function HiddenCostsCalculator(props: IProps) {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Property Price */}
-            <div className="space-y-2">
-              <Label htmlFor="propertyPrice">Property Price</Label>
+            <FormRow htmlFor="propertyPrice" label="Property Price">
               <div className="relative">
                 <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -324,16 +323,15 @@ function HiddenCostsCalculator(props: IProps) {
                   className="pl-9"
                 />
               </div>
-            </div>
+            </FormRow>
 
             {/* State Selection */}
-            <div className="space-y-2">
-              <Label>German State</Label>
+            <FormRow label="German State">
               <Select
                 value={inputs.state}
                 onValueChange={(v) => updateInput("state", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
@@ -344,16 +342,15 @@ function HiddenCostsCalculator(props: IProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormRow>
 
             {/* Property Type */}
-            <div className="space-y-2">
-              <Label>Property Type</Label>
+            <FormRow label="Property Type">
               <Select
                 value={inputs.propertyType}
                 onValueChange={(v) => updateInput("propertyType", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -364,16 +361,13 @@ function HiddenCostsCalculator(props: IProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormRow>
 
             {/* Agent Toggle */}
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Include Agent Commission</Label>
-                <p className="text-xs text-muted-foreground">
-                  ~{COST_DEFAULTS.AGENT_COMMISSION_PERCENT}% buyer's share
-                </p>
-              </div>
+            <FormRow
+              label="Include Agent Commission"
+              tooltip={`~${COST_DEFAULTS.AGENT_COMMISSION_PERCENT}% buyer's share`}
+            >
               <Button
                 variant={inputs.includeAgent ? "default" : "outline"}
                 size="sm"
@@ -383,11 +377,10 @@ function HiddenCostsCalculator(props: IProps) {
               >
                 {inputs.includeAgent ? "Yes" : "No"}
               </Button>
-            </div>
+            </FormRow>
 
             {/* Renovation Level */}
-            <div className="space-y-2">
-              <Label>Expected Renovation</Label>
+            <FormRow label="Expected Renovation">
               <Select
                 value={inputs.renovationLevel}
                 onValueChange={(v) =>
@@ -397,7 +390,7 @@ function HiddenCostsCalculator(props: IProps) {
                   )
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -407,16 +400,13 @@ function HiddenCostsCalculator(props: IProps) {
                   <SelectItem value="full">Full renovation (~15%)</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </FormRow>
 
             {/* Moving Costs Toggle */}
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Include Moving Costs</Label>
-                <p className="text-xs text-muted-foreground">
-                  ~{CURRENCY_FORMATTER.format(MOVING_COST_ESTIMATE)} estimate
-                </p>
-              </div>
+            <FormRow
+              label="Include Moving Costs"
+              tooltip={`~${CURRENCY_FORMATTER.format(MOVING_COST_ESTIMATE)} estimate`}
+            >
               <Button
                 variant={inputs.includeMoving ? "default" : "outline"}
                 size="sm"
@@ -426,7 +416,7 @@ function HiddenCostsCalculator(props: IProps) {
               >
                 {inputs.includeMoving ? "Yes" : "No"}
               </Button>
-            </div>
+            </FormRow>
 
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleReset} className="gap-2">

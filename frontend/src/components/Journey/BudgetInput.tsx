@@ -50,51 +50,37 @@ function BudgetInput(props: IProps) {
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
-      <div>
-        <h3 className="text-lg font-semibold">What's your budget?</h3>
-        <p className="text-sm text-muted-foreground">
-          Set your property price range (optional but recommended)
-        </p>
-      </div>
-
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="budgetMin">Minimum Budget</Label>
-          <div className="relative">
-            <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="budgetMin"
-              type="text"
-              inputMode="numeric"
-              placeholder="100,000"
-              value={budgetMin ? budgetMin.toLocaleString("de-DE") : ""}
-              onChange={handleMinChange}
-              className="pl-9"
-            />
-          </div>
+    <div className={cn("space-y-1.5", className)}>
+      <Label className="text-sm font-medium">Budget</Label>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="relative">
+          <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="budgetMin"
+            type="text"
+            inputMode="numeric"
+            placeholder="Min."
+            value={budgetMin ? budgetMin.toLocaleString("de-DE") : ""}
+            onChange={handleMinChange}
+            className="pl-9"
+          />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="budgetMax">Maximum Budget</Label>
-          <div className="relative">
-            <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="budgetMax"
-              type="text"
-              inputMode="numeric"
-              placeholder="500,000"
-              value={budgetMax ? budgetMax.toLocaleString("de-DE") : ""}
-              onChange={handleMaxChange}
-              className="pl-9"
-            />
-          </div>
+        <div className="relative">
+          <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="budgetMax"
+            type="text"
+            inputMode="numeric"
+            placeholder="Max."
+            value={budgetMax ? budgetMax.toLocaleString("de-DE") : ""}
+            onChange={handleMaxChange}
+            className="pl-9"
+          />
         </div>
       </div>
-
       {budgetMin && budgetMax && budgetMin > budgetMax && (
         <p className="text-sm text-destructive">
-          Minimum budget cannot be greater than maximum budget
+          Min. cannot be greater than max.
         </p>
       )}
     </div>

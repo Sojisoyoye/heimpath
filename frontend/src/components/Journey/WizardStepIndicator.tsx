@@ -38,7 +38,7 @@ function StepDot(props: {
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium transition-all",
+            "flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 text-xs sm:text-sm font-medium transition-all",
             isCompleted
               ? "border-green-600 bg-green-600 text-white"
               : isCurrent
@@ -46,11 +46,11 @@ function StepDot(props: {
                 : "border-muted-foreground/30 bg-background text-muted-foreground",
           )}
         >
-          {isCompleted ? <Check className="h-5 w-5" /> : step.id}
+          {isCompleted ? <Check className="h-4 w-4 sm:h-5 sm:w-5" /> : step.id}
         </div>
         <span
           className={cn(
-            "mt-2 text-xs font-medium text-center max-w-[80px]",
+            "mt-2 text-xs font-medium text-center max-w-[80px] hidden sm:block",
             isCompleted
               ? "text-green-600"
               : isCurrent
@@ -65,7 +65,7 @@ function StepDot(props: {
       {!isLast && (
         <div
           className={cn(
-            "mx-2 h-0.5 w-12 sm:w-16",
+            "mx-1 sm:mx-2 h-0.5 w-4 sm:w-12 md:w-16",
             isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
           )}
         />

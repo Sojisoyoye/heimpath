@@ -36,7 +36,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import {
   useDeleteROICalculation,
@@ -49,6 +48,7 @@ import type {
   ROICalculationSummary,
 } from "@/models/calculator"
 import { handleError } from "@/utils"
+import { FormRow } from "./common/FormRow"
 
 interface IProps {
   className?: string
@@ -692,50 +692,46 @@ function ROICalculator(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Purchase Details
               </h4>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="purchasePrice">Purchase Price</Label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="purchasePrice"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="500,000"
-                      value={
-                        inputs.purchasePrice
-                          ? parseInt(inputs.purchasePrice, 10).toLocaleString(
-                              "de-DE",
-                            )
-                          : ""
-                      }
-                      onChange={(e) => handlePriceInput("purchasePrice", e)}
-                      className="pl-9"
-                    />
-                  </div>
+              <FormRow htmlFor="purchasePrice" label="Purchase Price">
+                <div className="relative">
+                  <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="purchasePrice"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="500,000"
+                    value={
+                      inputs.purchasePrice
+                        ? parseInt(inputs.purchasePrice, 10).toLocaleString(
+                            "de-DE",
+                          )
+                        : ""
+                    }
+                    onChange={(e) => handlePriceInput("purchasePrice", e)}
+                    className="pl-9"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="downPayment">Down Payment</Label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="downPayment"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="100,000"
-                      value={
-                        inputs.downPayment
-                          ? parseInt(inputs.downPayment, 10).toLocaleString(
-                              "de-DE",
-                            )
-                          : ""
-                      }
-                      onChange={(e) => handlePriceInput("downPayment", e)}
-                      className="pl-9"
-                    />
-                  </div>
+              </FormRow>
+              <FormRow htmlFor="downPayment" label="Down Payment">
+                <div className="relative">
+                  <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="downPayment"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="100,000"
+                    value={
+                      inputs.downPayment
+                        ? parseInt(inputs.downPayment, 10).toLocaleString(
+                            "de-DE",
+                          )
+                        : ""
+                    }
+                    onChange={(e) => handlePriceInput("downPayment", e)}
+                    className="pl-9"
+                  />
                 </div>
-              </div>
+              </FormRow>
             </div>
 
             {/* Rental Income */}
@@ -743,50 +739,46 @@ function ROICalculator(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Rental Income
               </h4>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyRent">Monthly Rent</Label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="monthlyRent"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="1,500"
-                      value={
-                        inputs.monthlyRent
-                          ? parseInt(inputs.monthlyRent, 10).toLocaleString(
-                              "de-DE",
-                            )
-                          : ""
-                      }
-                      onChange={(e) => handlePriceInput("monthlyRent", e)}
-                      className="pl-9"
-                    />
-                  </div>
+              <FormRow htmlFor="monthlyRent" label="Monthly Rent">
+                <div className="relative">
+                  <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="monthlyRent"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="1,500"
+                    value={
+                      inputs.monthlyRent
+                        ? parseInt(inputs.monthlyRent, 10).toLocaleString(
+                            "de-DE",
+                          )
+                        : ""
+                    }
+                    onChange={(e) => handlePriceInput("monthlyRent", e)}
+                    className="pl-9"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyExpenses">Monthly Expenses</Label>
-                  <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="monthlyExpenses"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="300"
-                      value={
-                        inputs.monthlyExpenses
-                          ? parseInt(inputs.monthlyExpenses, 10).toLocaleString(
-                              "de-DE",
-                            )
-                          : ""
-                      }
-                      onChange={(e) => handlePriceInput("monthlyExpenses", e)}
-                      className="pl-9"
-                    />
-                  </div>
+              </FormRow>
+              <FormRow htmlFor="monthlyExpenses" label="Monthly Expenses">
+                <div className="relative">
+                  <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="monthlyExpenses"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="300"
+                    value={
+                      inputs.monthlyExpenses
+                        ? parseInt(inputs.monthlyExpenses, 10).toLocaleString(
+                            "de-DE",
+                          )
+                        : ""
+                    }
+                    onChange={(e) => handlePriceInput("monthlyExpenses", e)}
+                    className="pl-9"
+                  />
                 </div>
-              </div>
+              </FormRow>
             </div>
 
             {/* Assumptions */}
@@ -794,61 +786,52 @@ function ROICalculator(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Assumptions
               </h4>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="vacancyRate">Vacancy Rate (%)</Label>
-                  <Input
-                    id="vacancyRate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={inputs.vacancyRate}
-                    onChange={(e) => updateInput("vacancyRate", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="annualAppreciation">
-                    Annual Appreciation (%)
-                  </Label>
-                  <Input
-                    id="annualAppreciation"
-                    type="number"
-                    min="0"
-                    max="20"
-                    value={inputs.annualAppreciation}
-                    onChange={(e) =>
-                      updateInput("annualAppreciation", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="mortgageRate">Mortgage Rate (%)</Label>
-                  <Input
-                    id="mortgageRate"
-                    type="number"
-                    min="0"
-                    max="15"
-                    step="0.1"
-                    value={inputs.mortgageRate}
-                    onChange={(e) =>
-                      updateInput("mortgageRate", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="mortgageTerm">Mortgage Term (years)</Label>
-                  <Input
-                    id="mortgageTerm"
-                    type="number"
-                    min="5"
-                    max="40"
-                    value={inputs.mortgageTerm}
-                    onChange={(e) =>
-                      updateInput("mortgageTerm", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
+              <FormRow htmlFor="vacancyRate" label="Vacancy Rate (%)">
+                <Input
+                  id="vacancyRate"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={inputs.vacancyRate}
+                  onChange={(e) => updateInput("vacancyRate", e.target.value)}
+                />
+              </FormRow>
+              <FormRow
+                htmlFor="annualAppreciation"
+                label="Annual Appreciation (%)"
+              >
+                <Input
+                  id="annualAppreciation"
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={inputs.annualAppreciation}
+                  onChange={(e) =>
+                    updateInput("annualAppreciation", e.target.value)
+                  }
+                />
+              </FormRow>
+              <FormRow htmlFor="mortgageRate" label="Mortgage Rate (%)">
+                <Input
+                  id="mortgageRate"
+                  type="number"
+                  min="0"
+                  max="15"
+                  step="0.1"
+                  value={inputs.mortgageRate}
+                  onChange={(e) => updateInput("mortgageRate", e.target.value)}
+                />
+              </FormRow>
+              <FormRow htmlFor="mortgageTerm" label="Mortgage Term (years)">
+                <Input
+                  id="mortgageTerm"
+                  type="number"
+                  min="5"
+                  max="40"
+                  value={inputs.mortgageTerm}
+                  onChange={(e) => updateInput("mortgageTerm", e.target.value)}
+                />
+              </FormRow>
             </div>
 
             <div className="flex gap-2">
