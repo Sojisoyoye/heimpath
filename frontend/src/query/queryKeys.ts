@@ -78,6 +78,19 @@ export const queryKeys = {
       [...queryKeys.calculators.all, "propertyEvaluationStep", stepId] as const,
   },
 
+  // Market data queries
+  market: {
+    all: ["market"] as const,
+    rentEstimate: (postcode: string, sizeSqm?: number, buildingYear?: number) =>
+      [
+        ...queryKeys.market.all,
+        "rentEstimate",
+        postcode,
+        sizeSqm,
+        buildingYear,
+      ] as const,
+  },
+
   // Financing queries
   financing: {
     all: ["financing"] as const,

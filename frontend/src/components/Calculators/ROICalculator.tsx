@@ -8,6 +8,7 @@ import {
   Euro,
   ExternalLink,
   Info,
+  Lightbulb,
   RefreshCw,
   Save,
   Share2,
@@ -41,7 +42,10 @@ import {
   useDeleteROICalculation,
   useSaveROICalculation,
 } from "@/hooks/mutations/useCalculatorMutations"
-import { useUserROICalculations } from "@/hooks/queries/useCalculatorQueries"
+import {
+  useRentEstimate,
+  useUserROICalculations,
+} from "@/hooks/queries/useCalculatorQueries"
 import useCustomToast from "@/hooks/useCustomToast"
 import type {
   ROICalculationInput,
@@ -94,6 +98,8 @@ interface CalculatorInputs {
   vacancyRate: string
   mortgageRate: string
   mortgageTerm: string
+  postcode: string
+  propertySizeSqm: string
 }
 
 /******************************************************************************
@@ -104,6 +110,13 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 0,
+})
+
+const CURRENCY_PER_SQM_FORMATTER = new Intl.NumberFormat("de-DE", {
+  style: "currency",
+  currency: "EUR",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 2,
 })
 
 const PERCENT_FORMATTER = new Intl.NumberFormat("de-DE", {
@@ -567,6 +580,8 @@ function ROICalculator(props: IProps) {
     vacancyRate: "5",
     mortgageRate: "4",
     mortgageTerm: "25",
+    postcode: "",
+    propertySizeSqm: "",
   })
 
   const [saveName, setSaveName] = useState("")
@@ -576,6 +591,13 @@ function ROICalculator(props: IProps) {
   const saveROI = useSaveROICalculation()
   const deleteROI = useDeleteROICalculation()
   const { data: savedCalcs } = useUserROICalculations()
+
+  const parsedSize = parseNumber(inputs.propertySizeSqm)
+  const sizeSqm = parsedSize > 0 ? parsedSize : undefined
+  const { data: rentEstimate, isFetching: isEstimating } = useRentEstimate(
+    inputs.postcode,
+    sizeSqm,
+  )
 
   const results = useMemo(() => calculateROI(inputs), [inputs])
 
@@ -601,8 +623,15 @@ function ROICalculator(props: IProps) {
       vacancyRate: "5",
       mortgageRate: "4",
       mortgageTerm: "25",
+      postcode: "",
+      propertySizeSqm: "",
     })
     setShareUrl("")
+  }
+
+  const handleSuggestRent = () => {
+    if (!rentEstimate?.monthlyRent) return
+    updateInput("monthlyRent", String(rentEstimate.monthlyRent))
   }
 
   const handleExport = () => {
@@ -739,25 +768,102 @@ function ROICalculator(props: IProps) {
               <h4 className="font-medium text-sm text-muted-foreground">
                 Rental Income
               </h4>
+              <FormRow htmlFor="postcode" label="Postcode" optional>
+                <Input
+                  id="postcode"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="10115"
+                  maxLength={5}
+                  value={inputs.postcode}
+                  onChange={(e) =>
+                    updateInput(
+                      "postcode",
+                      e.target.value.replace(/[^\d]/g, ""),
+                    )
+                  }
+                />
+              </FormRow>
+              <FormRow
+                htmlFor="propertySizeSqm"
+                label="Property Size (m²)"
+                optional
+              >
+                <Input
+                  id="propertySizeSqm"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="75"
+                  value={inputs.propertySizeSqm}
+                  onChange={(e) =>
+                    updateInput(
+                      "propertySizeSqm",
+                      e.target.value.replace(/[^\d]/g, ""),
+                    )
+                  }
+                />
+              </FormRow>
               <FormRow htmlFor="monthlyRent" label="Monthly Rent">
-                <div className="relative">
-                  <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="monthlyRent"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="1,500"
-                    value={
-                      inputs.monthlyRent
-                        ? parseInt(inputs.monthlyRent, 10).toLocaleString(
-                            "de-DE",
-                          )
-                        : ""
-                    }
-                    onChange={(e) => handlePriceInput("monthlyRent", e)}
-                    className="pl-9"
-                  />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="monthlyRent"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="1,500"
+                      value={
+                        inputs.monthlyRent
+                          ? parseInt(inputs.monthlyRent, 10).toLocaleString(
+                              "de-DE",
+                            )
+                          : ""
+                      }
+                      onChange={(e) => handlePriceInput("monthlyRent", e)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 gap-1.5"
+                    disabled={!rentEstimate?.monthlyRent || isEstimating}
+                    onClick={handleSuggestRent}
+                    title="Suggest rent based on postcode and size"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                    <span className="hidden sm:inline">Suggest</span>
+                  </Button>
                 </div>
+                {rentEstimate?.estimatedRentPerSqm != null && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {rentEstimate.source}:{" "}
+                    {CURRENCY_PER_SQM_FORMATTER.format(
+                      rentEstimate.estimatedRentPerSqm,
+                    )}
+                    /m²
+                    {rentEstimate.rentRange && (
+                      <span>
+                        {" "}
+                        (range{" "}
+                        {CURRENCY_PER_SQM_FORMATTER.format(
+                          rentEstimate.rentRange.min,
+                        )}
+                        –
+                        {CURRENCY_PER_SQM_FORMATTER.format(
+                          rentEstimate.rentRange.max,
+                        )}
+                        /m²)
+                      </span>
+                    )}
+                    {rentEstimate.confidence === "high" && (
+                      <span className="ml-1 rounded bg-green-100 px-1 py-0.5 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        High confidence
+                      </span>
+                    )}
+                  </p>
+                )}
               </FormRow>
               <FormRow htmlFor="monthlyExpenses" label="Monthly Expenses">
                 <div className="relative">

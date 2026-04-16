@@ -38,6 +38,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "BW": {
         "avg_price_per_sqm": 3800,
         "price_range": {"min": 2500, "max": 6000},
+        "avg_rent_per_sqm": 10.5,
+        "rent_range": {"min": 7.5, "max": 14.0},
         "agent_fee_percent": 3.57,
         "trend": "stable",
         "hotspots": ["Stuttgart", "Freiburg", "Karlsruhe"],
@@ -45,6 +47,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "BY": {
         "avg_price_per_sqm": 4500,
         "price_range": {"min": 2800, "max": 9000},
+        "avg_rent_per_sqm": 12.0,
+        "rent_range": {"min": 8.0, "max": 18.0},
         "agent_fee_percent": 3.57,
         "trend": "stable",
         "hotspots": ["Munich", "Nuremberg", "Augsburg"],
@@ -52,6 +56,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "BE": {
         "avg_price_per_sqm": 5200,
         "price_range": {"min": 3500, "max": 8000},
+        "avg_rent_per_sqm": 13.5,
+        "rent_range": {"min": 10.0, "max": 17.0},
         "agent_fee_percent": 3.57,
         "trend": "rising",
         "hotspots": ["Mitte", "Prenzlauer Berg", "Kreuzberg"],
@@ -59,6 +65,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "BB": {
         "avg_price_per_sqm": 2800,
         "price_range": {"min": 1800, "max": 4500},
+        "avg_rent_per_sqm": 8.0,
+        "rent_range": {"min": 6.0, "max": 11.0},
         "agent_fee_percent": 3.57,
         "trend": "rising",
         "hotspots": ["Potsdam", "Cottbus", "Brandenburg an der Havel"],
@@ -66,6 +74,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "HB": {
         "avg_price_per_sqm": 2900,
         "price_range": {"min": 2000, "max": 4500},
+        "avg_rent_per_sqm": 8.5,
+        "rent_range": {"min": 6.5, "max": 11.0},
         "agent_fee_percent": 2.98,
         "trend": "stable",
         "hotspots": ["Bremen-Mitte", "Schwachhausen", "Horn-Lehe"],
@@ -73,6 +83,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "HH": {
         "avg_price_per_sqm": 5800,
         "price_range": {"min": 4000, "max": 10000},
+        "avg_rent_per_sqm": 13.0,
+        "rent_range": {"min": 9.5, "max": 17.5},
         "agent_fee_percent": 3.12,
         "trend": "stable",
         "hotspots": ["Eppendorf", "Winterhude", "Eimsbüttel"],
@@ -80,6 +92,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "HE": {
         "avg_price_per_sqm": 3600,
         "price_range": {"min": 2200, "max": 7000},
+        "avg_rent_per_sqm": 11.0,
+        "rent_range": {"min": 8.0, "max": 15.0},
         "agent_fee_percent": 2.98,
         "trend": "stable",
         "hotspots": ["Frankfurt", "Wiesbaden", "Darmstadt"],
@@ -87,6 +101,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "MV": {
         "avg_price_per_sqm": 2200,
         "price_range": {"min": 1400, "max": 4000},
+        "avg_rent_per_sqm": 7.5,
+        "rent_range": {"min": 5.5, "max": 10.0},
         "agent_fee_percent": 2.98,
         "trend": "rising",
         "hotspots": ["Rostock", "Schwerin", "Greifswald"],
@@ -94,6 +110,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "NI": {
         "avg_price_per_sqm": 2600,
         "price_range": {"min": 1800, "max": 4500},
+        "avg_rent_per_sqm": 8.5,
+        "rent_range": {"min": 6.5, "max": 11.5},
         "agent_fee_percent": 2.98,
         "trend": "stable",
         "hotspots": ["Hannover", "Braunschweig", "Oldenburg"],
@@ -101,6 +119,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "NW": {
         "avg_price_per_sqm": 3200,
         "price_range": {"min": 2000, "max": 6000},
+        "avg_rent_per_sqm": 9.5,
+        "rent_range": {"min": 7.0, "max": 13.5},
         "agent_fee_percent": 3.57,
         "trend": "stable",
         "hotspots": ["Düsseldorf", "Cologne", "Münster"],
@@ -108,6 +128,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "RP": {
         "avg_price_per_sqm": 2400,
         "price_range": {"min": 1600, "max": 4000},
+        "avg_rent_per_sqm": 8.0,
+        "rent_range": {"min": 6.0, "max": 10.5},
         "agent_fee_percent": 2.98,
         "trend": "stable",
         "hotspots": ["Mainz", "Koblenz", "Trier"],
@@ -115,6 +137,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "SL": {
         "avg_price_per_sqm": 2000,
         "price_range": {"min": 1400, "max": 3200},
+        "avg_rent_per_sqm": 7.0,
+        "rent_range": {"min": 5.5, "max": 9.0},
         "agent_fee_percent": 3.57,
         "trend": "stable",
         "hotspots": ["Saarbrücken", "Neunkirchen", "Homburg"],
@@ -122,6 +146,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "SN": {
         "avg_price_per_sqm": 2400,
         "price_range": {"min": 1600, "max": 4000},
+        "avg_rent_per_sqm": 7.5,
+        "rent_range": {"min": 5.5, "max": 10.0},
         "agent_fee_percent": 2.98,
         "trend": "rising",
         "hotspots": ["Leipzig", "Dresden", "Chemnitz"],
@@ -129,6 +155,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "ST": {
         "avg_price_per_sqm": 1800,
         "price_range": {"min": 1200, "max": 3000},
+        "avg_rent_per_sqm": 6.5,
+        "rent_range": {"min": 5.0, "max": 8.5},
         "agent_fee_percent": 2.98,
         "trend": "stable",
         "hotspots": ["Magdeburg", "Halle", "Dessau"],
@@ -136,6 +164,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "SH": {
         "avg_price_per_sqm": 3000,
         "price_range": {"min": 2000, "max": 5500},
+        "avg_rent_per_sqm": 9.5,
+        "rent_range": {"min": 7.0, "max": 12.5},
         "agent_fee_percent": 3.57,
         "trend": "stable",
         "hotspots": ["Kiel", "Lübeck", "Flensburg"],
@@ -143,6 +173,8 @@ MARKET_DATA_BY_STATE: dict[str, dict] = {
     "TH": {
         "avg_price_per_sqm": 1900,
         "price_range": {"min": 1300, "max": 3200},
+        "avg_rent_per_sqm": 6.5,
+        "rent_range": {"min": 5.0, "max": 8.5},
         "agent_fee_percent": 2.98,
         "trend": "stable",
         "hotspots": ["Erfurt", "Jena", "Weimar"],

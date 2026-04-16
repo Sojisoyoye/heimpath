@@ -62,6 +62,28 @@ export function useStateComparison(price: number, includeAgent: boolean) {
 }
 
 // ---------------------------------------------------------------------------
+// Rent Estimate
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch rent estimate for a German postcode.
+ * Enabled only when postcode is exactly 5 digits.
+ */
+export function useRentEstimate(
+  postcode: string,
+  sizeSqm?: number,
+  buildingYear?: number,
+) {
+  return useQuery({
+    queryKey: queryKeys.market.rentEstimate(postcode, sizeSqm, buildingYear),
+    queryFn: () =>
+      CalculatorService.getRentEstimate(postcode, sizeSqm, buildingYear),
+    enabled: /^\d{5}$/.test(postcode),
+    staleTime: 30 * 60 * 1000,
+  })
+}
+
+// ---------------------------------------------------------------------------
 // ROI Calculator
 // ---------------------------------------------------------------------------
 

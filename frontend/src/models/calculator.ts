@@ -146,6 +146,25 @@ export interface ROICalculationSummary {
 }
 
 // ---------------------------------------------------------------------------
+// Rent Estimate
+// ---------------------------------------------------------------------------
+
+export interface RentRange {
+  min: number
+  max: number
+}
+
+export interface RentEstimate {
+  estimatedRentPerSqm: number | null
+  rentRange: RentRange | null
+  source: string | null
+  confidence: "high" | "medium" | "low"
+  city: string | null
+  stateCode: string | null
+  monthlyRent: number | null
+}
+
+// ---------------------------------------------------------------------------
 // Financing Eligibility Wizard
 // ---------------------------------------------------------------------------
 
