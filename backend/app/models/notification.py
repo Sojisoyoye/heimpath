@@ -20,6 +20,7 @@ class NotificationType(str, PyEnum):
     PAYMENT_REMINDER = "payment_reminder"
     SUBSCRIPTION_EXPIRING = "subscription_expiring"
     SYSTEM_ANNOUNCEMENT = "system_announcement"
+    WEEKLY_DIGEST = "weekly_digest"
 
 
 _notification_type_enum = PgEnum(
@@ -31,6 +32,7 @@ _notification_type_enum = PgEnum(
     "payment_reminder",
     "subscription_expiring",
     "system_announcement",
+    "weekly_digest",
     name="notificationtype",
     create_type=False,
 )

@@ -41,6 +41,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, typeof Bell> = {
   payment_reminder: CreditCard,
   subscription_expiring: AlertTriangle,
   system_announcement: Info,
+  weekly_digest: Bell,
 }
 
 // ***************************************************************************

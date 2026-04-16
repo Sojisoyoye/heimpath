@@ -3986,7 +3986,7 @@ export const NotificationResponseSchema = {
 
 export const NotificationTypeSchema = {
     type: 'string',
-    enum: ['step_completed', 'document_translated', 'calculation_saved', 'law_bookmarked', 'journey_deadline', 'payment_reminder', 'subscription_expiring', 'system_announcement'],
+    enum: ['step_completed', 'document_translated', 'calculation_saved', 'law_bookmarked', 'journey_deadline', 'payment_reminder', 'subscription_expiring', 'system_announcement', 'weekly_digest'],
     title: 'NotificationType',
     description: 'Types of notifications.'
 } as const;
@@ -6157,6 +6157,36 @@ export const TranslationResultSchema = {
         target_language: 'en',
         translated_text: 'The purchase agreement must be notarized.'
     }
+} as const;
+
+export const UnsubscribeRequestSchema = {
+    properties: {
+        token: {
+            type: 'string',
+            title: 'Token'
+        }
+    },
+    type: 'object',
+    required: ['token'],
+    title: 'UnsubscribeRequest',
+    description: 'Request body for email unsubscribe.'
+} as const;
+
+export const UnsubscribeResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        notification_type: {
+            type: 'string',
+            title: 'Notification Type'
+        }
+    },
+    type: 'object',
+    required: ['message', 'notification_type'],
+    title: 'UnsubscribeResponse',
+    description: 'Response for email unsubscribe.'
 } as const;
 
 export const UpdatePasswordSchema = {

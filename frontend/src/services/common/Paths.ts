@@ -107,6 +107,7 @@ export const PATHS = {
     PREFERENCES: `${API_V1}/notifications/preferences`,
     READ: (id: string) => `${API_V1}/notifications/${id}/read`,
     DELETE: (id: string) => `${API_V1}/notifications/${id}`,
+    UNSUBSCRIBE: `${API_V1}/notifications/unsubscribe`,
   },
 
   // Articles (Content Library)

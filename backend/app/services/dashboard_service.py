@@ -39,11 +39,11 @@ def get_dashboard_overview(
     Returns:
         DashboardOverviewResponse with aggregated data.
     """
-    journey_overview = _get_journey_overview(session, user_id)
+    journey_overview = get_journey_overview(session, user_id)
     recent_docs = _get_recent_documents(session, user_id, limit=3)
     recent_calcs = _get_recent_calculations(session, user_id, limit=2)
     bookmarks = _get_recent_bookmarks(session, user_id, limit=3)
-    activity = _build_activity_timeline(session, user_id, limit=10)
+    activity = build_activity_timeline(session, user_id, limit=10)
     docs_this_month = _count_documents_this_month(session, user_id)
     total_calcs = _count_total_calculations(session, user_id)
     total_bookmarks = _count_total_bookmarks(session, user_id)
@@ -61,7 +61,7 @@ def get_dashboard_overview(
     )
 
 
-def _get_journey_overview(
+def get_journey_overview(
     session: Session,
     user_id: uuid.UUID,
 ) -> JourneyOverview | None:
@@ -208,7 +208,7 @@ def _get_recent_bookmarks(
     ]
 
 
-def _build_activity_timeline(
+def build_activity_timeline(
     session: Session,
     user_id: uuid.UUID,
     limit: int = 10,
