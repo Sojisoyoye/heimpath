@@ -4,6 +4,7 @@ Provides public endpoints for market data lookups such as rent estimates.
 """
 
 import re
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -15,13 +16,19 @@ router = APIRouter(prefix="/market", tags=["market"])
 _POSTCODE_RE = re.compile(r"^\d{5}$")
 
 
-@router.get("/rent-estimate", response_model=RentEstimateResponse)
+@router.get(
+    "/rent-estimate",
+    responses={422: {"description": "Invalid postcode format"}},
+)
 async def get_rent_estimate(
-    postcode: str = Query(..., description="German 5-digit postcode"),
-    size_sqm: float | None = Query(None, gt=0, description="Property size in m²"),
-    building_year: int | None = Query(
-        None, ge=1800, le=2100, description="Year the building was constructed"
-    ),
+    postcode: Annotated[str, Query(description="German 5-digit postcode")],
+    size_sqm: Annotated[
+        float | None, Query(gt=0, description="Property size in m²")
+    ] = None,
+    building_year: Annotated[
+        int | None,
+        Query(ge=1800, le=2100, description="Year the building was constructed"),
+    ] = None,
 ) -> RentEstimateResponse:
     """Estimate rent for a German postcode using Mietspiegel data.
 

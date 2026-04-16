@@ -5582,6 +5582,102 @@ export const RegisterResponseSchema = {
     description: 'Schema for registration response.'
 } as const;
 
+export const RentEstimateResponseSchema = {
+    properties: {
+        estimated_rent_per_sqm: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Rent Per Sqm'
+        },
+        rent_range: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/RentRange'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        source: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source'
+        },
+        confidence: {
+            type: 'string',
+            enum: ['high', 'medium', 'low'],
+            title: 'Confidence'
+        },
+        city: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'City'
+        },
+        state_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'State Code'
+        },
+        monthly_rent: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Rent'
+        }
+    },
+    type: 'object',
+    required: ['confidence'],
+    title: 'RentEstimateResponse',
+    description: 'Response for a rent estimate query.'
+} as const;
+
+export const RentRangeSchema = {
+    properties: {
+        min: {
+            type: 'number',
+            title: 'Min'
+        },
+        max: {
+            type: 'number',
+            title: 'Max'
+        }
+    },
+    type: 'object',
+    required: ['min', 'max'],
+    title: 'RentRange',
+    description: 'Min/max rent per sqm range.'
+} as const;
+
 export const ResendVerificationRequestSchema = {
     properties: {
         email: {

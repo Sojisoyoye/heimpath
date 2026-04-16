@@ -1441,6 +1441,29 @@ export type RegisterResponse = {
 };
 
 /**
+ * Response for a rent estimate query.
+ */
+export type RentEstimateResponse = {
+    estimated_rent_per_sqm?: (number | null);
+    rent_range?: (RentRange | null);
+    source?: (string | null);
+    confidence: 'high' | 'medium' | 'low';
+    city?: (string | null);
+    state_code?: (string | null);
+    monthly_rent?: (number | null);
+};
+
+export type confidence = 'high' | 'medium' | 'low';
+
+/**
+ * Min/max rent per sqm range.
+ */
+export type RentRange = {
+    min: number;
+    max: number;
+};
+
+/**
  * Schema for resending verification email.
  */
 export type ResendVerificationRequest = {
@@ -2416,6 +2439,23 @@ export type LoginRecoverPasswordHtmlContentData = {
 };
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
+
+export type MarketGetRentEstimateData = {
+    /**
+     * Year the building was constructed
+     */
+    buildingYear?: (number | null);
+    /**
+     * German 5-digit postcode
+     */
+    postcode: string;
+    /**
+     * Property size in m²
+     */
+    sizeSqm?: (number | null);
+};
+
+export type MarketGetRentEstimateResponse = (RentEstimateResponse);
 
 export type NotificationsListNotificationsData = {
     limit?: number;
