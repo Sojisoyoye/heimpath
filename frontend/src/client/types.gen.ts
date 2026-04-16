@@ -1173,7 +1173,7 @@ export type NotificationResponse = {
 /**
  * Types of notifications.
  */
-export type NotificationType = 'step_completed' | 'document_translated' | 'calculation_saved' | 'law_bookmarked' | 'journey_deadline' | 'payment_reminder' | 'subscription_expiring' | 'system_announcement';
+export type NotificationType = 'step_completed' | 'document_translated' | 'calculation_saved' | 'law_bookmarked' | 'journey_deadline' | 'payment_reminder' | 'subscription_expiring' | 'system_announcement' | 'weekly_digest';
 
 export type PasswordRecoveryRequest = {
     email: string;
@@ -1811,6 +1811,21 @@ export type TranslationResult = {
     confidence: number;
 };
 
+/**
+ * Request body for email unsubscribe.
+ */
+export type UnsubscribeRequest = {
+    token: string;
+};
+
+/**
+ * Response for email unsubscribe.
+ */
+export type UnsubscribeResponse = {
+    message: string;
+    notification_type: string;
+};
+
 export type UpdatePassword = {
     current_password: string;
     new_password: string;
@@ -2431,6 +2446,12 @@ export type NotificationsDeleteNotificationData = {
 };
 
 export type NotificationsDeleteNotificationResponse = (void);
+
+export type NotificationsUnsubscribeData = {
+    requestBody: UnsubscribeRequest;
+};
+
+export type NotificationsUnsubscribeResponse = (UnsubscribeResponse);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;

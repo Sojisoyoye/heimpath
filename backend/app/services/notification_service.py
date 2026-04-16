@@ -54,7 +54,7 @@ def create_notification(
         session.refresh(notification)
 
     if is_email_enabled:
-        _send_notification_email(session, user_id, title, message, action_url)
+        _send_notification_email(session, user_id, type, title, message, action_url)
 
     return notification
 
@@ -226,6 +226,38 @@ def update_preferences(
     return get_preferences(session, user_id)
 
 
+def disable_email_for_type(
+    session: Session,
+    *,
+    user_id: uuid.UUID,
+    notification_type: str,
+) -> None:
+    """Disable email notifications for a specific type (used by unsubscribe)."""
+    valid_values = {t.value for t in NotificationType}
+    if notification_type not in valid_values:
+        msg = f"Invalid notification type: {notification_type}"
+        raise ValueError(msg)
+    stmt = select(NotificationPreference).where(
+        NotificationPreference.user_id == user_id,
+        NotificationPreference.notification_type == notification_type,
+    )
+    existing = session.execute(stmt).scalar_one_or_none()
+
+    if existing:
+        existing.is_email_enabled = False
+        session.add(existing)
+    else:
+        pref = NotificationPreference(
+            user_id=user_id,
+            notification_type=notification_type,
+            is_in_app_enabled=True,
+            is_email_enabled=False,
+        )
+        session.add(pref)
+
+    session.commit()
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -247,11 +279,12 @@ def _get_preference(
 def _send_notification_email(
     session: Session,
     user_id: uuid.UUID,
+    notification_type: NotificationType,
     title: str,
     message: str,
     action_url: str | None,
 ) -> None:
-    """Send an email notification. Fails silently with logging."""
+    """Send a branded email notification with unsubscribe link. Fails silently."""
     try:
         if not settings.emails_enabled:
             return
@@ -262,18 +295,34 @@ def _send_notification_email(
         if not user or not user.email:
             return
 
-        from app.utils import send_email
+        from app.utils import (
+            generate_unsubscribe_token,
+            render_email_template,
+            send_email,
+        )
 
-        action_link = ""
-        if action_url:
-            action_link = f'<p><a href="{action_url}">View details</a></p>'
+        token = generate_unsubscribe_token(user_id, notification_type.value)
+        unsubscribe_url = f"{settings.FRONTEND_HOST}/unsubscribe?token={token}"
 
-        html_content = f"<h2>{title}</h2><p>{message}</p>{action_link}"
+        action_text = "View details" if action_url else None
+
+        html_content = render_email_template(
+            template_name="notification.html",
+            context={
+                "project_name": settings.PROJECT_NAME,
+                "title": title,
+                "message": message,
+                "action_url": action_url,
+                "action_text": action_text,
+                "unsubscribe_url": unsubscribe_url,
+            },
+        )
 
         send_email(
             email_to=user.email,
-            subject=f"HeimPath: {title}",
+            subject=f"{settings.PROJECT_NAME}: {title}",
             html_content=html_content,
+            unsubscribe_url=unsubscribe_url,
         )
     except Exception:
         logger.exception("Failed to send notification email to user %s", user_id)

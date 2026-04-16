@@ -76,6 +76,19 @@ class NotificationServiceClass {
     })
     return transformKeys<NotificationPreferences>(response)
   }
+
+  async unsubscribe(
+    token: string,
+  ): Promise<{ message: string; notificationType: string }> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.NOTIFICATIONS.UNSUBSCRIBE,
+      body: { token },
+    })
+    return transformKeys<{ message: string; notificationType: string }>(
+      response,
+    )
+  }
 }
 
 export const NotificationService = new NotificationServiceClass()

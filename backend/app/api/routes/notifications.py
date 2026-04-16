@@ -1,30 +1,32 @@
 """Notification API endpoints."""
 
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session
+from fastapi import APIRouter, HTTPException, Query, status
 
-from app.api.deps import CurrentUser, get_db
+from app.api.deps import CurrentUser, SessionDep
 from app.models import Message
 from app.schemas.notification import (
     NotificationListResponse,
     NotificationPreferencesResponse,
     NotificationPreferencesUpdate,
     NotificationResponse,
+    UnsubscribeRequest,
+    UnsubscribeResponse,
 )
 from app.services import notification_service
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
-@router.get("/", response_model=NotificationListResponse)
+@router.get("/")
 async def list_notifications(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    unread_only: bool = Query(False),
+    session: SessionDep,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    unread_only: Annotated[bool, Query()] = False,
 ) -> NotificationListResponse:
     """Get paginated notifications for the current user."""
     return notification_service.get_notifications(
@@ -36,30 +38,30 @@ async def list_notifications(
     )
 
 
-@router.put("/mark-all-read", response_model=Message)
+@router.put("/mark-all-read")
 async def mark_all_notifications_read(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> Message:
     """Mark all unread notifications as read."""
     count = notification_service.mark_all_read(session, current_user.id)
     return Message(message=f"{count} notifications marked as read")
 
 
-@router.get("/preferences", response_model=NotificationPreferencesResponse)
+@router.get("/preferences")
 async def get_notification_preferences(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> NotificationPreferencesResponse:
     """Get notification preferences for the current user."""
     return notification_service.get_preferences(session, current_user.id)
 
 
-@router.put("/preferences", response_model=NotificationPreferencesResponse)
+@router.put("/preferences")
 async def update_notification_preferences(
     request: NotificationPreferencesUpdate,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> NotificationPreferencesResponse:
     """Update notification preferences for the current user."""
     return notification_service.update_preferences(
@@ -67,11 +69,11 @@ async def update_notification_preferences(
     )
 
 
-@router.put("/{notification_id}/read", response_model=NotificationResponse)
+@router.put("/{notification_id}/read")
 async def mark_notification_read(
     notification_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> NotificationResponse:
     """Mark a single notification as read."""
     notification = notification_service.mark_as_read(
@@ -100,7 +102,7 @@ async def mark_notification_read(
 async def delete_notification(
     notification_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> None:
     """Delete a notification."""
     deleted = notification_service.delete_notification(
@@ -111,3 +113,36 @@ async def delete_notification(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Notification not found",
         )
+
+
+@router.post("/unsubscribe")
+async def unsubscribe(
+    body: UnsubscribeRequest,
+    session: SessionDep,
+) -> UnsubscribeResponse:
+    """Unsubscribe from email notifications via token (no auth required)."""
+    from app.utils import verify_unsubscribe_token
+
+    claims = verify_unsubscribe_token(body.token)
+    if not claims:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired unsubscribe token",
+        )
+
+    try:
+        notification_service.disable_email_for_type(
+            session,
+            user_id=uuid.UUID(claims["user_id"]),
+            notification_type=claims["notification_type"],
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid notification type",
+        )
+
+    return UnsubscribeResponse(
+        message="You have been unsubscribed successfully",
+        notification_type=claims["notification_type"],
+    )

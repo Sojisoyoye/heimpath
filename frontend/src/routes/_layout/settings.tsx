@@ -4,7 +4,7 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router"
-import { Crown, Settings, Shield, User } from "lucide-react"
+import { Bell, Crown, Settings, Shield, User } from "lucide-react"
 import {
   DataExportButton,
   DeleteAccountModal,
@@ -13,6 +13,7 @@ import {
   SubscriptionUpgrade,
 } from "@/components/Profile"
 import ChangePassword from "@/components/UserSettings/ChangePassword"
+import NotificationPreferences from "@/components/UserSettings/NotificationPreferences"
 import UserInformation from "@/components/UserSettings/UserInformation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
@@ -38,21 +39,14 @@ function ProfileTab() {
 
   if (!user) return null
 
-  // Cast to access extended properties that may be added to backend later
-  const extendedUser = user as typeof user & {
-    citizenship?: string
-    subscription_tier?: "free" | "premium" | "enterprise"
-    email_verified?: boolean
-  }
-
   return (
     <div className="space-y-6">
       <ProfileHeader
         fullName={user.full_name || "User"}
         email={user.email}
-        citizenship={extendedUser.citizenship}
-        subscriptionTier={extendedUser.subscription_tier || "free"}
-        emailVerified={extendedUser.email_verified ?? false}
+        citizenship={user.citizenship ?? undefined}
+        subscriptionTier={user.subscription_tier || "free"}
+        emailVerified={user.email_verified ?? false}
         createdAt={user.created_at || new Date().toISOString()}
       />
       <UserInformation />
@@ -64,11 +58,7 @@ function ProfileTab() {
 function SubscriptionTab() {
   const { user } = useAuth()
 
-  // Cast to access extended properties that may be added to backend later
-  const extendedUser = user as typeof user & {
-    subscription_tier?: "free" | "premium" | "enterprise"
-  }
-  const currentTier = extendedUser?.subscription_tier || "free"
+  const currentTier = user?.subscription_tier || "free"
 
   return (
     <div className="space-y-6">
@@ -112,7 +102,7 @@ function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -120,6 +110,10 @@ function SettingsPage() {
           <TabsTrigger value="subscription" className="gap-2">
             <Crown className="h-4 w-4" />
             <span className="hidden sm:inline">Subscription</span>
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="gap-2">
+            <Bell className="h-4 w-4" />
+            <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" />
@@ -133,6 +127,10 @@ function SettingsPage() {
 
         <TabsContent value="subscription" className="mt-6">
           <SubscriptionTab />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-6">
+          <NotificationPreferences />
         </TabsContent>
 
         <TabsContent value="security" className="mt-6">

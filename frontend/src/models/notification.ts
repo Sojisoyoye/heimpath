@@ -7,6 +7,7 @@ export type NotificationType =
   | "payment_reminder"
   | "subscription_expiring"
   | "system_announcement"
+  | "weekly_digest"
 
 export interface Notification {
   id: string

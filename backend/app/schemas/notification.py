@@ -48,3 +48,16 @@ class NotificationPreferencesUpdate(BaseModel):
     """Request body to update notification preferences."""
 
     preferences: list[NotificationPreferenceItem] = Field(..., min_length=1)
+
+
+class UnsubscribeRequest(BaseModel):
+    """Request body for email unsubscribe."""
+
+    token: str
+
+
+class UnsubscribeResponse(BaseModel):
+    """Response for email unsubscribe."""
+
+    message: str
+    notification_type: str

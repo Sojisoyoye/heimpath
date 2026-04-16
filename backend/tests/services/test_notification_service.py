@@ -74,6 +74,7 @@ class TestCreateNotification:
         mock_send.assert_called_once_with(
             mock_session,
             user_id,
+            NotificationType.CALCULATION_SAVED,
             "Calculation Saved",
             "Your cost calculation has been saved",
             "/calculators/123",
@@ -235,3 +236,44 @@ class TestUpdatePreferences:
 
         mock_session.add.assert_called()
         mock_session.commit.assert_called()
+
+
+class TestDisableEmailForType:
+    def test_creates_new_preference_when_none_exists(
+        self, mock_session, user_id
+    ) -> None:
+        mock_session.execute.return_value.scalar_one_or_none.return_value = None
+
+        notification_service.disable_email_for_type(
+            mock_session,
+            user_id=user_id,
+            notification_type=NotificationType.STEP_COMPLETED.value,
+        )
+
+        mock_session.add.assert_called_once()
+        added = mock_session.add.call_args[0][0]
+        assert added.is_email_enabled is False
+        assert added.is_in_app_enabled is True
+        mock_session.commit.assert_called()
+
+    def test_updates_existing_preference(self, mock_session, user_id) -> None:
+        existing = MagicMock()
+        existing.is_email_enabled = True
+        mock_session.execute.return_value.scalar_one_or_none.return_value = existing
+
+        notification_service.disable_email_for_type(
+            mock_session,
+            user_id=user_id,
+            notification_type=NotificationType.WEEKLY_DIGEST.value,
+        )
+
+        assert existing.is_email_enabled is False
+        mock_session.commit.assert_called()
+
+    def test_rejects_invalid_notification_type(self, mock_session, user_id) -> None:
+        with pytest.raises(ValueError, match="Invalid notification type"):
+            notification_service.disable_email_for_type(
+                mock_session,
+                user_id=user_id,
+                notification_type="totally_fake_type",
+            )

@@ -18,15 +18,15 @@ from app.schemas.dashboard import (
     JourneyOverview,
 )
 from app.services.dashboard_service import (
-    _build_activity_timeline,
     _count_documents_this_month,
     _count_total_bookmarks,
     _count_total_calculations,
-    _get_journey_overview,
     _get_recent_bookmarks,
     _get_recent_calculations,
     _get_recent_documents,
+    build_activity_timeline,
     get_dashboard_overview,
+    get_journey_overview,
 )
 
 
@@ -42,11 +42,11 @@ class TestGetDashboardOverview:
     @patch("app.services.dashboard_service._count_total_bookmarks")
     @patch("app.services.dashboard_service._count_total_calculations")
     @patch("app.services.dashboard_service._count_documents_this_month")
-    @patch("app.services.dashboard_service._build_activity_timeline")
+    @patch("app.services.dashboard_service.build_activity_timeline")
     @patch("app.services.dashboard_service._get_recent_bookmarks")
     @patch("app.services.dashboard_service._get_recent_calculations")
     @patch("app.services.dashboard_service._get_recent_documents")
-    @patch("app.services.dashboard_service._get_journey_overview")
+    @patch("app.services.dashboard_service.get_journey_overview")
     def test_returns_complete_response_with_journey(
         self,
         mock_journey,
@@ -94,11 +94,11 @@ class TestGetDashboardOverview:
     @patch("app.services.dashboard_service._count_total_bookmarks")
     @patch("app.services.dashboard_service._count_total_calculations")
     @patch("app.services.dashboard_service._count_documents_this_month")
-    @patch("app.services.dashboard_service._build_activity_timeline")
+    @patch("app.services.dashboard_service.build_activity_timeline")
     @patch("app.services.dashboard_service._get_recent_bookmarks")
     @patch("app.services.dashboard_service._get_recent_calculations")
     @patch("app.services.dashboard_service._get_recent_documents")
-    @patch("app.services.dashboard_service._get_journey_overview")
+    @patch("app.services.dashboard_service.get_journey_overview")
     def test_returns_empty_state_without_journey(
         self,
         mock_journey,
@@ -139,7 +139,7 @@ class TestGetJourneyOverview:
         """Test that None is returned when user has no journeys."""
         mock_js.get_user_journeys.return_value = []
 
-        result = _get_journey_overview(MagicMock(), user_id)
+        result = get_journey_overview(MagicMock(), user_id)
         assert result is None
 
     @patch("app.services.dashboard_service.journey_service")
@@ -173,7 +173,7 @@ class TestGetJourneyOverview:
         }
         mock_js.get_next_step.return_value = mock_next_step
 
-        result = _get_journey_overview(MagicMock(), user_id)
+        result = get_journey_overview(MagicMock(), user_id)
 
         assert result is not None
         assert result.title == "Berlin Apartment"
@@ -208,7 +208,7 @@ class TestGetJourneyOverview:
         }
         mock_js.get_next_step.return_value = None
 
-        result = _get_journey_overview(MagicMock(), user_id)
+        result = get_journey_overview(MagicMock(), user_id)
 
         assert result is not None
         assert result.progress_percentage == 100.0
@@ -363,7 +363,7 @@ class TestBuildActivityTimeline:
         mock_session = MagicMock()
         mock_session.exec.return_value.all.return_value = []
 
-        result = _build_activity_timeline(mock_session, user_id, limit=10)
+        result = build_activity_timeline(mock_session, user_id, limit=10)
         assert result == []
 
     def test_merges_and_sorts_activities_by_timestamp(self, user_id: uuid.UUID) -> None:
@@ -390,7 +390,7 @@ class TestBuildActivityTimeline:
             [],  # bookmarks
         ]
 
-        result = _build_activity_timeline(mock_session, user_id, limit=10)
+        result = build_activity_timeline(mock_session, user_id, limit=10)
 
         assert len(result) == 2
         # Document (Feb 15) should come before journey start (Feb 1)
@@ -418,7 +418,7 @@ class TestBuildActivityTimeline:
             [],  # bookmarks
         ]
 
-        result = _build_activity_timeline(mock_session, user_id, limit=3)
+        result = build_activity_timeline(mock_session, user_id, limit=3)
         assert len(result) == 3
 
 

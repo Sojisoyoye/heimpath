@@ -225,3 +225,52 @@ def test_update_preferences(client: TestClient, db: Session) -> None:
     )
     assert step_pref["is_in_app_enabled"] is True
     assert step_pref["is_email_enabled"] is False
+
+
+# ---------------------------------------------------------------------------
+# Unsubscribe endpoint tests
+# ---------------------------------------------------------------------------
+
+
+def test_unsubscribe_valid_token(client: TestClient, db: Session) -> None:
+    """Test that a valid unsubscribe token disables email for the type."""
+    from app.utils import generate_unsubscribe_token
+
+    _, user_id = get_auth_headers(client, db)
+    token = generate_unsubscribe_token(user_id, "step_completed")
+
+    r = client.post(
+        f"{settings.API_V1_STR}/notifications/unsubscribe",
+        json={"token": token},
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["notification_type"] == "step_completed"
+    assert "unsubscribed" in data["message"].lower()
+
+
+def test_unsubscribe_invalid_token(client: TestClient) -> None:
+    """Test that an invalid token returns 400."""
+    r = client.post(
+        f"{settings.API_V1_STR}/notifications/unsubscribe",
+        json={"token": "bad.token.value"},
+    )
+
+    assert r.status_code == 400
+
+
+def test_unsubscribe_no_auth_required(client: TestClient, db: Session) -> None:
+    """Test that the unsubscribe endpoint works without auth headers."""
+    from app.utils import generate_unsubscribe_token
+
+    _, user_id = get_auth_headers(client, db)
+    token = generate_unsubscribe_token(user_id, "weekly_digest")
+
+    # No auth headers — this should still work
+    r = client.post(
+        f"{settings.API_V1_STR}/notifications/unsubscribe",
+        json={"token": token},
+    )
+
+    assert r.status_code == 200
