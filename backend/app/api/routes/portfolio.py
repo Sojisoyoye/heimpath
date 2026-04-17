@@ -160,7 +160,5 @@ async def get_portfolio_summary(
     session: SessionDep,
 ) -> PortfolioSummaryResponse:
     """Get aggregated KPIs across the entire portfolio."""
-    summary = portfolio_service.calculate_portfolio_summary(
-        session, current_user.id
-    )
+    summary = portfolio_service.calculate_portfolio_summary(session, current_user.id)
     return PortfolioSummaryResponse(**summary)

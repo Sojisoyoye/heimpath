@@ -17,7 +17,9 @@ from app.models.portfolio import (
 from tests.utils.utils import random_email, random_lower_string
 
 
-def get_auth_headers(client: TestClient, db: Session) -> tuple[dict[str, str], uuid.UUID]:
+def get_auth_headers(
+    client: TestClient, db: Session
+) -> tuple[dict[str, str], uuid.UUID]:
     """Create a user and return auth headers and user id."""
     username = random_email()
     password = random_lower_string()
@@ -31,7 +33,9 @@ def get_auth_headers(client: TestClient, db: Session) -> tuple[dict[str, str], u
     return headers, user.id
 
 
-def create_sample_property(db: Session, user_id: uuid.UUID, **overrides) -> PortfolioProperty:
+def create_sample_property(
+    db: Session, user_id: uuid.UUID, **overrides
+) -> PortfolioProperty:
     """Create a sample portfolio property for testing."""
     prop = PortfolioProperty(
         id=uuid.uuid4(),
@@ -209,7 +213,9 @@ def test_list_transactions(client: TestClient, db: Session) -> None:
     headers, user_id = get_auth_headers(client, db)
     prop = create_sample_property(db, user_id)
     create_sample_transaction(db, prop.id, user_id)
-    create_sample_transaction(db, prop.id, user_id, type=TransactionType.MAINTENANCE.value, amount=500.0)
+    create_sample_transaction(
+        db, prop.id, user_id, type=TransactionType.MAINTENANCE.value, amount=500.0
+    )
 
     r = client.get(
         f"{settings.API_V1_STR}/portfolio/properties/{prop.id}/transactions",
@@ -281,7 +287,9 @@ def test_get_portfolio_summary(client: TestClient, db: Session) -> None:
     """Test portfolio summary returns 200 with correct structure."""
     headers, user_id = get_auth_headers(client, db)
     prop = create_sample_property(db, user_id, purchase_price=300000.0)
-    create_sample_transaction(db, prop.id, user_id, type=TransactionType.RENT_INCOME.value, amount=1200.0)
+    create_sample_transaction(
+        db, prop.id, user_id, type=TransactionType.RENT_INCOME.value, amount=1200.0
+    )
 
     r = client.get(
         f"{settings.API_V1_STR}/portfolio/summary",

@@ -432,7 +432,9 @@ def test_summary_single_property_no_transactions(_mock_select: MagicMock) -> Non
     """Test summary with one property and no transactions."""
     from app.services.portfolio_service import calculate_portfolio_summary
 
-    prop = _make_property(purchase_price=250000.0, current_value_estimate=260000.0, is_vacant=False)
+    prop = _make_property(
+        purchase_price=250000.0, current_value_estimate=260000.0, is_vacant=False
+    )
 
     session = MagicMock()
     session.exec.return_value.all.side_effect = [[prop], []]
@@ -453,7 +455,9 @@ def test_summary_income_and_expense_sums(_mock_select: MagicMock) -> None:
     """Test that income and expenses are summed correctly."""
     from app.services.portfolio_service import calculate_portfolio_summary
 
-    prop = _make_property(purchase_price=300000.0, current_value_estimate=None, is_vacant=False)
+    prop = _make_property(
+        purchase_price=300000.0, current_value_estimate=None, is_vacant=False
+    )
     txns = [
         _make_transaction(type=TransactionType.RENT_INCOME.value, amount=1200.0),
         _make_transaction(type=TransactionType.RENT_INCOME.value, amount=1200.0),
@@ -498,7 +502,9 @@ def test_summary_gross_yield_annualization(_mock_select: MagicMock) -> None:
     """Test average gross yield is annualized correctly."""
     from app.services.portfolio_service import calculate_portfolio_summary
 
-    prop = _make_property(purchase_price=240000.0, current_value_estimate=None, is_vacant=False)
+    prop = _make_property(
+        purchase_price=240000.0, current_value_estimate=None, is_vacant=False
+    )
     # 6 months of rent at 1000/month = 6000 trailing income
     # Annualized = 6000 * (12/12) = 6000 ... but annualized means
     # total_income from trailing 12 months. If we have 12000 in income:
@@ -521,7 +527,9 @@ def test_summary_current_value_fallback_to_purchase(_mock_select: MagicMock) -> 
     """Test that current_value falls back to purchase_price when estimate is None."""
     from app.services.portfolio_service import calculate_portfolio_summary
 
-    prop = _make_property(purchase_price=300000.0, current_value_estimate=None, is_vacant=False)
+    prop = _make_property(
+        purchase_price=300000.0, current_value_estimate=None, is_vacant=False
+    )
 
     session = MagicMock()
     session.exec.return_value.all.side_effect = [[prop], []]
@@ -536,7 +544,9 @@ def test_summary_net_cash_flow_negative(_mock_select: MagicMock) -> None:
     """Test net cash flow can be negative when expenses exceed income."""
     from app.services.portfolio_service import calculate_portfolio_summary
 
-    prop = _make_property(purchase_price=300000.0, current_value_estimate=None, is_vacant=False)
+    prop = _make_property(
+        purchase_price=300000.0, current_value_estimate=None, is_vacant=False
+    )
     txns = [
         _make_transaction(type=TransactionType.RENT_INCOME.value, amount=500.0),
         _make_transaction(type=TransactionType.MORTGAGE_INTEREST.value, amount=1500.0),
