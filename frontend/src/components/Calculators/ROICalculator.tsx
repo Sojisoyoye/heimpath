@@ -4,6 +4,7 @@
  */
 
 import {
+  ChevronDown,
   Download,
   Euro,
   ExternalLink,
@@ -78,12 +79,21 @@ interface ROIResults {
   investmentGrade: number
   investmentGradeLabel: string
 
+  // After-tax figures
+  annualDepreciation: number
+  annualInterestYr1: number
+  taxablePropertyIncome: number
+  annualTaxEffect: number
+  annualCashFlowAfterTax: number
+  cashOnCashReturnAfterTax: number
+
   // Projections (10-year)
   projectedValues: {
     year: number
     propertyValue: number
     equity: number
     cumulativeCashFlow: number
+    cumulativeCashFlowAfterTax: number
     totalReturn: number
     totalReturnPercent: number
   }[]
@@ -100,6 +110,9 @@ interface CalculatorInputs {
   mortgageTerm: string
   postcode: string
   propertySizeSqm: string
+  marginalTaxRate: string
+  buildingSharePercent: string
+  depreciationRate: string
 }
 
 /******************************************************************************
@@ -221,6 +234,9 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
   const vacancyRate = parseNumber(inputs.vacancyRate) / 100
   const mortgageRate = parseNumber(inputs.mortgageRate)
   const mortgageTerm = parseNumber(inputs.mortgageTerm)
+  const marginalTaxRate = parseNumber(inputs.marginalTaxRate) / 100
+  const buildingShare = parseNumber(inputs.buildingSharePercent) / 100
+  const depreciationRate = parseNumber(inputs.depreciationRate) / 100
 
   if (purchasePrice <= 0 || monthlyRent <= 0) return null
 
@@ -265,26 +281,68 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
 
   const investmentGradeLabel = gradeLabel(investmentGrade)
 
-  // 10-year projections with equity tracking
+  // Tax calculations — depreciation (AfA)
+  const annualDepreciation = purchasePrice * buildingShare * depreciationRate
+
+  // Year-1 interest (track from mortgage amortisation)
+  let annualInterestYr1 = 0
+  let tempBalance = loanAmount
+  for (let m = 0; m < 12; m++) {
+    if (tempBalance <= 0 || monthlyRate <= 0) break
+    const interest = tempBalance * monthlyRate
+    annualInterestYr1 += interest
+    const principal = monthlyMortgage - interest
+    tempBalance = Math.max(0, tempBalance - principal)
+  }
+
+  // Taxable property income = NOI - mortgage interest - depreciation
+  const taxablePropertyIncome =
+    netOperatingIncome - annualInterestYr1 - annualDepreciation
+
+  // Tax effect: positive = benefit (reduces other income tax), negative = tax due
+  const annualTaxEffect =
+    taxablePropertyIncome < 0
+      ? Math.abs(taxablePropertyIncome) * marginalTaxRate
+      : -taxablePropertyIncome * marginalTaxRate
+
+  const annualCashFlowAfterTax = annualCashFlow + annualTaxEffect
+  const cashOnCashReturnAfterTax =
+    downPayment > 0 ? annualCashFlowAfterTax / downPayment : 0
+
+  // 10-year projections with equity and after-tax tracking
   const projectedValues = []
   let cumulativeCashFlow = 0
+  let cumulativeCashFlowAfterTax = 0
   let remainingBalance = loanAmount
 
   for (let year = 1; year <= 10; year++) {
     const propertyValue = purchasePrice * (1 + annualAppreciation) ** year
 
-    // Track mortgage principal paydown
+    // Track mortgage principal paydown and annual interest
+    let yearInterest = 0
     for (let m = 0; m < 12; m++) {
       if (remainingBalance <= 0 || monthlyRate <= 0) break
       const interestPayment = remainingBalance * monthlyRate
+      yearInterest += interestPayment
       const principalPayment = monthlyMortgage - interestPayment
       remainingBalance = Math.max(0, remainingBalance - principalPayment)
     }
 
     const equity = propertyValue - remainingBalance
 
+    // Pre-tax cash flow with 2% annual rent increase
     const yearCashFlow = annualCashFlow * 1.02 ** (year - 1)
     cumulativeCashFlow += yearCashFlow
+
+    // After-tax: recalculate per year (interest decreases as principal pays down)
+    const yearNOI = netOperatingIncome * 1.02 ** (year - 1)
+    const yearTaxableIncome = yearNOI - yearInterest - annualDepreciation
+    const yearTaxEffect =
+      yearTaxableIncome < 0
+        ? Math.abs(yearTaxableIncome) * marginalTaxRate
+        : -yearTaxableIncome * marginalTaxRate
+    const yearCashFlowAfterTax = yearCashFlow + yearTaxEffect
+    cumulativeCashFlowAfterTax += yearCashFlowAfterTax
 
     const appreciation = propertyValue - purchasePrice
     const totalReturn = appreciation + cumulativeCashFlow
@@ -295,6 +353,7 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
       propertyValue,
       equity,
       cumulativeCashFlow,
+      cumulativeCashFlowAfterTax,
       totalReturn,
       totalReturnPercent,
     })
@@ -310,6 +369,12 @@ function calculateROI(inputs: CalculatorInputs): ROIResults | null {
     cashOnCashReturn,
     investmentGrade,
     investmentGradeLabel,
+    annualDepreciation,
+    annualInterestYr1,
+    taxablePropertyIncome,
+    annualTaxEffect,
+    annualCashFlowAfterTax,
+    cashOnCashReturnAfterTax,
     projectedValues,
   }
 }
@@ -385,6 +450,7 @@ function ProjectionRow(props: {
   propertyValue: number
   equity: number
   cumulativeCashFlow: number
+  cumulativeCashFlowAfterTax: number
   totalReturn: number
   totalReturnPercent: number
 }) {
@@ -393,6 +459,7 @@ function ProjectionRow(props: {
     propertyValue,
     equity,
     cumulativeCashFlow,
+    cumulativeCashFlowAfterTax,
     totalReturn,
     totalReturnPercent,
   } = props
@@ -406,6 +473,9 @@ function ProjectionRow(props: {
       <td className="py-2 text-right">{CURRENCY_FORMATTER.format(equity)}</td>
       <td className="py-2 text-right">
         {CURRENCY_FORMATTER.format(cumulativeCashFlow)}
+      </td>
+      <td className="py-2 text-right">
+        {CURRENCY_FORMATTER.format(cumulativeCashFlowAfterTax)}
       </td>
       <td className="py-2 text-right">
         {CURRENCY_FORMATTER.format(totalReturn)}
@@ -582,10 +652,14 @@ function ROICalculator(props: IProps) {
     mortgageTerm: "25",
     postcode: "",
     propertySizeSqm: "",
+    marginalTaxRate: "42",
+    buildingSharePercent: "70",
+    depreciationRate: "2",
   })
 
   const [saveName, setSaveName] = useState("")
   const [shareUrl, setShareUrl] = useState("")
+  const [showTaxSettings, setShowTaxSettings] = useState(false)
 
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const saveROI = useSaveROICalculation()
@@ -625,6 +699,9 @@ function ROICalculator(props: IProps) {
       mortgageTerm: "25",
       postcode: "",
       propertySizeSqm: "",
+      marginalTaxRate: "42",
+      buildingSharePercent: "70",
+      depreciationRate: "2",
     })
     setShareUrl("")
   }
@@ -940,6 +1017,80 @@ function ROICalculator(props: IProps) {
               </FormRow>
             </div>
 
+            {/* Tax Settings (collapsible) */}
+            <div className="space-y-4">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowTaxSettings((prev) => !prev)}
+              >
+                <span>Tax Settings (German Income Tax)</span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    showTaxSettings && "rotate-180",
+                  )}
+                />
+              </button>
+              {showTaxSettings && (
+                <div className="space-y-4 rounded-lg border border-dashed p-4">
+                  <p className="text-xs text-muted-foreground">
+                    Rental income in Germany is taxed at your marginal rate.
+                    Mortgage interest and building depreciation (AfA) are
+                    deductible, which can create a tax benefit in early years.
+                  </p>
+                  <FormRow
+                    htmlFor="marginalTaxRate"
+                    label="Marginal Tax Rate (%)"
+                  >
+                    <Input
+                      id="marginalTaxRate"
+                      type="number"
+                      min="0"
+                      max="45"
+                      step="1"
+                      value={inputs.marginalTaxRate}
+                      onChange={(e) =>
+                        updateInput("marginalTaxRate", e.target.value)
+                      }
+                    />
+                  </FormRow>
+                  <FormRow
+                    htmlFor="buildingSharePercent"
+                    label="Building Share (%)"
+                  >
+                    <Input
+                      id="buildingSharePercent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="5"
+                      value={inputs.buildingSharePercent}
+                      onChange={(e) =>
+                        updateInput("buildingSharePercent", e.target.value)
+                      }
+                    />
+                  </FormRow>
+                  <FormRow
+                    htmlFor="depreciationRate"
+                    label="Depreciation Rate (%)"
+                  >
+                    <Input
+                      id="depreciationRate"
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.5"
+                      value={inputs.depreciationRate}
+                      onChange={(e) =>
+                        updateInput("depreciationRate", e.target.value)
+                      }
+                    />
+                  </FormRow>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleReset} className="gap-2">
                 <RefreshCw className="h-4 w-4" />
@@ -983,14 +1134,32 @@ function ROICalculator(props: IProps) {
                   <MetricCard
                     label="Cash-on-Cash Return"
                     value={PERCENT_FORMATTER.format(results.cashOnCashReturn)}
-                    description="Annual cash flow / down payment"
+                    description="Pre-tax · annual CF / down payment"
                     variant={getCashFlowVariant(results.cashOnCashReturn)}
                   />
                   <MetricCard
                     label="Annual Cash Flow"
                     value={CURRENCY_FORMATTER.format(results.annualCashFlow)}
-                    description="After mortgage payments"
+                    description="Pre-tax · after mortgage payments"
                     variant={getCashFlowVariant(results.annualCashFlow)}
+                  />
+                  <MetricCard
+                    label="After-Tax Cash-on-Cash"
+                    value={PERCENT_FORMATTER.format(
+                      results.cashOnCashReturnAfterTax,
+                    )}
+                    description="After-tax CF / down payment"
+                    variant={getCashFlowVariant(
+                      results.cashOnCashReturnAfterTax,
+                    )}
+                  />
+                  <MetricCard
+                    label="After-Tax Cash Flow"
+                    value={CURRENCY_FORMATTER.format(
+                      results.annualCashFlowAfterTax,
+                    )}
+                    description="After mortgage, depreciation & tax"
+                    variant={getCashFlowVariant(results.annualCashFlowAfterTax)}
                   />
                 </div>
 
@@ -1016,9 +1185,78 @@ function ROICalculator(props: IProps) {
                       </span>
                     </div>
                     <div className="flex justify-between font-medium border-t pt-2">
-                      <span>Net Operating Income</span>
+                      <span>Net Operating Income (NOI)</span>
                       <span>
                         {CURRENCY_FORMATTER.format(results.netOperatingIncome)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tax Breakdown */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Tax Impact (Year 1)</h4>
+                  <div className="rounded-lg border p-4 space-y-2 text-sm">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>- Mortgage Interest (deductible)</span>
+                      <span>
+                        {CURRENCY_FORMATTER.format(results.annualInterestYr1)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>- Depreciation (AfA)</span>
+                      <span>
+                        {CURRENCY_FORMATTER.format(results.annualDepreciation)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-t pt-2">
+                      <span>Taxable Property Income</span>
+                      <span
+                        className={
+                          results.taxablePropertyIncome < 0
+                            ? "text-green-600"
+                            : ""
+                        }
+                      >
+                        {CURRENCY_FORMATTER.format(
+                          results.taxablePropertyIncome,
+                        )}
+                      </span>
+                    </div>
+                    <div
+                      className={cn(
+                        "flex justify-between font-medium",
+                        results.annualTaxEffect > 0
+                          ? "text-green-600"
+                          : results.annualTaxEffect < 0
+                            ? "text-red-600"
+                            : "",
+                      )}
+                    >
+                      <span>
+                        {results.annualTaxEffect > 0
+                          ? "Tax Benefit"
+                          : results.annualTaxEffect < 0
+                            ? "Tax Due"
+                            : "Tax Effect"}
+                      </span>
+                      <span>
+                        {results.annualTaxEffect > 0 ? "+" : ""}
+                        {CURRENCY_FORMATTER.format(results.annualTaxEffect)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-medium border-t pt-2">
+                      <span>After-Tax Cash Flow</span>
+                      <span
+                        className={
+                          results.annualCashFlowAfterTax >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {CURRENCY_FORMATTER.format(
+                          results.annualCashFlowAfterTax,
+                        )}
                       </span>
                     </div>
                   </div>
@@ -1128,8 +1366,9 @@ function ROICalculator(props: IProps) {
                         Property Value
                       </th>
                       <th className="py-2 text-right font-medium">Equity</th>
+                      <th className="py-2 text-right font-medium">Cumul. CF</th>
                       <th className="py-2 text-right font-medium">
-                        Cumulative Cash Flow
+                        Cumul. CF (After Tax)
                       </th>
                       <th className="py-2 text-right font-medium">
                         Total Return
