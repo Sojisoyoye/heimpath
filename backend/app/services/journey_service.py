@@ -789,6 +789,10 @@ def _matches_conditions(
 
     for field, valid_values in conditions.items():
         answer_value = getattr(answers, field, None)
+        # If the answer is None, the condition cannot be satisfied — exclude
+        # the step/task. Every conditioned field (financing_type, property_use,
+        # has_german_residency) is always provided for new journeys; None only
+        # occurs for legacy journeys that predate the field.
         if answer_value is None:
             return False
 

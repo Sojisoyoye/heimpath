@@ -42,25 +42,33 @@ function StepTabView(props: IProps) {
     stepsByPhase[step.phase].push(step)
   }
 
-  const phaseSteps = stepsByPhase[selectedPhase]
+  const visiblePhases = JOURNEY_PHASES.filter(
+    (phase) => stepsByPhase[phase.key as JourneyPhase].length > 0,
+  )
+
+  // If the selected phase was filtered out (no steps), fall back to the first visible phase
+  const effectivePhase =
+    visiblePhases.some((p) => p.key === selectedPhase)
+      ? selectedPhase
+      : ((visiblePhases[0]?.key ?? "research") as JourneyPhase)
+
+  const phaseSteps = stepsByPhase[effectivePhase]
 
   return (
     <div className="space-y-4">
       {/* Phase pills */}
       <Tabs
-        value={selectedPhase}
+        value={effectivePhase}
         onValueChange={(v) => setSelectedPhase(v as JourneyPhase)}
       >
         <TabsList className="flex w-full flex-wrap gap-1">
-          {JOURNEY_PHASES.filter(
-            (phase) => stepsByPhase[phase.key as JourneyPhase].length > 0,
-          ).map((phase) => (
+          {visiblePhases.map((phase) => (
             <TabsTrigger
               key={phase.key}
               value={phase.key}
               className={cn(
                 "text-xs sm:text-sm",
-                selectedPhase === phase.key && PHASE_COLORS[phase.key],
+                effectivePhase === phase.key && PHASE_COLORS[phase.key],
               )}
             >
               {phase.label}
