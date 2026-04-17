@@ -57,7 +57,7 @@ const formatDate = (dateStr: string | null) =>
 ******************************************************************************/
 
 /** Default component. Property detail page with transactions. */
-function PropertyDetailPage(props: IProps) {
+function PropertyDetailPage(props: Readonly<IProps>) {
   const { propertyId } = props
   const navigate = useNavigate()
   const { showSuccessToast, showErrorToast } = useCustomToast()

@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date
+from typing import Annotated
 
 from fastapi import APIRouter, Query, status
 
@@ -29,7 +30,6 @@ router = APIRouter(prefix="/portfolio", tags=["portfolio"])
 @router.post(
     "/properties",
     status_code=status.HTTP_201_CREATED,
-    response_model=PortfolioPropertyResponse,
 )
 async def create_property(
     body: PortfolioPropertyCreate,
@@ -41,7 +41,7 @@ async def create_property(
     return PortfolioPropertyResponse.model_validate(prop)
 
 
-@router.get("/properties", response_model=PortfolioPropertyListResponse)
+@router.get("/properties")
 async def list_properties(
     current_user: CurrentUser,
     session: SessionDep,
@@ -54,7 +54,7 @@ async def list_properties(
     )
 
 
-@router.get("/properties/{property_id}", response_model=PortfolioPropertyResponse)
+@router.get("/properties/{property_id}")
 async def get_property(
     property_id: uuid.UUID,
     current_user: CurrentUser,
@@ -65,7 +65,7 @@ async def get_property(
     return PortfolioPropertyResponse.model_validate(prop)
 
 
-@router.patch("/properties/{property_id}", response_model=PortfolioPropertyResponse)
+@router.patch("/properties/{property_id}")
 async def update_property(
     property_id: uuid.UUID,
     body: PortfolioPropertyUpdate,
@@ -100,7 +100,6 @@ async def delete_property(
 @router.post(
     "/properties/{property_id}/transactions",
     status_code=status.HTTP_201_CREATED,
-    response_model=PortfolioTransactionResponse,
 )
 async def create_transaction(
     property_id: uuid.UUID,
@@ -115,16 +114,13 @@ async def create_transaction(
     return PortfolioTransactionResponse.model_validate(txn)
 
 
-@router.get(
-    "/properties/{property_id}/transactions",
-    response_model=PortfolioTransactionListResponse,
-)
+@router.get("/properties/{property_id}/transactions")
 async def list_transactions(
     property_id: uuid.UUID,
     current_user: CurrentUser,
     session: SessionDep,
-    date_from: date | None = Query(None),
-    date_to: date | None = Query(None),
+    date_from: Annotated[date | None, Query()] = None,
+    date_to: Annotated[date | None, Query()] = None,
 ) -> PortfolioTransactionListResponse:
     """List transactions for a property with optional date filtering."""
     transactions = portfolio_service.list_transactions(
@@ -154,7 +150,7 @@ async def delete_transaction(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/summary", response_model=PortfolioSummaryResponse)
+@router.get("/summary")
 async def get_portfolio_summary(
     current_user: CurrentUser,
     session: SessionDep,

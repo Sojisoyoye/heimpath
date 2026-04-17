@@ -23,7 +23,7 @@ interface IProps {
 ******************************************************************************/
 
 /** Default component. Property summary card with link to detail. */
-function PropertyCard(props: IProps) {
+function PropertyCard(props: Readonly<IProps>) {
   const { property } = props
 
   return (

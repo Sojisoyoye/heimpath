@@ -79,7 +79,7 @@ const toNumber = (v: string | undefined): number | null => {
 ******************************************************************************/
 
 /** Default component. Property add/edit form modal. */
-function PropertyFormModal(props: IProps) {
+function PropertyFormModal(props: Readonly<IProps>) {
   const { property, trigger, onSubmit, isPending } = props
   const [isOpen, setIsOpen] = useState(false)
 

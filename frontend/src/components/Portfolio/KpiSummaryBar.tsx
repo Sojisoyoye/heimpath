@@ -23,7 +23,7 @@ const formatPercent = (value: number) => `${value.toFixed(1)}%`
 ******************************************************************************/
 
 /** Default component. Reusable 4-card KPI row. */
-function KpiSummaryBar(props: IProps) {
+function KpiSummaryBar(props: Readonly<IProps>) {
   const { summary } = props
 
   const cards = [

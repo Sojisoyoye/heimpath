@@ -80,7 +80,7 @@ type FormData = z.infer<typeof formSchema>
 ******************************************************************************/
 
 /** Default component. Transaction add form modal. */
-function TransactionFormModal(props: IProps) {
+function TransactionFormModal(props: Readonly<IProps>) {
   const { trigger, onSubmit, isPending } = props
   const [isOpen, setIsOpen] = useState(false)
 

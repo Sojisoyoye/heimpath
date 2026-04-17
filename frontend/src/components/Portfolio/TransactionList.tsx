@@ -47,7 +47,7 @@ const formatDate = (dateStr: string) =>
 ******************************************************************************/
 
 /** Default component. Transaction table with color-coded amounts. */
-function TransactionList(props: IProps) {
+function TransactionList(props: Readonly<IProps>) {
   const { transactions, onDelete, isDeleting = false } = props
 
   if (transactions.length === 0) {

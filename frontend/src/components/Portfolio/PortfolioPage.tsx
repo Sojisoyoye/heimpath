@@ -62,48 +62,53 @@ function PortfolioPage() {
       </div>
 
       {/* KPI Summary */}
-      {isLoadingSummary ? (
+      {isLoadingSummary && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
-          ))}
-        </div>
-      ) : summary ? (
-        <KpiSummaryBar summary={summary} />
-      ) : null}
-
-      {/* Property Grid */}
-      {isLoadingProperties ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-40" />
-          ))}
-        </div>
-      ) : propertiesData?.data && propertiesData.data.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {propertiesData.data.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16">
-          <Building2 className="h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No properties yet</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Add your first rental property to start tracking your portfolio.
-          </p>
-          <PropertyFormModal
-            trigger={
-              <Button className="mt-4">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Property
-              </Button>
-            }
-            onSubmit={handleCreateProperty}
-            isPending={createProperty.isPending}
-          />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
         </div>
       )}
+      {!isLoadingSummary && summary && <KpiSummaryBar summary={summary} />}
+
+      {/* Property Grid */}
+      {isLoadingProperties && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+        </div>
+      )}
+      {!isLoadingProperties &&
+        propertiesData?.data &&
+        propertiesData.data.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {propertiesData.data.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        )}
+      {!isLoadingProperties &&
+        (!propertiesData?.data || propertiesData.data.length === 0) && (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16">
+            <Building2 className="h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">No properties yet</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Add your first rental property to start tracking your portfolio.
+            </p>
+            <PropertyFormModal
+              trigger={
+                <Button className="mt-4">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Property
+                </Button>
+              }
+              onSubmit={handleCreateProperty}
+              isPending={createProperty.isPending}
+            />
+          </div>
+        )}
     </div>
   )
 }
