@@ -23,6 +23,7 @@ import { JourneyGenerating } from "./JourneyGenerating"
 import { JourneySummary } from "./JourneySummary"
 import { LocationSelector } from "./LocationSelector"
 import { PropertyTypeSelector } from "./PropertyTypeSelector"
+import { PropertyUseSelector } from "./PropertyUseSelector"
 import { ResidencySelector } from "./ResidencySelector"
 import { TimelineSelector } from "./TimelineSelector"
 import { WizardStepIndicator } from "./WizardStepIndicator"
@@ -37,11 +38,12 @@ interface IProps {
 
 const WIZARD_STEPS = [
   { id: 1, title: "Property" },
-  { id: 2, title: "Location" },
-  { id: 3, title: "Financing" },
-  { id: 4, title: "Budget" },
-  { id: 5, title: "Timeline" },
-  { id: 6, title: "Status" },
+  { id: 2, title: "Purpose" },
+  { id: 3, title: "Location" },
+  { id: 4, title: "Financing" },
+  { id: 5, title: "Budget" },
+  { id: 6, title: "Timeline" },
+  { id: 7, title: "Status" },
 ] as const
 
 const STORAGE_STATE_KEY = "heimpath-wizard-state"
@@ -53,6 +55,7 @@ const STORAGE_STEP_KEY = "heimpath-wizard-step"
 
 interface WizardState {
   propertyType?: PropertyType
+  propertyUse?: "live_in" | "rent_out"
   targetState?: string
   financingType?: FinancingType
   budgetMin?: number
@@ -121,19 +124,21 @@ function JourneyWizard(props: IProps) {
       case 1:
         return !!state.propertyType
       case 2:
-        return !!state.targetState
+        return !!state.propertyUse
       case 3:
-        return !!state.financingType
+        return !!state.targetState
       case 4:
+        return !!state.financingType
+      case 5:
         // Budget is optional, but if provided, max should be >= min
         if (state.budgetMin && state.budgetMax) {
           return state.budgetMax >= state.budgetMin
         }
         return true
-      case 5:
+      case 6:
         // Timeline is optional
         return true
-      case 6:
+      case 7:
         return !!state.residencyStatus
       default:
         return false
@@ -192,6 +197,7 @@ function JourneyWizard(props: IProps) {
         budget_euros: state.budgetMax || state.budgetMin,
         budget_min_euros: state.budgetMin,
         target_purchase_date: state.targetDate,
+        property_use: state.propertyUse,
       },
     }
 
@@ -209,12 +215,13 @@ function JourneyWizard(props: IProps) {
   const completedSteps = useMemo((): Set<number> => {
     const done = new Set<number>()
     if (state.propertyType) done.add(1)
-    if (state.targetState) done.add(2)
-    if (state.financingType) done.add(3)
+    if (state.propertyUse) done.add(2)
+    if (state.targetState) done.add(3)
+    if (state.financingType) done.add(4)
     // Budget and Timeline are optional; mark done once the user moves past them
-    if (currentStep > 4) done.add(4)
     if (currentStep > 5) done.add(5)
-    if (state.residencyStatus) done.add(6)
+    if (currentStep > 6) done.add(6)
+    if (state.residencyStatus) done.add(7)
     return done
   }, [state, currentStep])
 
@@ -248,19 +255,26 @@ function JourneyWizard(props: IProps) {
         )
       case 2:
         return (
+          <PropertyUseSelector
+            value={state.propertyUse}
+            onChange={(v) => updateState({ propertyUse: v })}
+          />
+        )
+      case 3:
+        return (
           <LocationSelector
             value={state.targetState}
             onChange={(v) => updateState({ targetState: v })}
           />
         )
-      case 3:
+      case 4:
         return (
           <FinancingSelector
             value={state.financingType}
             onChange={(v) => updateState({ financingType: v })}
           />
         )
-      case 4:
+      case 5:
         return (
           <BudgetInput
             budgetMin={state.budgetMin}
@@ -269,14 +283,14 @@ function JourneyWizard(props: IProps) {
             onBudgetMaxChange={(v) => updateState({ budgetMax: v })}
           />
         )
-      case 5:
+      case 6:
         return (
           <TimelineSelector
             value={state.targetDate}
             onChange={(v) => updateState({ targetDate: v })}
           />
         )
-      case 6:
+      case 7:
         return (
           <ResidencySelector
             value={state.residencyStatus}

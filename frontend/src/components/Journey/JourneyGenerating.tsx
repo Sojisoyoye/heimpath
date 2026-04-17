@@ -5,7 +5,6 @@
 
 import { CheckCircle2, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { JourneyPhase, JourneyPublic } from "@/models/journey"
@@ -34,6 +33,7 @@ const PHASE_LABELS: Record<JourneyPhase, string> = {
   preparation: "Preparation",
   buying: "Buying",
   closing: "Closing",
+  rental_setup: "Rental Setup",
 }
 
 /******************************************************************************
@@ -74,6 +74,7 @@ function JourneyGenerating(props: IProps) {
       preparation: 0,
       buying: 0,
       closing: 0,
+      rental_setup: 0,
     }
     for (const step of journey.steps) {
       counts[step.phase]++
@@ -109,22 +110,16 @@ function JourneyGenerating(props: IProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {(Object.entries(PHASE_LABELS) as [JourneyPhase, string][]).map(
-          ([phaseKey, label]) => (
-            <Card
-              key={phaseKey}
-              className={cn(
-                "text-center",
-                phaseCounts[phaseKey] === 0 && "opacity-50",
-              )}
-            >
+        {(Object.entries(PHASE_LABELS) as [JourneyPhase, string][])
+          .filter(([phaseKey]) => phaseCounts[phaseKey] > 0)
+          .map(([phaseKey, label]) => (
+            <Card key={phaseKey} className="text-center">
               <CardContent className="p-4">
                 <p className="text-2xl font-bold">{phaseCounts[phaseKey]}</p>
                 <p className="text-xs text-muted-foreground">{label}</p>
               </CardContent>
             </Card>
-          ),
-        )}
+          ))}
       </div>
 
       <Button size="lg" onClick={onViewJourney}>

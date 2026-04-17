@@ -36,6 +36,7 @@ function StepTabView(props: IProps) {
     preparation: [],
     buying: [],
     closing: [],
+    rental_setup: [],
   }
   for (const step of steps) {
     stepsByPhase[step.phase].push(step)
@@ -51,7 +52,9 @@ function StepTabView(props: IProps) {
         onValueChange={(v) => setSelectedPhase(v as JourneyPhase)}
       >
         <TabsList className="flex w-full flex-wrap gap-1">
-          {JOURNEY_PHASES.map((phase) => (
+          {JOURNEY_PHASES.filter(
+            (phase) => stepsByPhase[phase.key as JourneyPhase].length > 0,
+          ).map((phase) => (
             <TabsTrigger
               key={phase.key}
               value={phase.key}

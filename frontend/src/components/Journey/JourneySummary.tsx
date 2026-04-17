@@ -14,6 +14,7 @@ import type { ResidencyStatus } from "@/models/journey"
 
 export interface WizardState {
   propertyType?: string
+  propertyUse?: "live_in" | "rent_out"
   targetState?: string
   financingType?: string
   budgetMin?: number
@@ -35,6 +36,11 @@ const RESIDENCY_LABELS: Record<ResidencyStatus, string> = {
   eu_citizen: "EU/EEA citizen",
   non_eu_resident: "Non-EU resident in Germany",
   non_resident: "Non-resident",
+}
+
+const PROPERTY_USE_LABELS: Record<string, string> = {
+  live_in: "Live in it",
+  rent_out: "Rent it out",
 }
 
 /******************************************************************************
@@ -66,6 +72,14 @@ function JourneySummary(props: IProps) {
           <p className="text-sm text-muted-foreground">Property Type</p>
           <p className="font-medium capitalize">
             {state.propertyType?.replace("_", " ")}
+          </p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Purpose</p>
+          <p className="font-medium">
+            {state.propertyUse
+              ? PROPERTY_USE_LABELS[state.propertyUse]
+              : "Not specified"}
           </p>
         </div>
         <div className="rounded-lg border p-4">

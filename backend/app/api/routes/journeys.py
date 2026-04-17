@@ -102,6 +102,7 @@ def _build_journey_response(journey: Journey) -> JourneyResponse:
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
+        property_use=journey.property_use,
         property_goals=PropertyGoals(**journey.property_goals)
         if journey.property_goals
         else None,
@@ -201,6 +202,7 @@ async def get_journey(
         has_german_residency=journey.has_german_residency,
         budget_euros=journey.budget_euros,
         target_purchase_date=journey.target_purchase_date,
+        property_use=journey.property_use,
         property_goals=PropertyGoals(**journey.property_goals)
         if journey.property_goals
         else None,

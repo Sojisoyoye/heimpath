@@ -912,6 +912,89 @@ def test_preferred_area_case_insensitive_match(client: TestClient, db: Session) 
     assert insights["avg_price_per_sqm"] == 6500  # city-level data used
 
 
+def test_create_journey_with_property_use_rent_out(
+    client: TestClient, db: Session
+) -> None:
+    """Test creating a journey with property_use=rent_out includes investor steps."""
+    headers, _ = get_auth_headers(client, db)
+
+    journey_data = {
+        "title": "Investor Journey",
+        "questionnaire": {
+            "property_type": "apartment",
+            "property_location": "Berlin",
+            "financing_type": "mortgage",
+            "is_first_time_buyer": True,
+            "has_german_residency": True,
+            "budget_euros": 300000,
+            "property_use": "rent_out",
+        },
+    }
+
+    r = client.post(
+        f"{settings.API_V1_STR}/journeys/",
+        headers=headers,
+        json=journey_data,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["property_use"] == "rent_out"
+
+    step_titles = [step["title"] for step in data["steps"]]
+    assert "Understand Landlord Obligations" in step_titles
+    assert "Analyze Rental Yield" in step_titles
+    assert "Plan Property Management" in step_titles
+    assert "Prepare Rental Tax Strategy" in step_titles
+    assert "Set Up Rental Operations" in step_titles
+
+
+def test_create_journey_with_property_use_live_in_excludes_investor_steps(
+    client: TestClient, db: Session
+) -> None:
+    """Test creating a journey with property_use=live_in excludes investor steps."""
+    headers, _ = get_auth_headers(client, db)
+
+    journey_data = {
+        "title": "Live In Journey",
+        "questionnaire": {
+            "property_type": "apartment",
+            "property_location": "Berlin",
+            "financing_type": "mortgage",
+            "is_first_time_buyer": True,
+            "has_german_residency": True,
+            "budget_euros": 300000,
+            "property_use": "live_in",
+        },
+    }
+
+    r = client.post(
+        f"{settings.API_V1_STR}/journeys/",
+        headers=headers,
+        json=journey_data,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["property_use"] == "live_in"
+
+    step_titles = [step["title"] for step in data["steps"]]
+    assert "Understand Landlord Obligations" not in step_titles
+    assert "Set Up Rental Operations" not in step_titles
+
+
+def test_create_journey_without_property_use_excludes_investor_steps(
+    client: TestClient, db: Session
+) -> None:
+    """Test that journey created without property_use excludes investor steps (backward compat)."""
+    headers, _ = get_auth_headers(client, db)
+    journey = create_journey(client, headers)  # default has no property_use
+
+    step_titles = [step["title"] for step in journey["steps"]]
+    assert "Understand Landlord Obligations" not in step_titles
+    assert "Set Up Rental Operations" not in step_titles
+
+
 def test_property_use_invalid_value_returns_422(
     client: TestClient, db: Session
 ) -> None:

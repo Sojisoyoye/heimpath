@@ -67,6 +67,11 @@ const STEP_CONTENT_REGISTRY: Record<
   ),
   due_diligence: (p) => <StepDocumentReview stepId={p.step.id} />,
   review_contract: (p) => <StepDocumentReview stepId={p.step.id} />,
+  rental_landlord_law: () => null,
+  rental_yield_analysis: () => null,
+  rental_property_management: () => null,
+  rental_tax_strategy: () => null,
+  rental_operations_setup: () => null,
 }
 
 /******************************************************************************

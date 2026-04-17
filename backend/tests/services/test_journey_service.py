@@ -417,8 +417,8 @@ class TestStepTemplates:
     """Tests for step template ordering and content."""
 
     def test_step_templates_total_count(self) -> None:
-        """Test that there are 19 step templates."""
-        assert len(STEP_TEMPLATES) == 19
+        """Test that there are 24 step templates (19 base + 5 rental investor)."""
+        assert len(STEP_TEMPLATES) == 24
 
     def test_find_property_is_step_3(self) -> None:
         """Test that Find a Property (property_search) is step 3."""
@@ -586,7 +586,7 @@ class TestStepTemplates:
         assert template.prerequisites == [13, 19]
 
     def test_research_phase_steps_order(self) -> None:
-        """Test that steps 1-5 are RESEARCH phase with correct content_keys."""
+        """Test that base RESEARCH steps (1-5) have correct content_keys."""
         expected = [
             (1, "research_goals"),
             (2, "market_research"),
@@ -595,9 +595,11 @@ class TestStepTemplates:
             (5, "buying_costs"),
         ]
         research_steps = [t for t in STEP_TEMPLATES if t.phase == JourneyPhase.RESEARCH]
-        assert len(research_steps) == 5
+        # 5 base + 2 rental investor (landlord law, yield analysis)
+        assert len(research_steps) == 7
+        # First 5 should be the base steps
         for template, (expected_num, expected_key) in zip(
-            research_steps, expected, strict=True
+            research_steps[:5], expected, strict=True
         ):
             assert template.step_number == expected_num
             assert template.content_key == expected_key
@@ -1229,6 +1231,170 @@ class TestStep4StatusTransitions:
         assert tasks[3].is_completed is False
         assert mock_step.status == StepStatus.NOT_STARTED
         assert mock_step.started_at is None
+
+
+class TestRentalInvestorSteps:
+    """Tests for rental investor-specific journey steps."""
+
+    @pytest.fixture
+    def rent_out_answers(self) -> QuestionnaireAnswers:
+        """Create questionnaire answers for a rental investor."""
+        return QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="Berlin",
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=300000,
+            property_use="rent_out",
+        )
+
+    @pytest.fixture
+    def live_in_answers(self) -> QuestionnaireAnswers:
+        """Create questionnaire answers for a live-in buyer."""
+        return QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="Berlin",
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=300000,
+            property_use="live_in",
+        )
+
+    def test_investor_steps_included_for_rent_out(
+        self, rent_out_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that rental investor steps are included when property_use is rent_out."""
+        steps = _generate_steps(rent_out_answers)
+        step_titles = [s.title for s in steps]
+
+        assert "Understand Landlord Obligations" in step_titles
+        assert "Analyze Rental Yield" in step_titles
+        assert "Plan Property Management" in step_titles
+        assert "Prepare Rental Tax Strategy" in step_titles
+        assert "Set Up Rental Operations" in step_titles
+
+    def test_investor_steps_excluded_for_live_in(
+        self, live_in_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that rental investor steps are excluded when property_use is live_in."""
+        steps = _generate_steps(live_in_answers)
+        step_titles = [s.title for s in steps]
+
+        assert "Understand Landlord Obligations" not in step_titles
+        assert "Analyze Rental Yield" not in step_titles
+        assert "Plan Property Management" not in step_titles
+        assert "Prepare Rental Tax Strategy" not in step_titles
+        assert "Set Up Rental Operations" not in step_titles
+
+    def test_investor_steps_excluded_when_property_use_none(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that rental investor steps are excluded when property_use is None (backward compat)."""
+        # sample_answers has no property_use (defaults to None)
+        steps = _generate_steps(sample_answers)
+        step_titles = [s.title for s in steps]
+
+        assert "Understand Landlord Obligations" not in step_titles
+        assert "Analyze Rental Yield" not in step_titles
+        assert "Plan Property Management" not in step_titles
+        assert "Prepare Rental Tax Strategy" not in step_titles
+        assert "Set Up Rental Operations" not in step_titles
+
+    def test_rental_setup_phase_in_progress(
+        self, rent_out_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that progress calculation includes RENTAL_SETUP phase for investor journeys."""
+        steps = _generate_steps(rent_out_answers)
+        rental_setup_steps = [s for s in steps if s.phase == JourneyPhase.RENTAL_SETUP]
+        assert len(rental_setup_steps) == 1
+        assert rental_setup_steps[0].title == "Set Up Rental Operations"
+
+    def test_property_use_stored_on_journey(
+        self, rent_out_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that property_use is persisted on the Journey model."""
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = None
+
+        journey = generate_journey(
+            session=mock_session,
+            user_id=uuid.uuid4(),
+            title="Test Investor Journey",
+            answers=rent_out_answers,
+        )
+
+        assert journey.property_use == "rent_out"
+
+    def test_property_use_none_when_not_provided(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that property_use is None when not in questionnaire (backward compat)."""
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = None
+
+        journey = generate_journey(
+            session=mock_session,
+            user_id=uuid.uuid4(),
+            title="Test Journey",
+            answers=sample_answers,
+        )
+
+        assert journey.property_use is None
+
+    def test_investor_step_templates_have_correct_phases(
+        self,
+    ) -> None:
+        """Test that investor step templates use the correct phases."""
+        rental_templates = [
+            t for t in STEP_TEMPLATES if t.conditions and "property_use" in t.conditions
+        ]
+        assert len(rental_templates) == 5
+
+        content_keys = [t.content_key for t in rental_templates]
+        assert "rental_landlord_law" in content_keys
+        assert "rental_yield_analysis" in content_keys
+        assert "rental_property_management" in content_keys
+        assert "rental_tax_strategy" in content_keys
+        assert "rental_operations_setup" in content_keys
+
+    def test_investor_step_phases_distribution(
+        self,
+    ) -> None:
+        """Test that investor steps are distributed across the correct phases."""
+        rental_templates = {
+            t.content_key: t
+            for t in STEP_TEMPLATES
+            if t.conditions and "property_use" in t.conditions
+        }
+        assert rental_templates["rental_landlord_law"].phase == JourneyPhase.RESEARCH
+        assert rental_templates["rental_yield_analysis"].phase == JourneyPhase.RESEARCH
+        assert (
+            rental_templates["rental_property_management"].phase
+            == JourneyPhase.PREPARATION
+        )
+        assert rental_templates["rental_tax_strategy"].phase == JourneyPhase.BUYING
+        assert (
+            rental_templates["rental_operations_setup"].phase
+            == JourneyPhase.RENTAL_SETUP
+        )
+
+    def test_investor_steps_each_have_tasks(
+        self, rent_out_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that each investor step has tasks."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_answers)
+        investor_titles = [
+            "Understand Landlord Obligations",
+            "Analyze Rental Yield",
+            "Plan Property Management",
+            "Prepare Rental Tax Strategy",
+            "Set Up Rental Operations",
+        ]
+        for title in investor_titles:
+            assert title in steps_with_tasks
+            assert len(steps_with_tasks[title]) >= 3
 
 
 class TestPersonalizeBuyingCosts:

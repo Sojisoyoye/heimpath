@@ -501,6 +501,172 @@ STEP_TEMPLATES: list[StepTemplate] = [
         ],
         related_laws=["GBO §13 (Eintragungsgrundsatz)"],
     ),
+    # RENTAL INVESTOR STEPS (conditional on property_use = rent_out)
+    StepTemplate(
+        step_number=20,
+        phase=JourneyPhase.RESEARCH,
+        title="Understand Landlord Obligations",
+        description="Learn about German landlord duties, tenant protections, and rental regulations before purchasing an investment property.",
+        estimated_duration_days=5,
+        content_key="rental_landlord_law",
+        conditions={"property_use": ["rent_out"]},
+        prerequisites=[2],
+        tasks=[
+            {
+                "title": "Study BGB Mietrecht (§535-580a) tenant protection basics",
+                "is_required": True,
+            },
+            {
+                "title": "Understand Mietpreisbremse (rent control) rules in your target area",
+                "is_required": True,
+            },
+            {
+                "title": "Learn Kaution (deposit) regulations — max 3 months' cold rent",
+                "is_required": True,
+            },
+            {
+                "title": "Review Kündigungsschutz (eviction protection) requirements",
+                "is_required": True,
+            },
+            {
+                "title": "Check local Zweckentfremdungsverbot (prohibition of misuse) rules",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "BGB §535-580a (Mietrecht)",
+            "MietpreisbremseVO (Rent Control Ordinance)",
+        ],
+    ),
+    StepTemplate(
+        step_number=21,
+        phase=JourneyPhase.RESEARCH,
+        title="Analyze Rental Yield",
+        description="Calculate expected rental returns, compare with local Mietspiegel, and assess the investment viability.",
+        estimated_duration_days=5,
+        content_key="rental_yield_analysis",
+        conditions={"property_use": ["rent_out"]},
+        prerequisites=[4],
+        tasks=[
+            {
+                "title": "Look up local Mietspiegel (rent index) for your target area",
+                "is_required": True,
+            },
+            {
+                "title": "Calculate gross Mietrendite (rental yield) for the property",
+                "is_required": True,
+            },
+            {
+                "title": "Estimate net yield after costs (Hausgeld, maintenance, vacancy)",
+                "is_required": True,
+            },
+            {
+                "title": "Compare yields with market averages using the ROI calculator",
+                "is_required": True,
+            },
+            {
+                "title": "Research comparable rental listings in the neighborhood",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=22,
+        phase=JourneyPhase.PREPARATION,
+        title="Plan Property Management",
+        description="Decide between self-management and hiring a Hausverwaltung, and understand the associated costs.",
+        estimated_duration_days=7,
+        content_key="rental_property_management",
+        conditions={"property_use": ["rent_out"]},
+        prerequisites=[5],
+        tasks=[
+            {
+                "title": "Compare self-management vs Hausverwaltung (property management agency)",
+                "is_required": True,
+            },
+            {
+                "title": "Get quotes from local Hausverwaltung companies (typically 20-30 EUR/unit/month)",
+                "is_required": True,
+            },
+            {
+                "title": "Understand WEG-Verwaltung vs Mietverwaltung responsibilities",
+                "is_required": True,
+            },
+            {
+                "title": "Plan for maintenance reserve (Instandhaltungsrücklage)",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=23,
+        phase=JourneyPhase.BUYING,
+        title="Prepare Rental Tax Strategy",
+        description="Understand tax obligations for rental income in Germany, including deductions and depreciation.",
+        estimated_duration_days=7,
+        content_key="rental_tax_strategy",
+        conditions={"property_use": ["rent_out"]},
+        prerequisites=[10],
+        tasks=[
+            {
+                "title": "Learn about Anlage V (income from renting) tax filing",
+                "is_required": True,
+            },
+            {
+                "title": "Identify deductible expenses (mortgage interest, repairs, Hausverwaltung fees)",
+                "is_required": True,
+            },
+            {
+                "title": "Understand AfA (Absetzung für Abnutzung) — 2% linear depreciation over 50 years",
+                "is_required": True,
+            },
+            {
+                "title": "Consider consulting a Steuerberater (tax advisor) for rental income",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "EStG §21 (Einkünfte aus Vermietung und Verpachtung)",
+            "EStG §7 (AfA — Absetzung für Abnutzung)",
+        ],
+    ),
+    StepTemplate(
+        step_number=24,
+        phase=JourneyPhase.RENTAL_SETUP,
+        title="Set Up Rental Operations",
+        description="Prepare everything needed to start renting out your property: lease template, tenant screening, and utility accounting.",
+        estimated_duration_days=14,
+        content_key="rental_operations_setup",
+        conditions={"property_use": ["rent_out"]},
+        prerequisites=[17],
+        tasks=[
+            {
+                "title": "Prepare a Mietvertrag (lease agreement) using a standard template",
+                "is_required": True,
+            },
+            {
+                "title": "Set up tenant screening process (SCHUFA check, income verification)",
+                "is_required": True,
+            },
+            {
+                "title": "Plan Nebenkostenabrechnung (utility cost accounting) for tenants",
+                "is_required": True,
+            },
+            {
+                "title": "Arrange landlord insurance (Haus- und Grundbesitzerhaftpflicht)",
+                "is_required": True,
+            },
+            {
+                "title": "Create a Wohnungsübergabeprotokoll (handover protocol) template",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "BGB §535 (Mietvertrag)",
+            "BetrKV (Betriebskostenverordnung)",
+            "HeizkostenV (Heizkostenverordnung)",
+        ],
+    ),
 ]
 
 
@@ -624,7 +790,7 @@ def _matches_conditions(
     for field, valid_values in conditions.items():
         answer_value = getattr(answers, field, None)
         if answer_value is None:
-            continue
+            return False
 
         # Handle enum values
         if hasattr(answer_value, "value"):
@@ -676,11 +842,13 @@ def generate_journey(
         has_german_residency=answers.has_german_residency,
         budget_euros=answers.budget_euros,
         target_purchase_date=answers.target_purchase_date,
+        property_use=answers.property_use,
         started_at=datetime.now(timezone.utc),
         property_goals={
             "preferred_property_type": answers.property_type.value,
             "budget_min_euros": answers.budget_min_euros,
             "budget_max_euros": answers.budget_euros,
+            "property_use": answers.property_use,
         },
     )
     session.add(journey)
