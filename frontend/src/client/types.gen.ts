@@ -1306,7 +1306,7 @@ export type PortfolioTransactionCreate = {
     /**
      * Transaction type enum value
      */
-    type: string;
+    type: TransactionType;
     amount: number;
     date: string;
     category?: (string | null);
@@ -1973,6 +1973,11 @@ export type Token = {
     access_token: string;
     token_type?: string;
 };
+
+/**
+ * Types of portfolio transactions.
+ */
+export type TransactionType = 'rent_income' | 'operating_expense' | 'maintenance' | 'insurance' | 'hausgeld' | 'mortgage_interest' | 'tax_payment' | 'other_income' | 'other_expense';
 
 /**
  * A single page of translated content.

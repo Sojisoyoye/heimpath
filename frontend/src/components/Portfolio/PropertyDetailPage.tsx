@@ -5,10 +5,21 @@
 
 import { Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, Edit, MapPin, Plus, Trash2 } from "lucide-react"
+import { useState } from "react"
 
+import { formatEur } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   useCreateTransaction,
@@ -38,13 +49,6 @@ interface IProps {
                               Constants
 ******************************************************************************/
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(value)
-
 const formatDate = (dateStr: string | null) =>
   dateStr ? new Date(dateStr).toLocaleDateString("de-DE") : "-"
 
@@ -57,6 +61,8 @@ function PropertyDetailPage(props: IProps) {
   const { propertyId } = props
   const navigate = useNavigate()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const { data: property, isLoading, error } = usePortfolioProperty(propertyId)
   const { data: transactionsData } = usePortfolioTransactions(propertyId)
@@ -74,8 +80,8 @@ function PropertyDetailPage(props: IProps) {
     .filter((t) => !INCOME_TYPES.includes(t.type))
     .reduce((sum, t) => sum + t.amount, 0)
 
-  const handleUpdate = (input: PortfolioPropertyInput) => {
-    updateProperty.mutate(
+  const handleUpdate = async (input: PortfolioPropertyInput) => {
+    await updateProperty.mutateAsync(
       { id: propertyId, input },
       {
         onSuccess: () => showSuccessToast("Property updated"),
@@ -90,12 +96,15 @@ function PropertyDetailPage(props: IProps) {
         showSuccessToast("Property deleted")
         navigate({ to: "/portfolio" })
       },
-      onError: () => showErrorToast("Failed to delete property"),
+      onError: () => {
+        showErrorToast("Failed to delete property")
+        setShowDeleteConfirm(false)
+      },
     })
   }
 
-  const handleCreateTransaction = (input: PortfolioTransactionInput) => {
-    createTransaction.mutate(
+  const handleCreateTransaction = async (input: PortfolioTransactionInput) => {
+    await createTransaction.mutateAsync(
       { propertyId, input },
       {
         onSuccess: () => showSuccessToast("Transaction added"),
@@ -188,7 +197,7 @@ function PropertyDetailPage(props: IProps) {
             variant="outline"
             size="sm"
             className="text-destructive hover:bg-destructive/10"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={deleteProperty.isPending}
           >
             <Trash2 className="mr-2 h-4 w-4" />
@@ -207,11 +216,11 @@ function PropertyDetailPage(props: IProps) {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {formatCurrency(property.purchasePrice)}
+              {formatEur(property.purchasePrice)}
             </p>
             {property.currentValueEstimate && (
               <p className="text-sm text-muted-foreground">
-                Est. value: {formatCurrency(property.currentValueEstimate)}
+                Est. value: {formatEur(property.currentValueEstimate)}
               </p>
             )}
           </CardContent>
@@ -257,7 +266,7 @@ function PropertyDetailPage(props: IProps) {
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Income</p>
             <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-              +{formatCurrency(totalIncome)}
+              +{formatEur(totalIncome)}
             </p>
           </CardContent>
         </Card>
@@ -265,7 +274,7 @@ function PropertyDetailPage(props: IProps) {
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Expenses</p>
             <p className="text-xl font-bold text-red-600 dark:text-red-400">
-              -{formatCurrency(totalExpenses)}
+              -{formatEur(totalExpenses)}
             </p>
           </CardContent>
         </Card>
@@ -279,7 +288,7 @@ function PropertyDetailPage(props: IProps) {
                   : "text-red-600 dark:text-red-400"
               }`}
             >
-              {formatCurrency(totalIncome - totalExpenses)}
+              {formatEur(totalIncome - totalExpenses)}
             </p>
           </CardContent>
         </Card>
@@ -322,6 +331,33 @@ function PropertyDetailPage(props: IProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Property</DialogTitle>
+            <DialogDescription>
+              This will permanently delete this property and all its
+              transactions. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={deleteProperty.isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteProperty.isPending}
+            >
+              {deleteProperty.isPending ? "Deleting..." : "Delete Property"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

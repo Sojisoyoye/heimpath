@@ -4,6 +4,7 @@
  */
 
 import { Trash2 } from "lucide-react"
+import { formatEur2 } from "@/common/utils/formatters"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -37,13 +38,6 @@ const TYPE_LABELS: Record<string, string> = {
   other_income: "Other Income",
   other_expense: "Other Expense",
 }
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  }).format(value)
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("de-DE")
@@ -95,7 +89,7 @@ function TransactionList(props: IProps) {
                 }`}
               >
                 {isIncome ? "+" : "-"}
-                {formatCurrency(txn.amount)}
+                {formatEur2(txn.amount)}
               </TableCell>
               <TableCell>
                 <Button

@@ -5,6 +5,7 @@
 
 import { Link } from "@tanstack/react-router"
 import { MapPin } from "lucide-react"
+import { formatEur } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { PortfolioPropertySummary } from "@/models/portfolio"
@@ -16,13 +17,6 @@ interface IProps {
 /******************************************************************************
                               Constants
 ******************************************************************************/
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(value)
 
 /******************************************************************************
                               Components
@@ -66,14 +60,14 @@ function PropertyCard(props: IProps) {
             <div>
               <p className="text-muted-foreground">Purchase Price</p>
               <p className="font-semibold">
-                {formatCurrency(property.purchasePrice)}
+                {formatEur(property.purchasePrice)}
               </p>
             </div>
             {property.monthlyRentTarget != null && (
               <div className="text-right">
                 <p className="text-muted-foreground">Monthly Rent</p>
                 <p className="font-semibold">
-                  {formatCurrency(property.monthlyRentTarget)}
+                  {formatEur(property.monthlyRentTarget)}
                 </p>
               </div>
             )}

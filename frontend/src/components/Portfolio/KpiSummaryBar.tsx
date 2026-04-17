@@ -4,6 +4,7 @@
  */
 
 import { Building2, DollarSign, Home, TrendingUp } from "lucide-react"
+import { formatEur } from "@/common/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { PortfolioSummary } from "@/models/portfolio"
 
@@ -14,13 +15,6 @@ interface IProps {
 /******************************************************************************
                               Constants
 ******************************************************************************/
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(value)
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`
 
@@ -40,7 +34,7 @@ function KpiSummaryBar(props: IProps) {
     },
     {
       title: "Net Cash Flow",
-      value: formatCurrency(summary.netCashFlow),
+      value: formatEur(summary.netCashFlow),
       icon: DollarSign,
       valueClassName:
         summary.netCashFlow >= 0

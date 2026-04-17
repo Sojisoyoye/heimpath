@@ -5,6 +5,8 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.portfolio import TransactionType
+
 # ---------------------------------------------------------------------------
 # Property schemas
 # ---------------------------------------------------------------------------
@@ -107,7 +109,7 @@ class PortfolioPropertyListResponse(BaseModel):
 class PortfolioTransactionCreate(BaseModel):
     """Request to create a portfolio transaction."""
 
-    type: str = Field(..., description="Transaction type enum value")
+    type: TransactionType = Field(..., description="Transaction type enum value")
     amount: float = Field(..., gt=0)
     date: date
     category: str | None = Field(None, max_length=100)

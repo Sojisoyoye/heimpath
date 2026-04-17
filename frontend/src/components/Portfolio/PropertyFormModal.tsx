@@ -39,7 +39,7 @@ import type {
 interface IProps {
   property?: PortfolioProperty | null
   trigger: React.ReactNode
-  onSubmit: (data: PortfolioPropertyInput) => void
+  onSubmit: (data: PortfolioPropertyInput) => void | Promise<void>
   isPending: boolean
 }
 
@@ -106,7 +106,7 @@ function PropertyFormModal(props: IProps) {
     },
   })
 
-  const handleSubmit = (data: FormData) => {
+  const handleSubmit = async (data: FormData) => {
     const input: PortfolioPropertyInput = {
       address: data.address,
       city: data.city,
@@ -125,9 +125,13 @@ function PropertyFormModal(props: IProps) {
       isVacant: data.isVacant,
       notes: data.notes || null,
     }
-    onSubmit(input)
-    setIsOpen(false)
-    if (!property) form.reset()
+    try {
+      await onSubmit(input)
+      setIsOpen(false)
+      if (!property) form.reset()
+    } catch {
+      // Keep modal open on failure — toast shown by parent
+    }
   }
 
   return (

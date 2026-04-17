@@ -4679,8 +4679,7 @@ export const PortfolioSummaryResponseSchema = {
 export const PortfolioTransactionCreateSchema = {
     properties: {
         type: {
-            type: 'string',
-            title: 'Type',
+            '$ref': '#/components/schemas/TransactionType',
             description: 'Transaction type enum value'
         },
         amount: {
@@ -7183,6 +7182,13 @@ export const TokenSchema = {
     type: 'object',
     required: ['access_token'],
     title: 'Token'
+} as const;
+
+export const TransactionTypeSchema = {
+    type: 'string',
+    enum: ['rent_income', 'operating_expense', 'maintenance', 'insurance', 'hausgeld', 'mortgage_interest', 'tax_payment', 'other_income', 'other_expense'],
+    title: 'TransactionType',
+    description: 'Types of portfolio transactions.'
 } as const;
 
 export const TranslatedPageSchema = {

@@ -44,7 +44,7 @@ import type {
 
 interface IProps {
   trigger: React.ReactNode
-  onSubmit: (data: PortfolioTransactionInput) => void
+  onSubmit: (data: PortfolioTransactionInput) => void | Promise<void>
   isPending: boolean
 }
 
@@ -97,7 +97,7 @@ function TransactionFormModal(props: IProps) {
     },
   })
 
-  const handleSubmit = (data: FormData) => {
+  const handleSubmit = async (data: FormData) => {
     const input: PortfolioTransactionInput = {
       type: data.type as TransactionType,
       amount: Number(data.amount),
@@ -106,9 +106,13 @@ function TransactionFormModal(props: IProps) {
       description: data.description || null,
       isRecurring: data.isRecurring,
     }
-    onSubmit(input)
-    setIsOpen(false)
-    form.reset()
+    try {
+      await onSubmit(input)
+      setIsOpen(false)
+      form.reset()
+    } catch {
+      // Keep modal open on failure — toast shown by parent
+    }
   }
 
   return (
