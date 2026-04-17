@@ -12,6 +12,7 @@ import type {
   HiddenCostCalculation,
   HiddenCostCalculationInput,
   HiddenCostCalculationSummary,
+  RentEstimate,
   ROICalculation,
   ROICalculationInput,
   ROICalculationSummary,
@@ -124,6 +125,28 @@ class CalculatorServiceClass {
       url: `${PATHS.CALCULATORS.HIDDEN_COSTS_COMPARE}?${params.toString()}`,
     })
     return transformKeys<StateComparisonResponse>(response)
+  }
+
+  // -------------------------------------------------------------------------
+  // Rent Estimate
+  // -------------------------------------------------------------------------
+
+  /**
+   * Get a rent estimate for a German postcode (no auth required)
+   */
+  async getRentEstimate(
+    postcode: string,
+    sizeSqm?: number,
+    buildingYear?: number,
+  ): Promise<RentEstimate> {
+    const params = new URLSearchParams({ postcode })
+    if (sizeSqm != null) params.set("size_sqm", String(sizeSqm))
+    if (buildingYear != null) params.set("building_year", String(buildingYear))
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: `${PATHS.MARKET.RENT_ESTIMATE}?${params.toString()}`,
+    })
+    return transformKeys<RentEstimate>(response)
   }
 
   // -------------------------------------------------------------------------

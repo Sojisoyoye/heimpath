@@ -124,6 +124,11 @@ export const PATHS = {
     GLOBAL: `${API_V1}/search/`,
   },
 
+  // Market Data
+  MARKET: {
+    RENT_ESTIMATE: `${API_V1}/market/rent-estimate`,
+  },
+
   // Dashboard
   DASHBOARD: {
     OVERVIEW: `${API_V1}/dashboard/`,
