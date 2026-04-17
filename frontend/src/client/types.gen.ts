@@ -1559,7 +1559,6 @@ export type ReviewCreateRequest = {
 export type ReviewResponse = {
     id: string;
     professional_id: string;
-    user_id: string;
     rating: number;
     comment?: (string | null);
     created_at: string;
@@ -2573,6 +2572,10 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ProfessionalsGetFilterOptionsResponse = ({
+    [key: string]: unknown;
+});
 
 export type ProfessionalsListProfessionalsData = {
     city?: (string | null);

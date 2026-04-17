@@ -16,7 +16,7 @@ import { ReviewForm } from "./ReviewForm"
 import { StarRating } from "./StarRating"
 
 interface IProps {
-  professional: ProfessionalDetailType
+  professional: ProfessionalDetailType | null
   isLoading?: boolean
 }
 
@@ -25,11 +25,13 @@ interface IProps {
 ******************************************************************************/
 
 /** Review item display. */
-function ReviewItem(props: {
-  rating: number
-  comment?: string
-  createdAt: string
-}) {
+function ReviewItem(
+  props: Readonly<{
+    rating: number
+    comment?: string
+    createdAt: string
+  }>,
+) {
   const { rating, comment, createdAt } = props
 
   return (
@@ -46,10 +48,10 @@ function ReviewItem(props: {
 }
 
 /** Default component. Professional full profile view. */
-function ProfessionalDetail(props: IProps) {
+function ProfessionalDetail(props: Readonly<IProps>) {
   const { professional, isLoading } = props
 
-  if (isLoading) {
+  if (isLoading || !professional) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />

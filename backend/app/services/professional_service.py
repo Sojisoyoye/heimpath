@@ -39,7 +39,11 @@ def get_professionals(
         query = query.where(Professional.city == city)
 
     if language:
-        query = query.where(Professional.languages.ilike(f"%{language}%"))
+        # Escape SQL LIKE wildcards in user input to prevent pattern abuse
+        safe_language = language.replace("%", r"\%").replace("_", r"\_")
+        query = query.where(
+            Professional.languages.ilike(f"%{safe_language}%", escape="\\")
+        )
 
     if min_rating is not None:
         query = query.where(Professional.average_rating >= min_rating)
@@ -145,6 +149,18 @@ def _update_professional_rating(session: Session, professional_id: uuid.UUID) ->
 
 
 def get_available_cities(session: Session) -> list[str]:
-    """Get distinct cities from professionals."""
+    """Get distinct cities that have professionals."""
     query = select(Professional.city).distinct().order_by(Professional.city)
     return list(session.execute(query).scalars().all())
+
+
+def get_available_languages(session: Session) -> list[str]:
+    """Get distinct languages spoken by professionals."""
+    rows = session.execute(select(Professional.languages)).scalars().all()
+    languages: set[str] = set()
+    for lang_str in rows:
+        for lang in lang_str.split(","):
+            stripped = lang.strip()
+            if stripped:
+                languages.add(stripped)
+    return sorted(languages)

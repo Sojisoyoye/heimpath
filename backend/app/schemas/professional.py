@@ -60,7 +60,6 @@ class ReviewResponse(BaseModel):
 
     id: uuid.UUID
     professional_id: uuid.UUID
-    user_id: uuid.UUID
     rating: int
     comment: str | None = None
     created_at: datetime

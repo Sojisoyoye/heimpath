@@ -7,7 +7,6 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { ProfessionalDetail } from "@/components/Professionals"
 import { useProfessional } from "@/hooks/queries"
-import type { ProfessionalDetail as ProfessionalDetailType } from "@/models/professional"
 
 /******************************************************************************
                               Route
@@ -51,12 +50,7 @@ function ProfessionalDetailPage() {
   }
 
   if (isLoading || !professional) {
-    return (
-      <ProfessionalDetail
-        professional={{} as ProfessionalDetailType}
-        isLoading
-      />
-    )
+    return <ProfessionalDetail professional={null} isLoading />
   }
 
   return <ProfessionalDetail professional={professional} />

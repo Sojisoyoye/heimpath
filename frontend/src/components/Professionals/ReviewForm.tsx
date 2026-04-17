@@ -20,7 +20,7 @@ interface IProps {
 ******************************************************************************/
 
 /** Default component. Review submission form. */
-function ReviewForm(props: IProps) {
+function ReviewForm(props: Readonly<IProps>) {
   const { professionalId } = props
   const { user } = useAuth()
   const { showSuccessToast, showErrorToast } = useCustomToast()

@@ -5997,11 +5997,6 @@ export const ReviewResponseSchema = {
             format: 'uuid',
             title: 'Professional Id'
         },
-        user_id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'User Id'
-        },
         rating: {
             type: 'integer',
             title: 'Rating'
@@ -6024,7 +6019,7 @@ export const ReviewResponseSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'professional_id', 'user_id', 'rating', 'created_at'],
+    required: ['id', 'professional_id', 'rating', 'created_at'],
     title: 'ReviewResponse',
     description: 'Response schema for a professional review.'
 } as const;

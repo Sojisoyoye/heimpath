@@ -29,7 +29,7 @@ const SIZE_CLASSES = {
 ******************************************************************************/
 
 /** Default component. Displays or accepts star ratings. */
-function StarRating(props: IProps) {
+function StarRating(props: Readonly<IProps>) {
   const {
     rating,
     maxStars = 5,
@@ -41,34 +41,48 @@ function StarRating(props: IProps) {
 
   const displayRating = hoverRating || rating
 
+  const ariaProps = interactive
+    ? {}
+    : {
+        role: "img" as const,
+        "aria-label": `${rating} out of ${maxStars} stars`,
+      }
+
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0.5" {...ariaProps}>
       {Array.from({ length: maxStars }, (_, i) => {
         const starValue = i + 1
         const isFilled = starValue <= displayRating
+        const starIcon = (
+          <Star
+            className={cn(
+              SIZE_CLASSES[size],
+              isFilled
+                ? "fill-yellow-400 text-yellow-400"
+                : "fill-none text-gray-300 dark:text-gray-600",
+            )}
+          />
+        )
+
+        if (!interactive) {
+          return (
+            <span key={starValue} aria-hidden="true">
+              {starIcon}
+            </span>
+          )
+        }
 
         return (
           <button
             key={starValue}
             type="button"
-            disabled={!interactive}
-            className={cn(
-              "transition-colors",
-              interactive && "cursor-pointer hover:scale-110",
-              !interactive && "cursor-default",
-            )}
-            onClick={() => interactive && onRate?.(starValue)}
-            onMouseEnter={() => interactive && setHoverRating(starValue)}
-            onMouseLeave={() => interactive && setHoverRating(0)}
+            aria-label={`Rate ${starValue} star${starValue > 1 ? "s" : ""}`}
+            className="cursor-pointer hover:scale-110 transition-colors"
+            onClick={() => onRate?.(starValue)}
+            onMouseEnter={() => setHoverRating(starValue)}
+            onMouseLeave={() => setHoverRating(0)}
           >
-            <Star
-              className={cn(
-                SIZE_CLASSES[size],
-                isFilled
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "fill-none text-gray-300 dark:text-gray-600",
-              )}
-            />
+            {starIcon}
           </button>
         )
       })}

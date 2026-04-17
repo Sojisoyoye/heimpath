@@ -38,7 +38,7 @@ const TYPE_COLORS: Record<ProfessionalType, string> = {
 ******************************************************************************/
 
 /** Default component. Professional summary card. */
-function ProfessionalCard(props: IProps) {
+function ProfessionalCard(props: Readonly<IProps>) {
   const { professional, className } = props
 
   return (

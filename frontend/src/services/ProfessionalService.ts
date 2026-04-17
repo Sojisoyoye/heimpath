@@ -9,6 +9,7 @@ import type {
   Professional,
   ProfessionalDetail,
   ProfessionalFilter,
+  ProfessionalFilterOptions,
   ProfessionalReview,
 } from "@/models/professional"
 import { PATHS } from "./common/Paths"
@@ -27,6 +28,17 @@ interface ProfessionalListResponse {
 ******************************************************************************/
 
 class ProfessionalServiceClass {
+  /**
+   * Get available filter options (cities and languages) from the directory
+   */
+  async getFilterOptions(): Promise<ProfessionalFilterOptions> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: `${PATHS.PROFESSIONALS.LIST.replace(/\/$/, "")}/filters`,
+    })
+    return transformKeys<ProfessionalFilterOptions>(response)
+  }
+
   /**
    * Get paginated list of professionals with optional filters
    */

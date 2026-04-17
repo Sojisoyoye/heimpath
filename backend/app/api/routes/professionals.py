@@ -1,11 +1,11 @@
 """Professional network directory API endpoints."""
 
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session
+from fastapi import APIRouter, HTTPException, Query, status
 
-from app.api.deps import CurrentUser, get_db
+from app.api.deps import CurrentUser, SessionDep
 from app.schemas.professional import (
     ProfessionalDetailResponse,
     ProfessionalListResponse,
@@ -23,15 +23,23 @@ router = APIRouter(prefix="/professionals", tags=["professionals"])
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response_model=ProfessionalListResponse)
+@router.get("/filters")
+async def get_filter_options(session: SessionDep) -> dict:
+    """Get available filter values (cities and languages) from the directory."""
+    cities = professional_service.get_available_cities(session)
+    languages = professional_service.get_available_languages(session)
+    return {"cities": cities, "languages": languages}
+
+
+@router.get("/")
 async def list_professionals(
-    session: Session = Depends(get_db),
+    session: SessionDep,
     type: str | None = None,
     city: str | None = None,
     language: str | None = None,
-    min_rating: float | None = Query(None, ge=0, le=5),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    min_rating: Annotated[float | None, Query(ge=0, le=5)] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> ProfessionalListResponse:
     """Get paginated list of professionals with optional filters."""
     professionals, total = professional_service.get_professionals(
@@ -53,10 +61,10 @@ async def list_professionals(
     )
 
 
-@router.get("/{professional_id}", response_model=ProfessionalDetailResponse)
+@router.get("/{professional_id}")
 async def get_professional(
     professional_id: uuid.UUID,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> ProfessionalDetailResponse:
     """Get professional detail with reviews."""
     try:
@@ -87,14 +95,13 @@ async def get_professional(
 
 @router.post(
     "/{professional_id}/reviews",
-    response_model=ReviewResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_review(
     professional_id: uuid.UUID,
     request: ReviewCreateRequest,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> ReviewResponse:
     """Submit a review for a professional."""
     try:

@@ -13,6 +13,7 @@ from app.models.professional import Professional, ProfessionalType
 
 logger = logging.getLogger(__name__)
 
+LANG_DE_EN = "German, English"
 
 PROFESSIONALS: list[dict] = [
     # --- Lawyers ---
@@ -20,7 +21,7 @@ PROFESSIONALS: list[dict] = [
         "name": "Dr. Anna Fischer",
         "type": ProfessionalType.LAWYER.value,
         "city": "Berlin",
-        "languages": "German, English",
+        "languages": LANG_DE_EN,
         "description": (
             "Specializes in German real estate law with over 15 years of experience "
             "helping international buyers navigate property transactions."
@@ -57,7 +58,7 @@ PROFESSIONALS: list[dict] = [
         "name": "Dr. Klaus Weber",
         "type": ProfessionalType.NOTARY.value,
         "city": "Berlin",
-        "languages": "German, English",
+        "languages": LANG_DE_EN,
         "description": (
             "Public notary with extensive experience in property purchase "
             "contracts and land registry proceedings."
@@ -82,7 +83,7 @@ PROFESSIONALS: list[dict] = [
         "name": "Dr. Thomas Braun",
         "type": ProfessionalType.NOTARY.value,
         "city": "Munich",
-        "languages": "German, English",
+        "languages": LANG_DE_EN,
         "description": (
             "Experienced notary handling residential and commercial property "
             "transactions in the greater Munich area."
@@ -119,7 +120,7 @@ PROFESSIONALS: list[dict] = [
         "name": "Stefan Müller",
         "type": ProfessionalType.TAX_ADVISOR.value,
         "city": "Berlin",
-        "languages": "German, English",
+        "languages": LANG_DE_EN,
         "description": (
             "Tax consultant with deep expertise in Grunderwerbsteuer (property "
             "transfer tax) and cross-border tax planning."
@@ -131,7 +132,7 @@ PROFESSIONALS: list[dict] = [
         "name": "James Cooper",
         "type": ProfessionalType.MORTGAGE_BROKER.value,
         "city": "Berlin",
-        "languages": "German, English",
+        "languages": LANG_DE_EN,
         "description": (
             "Independent mortgage broker helping expats secure competitive "
             "financing from German banks. Specializes in non-resident mortgages."
@@ -193,7 +194,7 @@ PROFESSIONALS: list[dict] = [
         "name": "Hans-Peter Richter",
         "type": ProfessionalType.REAL_ESTATE_AGENT.value,
         "city": "Düsseldorf",
-        "languages": "German, English",
+        "languages": LANG_DE_EN,
         "description": (
             "Established real estate agent in the Rhineland area with 20+ years "
             "of experience and a network of trusted legal and financial partners."

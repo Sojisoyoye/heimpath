@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useProfessionalFilterOptions } from "@/hooks/queries"
 import type {
   ProfessionalFilter,
   ProfessionalType,
@@ -36,21 +37,6 @@ const PROFESSIONAL_TYPES: ProfessionalType[] = [
   "real_estate_agent",
 ]
 
-const CITIES = ["Berlin", "Munich", "Frankfurt", "Hamburg", "Düsseldorf"]
-
-const LANGUAGES = [
-  "English",
-  "Turkish",
-  "Spanish",
-  "French",
-  "Mandarin",
-  "Arabic",
-  "Russian",
-  "Japanese",
-  "Italian",
-  "Hindi",
-]
-
 const MIN_RATINGS = [
   { value: "3", label: "3+ stars" },
   { value: "4", label: "4+ stars" },
@@ -62,8 +48,12 @@ const MIN_RATINGS = [
 ******************************************************************************/
 
 /** Default component. Filter controls for professional directory. */
-function ProfessionalFilters(props: IProps) {
+function ProfessionalFilters(props: Readonly<IProps>) {
   const { filters, onFiltersChange } = props
+  const { data: filterOptions } = useProfessionalFilterOptions()
+
+  const cities = filterOptions?.cities ?? []
+  const languages = filterOptions?.languages ?? []
 
   const activeFilterCount = [
     filters.type,
@@ -128,7 +118,7 @@ function ProfessionalFilters(props: IProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All cities</SelectItem>
-            {CITIES.map((city) => (
+            {cities.map((city) => (
               <SelectItem key={city} value={city}>
                 {city}
               </SelectItem>
@@ -152,7 +142,7 @@ function ProfessionalFilters(props: IProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All languages</SelectItem>
-            {LANGUAGES.map((lang) => (
+            {languages.map((lang) => (
               <SelectItem key={lang} value={lang}>
                 {lang}
               </SelectItem>

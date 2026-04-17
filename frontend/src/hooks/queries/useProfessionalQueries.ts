@@ -30,3 +30,14 @@ export function useProfessional(id: string) {
     enabled: !!id,
   })
 }
+
+/**
+ * Get available filter options (cities and languages)
+ */
+export function useProfessionalFilterOptions() {
+  return useQuery({
+    queryKey: queryKeys.professionals.filterOptions(),
+    queryFn: () => ProfessionalService.getFilterOptions(),
+    staleTime: 5 * 60 * 1000,
+  })
+}

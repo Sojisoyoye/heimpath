@@ -272,3 +272,52 @@ def test_create_review_for_nonexistent_professional(
         headers=headers,
     )
     assert r.status_code == 404
+
+
+def test_review_response_does_not_expose_user_id(
+    client: TestClient, db: Session
+) -> None:
+    """Test that review responses do not include user_id."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+        json={"rating": 4, "comment": "Good"},
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert "user_id" not in data
+
+
+def test_get_filter_options(client: TestClient, db: Session) -> None:
+    """Test GET /professionals/filters returns cities and languages."""
+    create_sample_professional(db, city="Munich")
+    # Default languages is "German, English"
+
+    r = client.get(f"{settings.API_V1_STR}/professionals/filters")
+
+    assert r.status_code == 200
+    data = r.json()
+    assert "cities" in data
+    assert "languages" in data
+    assert "Munich" in data["cities"]
+    assert "German" in data["languages"]
+    assert "English" in data["languages"]
+
+
+def test_language_filter_escapes_wildcards(client: TestClient, db: Session) -> None:
+    """Test that SQL wildcards in language filter are escaped properly."""
+    create_sample_professional(db)
+
+    # A percent sign should not act as a wildcard
+    r = client.get(
+        f"{settings.API_V1_STR}/professionals/",
+        params={"language": "%"},
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["total"] == 0

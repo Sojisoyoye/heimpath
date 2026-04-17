@@ -28,10 +28,14 @@ export interface Professional {
 export interface ProfessionalReview {
   id: string
   professionalId: string
-  userId: string
   rating: number
   comment?: string
   createdAt: string
+}
+
+export interface ProfessionalFilterOptions {
+  cities: string[]
+  languages: string[]
 }
 
 export interface ProfessionalDetail extends Professional {

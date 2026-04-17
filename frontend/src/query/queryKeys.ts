@@ -151,6 +151,8 @@ export const queryKeys = {
       [...queryKeys.professionals.all, "list", filters] as const,
     detail: (id: string) =>
       [...queryKeys.professionals.all, "detail", id] as const,
+    filterOptions: () =>
+      [...queryKeys.professionals.all, "filterOptions"] as const,
   },
 
   // Search queries
