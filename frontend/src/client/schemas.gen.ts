@@ -4055,6 +4055,762 @@ export const PortalResponseSchema = {
     description: 'Response with portal session URL.'
 } as const;
 
+export const PortfolioPropertyCreateSchema = {
+    properties: {
+        address: {
+            type: 'string',
+            maxLength: 500,
+            title: 'Address'
+        },
+        city: {
+            type: 'string',
+            maxLength: 255,
+            title: 'City'
+        },
+        postcode: {
+            type: 'string',
+            maxLength: 10,
+            title: 'Postcode'
+        },
+        state_code: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 2
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'State Code'
+        },
+        purchase_price: {
+            type: 'number',
+            exclusiveMinimum: 0,
+            title: 'Purchase Price'
+        },
+        purchase_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Purchase Date'
+        },
+        square_meters: {
+            type: 'number',
+            exclusiveMinimum: 0,
+            title: 'Square Meters'
+        },
+        building_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Building Year'
+        },
+        current_value_estimate: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Current Value Estimate'
+        },
+        monthly_rent_target: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Rent Target'
+        },
+        tenant_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tenant Name'
+        },
+        lease_start_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lease Start Date'
+        },
+        lease_end_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lease End Date'
+        },
+        monthly_hausgeld: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Hausgeld'
+        },
+        is_vacant: {
+            type: 'boolean',
+            title: 'Is Vacant',
+            default: false
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        }
+    },
+    type: 'object',
+    required: ['address', 'city', 'postcode', 'purchase_price', 'square_meters'],
+    title: 'PortfolioPropertyCreate',
+    description: 'Request to create a portfolio property.'
+} as const;
+
+export const PortfolioPropertyListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/PortfolioPropertySummary'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'PortfolioPropertyListResponse',
+    description: 'Paginated list of portfolio properties.'
+} as const;
+
+export const PortfolioPropertyResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        address: {
+            type: 'string',
+            title: 'Address'
+        },
+        city: {
+            type: 'string',
+            title: 'City'
+        },
+        postcode: {
+            type: 'string',
+            title: 'Postcode'
+        },
+        state_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'State Code'
+        },
+        purchase_price: {
+            type: 'number',
+            title: 'Purchase Price'
+        },
+        purchase_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Purchase Date'
+        },
+        square_meters: {
+            type: 'number',
+            title: 'Square Meters'
+        },
+        building_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Building Year'
+        },
+        current_value_estimate: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Current Value Estimate'
+        },
+        monthly_rent_target: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Rent Target'
+        },
+        tenant_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tenant Name'
+        },
+        lease_start_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lease Start Date'
+        },
+        lease_end_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lease End Date'
+        },
+        monthly_hausgeld: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Hausgeld'
+        },
+        is_vacant: {
+            type: 'boolean',
+            title: 'Is Vacant'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'address', 'city', 'postcode', 'purchase_price', 'square_meters', 'is_vacant', 'created_at'],
+    title: 'PortfolioPropertyResponse',
+    description: 'Full response for a portfolio property.'
+} as const;
+
+export const PortfolioPropertySummarySchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        address: {
+            type: 'string',
+            title: 'Address'
+        },
+        city: {
+            type: 'string',
+            title: 'City'
+        },
+        postcode: {
+            type: 'string',
+            title: 'Postcode'
+        },
+        purchase_price: {
+            type: 'number',
+            title: 'Purchase Price'
+        },
+        monthly_rent_target: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Rent Target'
+        },
+        is_vacant: {
+            type: 'boolean',
+            title: 'Is Vacant'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'address', 'city', 'postcode', 'purchase_price', 'is_vacant', 'created_at'],
+    title: 'PortfolioPropertySummary',
+    description: 'Lighter property summary for list views.'
+} as const;
+
+export const PortfolioPropertyUpdateSchema = {
+    properties: {
+        address: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Address'
+        },
+        city: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'City'
+        },
+        postcode: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 10
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Postcode'
+        },
+        state_code: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 2
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'State Code'
+        },
+        purchase_price: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Purchase Price'
+        },
+        purchase_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Purchase Date'
+        },
+        square_meters: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Square Meters'
+        },
+        building_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Building Year'
+        },
+        current_value_estimate: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Current Value Estimate'
+        },
+        monthly_rent_target: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Rent Target'
+        },
+        tenant_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tenant Name'
+        },
+        lease_start_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lease Start Date'
+        },
+        lease_end_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lease End Date'
+        },
+        monthly_hausgeld: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Hausgeld'
+        },
+        is_vacant: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Vacant'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        }
+    },
+    type: 'object',
+    title: 'PortfolioPropertyUpdate',
+    description: 'Request to partially update a portfolio property.'
+} as const;
+
+export const PortfolioSummaryResponseSchema = {
+    properties: {
+        total_properties: {
+            type: 'integer',
+            title: 'Total Properties'
+        },
+        total_purchase_value: {
+            type: 'number',
+            title: 'Total Purchase Value'
+        },
+        total_current_value: {
+            type: 'number',
+            title: 'Total Current Value'
+        },
+        total_income: {
+            type: 'number',
+            title: 'Total Income'
+        },
+        total_expenses: {
+            type: 'number',
+            title: 'Total Expenses'
+        },
+        net_cash_flow: {
+            type: 'number',
+            title: 'Net Cash Flow'
+        },
+        vacancy_rate: {
+            type: 'number',
+            title: 'Vacancy Rate'
+        },
+        average_gross_yield: {
+            type: 'number',
+            title: 'Average Gross Yield'
+        }
+    },
+    type: 'object',
+    required: ['total_properties', 'total_purchase_value', 'total_current_value', 'total_income', 'total_expenses', 'net_cash_flow', 'vacancy_rate', 'average_gross_yield'],
+    title: 'PortfolioSummaryResponse',
+    description: 'Aggregated KPIs across the entire portfolio.'
+} as const;
+
+export const PortfolioTransactionCreateSchema = {
+    properties: {
+        type: {
+            '$ref': '#/components/schemas/TransactionType',
+            description: 'Transaction type enum value'
+        },
+        amount: {
+            type: 'number',
+            exclusiveMinimum: 0,
+            title: 'Amount'
+        },
+        date: {
+            type: 'string',
+            format: 'date',
+            title: 'Date'
+        },
+        category: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Category'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_recurring: {
+            type: 'boolean',
+            title: 'Is Recurring',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['type', 'amount', 'date'],
+    title: 'PortfolioTransactionCreate',
+    description: 'Request to create a portfolio transaction.'
+} as const;
+
+export const PortfolioTransactionListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/PortfolioTransactionResponse'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'PortfolioTransactionListResponse',
+    description: 'List of portfolio transactions.'
+} as const;
+
+export const PortfolioTransactionResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        property_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Property Id'
+        },
+        type: {
+            type: 'string',
+            title: 'Type'
+        },
+        amount: {
+            type: 'number',
+            title: 'Amount'
+        },
+        date: {
+            type: 'string',
+            format: 'date',
+            title: 'Date'
+        },
+        category: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Category'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_recurring: {
+            type: 'boolean',
+            title: 'Is Recurring'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'property_id', 'type', 'amount', 'date', 'is_recurring', 'created_at'],
+    title: 'PortfolioTransactionResponse',
+    description: 'Full response for a portfolio transaction.'
+} as const;
+
 export const PrivateUserCreateSchema = {
     properties: {
         email: {
@@ -6426,6 +7182,13 @@ export const TokenSchema = {
     type: 'object',
     required: ['access_token'],
     title: 'Token'
+} as const;
+
+export const TransactionTypeSchema = {
+    type: 'string',
+    enum: ['rent_income', 'operating_expense', 'maintenance', 'insurance', 'hausgeld', 'mortgage_interest', 'tax_payment', 'other_income', 'other_expense'],
+    title: 'TransactionType',
+    description: 'Types of portfolio transactions.'
 } as const;
 
 export const TranslatedPageSchema = {

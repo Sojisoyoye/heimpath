@@ -170,4 +170,15 @@ export const queryKeys = {
     recommendations: () =>
       [...queryKeys.dashboard.all, "recommendations"] as const,
   },
+
+  // Portfolio queries
+  portfolio: {
+    all: ["portfolio"] as const,
+    properties: () => [...queryKeys.portfolio.all, "properties"] as const,
+    propertyDetail: (id: string) =>
+      [...queryKeys.portfolio.all, "propertyDetail", id] as const,
+    transactions: (propertyId: string) =>
+      [...queryKeys.portfolio.all, "transactions", propertyId] as const,
+    summary: () => [...queryKeys.portfolio.all, "summary"] as const,
+  },
 } as const

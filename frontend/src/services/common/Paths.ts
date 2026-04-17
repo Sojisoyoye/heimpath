@@ -142,4 +142,15 @@ export const PATHS = {
     ACTIVITY: `${API_V1}/dashboard/activity`,
     RECOMMENDATIONS: `${API_V1}/dashboard/recommendations`,
   },
+
+  // Portfolio
+  PORTFOLIO: {
+    PROPERTIES: `${API_V1}/portfolio/properties`,
+    PROPERTY_DETAIL: (id: string) => `${API_V1}/portfolio/properties/${id}`,
+    TRANSACTIONS: (propertyId: string) =>
+      `${API_V1}/portfolio/properties/${propertyId}/transactions`,
+    DELETE_TRANSACTION: (id: string) =>
+      `${API_V1}/portfolio/transactions/${id}`,
+    SUMMARY: `${API_V1}/portfolio/summary`,
+  },
 } as const

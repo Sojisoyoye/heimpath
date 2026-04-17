@@ -1195,6 +1195,148 @@ export type PortalResponse = {
     url: string;
 };
 
+/**
+ * Request to create a portfolio property.
+ */
+export type PortfolioPropertyCreate = {
+    address: string;
+    city: string;
+    postcode: string;
+    state_code?: (string | null);
+    purchase_price: number;
+    purchase_date?: (string | null);
+    square_meters: number;
+    building_year?: (number | null);
+    current_value_estimate?: (number | null);
+    monthly_rent_target?: (number | null);
+    tenant_name?: (string | null);
+    lease_start_date?: (string | null);
+    lease_end_date?: (string | null);
+    monthly_hausgeld?: (number | null);
+    is_vacant?: boolean;
+    notes?: (string | null);
+};
+
+/**
+ * Paginated list of portfolio properties.
+ */
+export type PortfolioPropertyListResponse = {
+    data: Array<PortfolioPropertySummary>;
+    count: number;
+};
+
+/**
+ * Full response for a portfolio property.
+ */
+export type PortfolioPropertyResponse = {
+    id: string;
+    address: string;
+    city: string;
+    postcode: string;
+    state_code?: (string | null);
+    purchase_price: number;
+    purchase_date?: (string | null);
+    square_meters: number;
+    building_year?: (number | null);
+    current_value_estimate?: (number | null);
+    monthly_rent_target?: (number | null);
+    tenant_name?: (string | null);
+    lease_start_date?: (string | null);
+    lease_end_date?: (string | null);
+    monthly_hausgeld?: (number | null);
+    is_vacant: boolean;
+    notes?: (string | null);
+    created_at: string;
+};
+
+/**
+ * Lighter property summary for list views.
+ */
+export type PortfolioPropertySummary = {
+    id: string;
+    address: string;
+    city: string;
+    postcode: string;
+    purchase_price: number;
+    monthly_rent_target?: (number | null);
+    is_vacant: boolean;
+    created_at: string;
+};
+
+/**
+ * Request to partially update a portfolio property.
+ */
+export type PortfolioPropertyUpdate = {
+    address?: (string | null);
+    city?: (string | null);
+    postcode?: (string | null);
+    state_code?: (string | null);
+    purchase_price?: (number | null);
+    purchase_date?: (string | null);
+    square_meters?: (number | null);
+    building_year?: (number | null);
+    current_value_estimate?: (number | null);
+    monthly_rent_target?: (number | null);
+    tenant_name?: (string | null);
+    lease_start_date?: (string | null);
+    lease_end_date?: (string | null);
+    monthly_hausgeld?: (number | null);
+    is_vacant?: (boolean | null);
+    notes?: (string | null);
+};
+
+/**
+ * Aggregated KPIs across the entire portfolio.
+ */
+export type PortfolioSummaryResponse = {
+    total_properties: number;
+    total_purchase_value: number;
+    total_current_value: number;
+    total_income: number;
+    total_expenses: number;
+    net_cash_flow: number;
+    vacancy_rate: number;
+    average_gross_yield: number;
+};
+
+/**
+ * Request to create a portfolio transaction.
+ */
+export type PortfolioTransactionCreate = {
+    /**
+     * Transaction type enum value
+     */
+    type: TransactionType;
+    amount: number;
+    date: string;
+    category?: (string | null);
+    description?: (string | null);
+    is_recurring?: boolean;
+};
+
+/**
+ * List of portfolio transactions.
+ */
+export type PortfolioTransactionListResponse = {
+    data: Array<PortfolioTransactionResponse>;
+    count: number;
+};
+
+/**
+ * Full response for a portfolio transaction.
+ */
+export type PortfolioTransactionResponse = {
+    id: string;
+    property_id: string;
+    type: string;
+    amount: number;
+    date: string;
+    category?: (string | null);
+    description?: (string | null);
+    is_recurring: boolean;
+    created_at: string;
+};
+
 export type PrivateUserCreate = {
     email: string;
     password: string;
@@ -1831,6 +1973,11 @@ export type Token = {
     access_token: string;
     token_type?: string;
 };
+
+/**
+ * Types of portfolio transactions.
+ */
+export type TransactionType = 'rent_income' | 'operating_expense' | 'maintenance' | 'insurance' | 'hausgeld' | 'mortgage_interest' | 'tax_payment' | 'other_income' | 'other_expense';
 
 /**
  * A single page of translated content.
@@ -2569,6 +2716,56 @@ export type NotificationsUnsubscribeData = {
 };
 
 export type NotificationsUnsubscribeResponse = (UnsubscribeResponse);
+
+export type PortfolioListPropertiesResponse = (PortfolioPropertyListResponse);
+
+export type PortfolioCreatePropertyData = {
+    requestBody: PortfolioPropertyCreate;
+};
+
+export type PortfolioCreatePropertyResponse = (PortfolioPropertyResponse);
+
+export type PortfolioGetPropertyData = {
+    propertyId: string;
+};
+
+export type PortfolioGetPropertyResponse = (PortfolioPropertyResponse);
+
+export type PortfolioUpdatePropertyData = {
+    propertyId: string;
+    requestBody: PortfolioPropertyUpdate;
+};
+
+export type PortfolioUpdatePropertyResponse = (PortfolioPropertyResponse);
+
+export type PortfolioDeletePropertyData = {
+    propertyId: string;
+};
+
+export type PortfolioDeletePropertyResponse = (void);
+
+export type PortfolioCreateTransactionData = {
+    propertyId: string;
+    requestBody: PortfolioTransactionCreate;
+};
+
+export type PortfolioCreateTransactionResponse = (PortfolioTransactionResponse);
+
+export type PortfolioListTransactionsData = {
+    dateFrom?: (string | null);
+    dateTo?: (string | null);
+    propertyId: string;
+};
+
+export type PortfolioListTransactionsResponse = (PortfolioTransactionListResponse);
+
+export type PortfolioDeleteTransactionData = {
+    transactionId: string;
+};
+
+export type PortfolioDeleteTransactionResponse = (void);
+
+export type PortfolioGetPortfolioSummaryResponse = (PortfolioSummaryResponse);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;

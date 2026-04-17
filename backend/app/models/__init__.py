@@ -77,6 +77,11 @@ from app.models.notification import (
     NotificationPreference,
     NotificationType,
 )
+from app.models.portfolio import (
+    PortfolioProperty,
+    PortfolioTransaction,
+    TransactionType,
+)
 from app.models.professional import (
     Professional,
     ProfessionalReview,
@@ -121,6 +126,9 @@ __all__ = [
     "Notification",
     "NotificationPreference",
     "NotificationType",
+    "PortfolioProperty",
+    "PortfolioTransaction",
+    "TransactionType",
     "Professional",
     "ProfessionalReview",
     "ProfessionalType",
