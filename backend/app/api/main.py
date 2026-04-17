@@ -14,6 +14,7 @@ from app.api.routes import (
     market,
     notifications,
     private,
+    professionals,
     search,
     subscriptions,
     translations,
@@ -40,6 +41,7 @@ api_router.include_router(notifications.router)
 api_router.include_router(articles.router)
 api_router.include_router(search.router)
 api_router.include_router(market.router)
+api_router.include_router(professionals.router)
 
 
 if settings.ENVIRONMENT == "local":

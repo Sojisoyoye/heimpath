@@ -144,6 +144,17 @@ export const queryKeys = {
     categories: () => [...queryKeys.articles.all, "categories"] as const,
   },
 
+  // Professional queries
+  professionals: {
+    all: ["professionals"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.professionals.all, "list", filters] as const,
+    detail: (id: string) =>
+      [...queryKeys.professionals.all, "detail", id] as const,
+    filterOptions: () =>
+      [...queryKeys.professionals.all, "filterOptions"] as const,
+  },
+
   // Search queries
   search: {
     all: ["search"] as const,

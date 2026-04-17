@@ -4058,6 +4058,233 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const ProfessionalDetailResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        type: {
+            '$ref': '#/components/schemas/ProfessionalType'
+        },
+        city: {
+            type: 'string',
+            title: 'City'
+        },
+        languages: {
+            type: 'string',
+            title: 'Languages'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        email: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Email'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        website: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Website'
+        },
+        is_verified: {
+            type: 'boolean',
+            title: 'Is Verified'
+        },
+        average_rating: {
+            type: 'number',
+            title: 'Average Rating'
+        },
+        review_count: {
+            type: 'integer',
+            title: 'Review Count'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        reviews: {
+            items: {
+                '$ref': '#/components/schemas/ReviewResponse'
+            },
+            type: 'array',
+            title: 'Reviews',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'type', 'city', 'languages', 'is_verified', 'average_rating', 'review_count', 'created_at'],
+    title: 'ProfessionalDetailResponse',
+    description: 'Professional detail with reviews.'
+} as const;
+
+export const ProfessionalListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProfessionalResponse'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count', 'total', 'page', 'page_size'],
+    title: 'ProfessionalListResponse',
+    description: 'Paginated list of professionals.'
+} as const;
+
+export const ProfessionalResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        type: {
+            '$ref': '#/components/schemas/ProfessionalType'
+        },
+        city: {
+            type: 'string',
+            title: 'City'
+        },
+        languages: {
+            type: 'string',
+            title: 'Languages'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        email: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Email'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        website: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Website'
+        },
+        is_verified: {
+            type: 'boolean',
+            title: 'Is Verified'
+        },
+        average_rating: {
+            type: 'number',
+            title: 'Average Rating'
+        },
+        review_count: {
+            type: 'integer',
+            title: 'Review Count'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'type', 'city', 'languages', 'is_verified', 'average_rating', 'review_count', 'created_at'],
+    title: 'ProfessionalResponse',
+    description: 'Professional summary for list and detail views.'
+} as const;
+
+export const ProfessionalTypeSchema = {
+    type: 'string',
+    enum: ['lawyer', 'notary', 'tax_advisor', 'mortgage_broker', 'real_estate_agent'],
+    title: 'ProfessionalType',
+    description: 'Types of professionals in the directory.'
+} as const;
+
 export const ProjectionYearSchema = {
     properties: {
         year: {
@@ -5729,6 +5956,72 @@ export const ResetPasswordResponseSchema = {
     required: ['message'],
     title: 'ResetPasswordResponse',
     description: 'Schema for password reset response.'
+} as const;
+
+export const ReviewCreateRequestSchema = {
+    properties: {
+        rating: {
+            type: 'integer',
+            maximum: 5,
+            minimum: 1,
+            title: 'Rating'
+        },
+        comment: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 2000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Comment'
+        }
+    },
+    type: 'object',
+    required: ['rating'],
+    title: 'ReviewCreateRequest',
+    description: 'Request schema for submitting a review.'
+} as const;
+
+export const ReviewResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        professional_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Professional Id'
+        },
+        rating: {
+            type: 'integer',
+            title: 'Rating'
+        },
+        comment: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Comment'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'professional_id', 'rating', 'created_at'],
+    title: 'ReviewResponse',
+    description: 'Response schema for a professional review.'
 } as const;
 
 export const RiskLevelSchema = {

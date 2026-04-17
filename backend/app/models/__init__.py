@@ -77,6 +77,11 @@ from app.models.notification import (
     NotificationPreference,
     NotificationType,
 )
+from app.models.professional import (
+    Professional,
+    ProfessionalReview,
+    ProfessionalType,
+)
 from app.models.property_evaluation import PropertyEvaluation
 from app.models.roi import ROICalculation
 from app.models.user import User as UserV2
@@ -116,6 +121,9 @@ __all__ = [
     "Notification",
     "NotificationPreference",
     "NotificationType",
+    "Professional",
+    "ProfessionalReview",
+    "ProfessionalType",
     "PropertyEvaluation",
     "ROICalculation",
     "Document",

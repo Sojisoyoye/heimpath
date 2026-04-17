@@ -119,6 +119,13 @@ export const PATHS = {
     RATE: (slug: string) => `${API_V1}/articles/${slug}/rate`,
   },
 
+  // Professionals
+  PROFESSIONALS: {
+    LIST: `${API_V1}/professionals/`,
+    DETAIL: (id: string) => `${API_V1}/professionals/${id}`,
+    REVIEWS: (id: string) => `${API_V1}/professionals/${id}/reviews`,
+  },
+
   // Search
   SEARCH: {
     GLOBAL: `${API_V1}/search/`,

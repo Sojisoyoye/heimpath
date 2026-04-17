@@ -60,6 +60,13 @@ from app.schemas.notification import (
     NotificationPreferencesUpdate,
     NotificationResponse,
 )
+from app.schemas.professional import (
+    ProfessionalDetailResponse,
+    ProfessionalListResponse,
+    ProfessionalResponse,
+    ReviewCreateRequest,
+    ReviewResponse,
+)
 from app.schemas.translation import (
     BatchTranslationRequest,
     BatchTranslationResponse,
@@ -125,6 +132,11 @@ __all__ = [
     "NotificationPreferencesResponse",
     "NotificationPreferencesUpdate",
     "NotificationResponse",
+    "ProfessionalDetailResponse",
+    "ProfessionalListResponse",
+    "ProfessionalResponse",
+    "ReviewCreateRequest",
+    "ReviewResponse",
     "LoginRequest",
     "LogoutRequest",
     "Message",

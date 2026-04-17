@@ -23,11 +23,13 @@ import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutProfessionalsIndexRouteImport } from './routes/_layout/professionals/index'
 import { Route as LayoutLawsIndexRouteImport } from './routes/_layout/laws/index'
 import { Route as LayoutJourneysIndexRouteImport } from './routes/_layout/journeys/index'
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents/index'
 import { Route as LayoutArticlesIndexRouteImport } from './routes/_layout/articles/index'
 import { Route as SharedEvaluationShareIdRouteImport } from './routes/shared/evaluation.$shareId'
+import { Route as LayoutProfessionalsProfessionalIdRouteImport } from './routes/_layout/professionals/$professionalId'
 import { Route as LayoutLawsBookmarksRouteImport } from './routes/_layout/laws/bookmarks'
 import { Route as LayoutLawsLawIdRouteImport } from './routes/_layout/laws/$lawId'
 import { Route as LayoutJourneysNewRouteImport } from './routes/_layout/journeys/new'
@@ -106,6 +108,12 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutProfessionalsIndexRoute =
+  LayoutProfessionalsIndexRouteImport.update({
+    id: '/professionals/',
+    path: '/professionals/',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 const LayoutLawsIndexRoute = LayoutLawsIndexRouteImport.update({
   id: '/laws/',
   path: '/laws/',
@@ -131,6 +139,12 @@ const SharedEvaluationShareIdRoute = SharedEvaluationShareIdRouteImport.update({
   path: '/shared/evaluation/$shareId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LayoutProfessionalsProfessionalIdRoute =
+  LayoutProfessionalsProfessionalIdRouteImport.update({
+    id: '/professionals/$professionalId',
+    path: '/professionals/$professionalId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 const LayoutLawsBookmarksRoute = LayoutLawsBookmarksRouteImport.update({
   id: '/laws/bookmarks',
   path: '/laws/bookmarks',
@@ -195,11 +209,13 @@ export interface FileRoutesByFullPath {
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
+  '/professionals/$professionalId': typeof LayoutProfessionalsProfessionalIdRoute
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/articles/': typeof LayoutArticlesIndexRoute
   '/documents/': typeof LayoutDocumentsIndexRoute
   '/journeys/': typeof LayoutJourneysIndexRoute
   '/laws/': typeof LayoutLawsIndexRoute
+  '/professionals/': typeof LayoutProfessionalsIndexRoute
   '/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
   '/journeys/$journeyId/': typeof LayoutJourneysJourneyIdIndexRoute
 }
@@ -222,11 +238,13 @@ export interface FileRoutesByTo {
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
+  '/professionals/$professionalId': typeof LayoutProfessionalsProfessionalIdRoute
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/articles': typeof LayoutArticlesIndexRoute
   '/documents': typeof LayoutDocumentsIndexRoute
   '/journeys': typeof LayoutJourneysIndexRoute
   '/laws': typeof LayoutLawsIndexRoute
+  '/professionals': typeof LayoutProfessionalsIndexRoute
   '/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
   '/journeys/$journeyId': typeof LayoutJourneysJourneyIdIndexRoute
 }
@@ -252,11 +270,13 @@ export interface FileRoutesById {
   '/_layout/journeys/new': typeof LayoutJourneysNewRoute
   '/_layout/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/_layout/laws/bookmarks': typeof LayoutLawsBookmarksRoute
+  '/_layout/professionals/$professionalId': typeof LayoutProfessionalsProfessionalIdRoute
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/_layout/articles/': typeof LayoutArticlesIndexRoute
   '/_layout/documents/': typeof LayoutDocumentsIndexRoute
   '/_layout/journeys/': typeof LayoutJourneysIndexRoute
   '/_layout/laws/': typeof LayoutLawsIndexRoute
+  '/_layout/professionals/': typeof LayoutProfessionalsIndexRoute
   '/_layout/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
   '/_layout/journeys/$journeyId/': typeof LayoutJourneysJourneyIdIndexRoute
 }
@@ -282,11 +302,13 @@ export interface FileRouteTypes {
     | '/journeys/new'
     | '/laws/$lawId'
     | '/laws/bookmarks'
+    | '/professionals/$professionalId'
     | '/shared/evaluation/$shareId'
     | '/articles/'
     | '/documents/'
     | '/journeys/'
     | '/laws/'
+    | '/professionals/'
     | '/journeys/$journeyId/property-evaluation'
     | '/journeys/$journeyId/'
   fileRoutesByTo: FileRoutesByTo
@@ -309,11 +331,13 @@ export interface FileRouteTypes {
     | '/journeys/new'
     | '/laws/$lawId'
     | '/laws/bookmarks'
+    | '/professionals/$professionalId'
     | '/shared/evaluation/$shareId'
     | '/articles'
     | '/documents'
     | '/journeys'
     | '/laws'
+    | '/professionals'
     | '/journeys/$journeyId/property-evaluation'
     | '/journeys/$journeyId'
   id:
@@ -338,11 +362,13 @@ export interface FileRouteTypes {
     | '/_layout/journeys/new'
     | '/_layout/laws/$lawId'
     | '/_layout/laws/bookmarks'
+    | '/_layout/professionals/$professionalId'
     | '/shared/evaluation/$shareId'
     | '/_layout/articles/'
     | '/_layout/documents/'
     | '/_layout/journeys/'
     | '/_layout/laws/'
+    | '/_layout/professionals/'
     | '/_layout/journeys/$journeyId/property-evaluation'
     | '/_layout/journeys/$journeyId/'
   fileRoutesById: FileRoutesById
@@ -459,6 +485,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/professionals/': {
+      id: '/_layout/professionals/'
+      path: '/professionals'
+      fullPath: '/professionals/'
+      preLoaderRoute: typeof LayoutProfessionalsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/laws/': {
       id: '/_layout/laws/'
       path: '/laws'
@@ -493,6 +526,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/shared/evaluation/$shareId'
       preLoaderRoute: typeof SharedEvaluationShareIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_layout/professionals/$professionalId': {
+      id: '/_layout/professionals/$professionalId'
+      path: '/professionals/$professionalId'
+      fullPath: '/professionals/$professionalId'
+      preLoaderRoute: typeof LayoutProfessionalsProfessionalIdRouteImport
+      parentRoute: typeof LayoutRoute
     }
     '/_layout/laws/bookmarks': {
       id: '/_layout/laws/bookmarks'
@@ -583,10 +623,12 @@ interface LayoutRouteChildren {
   LayoutJourneysNewRoute: typeof LayoutJourneysNewRoute
   LayoutLawsLawIdRoute: typeof LayoutLawsLawIdRoute
   LayoutLawsBookmarksRoute: typeof LayoutLawsBookmarksRoute
+  LayoutProfessionalsProfessionalIdRoute: typeof LayoutProfessionalsProfessionalIdRoute
   LayoutArticlesIndexRoute: typeof LayoutArticlesIndexRoute
   LayoutDocumentsIndexRoute: typeof LayoutDocumentsIndexRoute
   LayoutJourneysIndexRoute: typeof LayoutJourneysIndexRoute
   LayoutLawsIndexRoute: typeof LayoutLawsIndexRoute
+  LayoutProfessionalsIndexRoute: typeof LayoutProfessionalsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -602,10 +644,13 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutJourneysNewRoute: LayoutJourneysNewRoute,
   LayoutLawsLawIdRoute: LayoutLawsLawIdRoute,
   LayoutLawsBookmarksRoute: LayoutLawsBookmarksRoute,
+  LayoutProfessionalsProfessionalIdRoute:
+    LayoutProfessionalsProfessionalIdRoute,
   LayoutArticlesIndexRoute: LayoutArticlesIndexRoute,
   LayoutDocumentsIndexRoute: LayoutDocumentsIndexRoute,
   LayoutJourneysIndexRoute: LayoutJourneysIndexRoute,
   LayoutLawsIndexRoute: LayoutLawsIndexRoute,
+  LayoutProfessionalsIndexRoute: LayoutProfessionalsIndexRoute,
 }
 
 const LayoutRouteWithChildren =

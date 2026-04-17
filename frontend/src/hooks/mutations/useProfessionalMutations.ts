@@ -1,0 +1,28 @@
+/**
+ * Professional Mutation Hooks
+ * React Query hooks for professional directory mutations
+ */
+
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/query/queryKeys"
+import { ProfessionalService } from "@/services/ProfessionalService"
+
+/**
+ * Submit a review for a professional
+ */
+export function useSubmitReview(professionalId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ rating, comment }: { rating: number; comment?: string }) =>
+      ProfessionalService.submitReview(professionalId, rating, comment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.professionals.detail(professionalId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.professionals.list(),
+      })
+    },
+  })
+}

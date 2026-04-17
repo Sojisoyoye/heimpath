@@ -2,6 +2,7 @@ from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
+from app.core.seed_professionals import seed_professionals
 from app.models import User, UserCreate
 from app.seed_laws import seed_laws
 
@@ -34,3 +35,4 @@ def init_db(session: Session) -> None:
         user = crud.create_user(session=session, user_create=user_in)
 
     seed_laws(session)
+    seed_professionals(session)
