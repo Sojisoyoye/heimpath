@@ -113,6 +113,7 @@ class QuestionnaireAnswers(BaseModel):
     budget_euros: int | None = Field(default=None, ge=0)  # max budget
     budget_min_euros: int | None = Field(default=None, ge=0)  # min budget
     target_purchase_date: datetime | None = None
+    property_use: Literal["live_in", "rent_out"] | None = None
 
 
 # Task schemas
@@ -241,6 +242,7 @@ class JourneyResponse(BaseModel):
     has_german_residency: bool
     budget_euros: int | None = None
     target_purchase_date: datetime | None = None
+    property_use: str | None = None
     property_goals: PropertyGoals | None = None
     market_insights: MarketInsightsData | None = None
     started_at: datetime | None = None

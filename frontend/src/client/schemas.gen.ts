@@ -2488,6 +2488,17 @@ export const JourneyDetailResponseSchema = {
             ],
             title: 'Target Purchase Date'
         },
+        property_use: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Property Use'
+        },
         property_goals: {
             anyOf: [
                 {
@@ -2667,7 +2678,7 @@ export const JourneyOverviewSchema = {
 
 export const JourneyPhaseSchema = {
     type: 'string',
-    enum: ['research', 'preparation', 'buying', 'closing'],
+    enum: ['research', 'preparation', 'buying', 'closing', 'rental_setup'],
     title: 'JourneyPhase',
     description: 'Phases of the property buying journey.'
 } as const;
@@ -2805,6 +2816,17 @@ export const JourneyResponseSchema = {
                 }
             ],
             title: 'Target Purchase Date'
+        },
+        property_use: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Property Use'
         },
         property_goals: {
             anyOf: [
@@ -5303,6 +5325,18 @@ export const QuestionnaireAnswersSchema = {
                 }
             ],
             title: 'Target Purchase Date'
+        },
+        property_use: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['live_in', 'rent_out']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Property Use'
         }
     },
     type: 'object',

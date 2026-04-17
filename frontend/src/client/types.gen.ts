@@ -756,6 +756,7 @@ export type JourneyDetailResponse = {
     has_german_residency: boolean;
     budget_euros?: (number | null);
     target_purchase_date?: (string | null);
+    property_use?: (string | null);
     property_goals?: (PropertyGoals | null);
     market_insights?: (MarketInsightsData | null);
     started_at?: (string | null);
@@ -793,7 +794,7 @@ export type JourneyOverview = {
 /**
  * Phases of the property buying journey.
  */
-export type JourneyPhase = 'research' | 'preparation' | 'buying' | 'closing';
+export type JourneyPhase = 'research' | 'preparation' | 'buying' | 'closing' | 'rental_setup';
 
 /**
  * Schema for journey progress.
@@ -828,6 +829,7 @@ export type JourneyResponse = {
     has_german_residency: boolean;
     budget_euros?: (number | null);
     target_purchase_date?: (string | null);
+    property_use?: (string | null);
     property_goals?: (PropertyGoals | null);
     market_insights?: (MarketInsightsData | null);
     started_at?: (string | null);
@@ -1459,6 +1461,7 @@ export type QuestionnaireAnswers = {
     budget_euros?: (number | null);
     budget_min_euros?: (number | null);
     target_purchase_date?: (string | null);
+    property_use?: ('live_in' | 'rent_out' | null);
 };
 
 /**

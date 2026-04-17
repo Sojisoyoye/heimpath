@@ -26,6 +26,7 @@ class JourneyPhase(str, PyEnum):
     PREPARATION = "preparation"
     BUYING = "buying"
     CLOSING = "closing"
+    RENTAL_SETUP = "rental_setup"
 
 
 class StepStatus(str, PyEnum):
@@ -61,6 +62,7 @@ _journey_phase_enum = PgEnum(
     "preparation",
     "buying",
     "closing",
+    "rental_setup",
     name="journeyphase",
     create_type=False,
 )
@@ -115,6 +117,9 @@ class Journey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     has_german_residency = Column(Boolean, default=False, nullable=False)
     budget_euros = Column(Integer, nullable=True)
     target_purchase_date = Column(DateTime(timezone=True), nullable=True)
+
+    # Property use intent (live_in or rent_out)
+    property_use = Column(String(20), nullable=True)
 
     # Property goals (Step 1 user input)
     property_goals = Column(MutableDict.as_mutable(JSONB), nullable=True)
