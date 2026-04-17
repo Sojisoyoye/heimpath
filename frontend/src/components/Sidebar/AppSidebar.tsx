@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  Building2,
   Calculator,
   Compass,
   FileText,
@@ -24,6 +25,7 @@ import { User } from "./User"
 const baseItems: Item[] = [
   { icon: Home, title: "Dashboard", path: "/dashboard" },
   { icon: Compass, title: "Journeys", path: "/journeys" },
+  { icon: Building2, title: "Portfolio", path: "/portfolio" },
   { icon: FileText, title: "Documents", path: "/documents" },
   { icon: Scale, title: "Laws", path: "/laws" },
   { icon: Calculator, title: "Calculators", path: "/calculators" },
