@@ -47,10 +47,9 @@ function StepTabView(props: IProps) {
   )
 
   // If the selected phase was filtered out (no steps), fall back to the first visible phase
-  const effectivePhase =
-    visiblePhases.some((p) => p.key === selectedPhase)
-      ? selectedPhase
-      : ((visiblePhases[0]?.key ?? "research") as JourneyPhase)
+  const effectivePhase = visiblePhases.some((p) => p.key === selectedPhase)
+    ? selectedPhase
+    : ((visiblePhases[0]?.key ?? "research") as JourneyPhase)
 
   const phaseSteps = stepsByPhase[effectivePhase]
 
