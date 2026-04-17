@@ -5,6 +5,7 @@ import {
   FileText,
   Home,
   Scale,
+  UserCheck,
   Users,
 } from "lucide-react"
 
@@ -27,6 +28,7 @@ const baseItems: Item[] = [
   { icon: Scale, title: "Laws", path: "/laws" },
   { icon: Calculator, title: "Calculators", path: "/calculators" },
   { icon: BookOpen, title: "Articles", path: "/articles" },
+  { icon: UserCheck, title: "Professionals", path: "/professionals" },
 ]
 
 export function AppSidebar() {

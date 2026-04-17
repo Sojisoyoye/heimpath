@@ -1201,6 +1201,61 @@ export type PrivateUserCreate = {
 };
 
 /**
+ * Professional detail with reviews.
+ */
+export type ProfessionalDetailResponse = {
+    id: string;
+    name: string;
+    type: ProfessionalType;
+    city: string;
+    languages: string;
+    description?: (string | null);
+    email?: (string | null);
+    phone?: (string | null);
+    website?: (string | null);
+    is_verified: boolean;
+    average_rating: number;
+    review_count: number;
+    created_at: string;
+    reviews?: Array<ReviewResponse>;
+};
+
+/**
+ * Paginated list of professionals.
+ */
+export type ProfessionalListResponse = {
+    data: Array<ProfessionalResponse>;
+    count: number;
+    total: number;
+    page: number;
+    page_size: number;
+};
+
+/**
+ * Professional summary for list and detail views.
+ */
+export type ProfessionalResponse = {
+    id: string;
+    name: string;
+    type: ProfessionalType;
+    city: string;
+    languages: string;
+    description?: (string | null);
+    email?: (string | null);
+    phone?: (string | null);
+    website?: (string | null);
+    is_verified: boolean;
+    average_rating: number;
+    review_count: number;
+    created_at: string;
+};
+
+/**
+ * Types of professionals in the directory.
+ */
+export type ProfessionalType = 'lawyer' | 'notary' | 'tax_advisor' | 'mortgage_broker' | 'real_estate_agent';
+
+/**
  * Single year projection data.
  */
 export type ProjectionYear = {
@@ -1488,6 +1543,26 @@ export type ResetPasswordRequest = {
  */
 export type ResetPasswordResponse = {
     message: string;
+};
+
+/**
+ * Request schema for submitting a review.
+ */
+export type ReviewCreateRequest = {
+    rating: number;
+    comment?: (string | null);
+};
+
+/**
+ * Response schema for a professional review.
+ */
+export type ReviewResponse = {
+    id: string;
+    professional_id: string;
+    user_id: string;
+    rating: number;
+    comment?: (string | null);
+    created_at: string;
 };
 
 /**
@@ -2498,6 +2573,30 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ProfessionalsListProfessionalsData = {
+    city?: (string | null);
+    language?: (string | null);
+    minRating?: (number | null);
+    page?: number;
+    pageSize?: number;
+    type?: (string | null);
+};
+
+export type ProfessionalsListProfessionalsResponse = (ProfessionalListResponse);
+
+export type ProfessionalsGetProfessionalData = {
+    professionalId: string;
+};
+
+export type ProfessionalsGetProfessionalResponse = (ProfessionalDetailResponse);
+
+export type ProfessionalsCreateReviewData = {
+    professionalId: string;
+    requestBody: ReviewCreateRequest;
+};
+
+export type ProfessionalsCreateReviewResponse = (ReviewResponse);
 
 export type SearchSearchData = {
     /**
