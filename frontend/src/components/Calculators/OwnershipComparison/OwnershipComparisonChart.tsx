@@ -31,10 +31,20 @@ const CURRENCY = new Intl.NumberFormat("de-DE", {
 })
 
 /******************************************************************************
+                              Functions
+******************************************************************************/
+
+function formatYAxisTick(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+  if (v >= 1_000) return `${(v / 1_000).toFixed(0)}k`
+  return `${v}`
+}
+
+/******************************************************************************
                               Components
 ******************************************************************************/
 
-function OwnershipComparisonChart(props: IProps) {
+function OwnershipComparisonChart(props: Readonly<IProps>) {
   const { results } = props
 
   const chartData = useMemo(
@@ -51,11 +61,11 @@ function OwnershipComparisonChart(props: IProps) {
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-4 text-xs">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />{" "}
           Private
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-purple-500" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-purple-500" />{" "}
           GmbH
         </span>
       </div>
@@ -66,22 +76,13 @@ function OwnershipComparisonChart(props: IProps) {
         >
           <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
           <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-          <YAxis
-            tick={{ fontSize: 12 }}
-            tickFormatter={(v: number) =>
-              v >= 1_000_000
-                ? `${(v / 1_000_000).toFixed(1)}M`
-                : v >= 1_000
-                  ? `${(v / 1_000).toFixed(0)}k`
-                  : `${v}`
-            }
-          />
+          <YAxis tick={{ fontSize: 12 }} tickFormatter={formatYAxisTick} />
           <Tooltip
             formatter={(value, name) => {
               const label = name === "private" ? "Private" : "GmbH"
               return [CURRENCY.format(Number(value)), label]
             }}
-            labelFormatter={(label) => String(label)}
+            labelFormatter={String}
           />
           <Area
             type="monotone"

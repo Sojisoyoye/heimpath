@@ -24,7 +24,7 @@ const CURRENCY = new Intl.NumberFormat("de-DE", {
                               Components
 ******************************************************************************/
 
-function OwnershipComparisonTable(props: IProps) {
+function OwnershipComparisonTable(props: Readonly<IProps>) {
   const { results } = props
 
   return (

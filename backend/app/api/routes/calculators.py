@@ -9,7 +9,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
-from app.api.deps import CurrentUser, get_db
+from app.api.deps import CurrentUser, SessionDep, get_db
 from app.models.notification import NotificationType
 from app.schemas.calculator import (
     HiddenCostCalculationCreate,
@@ -466,10 +466,7 @@ async def delete_property_evaluation(
 # ---------------------------------------------------------------------------
 
 
-@router.post(
-    "/ownership-comparison/calculate",
-    response_model=OwnershipComparisonResponse,
-)
+@router.post("/ownership-comparison/calculate")
 async def calculate_ownership_comparison(
     request: OwnershipComparisonRequest,
 ) -> OwnershipComparisonResponse:
@@ -482,13 +479,10 @@ async def calculate_ownership_comparison(
     return OwnershipComparisonResponse(**result)
 
 
-@router.get(
-    "/ownership-comparison/share/{share_id}",
-    response_model=OwnershipComparisonSavedResponse,
-)
+@router.get("/ownership-comparison/share/{share_id}")
 async def get_shared_ownership_comparison(
     share_id: str,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> OwnershipComparisonSavedResponse:
     """
     Get a shared ownership comparison by share_id.
@@ -501,13 +495,12 @@ async def get_shared_ownership_comparison(
 
 @router.post(
     "/ownership-comparison",
-    response_model=OwnershipComparisonSavedResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def save_ownership_comparison(
     request: OwnershipComparisonRequest,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> OwnershipComparisonSavedResponse:
     """
     Calculate and save an ownership comparison.
@@ -532,13 +525,10 @@ async def save_ownership_comparison(
     return OwnershipComparisonSavedResponse.model_validate(comparison)
 
 
-@router.get(
-    "/ownership-comparison",
-    response_model=OwnershipComparisonListResponse,
-)
+@router.get("/ownership-comparison")
 async def list_ownership_comparisons(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> OwnershipComparisonListResponse:
     """
     Get all saved ownership comparisons for the current user.
@@ -555,14 +545,11 @@ async def list_ownership_comparisons(
     )
 
 
-@router.get(
-    "/ownership-comparison/{calc_id}",
-    response_model=OwnershipComparisonSavedResponse,
-)
+@router.get("/ownership-comparison/{calc_id}")
 async def get_ownership_comparison(
     calc_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> OwnershipComparisonSavedResponse:
     """
     Get a specific saved ownership comparison by ID.
@@ -582,7 +569,7 @@ async def get_ownership_comparison(
 async def delete_ownership_comparison(
     calc_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> None:
     """
     Delete a saved ownership comparison.

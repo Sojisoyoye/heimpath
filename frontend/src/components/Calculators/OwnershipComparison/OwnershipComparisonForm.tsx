@@ -54,7 +54,7 @@ function parseNum(v: string): number {
                               Components
 ******************************************************************************/
 
-function OwnershipComparisonForm(props: IProps) {
+function OwnershipComparisonForm(props: Readonly<IProps>) {
   const { onCalculate, isCalculating } = props
   const [fields, setFields] = useState(INITIAL_STATE)
   const [showAdvanced, setShowAdvanced] = useState(false)

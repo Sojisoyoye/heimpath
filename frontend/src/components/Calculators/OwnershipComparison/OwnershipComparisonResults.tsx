@@ -51,16 +51,18 @@ const PERCENT = new Intl.NumberFormat("de-DE", {
                               Components
 ******************************************************************************/
 
-function ScenarioCard(props: {
-  title: string
-  icon: React.ReactNode
-  effectiveTaxRate: number
-  totalNetRentalIncome: number
-  capitalGainsTax: number
-  netExitProceeds: number
-  totalWealth: number
-  isWinner: boolean
-}) {
+function ScenarioCard(
+  props: Readonly<{
+    title: string
+    icon: React.ReactNode
+    effectiveTaxRate: number
+    totalNetRentalIncome: number
+    capitalGainsTax: number
+    netExitProceeds: number
+    totalWealth: number
+    isWinner: boolean
+  }>,
+) {
   const {
     title,
     icon,
@@ -120,7 +122,7 @@ function ScenarioCard(props: {
   )
 }
 
-function OwnershipComparisonResults(props: IProps) {
+function OwnershipComparisonResults(props: Readonly<IProps>) {
   const { results, onSave, isSaving, savedComparisons, onDelete, isDeleting } =
     props
   const [saveName, setSaveName] = useState("")
@@ -240,7 +242,7 @@ function OwnershipComparisonResults(props: IProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      const url = `${window.location.origin}/calculators?ownershipShare=${c.shareId}`
+                      const url = `${globalThis.location.origin}/calculators?ownershipShare=${c.shareId}`
                       navigator.clipboard.writeText(url)
                     }}
                     title="Copy share link"

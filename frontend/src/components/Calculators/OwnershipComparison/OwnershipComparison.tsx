@@ -39,7 +39,7 @@ interface IProps {
                               Components
 ******************************************************************************/
 
-function OwnershipComparison(props: IProps) {
+function OwnershipComparison(props: Readonly<IProps>) {
   const { className } = props
 
   const [results, setResults] = useState<OwnershipComparisonResult | null>(null)
