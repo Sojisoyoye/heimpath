@@ -17,9 +17,7 @@ class TestListAreas:
 
     def test_returns_all_cities(self) -> None:
         areas = list_areas()
-        city_count = sum(
-            len(cities) for cities in CITY_MARKET_DATA.values()
-        )
+        city_count = sum(len(cities) for cities in CITY_MARKET_DATA.values())
         city_areas = [a for a in areas if a.area_type == "city"]
         assert len(city_areas) == city_count
 

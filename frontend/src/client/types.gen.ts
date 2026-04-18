@@ -52,10 +52,12 @@ export type AreaListResponse = {
 export type AreaSummary = {
     key: string;
     name: string;
-    area_type: string;
+    area_type: 'city' | 'state';
     state_code: string;
     state_name: string;
 };
+
+export type area_type = 'city' | 'state';
 
 /**
  * Categories for content library articles.
@@ -322,7 +324,7 @@ export type CheckoutResponse = {
 export type ComparisonMetrics = {
     key: string;
     name: string;
-    area_type: string;
+    area_type: 'city' | 'state';
     state_code: string;
     state_name: string;
     avg_price_per_sqm: number;
@@ -334,7 +336,7 @@ export type ComparisonMetrics = {
     gross_rental_yield?: (number | null);
     transfer_tax_rate: number;
     agent_fee_percent?: (number | null);
-    trend?: (string | null);
+    trend?: ('rising' | 'stable' | 'falling' | null);
     has_mietspiegel: boolean;
 };
 

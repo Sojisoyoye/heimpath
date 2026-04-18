@@ -1,6 +1,11 @@
 """Schemas for city/area comparison endpoints."""
 
+from typing import Literal
+
 from pydantic import BaseModel
+
+AreaType = Literal["city", "state"]
+MarketTrend = Literal["rising", "stable", "falling"]
 
 
 class AreaSummary(BaseModel):
@@ -8,7 +13,7 @@ class AreaSummary(BaseModel):
 
     key: str
     name: str
-    area_type: str
+    area_type: AreaType
     state_code: str
     state_name: str
 
@@ -18,7 +23,7 @@ class ComparisonMetrics(BaseModel):
 
     key: str
     name: str
-    area_type: str
+    area_type: AreaType
     state_code: str
     state_name: str
     avg_price_per_sqm: int
@@ -30,7 +35,7 @@ class ComparisonMetrics(BaseModel):
     gross_rental_yield: float | None = None
     transfer_tax_rate: float
     agent_fee_percent: float | None = None
-    trend: str | None = None
+    trend: MarketTrend | None = None
     has_mietspiegel: bool
 
 

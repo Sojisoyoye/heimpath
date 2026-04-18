@@ -172,6 +172,7 @@ export const AreaSummarySchema = {
         },
         area_type: {
             type: 'string',
+            enum: ['city', 'state'],
             title: 'Area Type'
         },
         state_code: {
@@ -1071,6 +1072,7 @@ export const ComparisonMetricsSchema = {
         },
         area_type: {
             type: 'string',
+            enum: ['city', 'state'],
             title: 'Area Type'
         },
         state_code: {
@@ -1155,7 +1157,8 @@ export const ComparisonMetricsSchema = {
         trend: {
             anyOf: [
                 {
-                    type: 'string'
+                    type: 'string',
+                    enum: ['rising', 'stable', 'falling']
                 },
                 {
                     type: 'null'
