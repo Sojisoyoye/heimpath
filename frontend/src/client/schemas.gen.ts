@@ -2678,7 +2678,7 @@ export const JourneyOverviewSchema = {
 
 export const JourneyPhaseSchema = {
     type: 'string',
-    enum: ['research', 'preparation', 'buying', 'closing', 'rental_setup'],
+    enum: ['research', 'preparation', 'buying', 'closing', 'ownership', 'rental_setup'],
     title: 'JourneyPhase',
     description: 'Phases of the property buying journey.'
 } as const;

@@ -417,8 +417,8 @@ class TestStepTemplates:
     """Tests for step template ordering and content."""
 
     def test_step_templates_total_count(self) -> None:
-        """Test that there are 24 step templates (19 base + 5 rental investor)."""
-        assert len(STEP_TEMPLATES) == 24
+        """Test that there are 28 step templates (19 base + 4 ownership + 5 rental investor)."""
+        assert len(STEP_TEMPLATES) == 28
 
     def test_find_property_is_step_3(self) -> None:
         """Test that Find a Property (property_search) is step 3."""
@@ -1396,6 +1396,22 @@ class TestRentalInvestorSteps:
             assert title in steps_with_tasks
             assert len(steps_with_tasks[title]) >= 3
 
+    def test_rental_setup_prerequisite_is_ownership_registration(self) -> None:
+        """Test that rental_operations_setup depends on ownership registration (step 25)."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "rental_operations_setup"
+        )
+        assert template.prerequisites == [25]
+
+    def test_rental_setup_after_ownership_in_generated_journey(
+        self, rent_out_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that Set Up Rental Operations comes after Complete Property Registration."""
+        steps = _generate_steps(rent_out_answers)
+        reg_step = next(s for s in steps if s.title == "Complete Property Registration")
+        rental_step = next(s for s in steps if s.title == "Set Up Rental Operations")
+        assert rental_step.step_number > reg_step.step_number
+
 
 class TestPersonalizeBuyingCosts:
     """Tests for _personalize_buying_costs helper."""
@@ -1528,3 +1544,359 @@ class TestPersonalizeBuyingCosts:
 
         assert "total_estimated" not in costs
         assert "6.0%" in costs["grunderwerbsteuer"]
+
+
+class TestOwnershipPhaseSteps:
+    """Tests for the OWNERSHIP phase step templates and generation."""
+
+    @pytest.fixture
+    def live_in_apartment_answers(self) -> QuestionnaireAnswers:
+        """Answers for a live-in apartment buyer (mortgage)."""
+        return QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="Berlin",
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=300000,
+            property_use="live_in",
+        )
+
+    @pytest.fixture
+    def rent_out_house_answers(self) -> QuestionnaireAnswers:
+        """Answers for a rent-out house buyer (mortgage)."""
+        return QuestionnaireAnswers(
+            property_type=PropertyType.HOUSE,
+            property_location="Berlin",
+            financing_type=FinancingType.MORTGAGE,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+            budget_euros=500000,
+            property_use="rent_out",
+        )
+
+    @pytest.fixture
+    def rent_out_apartment_cash_answers(self) -> QuestionnaireAnswers:
+        """Answers for a rent-out apartment buyer (cash)."""
+        return QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="Berlin",
+            financing_type=FinancingType.CASH,
+            is_first_time_buyer=False,
+            has_german_residency=True,
+            budget_euros=400000,
+            property_use="rent_out",
+        )
+
+    # --- Template existence tests ---
+
+    def test_ownership_templates_exist(self) -> None:
+        """Test that all 4 ownership step templates exist with correct content_keys."""
+        ownership_keys = {
+            "ownership_registration",
+            "ownership_insurance",
+            "ownership_management",
+            "ownership_tax_finance",
+        }
+        found_keys = {
+            t.content_key for t in STEP_TEMPLATES if t.phase == JourneyPhase.OWNERSHIP
+        }
+        assert found_keys == ownership_keys
+
+    def test_ownership_templates_have_no_step_level_conditions(self) -> None:
+        """Test that ownership steps have no step-level conditions (included for all)."""
+        ownership_templates = [
+            t for t in STEP_TEMPLATES if t.phase == JourneyPhase.OWNERSHIP
+        ]
+        for template in ownership_templates:
+            assert template.conditions is None
+
+    # --- Step inclusion tests ---
+
+    def test_ownership_steps_included_for_live_in(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that ownership steps are included for live-in buyers."""
+        steps = _generate_steps(live_in_apartment_answers)
+        step_titles = [s.title for s in steps]
+        assert "Complete Property Registration" in step_titles
+        assert "Arrange Property Insurance" in step_titles
+        assert "Set Up Property Management" in step_titles
+        assert "Handle Property Tax & Finance" in step_titles
+
+    def test_ownership_steps_included_for_rent_out(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that ownership steps are included for rent-out buyers."""
+        steps = _generate_steps(rent_out_house_answers)
+        step_titles = [s.title for s in steps]
+        assert "Complete Property Registration" in step_titles
+        assert "Arrange Property Insurance" in step_titles
+        assert "Set Up Property Management" in step_titles
+        assert "Handle Property Tax & Finance" in step_titles
+
+    def test_ownership_steps_included_when_property_use_none(
+        self, sample_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that ownership steps are included when property_use is None (backward compat)."""
+        steps = _generate_steps(sample_answers)
+        step_titles = [s.title for s in steps]
+        assert "Complete Property Registration" in step_titles
+        assert "Arrange Property Insurance" in step_titles
+        assert "Set Up Property Management" in step_titles
+        assert "Handle Property Tax & Finance" in step_titles
+
+    # --- Phase ordering tests ---
+
+    def test_ownership_phase_before_rental_setup(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that OWNERSHIP steps appear before RENTAL_SETUP in rent-out journeys."""
+        steps = _generate_steps(rent_out_house_answers)
+        ownership_steps = [s for s in steps if s.phase == JourneyPhase.OWNERSHIP]
+        rental_steps = [s for s in steps if s.phase == JourneyPhase.RENTAL_SETUP]
+        assert len(ownership_steps) == 4
+        assert len(rental_steps) == 1
+        max_ownership_num = max(s.step_number for s in ownership_steps)
+        min_rental_num = min(s.step_number for s in rental_steps)
+        assert max_ownership_num < min_rental_num
+
+    def test_ownership_phase_after_closing(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that OWNERSHIP steps appear after CLOSING steps."""
+        steps = _generate_steps(live_in_apartment_answers)
+        closing_steps = [s for s in steps if s.phase == JourneyPhase.CLOSING]
+        ownership_steps = [s for s in steps if s.phase == JourneyPhase.OWNERSHIP]
+        assert len(closing_steps) > 0
+        assert len(ownership_steps) == 4
+        max_closing_num = max(s.step_number for s in closing_steps)
+        min_ownership_num = min(s.step_number for s in ownership_steps)
+        assert max_closing_num < min_ownership_num
+
+    def test_live_in_journey_ends_with_ownership(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that live-in journeys end with OWNERSHIP (no RENTAL_SETUP)."""
+        steps = _generate_steps(live_in_apartment_answers)
+        last_step = steps[-1]
+        assert last_step.phase == JourneyPhase.OWNERSHIP
+
+    # --- Task-level condition tests ---
+
+    def test_anmeldung_task_included_for_live_in(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that Anmeldung task is included for live-in buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+        reg_tasks = steps_with_tasks["Complete Property Registration"]
+        task_titles = [t.title for t in reg_tasks]
+        assert "Register new address at Bürgeramt (Anmeldung)" in task_titles
+
+    def test_anmeldung_task_excluded_for_rent_out(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that Anmeldung task is excluded for rent-out buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_house_answers)
+        reg_tasks = steps_with_tasks["Complete Property Registration"]
+        task_titles = [t.title for t in reg_tasks]
+        assert "Register new address at Bürgeramt (Anmeldung)" not in task_titles
+
+    def test_contents_insurance_included_for_live_in(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that Hausratversicherung task is included for live-in buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+        ins_tasks = steps_with_tasks["Arrange Property Insurance"]
+        task_titles = [t.title for t in ins_tasks]
+        assert "Set up Hausratversicherung (contents insurance)" in task_titles
+
+    def test_contents_insurance_excluded_for_rent_out(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that Hausratversicherung task is excluded for rent-out buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_house_answers)
+        ins_tasks = steps_with_tasks["Arrange Property Insurance"]
+        task_titles = [t.title for t in ins_tasks]
+        assert "Set up Hausratversicherung (contents insurance)" not in task_titles
+
+    def test_weg_tasks_included_for_apartment(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that WEG/Hausgeld tasks are included for apartment buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+        mgmt_tasks = steps_with_tasks["Set Up Property Management"]
+        task_titles = [t.title for t in mgmt_tasks]
+        assert "Contact WEG-Verwaltung and register as new owner" in task_titles
+        assert "Set up Hausgeld (condo fees) payment via Dauerauftrag" in task_titles
+
+    def test_weg_tasks_excluded_for_house(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that WEG/Hausgeld tasks are excluded for house buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_house_answers)
+        mgmt_tasks = steps_with_tasks["Set Up Property Management"]
+        task_titles = [t.title for t in mgmt_tasks]
+        assert "Contact WEG-Verwaltung and register as new owner" not in task_titles
+        assert (
+            "Set up Hausgeld (condo fees) payment via Dauerauftrag" not in task_titles
+        )
+
+    def test_house_maintenance_tasks_included_for_house(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that house maintenance tasks are included for house buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_house_answers)
+        mgmt_tasks = steps_with_tasks["Set Up Property Management"]
+        task_titles = [t.title for t in mgmt_tasks]
+        assert "Plan annual maintenance budget (Instandhaltungsrücklage)" in task_titles
+
+    def test_house_maintenance_tasks_excluded_for_apartment(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that house maintenance tasks are excluded for apartment buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+        mgmt_tasks = steps_with_tasks["Set Up Property Management"]
+        task_titles = [t.title for t in mgmt_tasks]
+        assert (
+            "Plan annual maintenance budget (Instandhaltungsrücklage)"
+            not in task_titles
+        )
+
+    def test_weg_insurance_included_for_apartment(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that WEG insurance verification task is included for apartment buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+        ins_tasks = steps_with_tasks["Arrange Property Insurance"]
+        task_titles = [t.title for t in ins_tasks]
+        assert "Verify WEG building insurance policy covers your unit" in task_titles
+
+    def test_weg_insurance_excluded_for_house(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that WEG insurance verification task is excluded for house buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_house_answers)
+        ins_tasks = steps_with_tasks["Arrange Property Insurance"]
+        task_titles = [t.title for t in ins_tasks]
+        assert (
+            "Verify WEG building insurance policy covers your unit" not in task_titles
+        )
+
+    def test_mortgage_tracking_included_for_mortgage(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that mortgage tracking task is included for mortgage buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+        tax_tasks = steps_with_tasks["Handle Property Tax & Finance"]
+        task_titles = [t.title for t in tax_tasks]
+        assert (
+            "Track mortgage payments and request annual interest statement"
+            in task_titles
+        )
+
+    def test_mortgage_tracking_excluded_for_cash(
+        self, rent_out_apartment_cash_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that mortgage tracking task is excluded for cash buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_apartment_cash_answers)
+        tax_tasks = steps_with_tasks["Handle Property Tax & Finance"]
+        task_titles = [t.title for t in tax_tasks]
+        assert (
+            "Track mortgage payments and request annual interest statement"
+            not in task_titles
+        )
+
+    def test_anlage_v_included_for_rent_out(
+        self, rent_out_house_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that Anlage V task is included for rent-out buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(rent_out_house_answers)
+        tax_tasks = steps_with_tasks["Handle Property Tax & Finance"]
+        task_titles = [t.title for t in tax_tasks]
+        assert "Prepare for Anlage V rental income tax filing" in task_titles
+
+    def test_anlage_v_excluded_for_live_in(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that Anlage V task is excluded for live-in buyers."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+        tax_tasks = steps_with_tasks["Handle Property Tax & Finance"]
+        task_titles = [t.title for t in tax_tasks]
+        assert "Prepare for Anlage V rental income tax filing" not in task_titles
+
+    def test_universal_tasks_always_present(
+        self, live_in_apartment_answers: QuestionnaireAnswers
+    ) -> None:
+        """Test that unconditional tasks are always present in ownership steps."""
+        steps_with_tasks = _generate_steps_with_tasks(live_in_apartment_answers)
+
+        # Registration universal tasks
+        reg_titles = [
+            t.title for t in steps_with_tasks["Complete Property Registration"]
+        ]
+        assert (
+            "Confirm Grundbuch (land register) transfer is complete with notary"
+            in reg_titles
+        )
+        assert (
+            "Transfer utilities (electricity, gas, water, internet) to your name"
+            in reg_titles
+        )
+
+        # Management universal tasks
+        mgmt_titles = [t.title for t in steps_with_tasks["Set Up Property Management"]]
+        assert "Register for waste collection (Müllabfuhr) service" in mgmt_titles
+
+        # Tax universal tasks
+        tax_titles = [
+            t.title for t in steps_with_tasks["Handle Property Tax & Finance"]
+        ]
+        assert (
+            "Register for Grundsteuer (property tax) at local Finanzamt" in tax_titles
+        )
+        assert "Keep records of all property expenses for tax deduction" in tax_titles
+
+    def test_step17_utility_task_distinct_from_step25(self) -> None:
+        """Test that Step 17 and Step 25 utility tasks have distinct wording."""
+        step17 = next(
+            t for t in STEP_TEMPLATES if t.content_key == "ownership_transfer"
+        )
+        step25 = next(
+            t for t in STEP_TEMPLATES if t.content_key == "ownership_registration"
+        )
+        step17_titles = {t["title"] for t in step17.tasks}
+        step25_titles = {t["title"] for t in step25.tasks}
+        assert step17_titles.isdisjoint(step25_titles)
+
+    # --- Prerequisite tests ---
+
+    def test_ownership_registration_prerequisite_is_ownership_transfer(
+        self,
+    ) -> None:
+        """Test that ownership_registration template has prerequisite [17] (ownership transfer)."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "ownership_registration"
+        )
+        assert template.prerequisites == [17]
+
+    def test_ownership_insurance_prerequisite_is_registration(self) -> None:
+        """Test that ownership_insurance template has prerequisite [25] (registration)."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "ownership_insurance"
+        )
+        assert template.prerequisites == [25]
+
+    def test_ownership_management_prerequisite_is_registration(self) -> None:
+        """Test that ownership_management template has prerequisite [25] (registration)."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "ownership_management"
+        )
+        assert template.prerequisites == [25]
+
+    def test_ownership_tax_prerequisite_is_registration(self) -> None:
+        """Test that ownership_tax_finance template has prerequisite [25] (registration)."""
+        template = next(
+            t for t in STEP_TEMPLATES if t.content_key == "ownership_tax_finance"
+        )
+        assert template.prerequisites == [25]

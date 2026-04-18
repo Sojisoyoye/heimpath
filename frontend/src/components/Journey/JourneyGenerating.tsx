@@ -33,6 +33,7 @@ const PHASE_LABELS: Record<JourneyPhase, string> = {
   preparation: "Preparation",
   buying: "Buying",
   closing: "Closing",
+  ownership: "Ownership",
   rental_setup: "Rental Setup",
 }
 
@@ -74,6 +75,7 @@ function JourneyGenerating(props: IProps) {
       preparation: 0,
       buying: 0,
       closing: 0,
+      ownership: 0,
       rental_setup: 0,
     }
     for (const step of journey.steps) {

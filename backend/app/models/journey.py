@@ -26,6 +26,7 @@ class JourneyPhase(str, PyEnum):
     PREPARATION = "preparation"
     BUYING = "buying"
     CLOSING = "closing"
+    OWNERSHIP = "ownership"
     RENTAL_SETUP = "rental_setup"
 
 
@@ -62,6 +63,7 @@ _journey_phase_enum = PgEnum(
     "preparation",
     "buying",
     "closing",
+    "ownership",
     "rental_setup",
     name="journeyphase",
     create_type=False,

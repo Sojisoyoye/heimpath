@@ -9,6 +9,7 @@ export type JourneyPhase =
   | "preparation"
   | "buying"
   | "closing"
+  | "ownership"
   | "rental_setup"
 
 export type StepStatus = "not_started" | "in_progress" | "completed" | "skipped"

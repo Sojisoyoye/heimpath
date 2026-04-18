@@ -72,6 +72,10 @@ const STEP_CONTENT_REGISTRY: Record<
   rental_property_management: () => null,
   rental_tax_strategy: () => null,
   rental_operations_setup: () => null,
+  ownership_registration: () => null,
+  ownership_insurance: () => null,
+  ownership_management: () => null,
+  ownership_tax_finance: () => null,
 }
 
 /******************************************************************************
