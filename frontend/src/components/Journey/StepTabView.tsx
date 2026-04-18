@@ -36,6 +36,7 @@ function StepTabView(props: IProps) {
     preparation: [],
     buying: [],
     closing: [],
+    ownership: [],
     rental_setup: [],
   }
   for (const step of steps) {

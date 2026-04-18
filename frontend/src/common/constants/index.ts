@@ -52,7 +52,8 @@ export const JOURNEY_PHASES = [
   { key: "preparation", label: "Preparation", order: 2 },
   { key: "buying", label: "Buying", order: 3 },
   { key: "closing", label: "Closing", order: 4 },
-  { key: "rental_setup", label: "Rental Setup", order: 5 },
+  { key: "ownership", label: "Ownership", order: 5 },
+  { key: "rental_setup", label: "Rental Setup", order: 6 },
 ] as const
 
 // Journey phase colors (used for phase badges across components)
@@ -64,6 +65,8 @@ export const PHASE_COLORS: Record<string, string> = {
     "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
   closing:
     "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  ownership:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   rental_setup:
     "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
 }

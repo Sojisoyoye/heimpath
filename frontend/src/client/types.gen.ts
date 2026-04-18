@@ -794,7 +794,7 @@ export type JourneyOverview = {
 /**
  * Phases of the property buying journey.
  */
-export type JourneyPhase = 'research' | 'preparation' | 'buying' | 'closing' | 'rental_setup';
+export type JourneyPhase = 'research' | 'preparation' | 'buying' | 'closing' | 'ownership' | 'rental_setup';
 
 /**
  * Schema for journey progress.

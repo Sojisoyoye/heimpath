@@ -497,7 +497,10 @@ STEP_TEMPLATES: list[StepTemplate] = [
             {"title": "Notary submits for land registry update", "is_required": True},
             {"title": "Receive updated Grundbuchauszug", "is_required": True},
             {"title": "Collect keys from seller", "is_required": True},
-            {"title": "Transfer utilities to your name", "is_required": True},
+            {
+                "title": "Arrange utility transfer with seller (Übergabe)",
+                "is_required": True,
+            },
         ],
         related_laws=["GBO §13 (Eintragungsgrundsatz)"],
     ),
@@ -630,6 +633,150 @@ STEP_TEMPLATES: list[StepTemplate] = [
             "EStG §7 (AfA — Absetzung für Abnutzung)",
         ],
     ),
+    # OWNERSHIP PHASE (post-purchase onboarding — all buyers)
+    StepTemplate(
+        step_number=25,
+        phase=JourneyPhase.OWNERSHIP,
+        title="Complete Property Registration",
+        description="Finalize ownership records, complete the handover, and transfer all utilities and registrations to your name.",
+        estimated_duration_days=7,
+        content_key="ownership_registration",
+        prerequisites=[17],
+        tasks=[
+            {
+                "title": "Confirm Grundbuch (land register) transfer is complete with notary",
+                "is_required": True,
+            },
+            {
+                "title": "Obtain all property keys and complete Übergabeprotokoll (handover protocol)",
+                "is_required": True,
+            },
+            {
+                "title": "Transfer utilities (electricity, gas, water, internet) to your name",
+                "is_required": True,
+            },
+            {
+                "title": "Register new address at Bürgeramt (Anmeldung)",
+                "is_required": True,
+                "conditions": {"property_use": ["live_in"]},
+            },
+            {
+                "title": "Set up mail forwarding (Nachsendeauftrag) via Deutsche Post",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=26,
+        phase=JourneyPhase.OWNERSHIP,
+        title="Arrange Property Insurance",
+        description="Secure essential insurance coverage for your property, including building, liability, and contents insurance.",
+        estimated_duration_days=5,
+        content_key="ownership_insurance",
+        prerequisites=[25],
+        tasks=[
+            {
+                "title": "Arrange Wohngebäudeversicherung (building insurance)",
+                "is_required": True,
+            },
+            {
+                "title": "Consider Haus- und Grundbesitzerhaftpflicht (property liability insurance)",
+                "is_required": True,
+            },
+            {
+                "title": "Evaluate Elementarschadenversicherung (natural disaster) coverage for your region",
+                "is_required": False,
+            },
+            {
+                "title": "Set up Hausratversicherung (contents insurance)",
+                "is_required": True,
+                "conditions": {"property_use": ["live_in"]},
+            },
+            {
+                "title": "Verify WEG building insurance policy covers your unit",
+                "is_required": False,
+                "conditions": {"property_type": ["apartment"]},
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=27,
+        phase=JourneyPhase.OWNERSHIP,
+        title="Set Up Property Management",
+        description="Establish ongoing management for your property — from condo administration to maintenance planning.",
+        estimated_duration_days=7,
+        content_key="ownership_management",
+        prerequisites=[25],
+        tasks=[
+            {
+                "title": "Contact WEG-Verwaltung and register as new owner",
+                "is_required": True,
+                "conditions": {"property_type": ["apartment"]},
+            },
+            {
+                "title": "Set up Hausgeld (condo fees) payment via Dauerauftrag",
+                "is_required": True,
+                "conditions": {"property_type": ["apartment"]},
+            },
+            {
+                "title": "Review Teilungserklärung and Hausordnung (house rules)",
+                "is_required": False,
+                "conditions": {"property_type": ["apartment"]},
+            },
+            {
+                "title": "Plan annual maintenance budget (Instandhaltungsrücklage)",
+                "is_required": True,
+                "conditions": {"property_type": ["house"]},
+            },
+            {
+                "title": "Identify local tradespeople for repairs (plumber, electrician, heating)",
+                "is_required": False,
+                "conditions": {"property_type": ["house"]},
+            },
+            {
+                "title": "Register for waste collection (Müllabfuhr) service",
+                "is_required": True,
+            },
+            {
+                "title": "Schedule heating system inspection (Heizungswartung)",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=28,
+        phase=JourneyPhase.OWNERSHIP,
+        title="Handle Property Tax & Finance",
+        description="Set up property tax payments, track mortgage costs, and prepare for tax filing obligations.",
+        estimated_duration_days=5,
+        content_key="ownership_tax_finance",
+        prerequisites=[25],
+        tasks=[
+            {
+                "title": "Register for Grundsteuer (property tax) at local Finanzamt",
+                "is_required": True,
+            },
+            {
+                "title": "Set up Grundsteuer payment via Dauerauftrag (quarterly or annual)",
+                "is_required": True,
+            },
+            {
+                "title": "Track mortgage payments and request annual interest statement",
+                "is_required": True,
+                "conditions": {"financing_type": ["mortgage", "mixed"]},
+            },
+            {
+                "title": "Prepare for Anlage V rental income tax filing",
+                "is_required": True,
+                "conditions": {"property_use": ["rent_out"]},
+            },
+            {
+                "title": "Keep records of all property expenses for tax deduction",
+                "is_required": True,
+            },
+        ],
+    ),
+    # RENTAL SETUP PHASE (rent-out investors only)
     StepTemplate(
         step_number=24,
         phase=JourneyPhase.RENTAL_SETUP,
@@ -638,7 +785,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
         estimated_duration_days=14,
         content_key="rental_operations_setup",
         conditions={"property_use": ["rent_out"]},
-        prerequisites=[17],
+        prerequisites=[25],
         tasks=[
             {
                 "title": "Prepare a Mietvertrag (lease agreement) using a standard template",
