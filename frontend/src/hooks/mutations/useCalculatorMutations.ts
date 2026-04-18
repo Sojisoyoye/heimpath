@@ -9,6 +9,7 @@ import type {
   HiddenCostCalculationInput,
   ROICalculationInput,
 } from "@/models/calculator"
+import type { OwnershipComparisonInput } from "@/models/ownershipComparison"
 import type { PropertyEvaluationInput } from "@/models/propertyEvaluation"
 import { queryKeys } from "@/query/queryKeys"
 import { CalculatorService } from "@/services/CalculatorService"
@@ -167,6 +168,47 @@ export function useDeletePropertyEvaluation() {
       })
       queryClient.invalidateQueries({
         queryKey: queryKeys.calculators.all,
+      })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Ownership Comparison (GmbH vs. Private)
+// ---------------------------------------------------------------------------
+
+/** Calculate GmbH vs. private comparison (no save) */
+export function useCalculateOwnershipComparison() {
+  return useMutation({
+    mutationFn: (input: OwnershipComparisonInput) =>
+      CalculatorService.calculateOwnershipComparison(input),
+  })
+}
+
+/** Save an ownership comparison */
+export function useSaveOwnershipComparison() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: OwnershipComparisonInput) =>
+      CalculatorService.saveOwnershipComparison(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.calculators.ownershipComparisonList(),
+      })
+    },
+  })
+}
+
+/** Delete a saved ownership comparison */
+export function useDeleteOwnershipComparison() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => CalculatorService.deleteOwnershipComparison(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.calculators.ownershipComparisonList(),
       })
     },
   })

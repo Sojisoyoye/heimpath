@@ -76,6 +76,16 @@ export const queryKeys = {
       ] as const,
     propertyEvaluationStep: (stepId: string) =>
       [...queryKeys.calculators.all, "propertyEvaluationStep", stepId] as const,
+    ownershipComparison: (id: string) =>
+      [...queryKeys.calculators.all, "ownershipComparison", id] as const,
+    ownershipComparisonList: () =>
+      [...queryKeys.calculators.all, "ownershipComparisonList"] as const,
+    ownershipComparisonShare: (shareId: string) =>
+      [
+        ...queryKeys.calculators.all,
+        "ownershipComparisonShare",
+        shareId,
+      ] as const,
   },
 
   // Market data queries

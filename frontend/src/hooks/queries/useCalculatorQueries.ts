@@ -193,3 +193,33 @@ export function useStepPropertyEvaluations(stepId: string) {
     enabled: !!stepId,
   })
 }
+
+// ---------------------------------------------------------------------------
+// Ownership Comparison (GmbH vs. Private)
+// ---------------------------------------------------------------------------
+
+/** Get a specific ownership comparison by ID */
+export function useOwnershipComparison(id: string) {
+  return useQuery({
+    queryKey: queryKeys.calculators.ownershipComparison(id),
+    queryFn: () => CalculatorService.getOwnershipComparison(id),
+    enabled: !!id,
+  })
+}
+
+/** Get a shared ownership comparison by share_id */
+export function useOwnershipComparisonByShareId(shareId: string) {
+  return useQuery({
+    queryKey: queryKeys.calculators.ownershipComparisonShare(shareId),
+    queryFn: () => CalculatorService.getOwnershipComparisonByShareId(shareId),
+    enabled: !!shareId,
+  })
+}
+
+/** Get all saved ownership comparisons for current user */
+export function useUserOwnershipComparisons() {
+  return useQuery({
+    queryKey: queryKeys.calculators.ownershipComparisonList(),
+    queryFn: () => CalculatorService.getUserOwnershipComparisons(),
+  })
+}

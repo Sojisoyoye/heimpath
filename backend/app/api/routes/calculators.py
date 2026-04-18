@@ -6,10 +6,9 @@ including saving, sharing, and comparing scenarios.
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session
+from fastapi import APIRouter, HTTPException, Query, status
 
-from app.api.deps import CurrentUser, get_db
+from app.api.deps import CurrentUser, SessionDep
 from app.models.notification import NotificationType
 from app.schemas.calculator import (
     HiddenCostCalculationCreate,
@@ -18,6 +17,13 @@ from app.schemas.calculator import (
     HiddenCostCalculationSummary,
     StateComparisonResponse,
     StateRatesResponse,
+)
+from app.schemas.ownership_comparison import (
+    OwnershipComparisonListResponse,
+    OwnershipComparisonRequest,
+    OwnershipComparisonResponse,
+    OwnershipComparisonSavedResponse,
+    OwnershipComparisonSummary,
 )
 from app.schemas.property_evaluation import (
     PropertyEvaluationCalculateRequest,
@@ -39,6 +45,7 @@ from app.schemas.roi import (
 from app.services import (
     calculator_service,
     notification_service,
+    ownership_comparison_service,
     property_evaluation_service,
     roi_service,
 )
@@ -82,7 +89,7 @@ async def compare_states(
 )
 async def get_shared_calculation(
     share_id: str,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> HiddenCostCalculationResponse:
     """
     Get a shared calculation by share_id.
@@ -101,7 +108,7 @@ async def get_shared_calculation(
 async def save_calculation(
     request: HiddenCostCalculationCreate,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> HiddenCostCalculationResponse:
     """
     Calculate and save a hidden cost calculation.
@@ -129,7 +136,7 @@ async def save_calculation(
 @router.get("/hidden-costs", response_model=HiddenCostCalculationListResponse)
 async def list_calculations(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> HiddenCostCalculationListResponse:
     """
     Get all saved calculations for the current user.
@@ -150,7 +157,7 @@ async def list_calculations(
 async def get_calculation(
     calc_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> HiddenCostCalculationResponse:
     """
     Get a specific saved calculation by ID.
@@ -168,7 +175,7 @@ async def get_calculation(
 async def delete_calculation(
     calc_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> None:
     """
     Delete a saved calculation.
@@ -200,7 +207,7 @@ async def compare_roi_scenarios(
 @router.get("/roi/share/{share_id}", response_model=ROICalculationResponse)
 async def get_shared_roi_calculation(
     share_id: str,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> ROICalculationResponse:
     """
     Get a shared ROI calculation by share_id.
@@ -219,7 +226,7 @@ async def get_shared_roi_calculation(
 async def save_roi_calculation(
     request: ROICalculationCreate,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> ROICalculationResponse:
     """
     Calculate and save an ROI analysis.
@@ -247,7 +254,7 @@ async def save_roi_calculation(
 @router.get("/roi", response_model=ROICalculationListResponse)
 async def list_roi_calculations(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> ROICalculationListResponse:
     """
     Get all saved ROI calculations for the current user.
@@ -266,7 +273,7 @@ async def list_roi_calculations(
 async def get_roi_calculation(
     calc_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> ROICalculationResponse:
     """
     Get a specific saved ROI calculation by ID.
@@ -284,7 +291,7 @@ async def get_roi_calculation(
 async def delete_roi_calculation(
     calc_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> None:
     """
     Delete a saved ROI calculation.
@@ -305,7 +312,7 @@ async def delete_roi_calculation(
 )
 async def get_shared_property_evaluation(
     share_id: str,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> PropertyEvaluationResponse:
     """
     Get a shared property evaluation by share_id.
@@ -323,7 +330,7 @@ async def get_shared_property_evaluation(
 async def list_step_property_evaluations(
     step_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> PropertyEvaluationListResponse:
     """
     Get all property evaluations for a journey step.
@@ -368,7 +375,7 @@ async def calculate_property_evaluation(
 async def save_property_evaluation(
     request: PropertyEvaluationCreate,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> PropertyEvaluationResponse:
     """
     Calculate and save a property evaluation.
@@ -399,7 +406,7 @@ async def save_property_evaluation(
 )
 async def list_property_evaluations(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> PropertyEvaluationListResponse:
     """
     Get all saved property evaluations for the current user.
@@ -421,7 +428,7 @@ async def list_property_evaluations(
 async def get_property_evaluation(
     eval_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> PropertyEvaluationResponse:
     """
     Get a specific saved property evaluation by ID.
@@ -443,7 +450,7 @@ async def get_property_evaluation(
 async def delete_property_evaluation(
     eval_id: uuid.UUID,
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> None:
     """
     Delete a saved property evaluation.
@@ -451,3 +458,121 @@ async def delete_property_evaluation(
     Requires authentication and ownership.
     """
     property_evaluation_service.delete_evaluation(session, eval_id, current_user.id)
+
+
+# ---------------------------------------------------------------------------
+# Ownership Comparison (GmbH vs. Private) endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/ownership-comparison/calculate")
+async def calculate_ownership_comparison(
+    request: OwnershipComparisonRequest,
+) -> OwnershipComparisonResponse:
+    """
+    Calculate GmbH vs. private ownership comparison.
+
+    No authentication required. Pure calculation, no persistence.
+    """
+    result = ownership_comparison_service.calculate_comparison(request)
+    return OwnershipComparisonResponse(**result)
+
+
+@router.get("/ownership-comparison/share/{share_id}")
+async def get_shared_ownership_comparison(
+    share_id: str,
+    session: SessionDep,
+) -> OwnershipComparisonSavedResponse:
+    """
+    Get a shared ownership comparison by share_id.
+
+    No authentication required.
+    """
+    comparison = ownership_comparison_service.get_by_share_id(session, share_id)
+    return OwnershipComparisonSavedResponse.model_validate(comparison)
+
+
+@router.post(
+    "/ownership-comparison",
+    status_code=status.HTTP_201_CREATED,
+)
+async def save_ownership_comparison(
+    request: OwnershipComparisonRequest,
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> OwnershipComparisonSavedResponse:
+    """
+    Calculate and save an ownership comparison.
+
+    Requires authentication.
+    """
+    comparison = ownership_comparison_service.save_comparison(
+        session=session,
+        user_id=current_user.id,
+        inputs=request,
+    )
+
+    notification_service.create_notification(
+        session,
+        user_id=current_user.id,
+        type=NotificationType.CALCULATION_SAVED,
+        title="Ownership Comparison Saved",
+        message="Your GmbH vs. private ownership comparison has been saved.",
+        action_url="/calculators?tab=ownership",
+    )
+
+    return OwnershipComparisonSavedResponse.model_validate(comparison)
+
+
+@router.get("/ownership-comparison")
+async def list_ownership_comparisons(
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> OwnershipComparisonListResponse:
+    """
+    Get all saved ownership comparisons for the current user.
+
+    Requires authentication.
+    """
+    comparisons = ownership_comparison_service.list_user_comparisons(
+        session, current_user.id
+    )
+    summaries = [OwnershipComparisonSummary.model_validate(c) for c in comparisons]
+    return OwnershipComparisonListResponse(
+        data=summaries,
+        count=len(summaries),
+    )
+
+
+@router.get("/ownership-comparison/{calc_id}")
+async def get_ownership_comparison(
+    calc_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> OwnershipComparisonSavedResponse:
+    """
+    Get a specific saved ownership comparison by ID.
+
+    Requires authentication and ownership.
+    """
+    comparison = ownership_comparison_service.get_comparison(
+        session, calc_id, current_user.id
+    )
+    return OwnershipComparisonSavedResponse.model_validate(comparison)
+
+
+@router.delete(
+    "/ownership-comparison/{calc_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_ownership_comparison(
+    calc_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> None:
+    """
+    Delete a saved ownership comparison.
+
+    Requires authentication and ownership.
+    """
+    ownership_comparison_service.delete_comparison(session, calc_id, current_user.id)

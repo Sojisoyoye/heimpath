@@ -77,6 +77,7 @@ from app.models.notification import (
     NotificationPreference,
     NotificationType,
 )
+from app.models.ownership_comparison import OwnershipComparison
 from app.models.portfolio import (
     PortfolioProperty,
     PortfolioTransaction,
@@ -126,6 +127,7 @@ __all__ = [
     "Notification",
     "NotificationPreference",
     "NotificationType",
+    "OwnershipComparison",
     "PortfolioProperty",
     "PortfolioTransaction",
     "TransactionType",

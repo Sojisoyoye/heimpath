@@ -1226,6 +1226,89 @@ export type NotificationResponse = {
  */
 export type NotificationType = 'step_completed' | 'document_translated' | 'calculation_saved' | 'law_bookmarked' | 'journey_deadline' | 'payment_reminder' | 'subscription_expiring' | 'system_announcement' | 'weekly_digest';
 
+/**
+ * List of saved ownership comparisons.
+ */
+export type OwnershipComparisonListResponse = {
+    data: Array<OwnershipComparisonSummary>;
+    count: number;
+};
+
+/**
+ * Request to calculate or save a GmbH vs. private ownership comparison.
+ */
+export type OwnershipComparisonRequest = {
+    name?: (string | null);
+    num_properties: number;
+    annual_rental_income: number;
+    personal_marginal_tax_rate: number;
+    annual_appreciation: number;
+    holding_period: number;
+    total_property_value: number;
+    building_share_percent?: number;
+    afa_rate_percent?: number;
+    annual_rent_increase_percent?: number;
+    gewerbesteuer_hebesatz?: number;
+    gmbh_setup_cost?: number;
+    annual_accounting_cost?: number;
+};
+
+/**
+ * Pure calculation result for GmbH vs. private comparison.
+ */
+export type OwnershipComparisonResponse = {
+    private: ScenarioResult;
+    gmbh: ScenarioResult;
+    breakeven_year: (number | null);
+    gmbh_advantage_at_exit: number;
+    recommendation: string;
+};
+
+/**
+ * Response for a saved ownership comparison with DB fields.
+ */
+export type OwnershipComparisonSavedResponse = {
+    id: string;
+    name?: (string | null);
+    share_id?: (string | null);
+    num_properties: number;
+    annual_rental_income: number;
+    personal_marginal_tax_rate: number;
+    annual_appreciation: number;
+    holding_period: number;
+    total_property_value: number;
+    building_share_percent: number;
+    afa_rate_percent: number;
+    annual_rent_increase_percent: number;
+    gewerbesteuer_hebesatz: number;
+    gmbh_setup_cost: number;
+    annual_accounting_cost: number;
+    private_total_wealth: number;
+    gmbh_total_wealth: number;
+    breakeven_year: (number | null);
+    gmbh_advantage_at_exit: number;
+    recommendation: string;
+    results: {
+        [key: string]: unknown;
+    };
+    created_at: string;
+};
+
+/**
+ * Summary for list views.
+ */
+export type OwnershipComparisonSummary = {
+    id: string;
+    name?: (string | null);
+    share_id?: (string | null);
+    num_properties: number;
+    total_property_value: number;
+    private_total_wealth: number;
+    gmbh_total_wealth: number;
+    recommendation: string;
+    created_at: string;
+};
+
 export type PasswordRecoveryRequest = {
     email: string;
 };
@@ -1914,6 +1997,22 @@ export type SavedDocumentSummary = {
 };
 
 /**
+ * Calculated results for a single ownership scenario (private or GmbH).
+ */
+export type ScenarioResult = {
+    effective_tax_rate: number;
+    year1_tax: number;
+    year1_net_income: number;
+    total_net_rental_income: number;
+    exit_property_value: number;
+    capital_gains: number;
+    capital_gains_tax: number;
+    net_exit_proceeds: number;
+    total_wealth: number;
+    projections: Array<YearProjection>;
+};
+
+/**
  * A single search result item from any content type.
  */
 export type SearchResultItem = {
@@ -2227,6 +2326,18 @@ export type WebhookResponse = {
     received: boolean;
 };
 
+/**
+ * Single year projection for one ownership scenario.
+ */
+export type YearProjection = {
+    year: number;
+    rental_income: number;
+    tax: number;
+    net_income_after_tax: number;
+    cumulative_net_income: number;
+    property_value: number;
+};
+
 export type ArticlesListArticlesData = {
     category?: (ArticleCategory | null);
     difficultyLevel?: (DifficultyLevel | null);
@@ -2438,6 +2549,38 @@ export type CalculatorsDeletePropertyEvaluationData = {
 };
 
 export type CalculatorsDeletePropertyEvaluationResponse = (void);
+
+export type CalculatorsCalculateOwnershipComparisonData = {
+    requestBody: OwnershipComparisonRequest;
+};
+
+export type CalculatorsCalculateOwnershipComparisonResponse = (OwnershipComparisonResponse);
+
+export type CalculatorsGetSharedOwnershipComparisonData = {
+    shareId: string;
+};
+
+export type CalculatorsGetSharedOwnershipComparisonResponse = (OwnershipComparisonSavedResponse);
+
+export type CalculatorsListOwnershipComparisonsResponse = (OwnershipComparisonListResponse);
+
+export type CalculatorsSaveOwnershipComparisonData = {
+    requestBody: OwnershipComparisonRequest;
+};
+
+export type CalculatorsSaveOwnershipComparisonResponse = (OwnershipComparisonSavedResponse);
+
+export type CalculatorsGetOwnershipComparisonData = {
+    calcId: string;
+};
+
+export type CalculatorsGetOwnershipComparisonResponse = (OwnershipComparisonSavedResponse);
+
+export type CalculatorsDeleteOwnershipComparisonData = {
+    calcId: string;
+};
+
+export type CalculatorsDeleteOwnershipComparisonResponse = (void);
 
 export type DashboardGetDashboardOverviewResponse = (DashboardOverviewResponse);
 
