@@ -40,6 +40,26 @@ export type AnnualCashflowRowResponse = {
 };
 
 /**
+ * Response for the area listing endpoint.
+ */
+export type AreaListResponse = {
+    areas: Array<AreaSummary>;
+};
+
+/**
+ * Summary of a comparable area (city or state).
+ */
+export type AreaSummary = {
+    key: string;
+    name: string;
+    area_type: 'city' | 'state';
+    state_code: string;
+    state_name: string;
+};
+
+export type area_type = 'city' | 'state';
+
+/**
  * Categories for content library articles.
  */
 export type ArticleCategory = 'buying_process' | 'costs_and_taxes' | 'regulations' | 'common_pitfalls';
@@ -296,6 +316,35 @@ export type BookmarkResponse = {
 export type CheckoutResponse = {
     session_id: string;
     url: string;
+};
+
+/**
+ * Full comparison metrics for a single area.
+ */
+export type ComparisonMetrics = {
+    key: string;
+    name: string;
+    area_type: 'city' | 'state';
+    state_code: string;
+    state_name: string;
+    avg_price_per_sqm: number;
+    price_range_min: number;
+    price_range_max: number;
+    avg_rent_per_sqm?: (number | null);
+    rent_range_min?: (number | null);
+    rent_range_max?: (number | null);
+    gross_rental_yield?: (number | null);
+    transfer_tax_rate: number;
+    agent_fee_percent?: (number | null);
+    trend?: ('rising' | 'stable' | 'falling' | null);
+    has_mietspiegel: boolean;
+};
+
+/**
+ * Response for the area comparison endpoint.
+ */
+export type ComparisonResponse = {
+    areas: Array<ComparisonMetrics>;
 };
 
 /**
@@ -2680,6 +2729,17 @@ export type MarketGetRentEstimateData = {
 };
 
 export type MarketGetRentEstimateResponse = (RentEstimateResponse);
+
+export type MarketListAreasResponse = (AreaListResponse);
+
+export type MarketCompareAreasData = {
+    /**
+     * Area keys to compare (2–4)
+     */
+    keys: Array<(string)>;
+};
+
+export type MarketCompareAreasResponse = (ComparisonResponse);
 
 export type NotificationsListNotificationsData = {
     limit?: number;

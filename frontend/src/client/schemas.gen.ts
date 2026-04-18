@@ -144,6 +144,52 @@ export const AnnualCashflowRowResponseSchema = {
     title: 'AnnualCashflowRowResponse'
 } as const;
 
+export const AreaListResponseSchema = {
+    properties: {
+        areas: {
+            items: {
+                '$ref': '#/components/schemas/AreaSummary'
+            },
+            type: 'array',
+            title: 'Areas'
+        }
+    },
+    type: 'object',
+    required: ['areas'],
+    title: 'AreaListResponse',
+    description: 'Response for the area listing endpoint.'
+} as const;
+
+export const AreaSummarySchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        area_type: {
+            type: 'string',
+            enum: ['city', 'state'],
+            title: 'Area Type'
+        },
+        state_code: {
+            type: 'string',
+            title: 'State Code'
+        },
+        state_name: {
+            type: 'string',
+            title: 'State Name'
+        }
+    },
+    type: 'object',
+    required: ['key', 'name', 'area_type', 'state_code', 'state_name'],
+    title: 'AreaSummary',
+    description: 'Summary of a comparable area (city or state).'
+} as const;
+
 export const ArticleCategorySchema = {
     type: 'string',
     enum: ['buying_process', 'costs_and_taxes', 'regulations', 'common_pitfalls'],
@@ -1012,6 +1058,139 @@ export const CheckoutResponseSchema = {
     required: ['session_id', 'url'],
     title: 'CheckoutResponse',
     description: 'Response with checkout session details.'
+} as const;
+
+export const ComparisonMetricsSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        area_type: {
+            type: 'string',
+            enum: ['city', 'state'],
+            title: 'Area Type'
+        },
+        state_code: {
+            type: 'string',
+            title: 'State Code'
+        },
+        state_name: {
+            type: 'string',
+            title: 'State Name'
+        },
+        avg_price_per_sqm: {
+            type: 'integer',
+            title: 'Avg Price Per Sqm'
+        },
+        price_range_min: {
+            type: 'integer',
+            title: 'Price Range Min'
+        },
+        price_range_max: {
+            type: 'integer',
+            title: 'Price Range Max'
+        },
+        avg_rent_per_sqm: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Avg Rent Per Sqm'
+        },
+        rent_range_min: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Rent Range Min'
+        },
+        rent_range_max: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Rent Range Max'
+        },
+        gross_rental_yield: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Gross Rental Yield'
+        },
+        transfer_tax_rate: {
+            type: 'number',
+            title: 'Transfer Tax Rate'
+        },
+        agent_fee_percent: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Agent Fee Percent'
+        },
+        trend: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['rising', 'stable', 'falling']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Trend'
+        },
+        has_mietspiegel: {
+            type: 'boolean',
+            title: 'Has Mietspiegel'
+        }
+    },
+    type: 'object',
+    required: ['key', 'name', 'area_type', 'state_code', 'state_name', 'avg_price_per_sqm', 'price_range_min', 'price_range_max', 'transfer_tax_rate', 'has_mietspiegel'],
+    title: 'ComparisonMetrics',
+    description: 'Full comparison metrics for a single area.'
+} as const;
+
+export const ComparisonResponseSchema = {
+    properties: {
+        areas: {
+            items: {
+                '$ref': '#/components/schemas/ComparisonMetrics'
+            },
+            type: 'array',
+            title: 'Areas'
+        }
+    },
+    type: 'object',
+    required: ['areas'],
+    title: 'ComparisonResponse',
+    description: 'Response for the area comparison endpoint.'
 } as const;
 
 export const CostDefaultsSchema = {

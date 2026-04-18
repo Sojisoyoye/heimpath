@@ -19,6 +19,7 @@ import type {
   StateComparisonResponse,
   StateRatesResponse,
 } from "@/models/calculator"
+import type { AreaSummary, ComparisonMetrics } from "@/models/marketComparison"
 import type {
   EvaluationResults,
   PropertyEvaluationInput,
@@ -422,6 +423,34 @@ class CalculatorServiceClass {
       method: "DELETE",
       url: PATHS.CALCULATORS.PROPERTY_EVALUATIONS_DETAIL(id),
     })
+  }
+
+  // -------------------------------------------------------------------------
+  // Market Comparison
+  // -------------------------------------------------------------------------
+
+  /** Get all available areas for comparison (no auth required) */
+  async getAreas(): Promise<AreaSummary[]> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.MARKET.AREAS,
+    })
+    const data = transformKeys<{ areas: AreaSummary[] }>(response)
+    return data.areas
+  }
+
+  /** Compare 2–4 areas side by side (no auth required) */
+  async compareCities(keys: string[]): Promise<ComparisonMetrics[]> {
+    const params = new URLSearchParams()
+    for (const key of keys) {
+      params.append("keys", key)
+    }
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: `${PATHS.MARKET.COMPARE}?${params.toString()}`,
+    })
+    const data = transformKeys<{ areas: ComparisonMetrics[] }>(response)
+    return data.areas
   }
 }
 

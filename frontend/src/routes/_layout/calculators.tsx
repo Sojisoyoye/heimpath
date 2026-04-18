@@ -6,6 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import {
   ArrowUpDown,
+  Building2,
   Calculator,
   ClipboardList,
   Euro,
@@ -13,6 +14,7 @@ import {
   TrendingUp,
 } from "lucide-react"
 import {
+  CityComparison,
   FinancingWizard,
   HiddenCostsCalculator,
   PropertyEvaluationCalculator,
@@ -97,6 +99,14 @@ function CalculatorsPage() {
             <ClipboardList className="h-4 w-4" />
             <span className="hidden sm:inline">Property Evaluation</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="cities"
+            className="gap-2"
+            aria-label="City Compare"
+          >
+            <Building2 className="h-4 w-4" />
+            <span className="hidden sm:inline">City Compare</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -117,6 +127,10 @@ function CalculatorsPage() {
 
         <TabsContent value="property-evaluation" className="mt-6">
           <PropertyEvaluationCalculator />
+        </TabsContent>
+
+        <TabsContent value="cities" className="mt-6">
+          <CityComparison />
         </TabsContent>
       </Tabs>
     </div>

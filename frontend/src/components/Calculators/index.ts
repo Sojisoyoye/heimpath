@@ -2,6 +2,7 @@
  * Calculators components index
  */
 
+export { CityComparison } from "./CityComparison"
 export { FinancingWizard } from "./FinancingWizard"
 export { HiddenCostsCalculator } from "./HiddenCostsCalculator"
 export { PropertyEvaluationCalculator } from "./PropertyEvaluationCalculator"

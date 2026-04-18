@@ -89,6 +89,13 @@ export const queryKeys = {
         sizeSqm,
         buildingYear,
       ] as const,
+    areas: () => [...queryKeys.market.all, "areas"] as const,
+    cityComparison: (keys: string[]) =>
+      [
+        ...queryKeys.market.all,
+        "cityComparison",
+        ...[...keys].sort((a, b) => a.localeCompare(b)),
+      ] as const,
   },
 
   // Financing queries

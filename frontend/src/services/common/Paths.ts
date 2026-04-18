@@ -134,6 +134,8 @@ export const PATHS = {
   // Market Data
   MARKET: {
     RENT_ESTIMATE: `${API_V1}/market/rent-estimate`,
+    AREAS: `${API_V1}/market/areas`,
+    COMPARE: `${API_V1}/market/compare`,
   },
 
   // Dashboard
