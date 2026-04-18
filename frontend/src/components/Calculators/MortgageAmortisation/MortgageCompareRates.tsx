@@ -37,9 +37,8 @@ const CURRENCY = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 0,
 })
 
-let nextScenarioId = 0
 function genId(): string {
-  return `scenario-${++nextScenarioId}`
+  return crypto.randomUUID()
 }
 
 const DEFAULT_SCENARIO: Omit<MortgageScenarioInput, "id"> = {
