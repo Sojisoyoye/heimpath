@@ -37,6 +37,7 @@ export interface MortgageResult {
 }
 
 export interface MortgageScenarioInput {
+  id: string
   label: string
   interestRate: number
   initialRepaymentRate: number

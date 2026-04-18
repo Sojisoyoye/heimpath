@@ -37,7 +37,12 @@ const CURRENCY = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 0,
 })
 
-const DEFAULT_SCENARIO: MortgageScenarioInput = {
+let nextScenarioId = 0
+function genId(): string {
+  return `scenario-${++nextScenarioId}`
+}
+
+const DEFAULT_SCENARIO: Omit<MortgageScenarioInput, "id"> = {
   label: "",
   interestRate: 3.5,
   initialRepaymentRate: 2,
@@ -180,8 +185,18 @@ function MortgageCompareRates(props: Readonly<IProps>) {
   const { baseInput } = props
   const [isOpen, setIsOpen] = useState(false)
   const [scenarios, setScenarios] = useState<MortgageScenarioInput[]>([
-    { ...DEFAULT_SCENARIO, label: "Scenario A", interestRate: 3.0 },
-    { ...DEFAULT_SCENARIO, label: "Scenario B", interestRate: 4.0 },
+    {
+      ...DEFAULT_SCENARIO,
+      id: genId(),
+      label: "Scenario A",
+      interestRate: 3.0,
+    },
+    {
+      ...DEFAULT_SCENARIO,
+      id: genId(),
+      label: "Scenario B",
+      interestRate: 4.0,
+    },
   ])
   const [results, setResults] = useState<MortgageResult[] | null>(null)
 
@@ -200,6 +215,7 @@ function MortgageCompareRates(props: Readonly<IProps>) {
       ...prev,
       {
         ...DEFAULT_SCENARIO,
+        id: genId(),
         label: `Scenario ${String.fromCharCode(65 + prev.length)}`,
       },
     ])
@@ -251,7 +267,7 @@ function MortgageCompareRates(props: Readonly<IProps>) {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {scenarios.map((s, i) => (
               <ScenarioRow
-                key={i}
+                key={s.id}
                 index={i}
                 scenario={s}
                 onChange={(upd) => handleScenarioChange(i, upd)}

@@ -60,7 +60,8 @@ function calculateMortgage(input: MortgageInput): MortgageResult {
   const repayment = input.initialRepaymentRate / 100
   const annualPayment = loanAmount * (rate + repayment)
   const monthlyPayment = annualPayment / 12
-  const ltvRatio = (loanAmount / input.propertyPrice) * 100
+  const ltvRatio =
+    input.propertyPrice > 0 ? (loanAmount / input.propertyPrice) * 100 : 0
   const maxSpecial = loanAmount * (input.specialRepaymentPercent / 100)
 
   const schedule: AmortisationRow[] = []
@@ -99,7 +100,7 @@ function calculateMortgage(input: MortgageInput): MortgageResult {
 
     schedule.push({
       year,
-      annualPayment: yearInterest + yearPrincipal,
+      annualPayment: yearInterest + yearPrincipal + special,
       interestPortion: yearInterest,
       principalPortion: yearPrincipal,
       specialRepayment: special,
