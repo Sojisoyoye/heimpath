@@ -49,15 +49,24 @@ function MetricCard(
   )
 }
 
+function getLtvColor(ltvRatio: number): string {
+  if (ltvRatio < 60) {
+    return "border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20"
+  }
+  if (ltvRatio <= 80) {
+    return "border-amber-300 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20"
+  }
+  return "border-red-300 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20"
+}
+
+function getLtvDescription(ltvRatio: number): string {
+  if (ltvRatio < 60) return "Excellent — best rates available"
+  if (ltvRatio <= 80) return "Good — standard mortgage rates"
+  return "High — may face higher rates"
+}
+
 function MortgageAmortisationResults(props: Readonly<IProps>) {
   const { result, fixedRatePeriod } = props
-
-  const ltvColor =
-    result.ltvRatio < 60
-      ? "border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20"
-      : result.ltvRatio <= 80
-        ? "border-amber-300 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20"
-        : "border-red-300 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20"
 
   return (
     <div className="space-y-4">
@@ -84,14 +93,8 @@ function MortgageAmortisationResults(props: Readonly<IProps>) {
           icon={<Percent className="h-4 w-4" />}
           label="LTV Ratio"
           value={`${result.ltvRatio.toFixed(1)}%`}
-          subText={
-            result.ltvRatio < 60
-              ? "Excellent — best rates available"
-              : result.ltvRatio <= 80
-                ? "Good — standard mortgage rates"
-                : "High — may face higher rates"
-          }
-          className={ltvColor}
+          subText={getLtvDescription(result.ltvRatio)}
+          className={getLtvColor(result.ltvRatio)}
         />
       </div>
 

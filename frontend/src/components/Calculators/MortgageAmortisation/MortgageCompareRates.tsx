@@ -189,13 +189,13 @@ function MortgageCompareRates(props: Readonly<IProps>) {
       ...DEFAULT_SCENARIO,
       id: genId(),
       label: "Scenario A",
-      interestRate: 3.0,
+      interestRate: 3,
     },
     {
       ...DEFAULT_SCENARIO,
       id: genId(),
       label: "Scenario B",
-      interestRate: 4.0,
+      interestRate: 4,
     },
   ])
   const [results, setResults] = useState<MortgageResult[] | null>(null)
@@ -216,7 +216,7 @@ function MortgageCompareRates(props: Readonly<IProps>) {
       {
         ...DEFAULT_SCENARIO,
         id: genId(),
-        label: `Scenario ${String.fromCharCode(65 + prev.length)}`,
+        label: `Scenario ${String.fromCodePoint(65 + prev.length)}`,
       },
     ])
     setResults(null)
@@ -294,7 +294,7 @@ function MortgageCompareRates(props: Readonly<IProps>) {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {results.map((r, i) => (
                 <ResultCard
-                  key={i}
+                  key={scenarios[i].id}
                   label={scenarios[i].label || `Scenario ${i + 1}`}
                   result={r}
                   isWinner={i === winnerIdx}
