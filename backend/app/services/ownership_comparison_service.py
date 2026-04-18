@@ -27,10 +27,6 @@ GEWERBESTEUER_MESSZAHL = 0.035
 # Capital gains — GmbH exit: only 5% of gains taxable (§8b KStG)
 GMBH_CAPITAL_GAINS_TAXABLE_SHARE = 0.05
 
-# Private capital gains tax (Abgeltungsteuer) for < 10 year holding
-PRIVATE_CAPITAL_GAINS_TAX_RATE = 0.25
-SOLI_ON_CAPITAL_GAINS_RATE = 0.055  # 5.5% Soli on the 25%
-
 # Distribution tax: Kapitalertragsteuer + Soli
 KAPEST_RATE = 0.25
 SOLI_ON_KAPEST_RATE = 0.055  # 5.5% Soli on KapESt

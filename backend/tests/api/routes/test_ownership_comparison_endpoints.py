@@ -1,5 +1,7 @@
 """Integration tests for ownership comparison endpoints."""
 
+import uuid
+
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
@@ -9,6 +11,19 @@ BASE = f"{settings.API_V1_STR}/calculators/ownership-comparison"
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _save_comparison(
+    client: TestClient, headers: dict[str, str], **overrides: object
+) -> dict:
+    """Save a comparison and return the response JSON."""
+    r = client.post(
+        f"{BASE}",
+        json=_calculate_payload(**overrides),
+        headers=headers,
+    )
+    assert r.status_code == 201, r.text
+    return r.json()
 
 
 def _calculate_payload(**overrides) -> dict:
@@ -208,3 +223,70 @@ class TestShareEndpoint:
         r2 = client.get(f"{BASE}/share/{share_id}")
         assert r2.status_code == 200
         assert r2.json()["share_id"] == share_id
+
+
+# ---------------------------------------------------------------------------
+# GET /ownership-comparison/{calc_id}
+# ---------------------------------------------------------------------------
+
+
+class TestGetByIdEndpoint:
+    """Tests for GET /ownership-comparison/{calc_id} (auth required)."""
+
+    def test_returns_401_without_auth(self, client: TestClient) -> None:
+        fake_id = str(uuid.uuid4())
+        r = client.get(f"{BASE}/{fake_id}")
+        assert r.status_code == 401
+
+    def test_returns_200_for_owner(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        saved = _save_comparison(client, normal_user_token_headers)
+        calc_id = saved["id"]
+
+        r = client.get(f"{BASE}/{calc_id}", headers=normal_user_token_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["id"] == calc_id
+        assert data["results"] is not None
+
+    def test_returns_404_for_nonexistent(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        fake_id = str(uuid.uuid4())
+        r = client.get(f"{BASE}/{fake_id}", headers=normal_user_token_headers)
+        assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# DELETE /ownership-comparison/{calc_id}
+# ---------------------------------------------------------------------------
+
+
+class TestDeleteEndpoint:
+    """Tests for DELETE /ownership-comparison/{calc_id} (auth required)."""
+
+    def test_returns_401_without_auth(self, client: TestClient) -> None:
+        fake_id = str(uuid.uuid4())
+        r = client.delete(f"{BASE}/{fake_id}")
+        assert r.status_code == 401
+
+    def test_returns_204_and_removes(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        saved = _save_comparison(client, normal_user_token_headers)
+        calc_id = saved["id"]
+
+        r = client.delete(f"{BASE}/{calc_id}", headers=normal_user_token_headers)
+        assert r.status_code == 204
+
+        # Confirm it's gone
+        r2 = client.get(f"{BASE}/{calc_id}", headers=normal_user_token_headers)
+        assert r2.status_code == 404
+
+    def test_returns_404_for_nonexistent(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        fake_id = str(uuid.uuid4())
+        r = client.delete(f"{BASE}/{fake_id}", headers=normal_user_token_headers)
+        assert r.status_code == 404
