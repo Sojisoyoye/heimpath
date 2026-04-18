@@ -19,6 +19,13 @@ from app.schemas.calculator import (
     StateComparisonResponse,
     StateRatesResponse,
 )
+from app.schemas.ownership_comparison import (
+    OwnershipComparisonListResponse,
+    OwnershipComparisonRequest,
+    OwnershipComparisonResponse,
+    OwnershipComparisonSavedResponse,
+    OwnershipComparisonSummary,
+)
 from app.schemas.property_evaluation import (
     PropertyEvaluationCalculateRequest,
     PropertyEvaluationCalculateResponse,
@@ -39,6 +46,7 @@ from app.schemas.roi import (
 from app.services import (
     calculator_service,
     notification_service,
+    ownership_comparison_service,
     property_evaluation_service,
     roi_service,
 )
@@ -451,3 +459,134 @@ async def delete_property_evaluation(
     Requires authentication and ownership.
     """
     property_evaluation_service.delete_evaluation(session, eval_id, current_user.id)
+
+
+# ---------------------------------------------------------------------------
+# Ownership Comparison (GmbH vs. Private) endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/ownership-comparison/calculate",
+    response_model=OwnershipComparisonResponse,
+)
+async def calculate_ownership_comparison(
+    request: OwnershipComparisonRequest,
+) -> OwnershipComparisonResponse:
+    """
+    Calculate GmbH vs. private ownership comparison.
+
+    No authentication required. Pure calculation, no persistence.
+    """
+    result = ownership_comparison_service.calculate_comparison(request)
+    return OwnershipComparisonResponse(**result)
+
+
+@router.get(
+    "/ownership-comparison/share/{share_id}",
+    response_model=OwnershipComparisonSavedResponse,
+)
+async def get_shared_ownership_comparison(
+    share_id: str,
+    session: Session = Depends(get_db),
+) -> OwnershipComparisonSavedResponse:
+    """
+    Get a shared ownership comparison by share_id.
+
+    No authentication required.
+    """
+    comparison = ownership_comparison_service.get_by_share_id(session, share_id)
+    return OwnershipComparisonSavedResponse.model_validate(comparison)
+
+
+@router.post(
+    "/ownership-comparison",
+    response_model=OwnershipComparisonSavedResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def save_ownership_comparison(
+    request: OwnershipComparisonRequest,
+    current_user: CurrentUser,
+    session: Session = Depends(get_db),
+) -> OwnershipComparisonSavedResponse:
+    """
+    Calculate and save an ownership comparison.
+
+    Requires authentication.
+    """
+    comparison = ownership_comparison_service.save_comparison(
+        session=session,
+        user_id=current_user.id,
+        inputs=request,
+    )
+
+    notification_service.create_notification(
+        session,
+        user_id=current_user.id,
+        type=NotificationType.CALCULATION_SAVED,
+        title="Ownership Comparison Saved",
+        message="Your GmbH vs. private ownership comparison has been saved.",
+        action_url="/calculators?tab=ownership",
+    )
+
+    return OwnershipComparisonSavedResponse.model_validate(comparison)
+
+
+@router.get(
+    "/ownership-comparison",
+    response_model=OwnershipComparisonListResponse,
+)
+async def list_ownership_comparisons(
+    current_user: CurrentUser,
+    session: Session = Depends(get_db),
+) -> OwnershipComparisonListResponse:
+    """
+    Get all saved ownership comparisons for the current user.
+
+    Requires authentication.
+    """
+    comparisons = ownership_comparison_service.list_user_comparisons(
+        session, current_user.id
+    )
+    summaries = [OwnershipComparisonSummary.model_validate(c) for c in comparisons]
+    return OwnershipComparisonListResponse(
+        data=summaries,
+        count=len(summaries),
+    )
+
+
+@router.get(
+    "/ownership-comparison/{calc_id}",
+    response_model=OwnershipComparisonSavedResponse,
+)
+async def get_ownership_comparison(
+    calc_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: Session = Depends(get_db),
+) -> OwnershipComparisonSavedResponse:
+    """
+    Get a specific saved ownership comparison by ID.
+
+    Requires authentication and ownership.
+    """
+    comparison = ownership_comparison_service.get_comparison(
+        session, calc_id, current_user.id
+    )
+    return OwnershipComparisonSavedResponse.model_validate(comparison)
+
+
+@router.delete(
+    "/ownership-comparison/{calc_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_ownership_comparison(
+    calc_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: Session = Depends(get_db),
+) -> None:
+    """
+    Delete a saved ownership comparison.
+
+    Requires authentication and ownership.
+    """
+    ownership_comparison_service.delete_comparison(session, calc_id, current_user.id)

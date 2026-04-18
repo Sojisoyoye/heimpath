@@ -1,0 +1,1 @@
+export { OwnershipComparison } from "./OwnershipComparison"

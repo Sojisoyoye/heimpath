@@ -104,6 +104,7 @@ const Colors = {
     Blue: Base.Blue.Default,
     Green: Base.Green.Default,
     Amber: "#f59e0b",
+    Purple: Base.Purple.Default,
   },
 } as const
 

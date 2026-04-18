@@ -21,6 +21,12 @@ import type {
 } from "@/models/calculator"
 import type { AreaSummary, ComparisonMetrics } from "@/models/marketComparison"
 import type {
+  OwnershipComparisonInput,
+  OwnershipComparisonResult,
+  OwnershipComparisonSaved,
+  OwnershipComparisonSummary,
+} from "@/models/ownershipComparison"
+import type {
   EvaluationResults,
   PropertyEvaluationInput,
   PropertyEvaluationRecord,
@@ -451,6 +457,79 @@ class CalculatorServiceClass {
     })
     const data = transformKeys<{ areas: ComparisonMetrics[] }>(response)
     return data.areas
+  }
+
+  // -------------------------------------------------------------------------
+  // Ownership Comparison (GmbH vs. Private)
+  // -------------------------------------------------------------------------
+
+  /** Calculate GmbH vs. private comparison without saving */
+  async calculateOwnershipComparison(
+    input: OwnershipComparisonInput,
+  ): Promise<OwnershipComparisonResult> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.CALCULATORS.OWNERSHIP_COMPARISON_CALCULATE,
+      body: transformKeysToSnake(input),
+      mediaType: "application/json",
+    })
+    return transformKeys<OwnershipComparisonResult>(response)
+  }
+
+  /** Save an ownership comparison */
+  async saveOwnershipComparison(
+    input: OwnershipComparisonInput,
+  ): Promise<OwnershipComparisonSaved> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.CALCULATORS.OWNERSHIP_COMPARISON,
+      body: transformKeysToSnake(input),
+      mediaType: "application/json",
+    })
+    return transformKeys<OwnershipComparisonSaved>(response)
+  }
+
+  /** Get a specific ownership comparison by ID */
+  async getOwnershipComparison(id: string): Promise<OwnershipComparisonSaved> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.CALCULATORS.OWNERSHIP_COMPARISON_DETAIL(id),
+    })
+    return transformKeys<OwnershipComparisonSaved>(response)
+  }
+
+  /** Get a shared ownership comparison by share_id (no auth required) */
+  async getOwnershipComparisonByShareId(
+    shareId: string,
+  ): Promise<OwnershipComparisonSaved> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.CALCULATORS.OWNERSHIP_COMPARISON_SHARE(shareId),
+    })
+    return transformKeys<OwnershipComparisonSaved>(response)
+  }
+
+  /** Get all saved ownership comparisons for the current user */
+  async getUserOwnershipComparisons(): Promise<{
+    data: OwnershipComparisonSummary[]
+    count: number
+  }> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.CALCULATORS.OWNERSHIP_COMPARISON,
+    })
+    return transformKeys<{
+      data: OwnershipComparisonSummary[]
+      count: number
+    }>(response)
+  }
+
+  /** Delete a saved ownership comparison */
+  async deleteOwnershipComparison(id: string): Promise<void> {
+    await request<void>(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.CALCULATORS.OWNERSHIP_COMPARISON_DETAIL(id),
+    })
   }
 }
 

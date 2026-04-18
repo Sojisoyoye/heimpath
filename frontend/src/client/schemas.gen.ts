@@ -4192,6 +4192,337 @@ export const NotificationTypeSchema = {
     description: 'Types of notifications.'
 } as const;
 
+export const OwnershipComparisonListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/OwnershipComparisonSummary'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'OwnershipComparisonListResponse',
+    description: 'List of saved ownership comparisons.'
+} as const;
+
+export const OwnershipComparisonRequestSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        num_properties: {
+            type: 'integer',
+            maximum: 50,
+            minimum: 1,
+            title: 'Num Properties'
+        },
+        annual_rental_income: {
+            type: 'number',
+            exclusiveMinimum: 0,
+            title: 'Annual Rental Income'
+        },
+        personal_marginal_tax_rate: {
+            type: 'number',
+            maximum: 45,
+            minimum: 0,
+            title: 'Personal Marginal Tax Rate'
+        },
+        annual_appreciation: {
+            type: 'number',
+            maximum: 30,
+            minimum: 0,
+            title: 'Annual Appreciation'
+        },
+        holding_period: {
+            type: 'integer',
+            maximum: 30,
+            minimum: 1,
+            title: 'Holding Period'
+        },
+        total_property_value: {
+            type: 'number',
+            exclusiveMinimum: 0,
+            title: 'Total Property Value'
+        },
+        building_share_percent: {
+            type: 'number',
+            maximum: 100,
+            minimum: 0,
+            title: 'Building Share Percent',
+            default: 70
+        },
+        afa_rate_percent: {
+            type: 'number',
+            maximum: 10,
+            minimum: 0,
+            title: 'Afa Rate Percent',
+            default: 2
+        },
+        annual_rent_increase_percent: {
+            type: 'number',
+            maximum: 20,
+            minimum: 0,
+            title: 'Annual Rent Increase Percent',
+            default: 2
+        },
+        gewerbesteuer_hebesatz: {
+            type: 'number',
+            maximum: 900,
+            minimum: 200,
+            title: 'Gewerbesteuer Hebesatz',
+            default: 400
+        },
+        gmbh_setup_cost: {
+            type: 'number',
+            minimum: 0,
+            title: 'Gmbh Setup Cost',
+            default: 3500
+        },
+        annual_accounting_cost: {
+            type: 'number',
+            minimum: 0,
+            title: 'Annual Accounting Cost',
+            default: 4000
+        }
+    },
+    type: 'object',
+    required: ['num_properties', 'annual_rental_income', 'personal_marginal_tax_rate', 'annual_appreciation', 'holding_period', 'total_property_value'],
+    title: 'OwnershipComparisonRequest',
+    description: 'Request to calculate or save a GmbH vs. private ownership comparison.'
+} as const;
+
+export const OwnershipComparisonResponseSchema = {
+    properties: {
+        private: {
+            '$ref': '#/components/schemas/ScenarioResult'
+        },
+        gmbh: {
+            '$ref': '#/components/schemas/ScenarioResult'
+        },
+        breakeven_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Breakeven Year'
+        },
+        gmbh_advantage_at_exit: {
+            type: 'number',
+            title: 'Gmbh Advantage At Exit'
+        },
+        recommendation: {
+            type: 'string',
+            title: 'Recommendation'
+        }
+    },
+    type: 'object',
+    required: ['private', 'gmbh', 'breakeven_year', 'gmbh_advantage_at_exit', 'recommendation'],
+    title: 'OwnershipComparisonResponse',
+    description: 'Pure calculation result for GmbH vs. private comparison.'
+} as const;
+
+export const OwnershipComparisonSavedResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
+        num_properties: {
+            type: 'integer',
+            title: 'Num Properties'
+        },
+        annual_rental_income: {
+            type: 'number',
+            title: 'Annual Rental Income'
+        },
+        personal_marginal_tax_rate: {
+            type: 'number',
+            title: 'Personal Marginal Tax Rate'
+        },
+        annual_appreciation: {
+            type: 'number',
+            title: 'Annual Appreciation'
+        },
+        holding_period: {
+            type: 'integer',
+            title: 'Holding Period'
+        },
+        total_property_value: {
+            type: 'number',
+            title: 'Total Property Value'
+        },
+        building_share_percent: {
+            type: 'number',
+            title: 'Building Share Percent'
+        },
+        afa_rate_percent: {
+            type: 'number',
+            title: 'Afa Rate Percent'
+        },
+        annual_rent_increase_percent: {
+            type: 'number',
+            title: 'Annual Rent Increase Percent'
+        },
+        gewerbesteuer_hebesatz: {
+            type: 'number',
+            title: 'Gewerbesteuer Hebesatz'
+        },
+        gmbh_setup_cost: {
+            type: 'number',
+            title: 'Gmbh Setup Cost'
+        },
+        annual_accounting_cost: {
+            type: 'number',
+            title: 'Annual Accounting Cost'
+        },
+        private_total_wealth: {
+            type: 'number',
+            title: 'Private Total Wealth'
+        },
+        gmbh_total_wealth: {
+            type: 'number',
+            title: 'Gmbh Total Wealth'
+        },
+        breakeven_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Breakeven Year'
+        },
+        gmbh_advantage_at_exit: {
+            type: 'number',
+            title: 'Gmbh Advantage At Exit'
+        },
+        recommendation: {
+            type: 'string',
+            title: 'Recommendation'
+        },
+        results: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Results'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'num_properties', 'annual_rental_income', 'personal_marginal_tax_rate', 'annual_appreciation', 'holding_period', 'total_property_value', 'building_share_percent', 'afa_rate_percent', 'annual_rent_increase_percent', 'gewerbesteuer_hebesatz', 'gmbh_setup_cost', 'annual_accounting_cost', 'private_total_wealth', 'gmbh_total_wealth', 'breakeven_year', 'gmbh_advantage_at_exit', 'recommendation', 'results', 'created_at'],
+    title: 'OwnershipComparisonSavedResponse',
+    description: 'Response for a saved ownership comparison with DB fields.'
+} as const;
+
+export const OwnershipComparisonSummarySchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
+        num_properties: {
+            type: 'integer',
+            title: 'Num Properties'
+        },
+        total_property_value: {
+            type: 'number',
+            title: 'Total Property Value'
+        },
+        private_total_wealth: {
+            type: 'number',
+            title: 'Private Total Wealth'
+        },
+        gmbh_total_wealth: {
+            type: 'number',
+            title: 'Gmbh Total Wealth'
+        },
+        recommendation: {
+            type: 'string',
+            title: 'Recommendation'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'num_properties', 'total_property_value', 'private_total_wealth', 'gmbh_total_wealth', 'recommendation', 'created_at'],
+    title: 'OwnershipComparisonSummary',
+    description: 'Summary for list views.'
+} as const;
+
 export const PasswordRecoveryRequestSchema = {
     properties: {
         email: {
@@ -7069,6 +7400,58 @@ export const SavedDocumentSummarySchema = {
     description: 'Brief document info for dashboard lists.'
 } as const;
 
+export const ScenarioResultSchema = {
+    properties: {
+        effective_tax_rate: {
+            type: 'number',
+            title: 'Effective Tax Rate'
+        },
+        year1_tax: {
+            type: 'number',
+            title: 'Year1 Tax'
+        },
+        year1_net_income: {
+            type: 'number',
+            title: 'Year1 Net Income'
+        },
+        total_net_rental_income: {
+            type: 'number',
+            title: 'Total Net Rental Income'
+        },
+        exit_property_value: {
+            type: 'number',
+            title: 'Exit Property Value'
+        },
+        capital_gains: {
+            type: 'number',
+            title: 'Capital Gains'
+        },
+        capital_gains_tax: {
+            type: 'number',
+            title: 'Capital Gains Tax'
+        },
+        net_exit_proceeds: {
+            type: 'number',
+            title: 'Net Exit Proceeds'
+        },
+        total_wealth: {
+            type: 'number',
+            title: 'Total Wealth'
+        },
+        projections: {
+            items: {
+                '$ref': '#/components/schemas/YearProjection'
+            },
+            type: 'array',
+            title: 'Projections'
+        }
+    },
+    type: 'object',
+    required: ['effective_tax_rate', 'year1_tax', 'year1_net_income', 'total_net_rental_income', 'exit_property_value', 'capital_gains', 'capital_gains_tax', 'net_exit_proceeds', 'total_wealth', 'projections'],
+    title: 'ScenarioResult',
+    description: 'Calculated results for a single ownership scenario (private or GmbH).'
+} as const;
+
 export const SearchResultItemSchema = {
     properties: {
         id: {
@@ -8033,4 +8416,37 @@ export const WebhookResponseSchema = {
     required: ['received'],
     title: 'WebhookResponse',
     description: 'Webhook processing response.'
+} as const;
+
+export const YearProjectionSchema = {
+    properties: {
+        year: {
+            type: 'integer',
+            title: 'Year'
+        },
+        rental_income: {
+            type: 'number',
+            title: 'Rental Income'
+        },
+        tax: {
+            type: 'number',
+            title: 'Tax'
+        },
+        net_income_after_tax: {
+            type: 'number',
+            title: 'Net Income After Tax'
+        },
+        cumulative_net_income: {
+            type: 'number',
+            title: 'Cumulative Net Income'
+        },
+        property_value: {
+            type: 'number',
+            title: 'Property Value'
+        }
+    },
+    type: 'object',
+    required: ['year', 'rental_income', 'tax', 'net_income_after_tax', 'cumulative_net_income', 'property_value'],
+    title: 'YearProjection',
+    description: 'Single year projection for one ownership scenario.'
 } as const;

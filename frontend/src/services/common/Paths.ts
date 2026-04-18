@@ -76,6 +76,12 @@ export const PATHS = {
       `${API_V1}/calculators/property-evaluations/share/${shareId}`,
     PROPERTY_EVALUATIONS_STEP: (stepId: string) =>
       `${API_V1}/calculators/property-evaluations/step/${stepId}`,
+    OWNERSHIP_COMPARISON_CALCULATE: `${API_V1}/calculators/ownership-comparison/calculate`,
+    OWNERSHIP_COMPARISON: `${API_V1}/calculators/ownership-comparison`,
+    OWNERSHIP_COMPARISON_DETAIL: (id: string) =>
+      `${API_V1}/calculators/ownership-comparison/${id}`,
+    OWNERSHIP_COMPARISON_SHARE: (shareId: string) =>
+      `${API_V1}/calculators/ownership-comparison/share/${shareId}`,
   },
 
   // Financing

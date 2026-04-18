@@ -11,12 +11,14 @@ import {
   ClipboardList,
   Euro,
   Landmark,
+  Scale,
   TrendingUp,
 } from "lucide-react"
 import {
   CityComparison,
   FinancingWizard,
   HiddenCostsCalculator,
+  OwnershipComparison,
   PropertyEvaluationCalculator,
   ROICalculator,
   StateComparison,
@@ -100,6 +102,14 @@ function CalculatorsPage() {
             <span className="hidden sm:inline">Property Evaluation</span>
           </TabsTrigger>
           <TabsTrigger
+            value="ownership"
+            className="gap-2"
+            aria-label="GmbH vs. Private"
+          >
+            <Scale className="h-4 w-4" />
+            <span className="hidden sm:inline">GmbH vs. Private</span>
+          </TabsTrigger>
+          <TabsTrigger
             value="cities"
             className="gap-2"
             aria-label="City Compare"
@@ -127,6 +137,10 @@ function CalculatorsPage() {
 
         <TabsContent value="property-evaluation" className="mt-6">
           <PropertyEvaluationCalculator />
+        </TabsContent>
+
+        <TabsContent value="ownership" className="mt-6">
+          <OwnershipComparison />
         </TabsContent>
 
         <TabsContent value="cities" className="mt-6">
