@@ -3,8 +3,10 @@
  * Assesses mortgage likelihood for foreign buyers in Germany
  */
 
+import { Link } from "@tanstack/react-router"
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
   Download,
   Euro,
@@ -1013,6 +1015,21 @@ function FinancingWizard(props: IProps) {
                       </li>
                     ))}
                   </ul>
+                </div>
+
+                {/* Mortgage Calculator Link */}
+                <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20 p-4">
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                    Ready to see your payment schedule?
+                  </p>
+                  <Link
+                    to="/calculators"
+                    search={{ tab: "mortgage" }}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    See your estimated payments
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
 
                 <Separator />
