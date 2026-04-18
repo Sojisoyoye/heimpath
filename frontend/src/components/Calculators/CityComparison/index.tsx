@@ -36,7 +36,7 @@ const MIN_SELECTIONS = 2
 ******************************************************************************/
 
 /** Default component. City comparison tool. */
-function CityComparison(props: IProps) {
+function CityComparison(props: Readonly<IProps>) {
   const { className } = props
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
 
@@ -45,13 +45,15 @@ function CityComparison(props: IProps) {
     useCityComparison(selectedKeys)
 
   function handleToggle(key: string) {
-    setSelectedKeys((prev) =>
-      prev.includes(key)
-        ? prev.filter((k) => k !== key)
-        : prev.length < MAX_SELECTIONS
-          ? [...prev, key]
-          : prev,
-    )
+    setSelectedKeys((prev) => {
+      if (prev.includes(key)) {
+        return prev.filter((k) => k !== key)
+      }
+      if (prev.length < MAX_SELECTIONS) {
+        return [...prev, key]
+      }
+      return prev
+    })
   }
 
   function handleRemove(key: string) {

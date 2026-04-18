@@ -23,7 +23,7 @@ interface IProps {
                               Components
 ******************************************************************************/
 
-function AreaSelector(props: IProps) {
+function AreaSelector(props: Readonly<IProps>) {
   const { areas, selected, maxSelections, onToggle } = props
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")

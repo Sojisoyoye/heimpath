@@ -36,7 +36,7 @@ const RENT_FORMATTER = new Intl.NumberFormat("de-DE", {
 ******************************************************************************/
 
 /** Trend badge */
-function TrendBadge(props: { trend: string | null }) {
+function TrendBadge(props: Readonly<{ trend: string | null }>) {
   if (!props.trend) return null
   const isRising = props.trend === "rising"
   return (
@@ -47,7 +47,7 @@ function TrendBadge(props: { trend: string | null }) {
   )
 }
 
-function ComparisonTable(props: IProps) {
+function ComparisonTable(props: Readonly<IProps>) {
   const { data } = props
 
   const bestPrice = Math.min(...data.map((d) => d.avgPricePerSqm))
@@ -110,10 +110,10 @@ function ComparisonTable(props: IProps) {
                 <td className="py-3 font-medium">Avg. Rent/m²</td>
                 {data.map((d) => (
                   <td key={d.key} className="py-3 text-right">
-                    {d.avgRentPerSqm != null ? (
-                      RENT_FORMATTER.format(d.avgRentPerSqm)
-                    ) : (
+                    {d.avgRentPerSqm == null ? (
                       <Badge variant="outline">No data</Badge>
+                    ) : (
+                      RENT_FORMATTER.format(d.avgRentPerSqm)
                     )}
                   </td>
                 ))}
@@ -152,10 +152,10 @@ function ComparisonTable(props: IProps) {
                         "text-green-600 font-semibold",
                     )}
                   >
-                    {d.grossRentalYield != null ? (
-                      `${d.grossRentalYield}%`
-                    ) : (
+                    {d.grossRentalYield == null ? (
                       <Badge variant="outline">No data</Badge>
+                    ) : (
+                      `${d.grossRentalYield}%`
                     )}
                   </td>
                 ))}
@@ -183,7 +183,7 @@ function ComparisonTable(props: IProps) {
                 <td className="py-3 font-medium">Agent Fee</td>
                 {data.map((d) => (
                   <td key={d.key} className="py-3 text-right">
-                    {d.agentFeePercent != null ? `${d.agentFeePercent}%` : "—"}
+                    {d.agentFeePercent == null ? "—" : `${d.agentFeePercent}%`}
                   </td>
                 ))}
               </tr>
