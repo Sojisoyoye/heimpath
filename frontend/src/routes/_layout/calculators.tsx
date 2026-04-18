@@ -8,6 +8,7 @@ import {
   ArrowUpDown,
   Building2,
   Calculator,
+  CalendarClock,
   ClipboardList,
   Euro,
   Landmark,
@@ -18,6 +19,7 @@ import {
   CityComparison,
   FinancingWizard,
   HiddenCostsCalculator,
+  MortgageAmortisation,
   OwnershipComparison,
   PropertyEvaluationCalculator,
   ROICalculator,
@@ -109,6 +111,10 @@ function CalculatorsPage() {
             <Scale className="h-4 w-4" />
             <span className="hidden sm:inline">GmbH vs. Private</span>
           </TabsTrigger>
+          <TabsTrigger value="mortgage" className="gap-2" aria-label="Mortgage">
+            <CalendarClock className="h-4 w-4" />
+            <span className="hidden sm:inline">Mortgage</span>
+          </TabsTrigger>
           <TabsTrigger
             value="cities"
             className="gap-2"
@@ -141,6 +147,10 @@ function CalculatorsPage() {
 
         <TabsContent value="ownership" className="mt-6">
           <OwnershipComparison />
+        </TabsContent>
+
+        <TabsContent value="mortgage" className="mt-6">
+          <MortgageAmortisation />
         </TabsContent>
 
         <TabsContent value="cities" className="mt-6">
