@@ -394,6 +394,35 @@ def test_rate_limit_locks_after_five_failures(client: TestClient) -> None:
     assert "Retry-After" in r.headers
 
 
+def test_register_rate_limit(client: TestClient) -> None:
+    """4th registration attempt with the same email returns 429."""
+    email = random_email()
+    # First 3 attempts succeed or fail normally (duplicate email for 2nd and 3rd)
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    # 4th attempt should be rate limited
+    r = client.post(
+        f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD}
+    )
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
+
+
+def test_forgot_password_rate_limit(client: TestClient) -> None:
+    """4th forgot-password attempt with the same email returns 429."""
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    # First 3 attempts succeed
+    for _ in range(3):
+        r = client.post(f"{AUTH}/forgot-password", json={"email": email})
+        assert r.status_code == 200
+    # 4th attempt should be rate limited
+    r = client.post(f"{AUTH}/forgot-password", json={"email": email})
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
+
+
 def test_rate_limit_cleared_on_success(client: TestClient) -> None:
     email = random_email()
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})

@@ -39,11 +39,6 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
     )
 
-    items = relationship(
-        "Item",
-        back_populates="owner",
-        cascade="all, delete-orphan",
-    )
     journeys = relationship(
         "Journey",
         back_populates="user",

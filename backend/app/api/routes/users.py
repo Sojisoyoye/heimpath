@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import col, delete, func, select
+from sqlmodel import func, select
 
 from app import crud
 from app.api.deps import (
@@ -14,7 +14,6 @@ from app.api.deps import (
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import (
-    Item,
     Message,
     UpdatePassword,
     User,
@@ -25,7 +24,7 @@ from app.models import (
     UserUpdate,
     UserUpdateMe,
 )
-from app.schemas.user import ItemExport, UserDataExport
+from app.schemas.user import UserDataExport
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -132,28 +131,14 @@ async def read_user_me(current_user: CurrentUser) -> Any:
 
 
 @router.get("/me/export", response_model=UserDataExport)
-async def export_user_data(session: SessionDep, current_user: CurrentUser) -> Any:
+async def export_user_data(current_user: CurrentUser) -> Any:
     """
     Export all user data (GDPR Article 20 - Right to Data Portability).
 
     Returns all user data in a portable JSON format including:
     - User profile information
-    - Related items/resources
     - Account metadata
     """
-    statement = select(Item).where(col(Item.owner_id) == current_user.id)
-    items = session.exec(statement).all()
-
-    items_export = [
-        ItemExport(
-            id=item.id,
-            title=item.title,
-            description=item.description,
-            created_at=item.created_at,
-        )
-        for item in items
-    ]
-
     return UserDataExport(
         export_date=datetime.now(timezone.utc),
         export_format_version="1.0",
@@ -168,7 +153,6 @@ async def export_user_data(session: SessionDep, current_user: CurrentUser) -> An
         else str(current_user.subscription_tier),
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
-        items=items_export,
     )
 
 
@@ -277,7 +261,5 @@ async def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
-    session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()

@@ -863,39 +863,6 @@ export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
 
-export type ItemCreate = {
-    title: string;
-    description?: (string | null);
-};
-
-/**
- * Schema for item data in export.
- */
-export type ItemExport = {
-    id: string;
-    title: string;
-    description?: (string | null);
-    created_at: string;
-};
-
-export type ItemPublic = {
-    title: string;
-    description?: (string | null);
-    id: string;
-    owner_id: string;
-    created_at?: (string | null);
-};
-
-export type ItemsPublic = {
-    data: Array<ItemPublic>;
-    count: number;
-};
-
-export type ItemUpdate = {
-    title?: (string | null);
-    description?: (string | null);
-};
-
 /**
  * Schema for creating a journey from questionnaire.
  */
@@ -2419,7 +2386,6 @@ export type UserDataExport = {
     subscription_tier: string;
     created_at: string;
     updated_at?: (string | null);
-    items?: Array<ItemExport>;
 };
 
 export type UserPublic = {
@@ -2866,38 +2832,6 @@ export type GlossaryGetTermData = {
 };
 
 export type GlossaryGetTermResponse = (GlossaryTermDetail);
-
-export type ItemsReadItemsData = {
-    limit?: number;
-    skip?: number;
-};
-
-export type ItemsReadItemsResponse = (ItemsPublic);
-
-export type ItemsCreateItemData = {
-    requestBody: ItemCreate;
-};
-
-export type ItemsCreateItemResponse = (ItemPublic);
-
-export type ItemsReadItemData = {
-    id: string;
-};
-
-export type ItemsReadItemResponse = (ItemPublic);
-
-export type ItemsUpdateItemData = {
-    id: string;
-    requestBody: ItemUpdate;
-};
-
-export type ItemsUpdateItemResponse = (ItemPublic);
-
-export type ItemsDeleteItemData = {
-    id: string;
-};
-
-export type ItemsDeleteItemResponse = (void);
 
 export type JourneysCreateJourneyData = {
     requestBody: JourneyCreate;

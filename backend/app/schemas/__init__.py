@@ -80,7 +80,6 @@ from app.schemas.translation import (
     TranslationResult,
 )
 from app.schemas.user import (
-    ItemExport,
     Message,
     NewPassword,
     Token,
@@ -114,7 +113,6 @@ __all__ = [
     "DashboardOverviewResponse",
     "ForgotPasswordRequest",
     "ForgotPasswordResponse",
-    "ItemExport",
     "JourneyCreate",
     "JourneyOverview",
     "JourneyDetailResponse",

@@ -24,7 +24,6 @@ import { Route as ToolsPropertyCostCalculatorRouteImport } from './routes/tools/
 import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mortgage-calculator'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
-import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
@@ -121,11 +120,6 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
 const LayoutSearchRoute = LayoutSearchRouteImport.update({
   id: '/search',
   path: '/search',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutItemsRoute = LayoutItemsRouteImport.update({
-  id: '/items',
-  path: '/items',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
@@ -257,7 +251,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof LayoutAdminRoute
   '/calculators': typeof LayoutCalculatorsRoute
   '/dashboard': typeof LayoutDashboardRoute
-  '/items': typeof LayoutItemsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
@@ -295,7 +288,6 @@ export interface FileRoutesByTo {
   '/admin': typeof LayoutAdminRoute
   '/calculators': typeof LayoutCalculatorsRoute
   '/dashboard': typeof LayoutDashboardRoute
-  '/items': typeof LayoutItemsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
@@ -335,7 +327,6 @@ export interface FileRoutesById {
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/calculators': typeof LayoutCalculatorsRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
-  '/_layout/items': typeof LayoutItemsRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
@@ -376,7 +367,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/calculators'
     | '/dashboard'
-    | '/items'
     | '/search'
     | '/settings'
     | '/tools/mortgage-calculator'
@@ -414,7 +404,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/calculators'
     | '/dashboard'
-    | '/items'
     | '/search'
     | '/settings'
     | '/tools/mortgage-calculator'
@@ -453,7 +442,6 @@ export interface FileRouteTypes {
     | '/_layout/admin'
     | '/_layout/calculators'
     | '/_layout/dashboard'
-    | '/_layout/items'
     | '/_layout/search'
     | '/_layout/settings'
     | '/tools/mortgage-calculator'
@@ -599,13 +587,6 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof LayoutSearchRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/items': {
-      id: '/_layout/items'
-      path: '/items'
-      fullPath: '/items'
-      preLoaderRoute: typeof LayoutItemsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/dashboard': {
@@ -786,7 +767,6 @@ interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutCalculatorsRoute: typeof LayoutCalculatorsRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
-  LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutArticlesSlugRoute: typeof LayoutArticlesSlugRoute
@@ -811,7 +791,6 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutCalculatorsRoute: LayoutCalculatorsRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
-  LayoutItemsRoute: LayoutItemsRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutArticlesSlugRoute: LayoutArticlesSlugRoute,

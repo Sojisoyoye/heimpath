@@ -11,6 +11,5 @@ Disallow: /journeys
 Disallow: /portfolio
 Disallow: /articles
 Disallow: /search
-Disallow: /items
 
 Sitemap: https://heimpath.com/sitemap.xml

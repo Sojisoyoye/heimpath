@@ -73,12 +73,23 @@ async def register(
     - At least 1 uppercase letter
     - At least 1 number
 
+    Rate limiting: 3 attempts per hour.
+
     Returns the created user (without password).
     """
+    # Check rate limit before processing
+    if rate_limit_service.is_register_locked(request.email):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many registration attempts. Please try again later.",
+            headers={"Retry-After": "3600"},
+        )
+
     # Check if email already exists
     statement = select(User).where(User.email == request.email)
     existing_user = session.exec(statement).first()
     if existing_user:
+        rate_limit_service.record_register_attempt(request.email)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this email already exists",
@@ -99,6 +110,9 @@ async def register(
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    # Record attempt (even on success, to limit rapid account creation)
+    rate_limit_service.record_register_attempt(request.email)
 
     # Generate verification token and send email
     token_data = generate_verification_token(
@@ -353,11 +367,24 @@ async def forgot_password(
     Generates a reset token and sends it to the user's email.
     Tokens expire after 1 hour.
 
+    Rate limiting: 3 attempts per hour.
+
     Note: Always returns success to prevent email enumeration attacks.
     """
+    # Check rate limit before processing
+    if rate_limit_service.is_password_reset_locked(request.email):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many password reset attempts. Please try again later.",
+            headers={"Retry-After": "3600"},
+        )
+
     success_response = ForgotPasswordResponse(
         message="If that email is registered, we sent a password reset link",
     )
+
+    # Record attempt regardless of outcome (prevents email enumeration via timing)
+    rate_limit_service.record_password_reset_attempt(request.email)
 
     statement = select(User).where(User.email == request.email)
     user = session.exec(statement).first()

@@ -651,64 +651,6 @@ def test_export_user_data(
     assert "subscription_tier" in export_data
     assert "created_at" in export_data
 
-    # Verify items array exists (may be empty)
-    assert "items" in export_data
-    assert isinstance(export_data["items"], list)
-
-
-def test_export_user_data_with_items(client: TestClient, db: Session) -> None:
-    """Test GDPR data export includes user's items."""
-    # Create a new user
-    username = random_email()
-    password = random_lower_string()
-    user_in = UserCreate(email=username, password=password, full_name="Test Exporter")
-    user = crud.create_user(session=db, user_create=user_in)
-
-    # Create items for the user
-    from app.models import ItemCreate
-
-    _item1 = crud.create_item(
-        session=db,
-        item_in=ItemCreate(title="Test Item 1", description="Description 1"),
-        owner_id=user.id,
-    )
-    _item2 = crud.create_item(
-        session=db,
-        item_in=ItemCreate(title="Test Item 2", description="Description 2"),
-        owner_id=user.id,
-    )
-
-    # Login as the user
-    login_data = {"username": username, "password": password}
-    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
-    tokens = r.json()
-    headers = {"Authorization": f"Bearer {tokens['access_token']}"}
-
-    # Export data
-    r = client.get(
-        f"{settings.API_V1_STR}/users/me/export",
-        headers=headers,
-    )
-    assert r.status_code == 200
-    export_data = r.json()
-
-    # Verify user data
-    assert export_data["email"] == username
-    assert export_data["full_name"] == "Test Exporter"
-
-    # Verify items are included
-    assert len(export_data["items"]) == 2
-    item_titles = {item["title"] for item in export_data["items"]}
-    assert "Test Item 1" in item_titles
-    assert "Test Item 2" in item_titles
-
-    # Verify item structure
-    for item in export_data["items"]:
-        assert "id" in item
-        assert "title" in item
-        assert "description" in item
-        assert "created_at" in item
-
 
 def test_export_user_data_unauthenticated(client: TestClient) -> None:
     """Test that unauthenticated users cannot export data."""
@@ -740,4 +682,3 @@ def test_export_user_data_normal_user(
     assert export_data["email"] == current_user["email"]
     assert export_data["id"] == current_user["id"]
     assert "export_date" in export_data
-    assert "items" in export_data
