@@ -49,6 +49,14 @@ export const PATHS = {
       `${API_V1}/laws/by-journey-step/${stepKey}`,
   },
 
+  // Glossary
+  GLOSSARY: {
+    LIST: `${API_V1}/glossary/`,
+    SEARCH: `${API_V1}/glossary/search`,
+    CATEGORIES: `${API_V1}/glossary/categories`,
+    DETAIL: (slug: string) => `${API_V1}/glossary/${slug}`,
+  },
+
   // Subscriptions
   SUBSCRIPTIONS: {
     CURRENT: `${API_V1}/subscriptions/current`,

@@ -32,6 +32,7 @@ import { Route as LayoutProfessionalsIndexRouteImport } from './routes/_layout/p
 import { Route as LayoutPortfolioIndexRouteImport } from './routes/_layout/portfolio/index'
 import { Route as LayoutLawsIndexRouteImport } from './routes/_layout/laws/index'
 import { Route as LayoutJourneysIndexRouteImport } from './routes/_layout/journeys/index'
+import { Route as LayoutGlossaryIndexRouteImport } from './routes/_layout/glossary/index'
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents/index'
 import { Route as LayoutArticlesIndexRouteImport } from './routes/_layout/articles/index'
 import { Route as SharedEvaluationShareIdRouteImport } from './routes/shared/evaluation.$shareId'
@@ -41,6 +42,7 @@ import { Route as LayoutLawsBookmarksRouteImport } from './routes/_layout/laws/b
 import { Route as LayoutLawsLawIdRouteImport } from './routes/_layout/laws/$lawId'
 import { Route as LayoutJourneysNewRouteImport } from './routes/_layout/journeys/new'
 import { Route as LayoutJourneysJourneyIdRouteImport } from './routes/_layout/journeys/$journeyId'
+import { Route as LayoutGlossarySlugRouteImport } from './routes/_layout/glossary/$slug'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents/$documentId'
 import { Route as LayoutArticlesSlugRouteImport } from './routes/_layout/articles/$slug'
 import { Route as LayoutJourneysJourneyIdIndexRouteImport } from './routes/_layout/journeys/$journeyId.index'
@@ -162,6 +164,11 @@ const LayoutJourneysIndexRoute = LayoutJourneysIndexRouteImport.update({
   path: '/journeys/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutGlossaryIndexRoute = LayoutGlossaryIndexRouteImport.update({
+  id: '/glossary/',
+  path: '/glossary/',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutDocumentsIndexRoute = LayoutDocumentsIndexRouteImport.update({
   id: '/documents/',
   path: '/documents/',
@@ -209,6 +216,11 @@ const LayoutJourneysJourneyIdRoute = LayoutJourneysJourneyIdRouteImport.update({
   path: '/journeys/$journeyId',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutGlossarySlugRoute = LayoutGlossarySlugRouteImport.update({
+  id: '/glossary/$slug',
+  path: '/glossary/$slug',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutDocumentsDocumentIdRoute =
   LayoutDocumentsDocumentIdRouteImport.update({
     id: '/documents/$documentId',
@@ -254,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/tools/': typeof ToolsIndexRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/glossary/$slug': typeof LayoutGlossarySlugRoute
   '/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
@@ -263,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/articles/': typeof LayoutArticlesIndexRoute
   '/documents/': typeof LayoutDocumentsIndexRoute
+  '/glossary/': typeof LayoutGlossaryIndexRoute
   '/journeys/': typeof LayoutJourneysIndexRoute
   '/laws/': typeof LayoutLawsIndexRoute
   '/portfolio/': typeof LayoutPortfolioIndexRoute
@@ -290,6 +304,7 @@ export interface FileRoutesByTo {
   '/tools': typeof ToolsIndexRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/glossary/$slug': typeof LayoutGlossarySlugRoute
   '/journeys/new': typeof LayoutJourneysNewRoute
   '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
@@ -298,6 +313,7 @@ export interface FileRoutesByTo {
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/articles': typeof LayoutArticlesIndexRoute
   '/documents': typeof LayoutDocumentsIndexRoute
+  '/glossary': typeof LayoutGlossaryIndexRoute
   '/journeys': typeof LayoutJourneysIndexRoute
   '/laws': typeof LayoutLawsIndexRoute
   '/portfolio': typeof LayoutPortfolioIndexRoute
@@ -328,6 +344,7 @@ export interface FileRoutesById {
   '/tools/': typeof ToolsIndexRoute
   '/_layout/articles/$slug': typeof LayoutArticlesSlugRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/_layout/glossary/$slug': typeof LayoutGlossarySlugRoute
   '/_layout/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
   '/_layout/journeys/new': typeof LayoutJourneysNewRoute
   '/_layout/laws/$lawId': typeof LayoutLawsLawIdRoute
@@ -337,6 +354,7 @@ export interface FileRoutesById {
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
   '/_layout/articles/': typeof LayoutArticlesIndexRoute
   '/_layout/documents/': typeof LayoutDocumentsIndexRoute
+  '/_layout/glossary/': typeof LayoutGlossaryIndexRoute
   '/_layout/journeys/': typeof LayoutJourneysIndexRoute
   '/_layout/laws/': typeof LayoutLawsIndexRoute
   '/_layout/portfolio/': typeof LayoutPortfolioIndexRoute
@@ -367,6 +385,7 @@ export interface FileRouteTypes {
     | '/tools/'
     | '/articles/$slug'
     | '/documents/$documentId'
+    | '/glossary/$slug'
     | '/journeys/$journeyId'
     | '/journeys/new'
     | '/laws/$lawId'
@@ -376,6 +395,7 @@ export interface FileRouteTypes {
     | '/shared/evaluation/$shareId'
     | '/articles/'
     | '/documents/'
+    | '/glossary/'
     | '/journeys/'
     | '/laws/'
     | '/portfolio/'
@@ -403,6 +423,7 @@ export interface FileRouteTypes {
     | '/tools'
     | '/articles/$slug'
     | '/documents/$documentId'
+    | '/glossary/$slug'
     | '/journeys/new'
     | '/laws/$lawId'
     | '/laws/bookmarks'
@@ -411,6 +432,7 @@ export interface FileRouteTypes {
     | '/shared/evaluation/$shareId'
     | '/articles'
     | '/documents'
+    | '/glossary'
     | '/journeys'
     | '/laws'
     | '/portfolio'
@@ -440,6 +462,7 @@ export interface FileRouteTypes {
     | '/tools/'
     | '/_layout/articles/$slug'
     | '/_layout/documents/$documentId'
+    | '/_layout/glossary/$slug'
     | '/_layout/journeys/$journeyId'
     | '/_layout/journeys/new'
     | '/_layout/laws/$lawId'
@@ -449,6 +472,7 @@ export interface FileRouteTypes {
     | '/shared/evaluation/$shareId'
     | '/_layout/articles/'
     | '/_layout/documents/'
+    | '/_layout/glossary/'
     | '/_layout/journeys/'
     | '/_layout/laws/'
     | '/_layout/portfolio/'
@@ -633,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutJourneysIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/glossary/': {
+      id: '/_layout/glossary/'
+      path: '/glossary'
+      fullPath: '/glossary/'
+      preLoaderRoute: typeof LayoutGlossaryIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/documents/': {
       id: '/_layout/documents/'
       path: '/documents'
@@ -696,6 +727,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutJourneysJourneyIdRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/glossary/$slug': {
+      id: '/_layout/glossary/$slug'
+      path: '/glossary/$slug'
+      fullPath: '/glossary/$slug'
+      preLoaderRoute: typeof LayoutGlossarySlugRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/documents/$documentId': {
       id: '/_layout/documents/$documentId'
       path: '/documents/$documentId'
@@ -753,6 +791,7 @@ interface LayoutRouteChildren {
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutArticlesSlugRoute: typeof LayoutArticlesSlugRoute
   LayoutDocumentsDocumentIdRoute: typeof LayoutDocumentsDocumentIdRoute
+  LayoutGlossarySlugRoute: typeof LayoutGlossarySlugRoute
   LayoutJourneysJourneyIdRoute: typeof LayoutJourneysJourneyIdRouteWithChildren
   LayoutJourneysNewRoute: typeof LayoutJourneysNewRoute
   LayoutLawsLawIdRoute: typeof LayoutLawsLawIdRoute
@@ -761,6 +800,7 @@ interface LayoutRouteChildren {
   LayoutProfessionalsProfessionalIdRoute: typeof LayoutProfessionalsProfessionalIdRoute
   LayoutArticlesIndexRoute: typeof LayoutArticlesIndexRoute
   LayoutDocumentsIndexRoute: typeof LayoutDocumentsIndexRoute
+  LayoutGlossaryIndexRoute: typeof LayoutGlossaryIndexRoute
   LayoutJourneysIndexRoute: typeof LayoutJourneysIndexRoute
   LayoutLawsIndexRoute: typeof LayoutLawsIndexRoute
   LayoutPortfolioIndexRoute: typeof LayoutPortfolioIndexRoute
@@ -776,6 +816,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutArticlesSlugRoute: LayoutArticlesSlugRoute,
   LayoutDocumentsDocumentIdRoute: LayoutDocumentsDocumentIdRoute,
+  LayoutGlossarySlugRoute: LayoutGlossarySlugRoute,
   LayoutJourneysJourneyIdRoute: LayoutJourneysJourneyIdRouteWithChildren,
   LayoutJourneysNewRoute: LayoutJourneysNewRoute,
   LayoutLawsLawIdRoute: LayoutLawsLawIdRoute,
@@ -785,6 +826,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
     LayoutProfessionalsProfessionalIdRoute,
   LayoutArticlesIndexRoute: LayoutArticlesIndexRoute,
   LayoutDocumentsIndexRoute: LayoutDocumentsIndexRoute,
+  LayoutGlossaryIndexRoute: LayoutGlossaryIndexRoute,
   LayoutJourneysIndexRoute: LayoutJourneysIndexRoute,
   LayoutLawsIndexRoute: LayoutLawsIndexRoute,
   LayoutPortfolioIndexRoute: LayoutPortfolioIndexRoute,

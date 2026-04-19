@@ -23,6 +23,18 @@ export const queryKeys = {
       [...queryKeys.journeys.all, "nextStep", id] as const,
   },
 
+  // Glossary queries
+  glossary: {
+    all: ["glossary"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.glossary.all, "list", filters] as const,
+    detail: (slug: string) =>
+      [...queryKeys.glossary.all, "detail", slug] as const,
+    search: (query: string) =>
+      [...queryKeys.glossary.all, "search", query] as const,
+    categories: () => [...queryKeys.glossary.all, "categories"] as const,
+  },
+
   // Legal knowledge base queries
   laws: {
     all: ["laws"] as const,

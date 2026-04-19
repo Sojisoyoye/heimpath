@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ArticlesListArticlesData, ArticlesListArticlesResponse, ArticlesCreateArticleData, ArticlesCreateArticleResponse, ArticlesSearchArticlesData, ArticlesSearchArticlesResponse, ArticlesGetCategoriesResponse, ArticlesGetArticleData, ArticlesGetArticleResponse, ArticlesRateArticleData, ArticlesRateArticleResponse, ArticlesUpdateArticleData, ArticlesUpdateArticleResponse, ArticlesDeleteArticleData, ArticlesDeleteArticleResponse, AuthRegisterData, AuthRegisterResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutData, AuthLogoutResponse, AuthVerifyEmailData, AuthVerifyEmailResponse, AuthResendVerificationData, AuthResendVerificationResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, CalculatorsGetStateRatesResponse, CalculatorsCompareStatesData, CalculatorsCompareStatesResponse, CalculatorsGetSharedCalculationData, CalculatorsGetSharedCalculationResponse, CalculatorsListCalculationsResponse, CalculatorsSaveCalculationData, CalculatorsSaveCalculationResponse, CalculatorsGetCalculationData, CalculatorsGetCalculationResponse, CalculatorsDeleteCalculationData, CalculatorsDeleteCalculationResponse, CalculatorsCompareRoiScenariosData, CalculatorsCompareRoiScenariosResponse, CalculatorsGetSharedRoiCalculationData, CalculatorsGetSharedRoiCalculationResponse, CalculatorsListRoiCalculationsResponse, CalculatorsSaveRoiCalculationData, CalculatorsSaveRoiCalculationResponse, CalculatorsGetRoiCalculationData, CalculatorsGetRoiCalculationResponse, CalculatorsDeleteRoiCalculationData, CalculatorsDeleteRoiCalculationResponse, CalculatorsGetSharedPropertyEvaluationData, CalculatorsGetSharedPropertyEvaluationResponse, CalculatorsListStepPropertyEvaluationsData, CalculatorsListStepPropertyEvaluationsResponse, CalculatorsCalculatePropertyEvaluationData, CalculatorsCalculatePropertyEvaluationResponse, CalculatorsListPropertyEvaluationsResponse, CalculatorsSavePropertyEvaluationData, CalculatorsSavePropertyEvaluationResponse, CalculatorsGetPropertyEvaluationData, CalculatorsGetPropertyEvaluationResponse, CalculatorsDeletePropertyEvaluationData, CalculatorsDeletePropertyEvaluationResponse, CalculatorsCalculateOwnershipComparisonData, CalculatorsCalculateOwnershipComparisonResponse, CalculatorsGetSharedOwnershipComparisonData, CalculatorsGetSharedOwnershipComparisonResponse, CalculatorsListOwnershipComparisonsResponse, CalculatorsSaveOwnershipComparisonData, CalculatorsSaveOwnershipComparisonResponse, CalculatorsGetOwnershipComparisonData, CalculatorsGetOwnershipComparisonResponse, CalculatorsDeleteOwnershipComparisonData, CalculatorsDeleteOwnershipComparisonResponse, DashboardGetDashboardOverviewResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsGetUsageResponse, DocumentsGetSharedDocumentData, DocumentsGetSharedDocumentResponse, DocumentsGetDocumentsByStepData, DocumentsGetDocumentsByStepResponse, DocumentsListDocumentsData, DocumentsListDocumentsResponse, DocumentsGetDocumentData, DocumentsGetDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsShareDocumentData, DocumentsShareDocumentResponse, DocumentsGetDocumentTranslationData, DocumentsGetDocumentTranslationResponse, DocumentsGetDocumentStatusData, DocumentsGetDocumentStatusResponse, FinancingGetSharedAssessmentData, FinancingGetSharedAssessmentResponse, FinancingListAssessmentsResponse, FinancingSaveAssessmentData, FinancingSaveAssessmentResponse, FinancingGetAssessmentData, FinancingGetAssessmentResponse, FinancingDeleteAssessmentData, FinancingDeleteAssessmentResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JourneysCreateJourneyData, JourneysCreateJourneyResponse, JourneysListJourneysData, JourneysListJourneysResponse, JourneysGetJourneyData, JourneysGetJourneyResponse, JourneysUpdateJourneyData, JourneysUpdateJourneyResponse, JourneysDeleteJourneyData, JourneysDeleteJourneyResponse, JourneysGetJourneyProgressData, JourneysGetJourneyProgressResponse, JourneysGetNextStepData, JourneysGetNextStepResponse, JourneysUpdateStepStatusData, JourneysUpdateStepStatusResponse, JourneysUpdateTaskStatusData, JourneysUpdateTaskStatusResponse, JourneysGetPropertyGoalsData, JourneysGetPropertyGoalsResponse, JourneysUpdatePropertyGoalsData, JourneysUpdatePropertyGoalsResponse, LawsListLawsData, LawsListLawsResponse, LawsSearchLawsData, LawsSearchLawsResponse, LawsGetCategoriesResponse, LawsGetLawsForJourneyStepData, LawsGetLawsForJourneyStepResponse, LawsGetBookmarksResponse, LawsGetLawData, LawsGetLawResponse, LawsCreateBookmarkData, LawsCreateBookmarkResponse, LawsDeleteBookmarkData, LawsDeleteBookmarkResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MarketGetRentEstimateData, MarketGetRentEstimateResponse, MarketListAreasResponse, MarketCompareAreasData, MarketCompareAreasResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsMarkAllNotificationsReadResponse, NotificationsGetNotificationPreferencesResponse, NotificationsUpdateNotificationPreferencesData, NotificationsUpdateNotificationPreferencesResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsUnsubscribeData, NotificationsUnsubscribeResponse, PortfolioListPropertiesResponse, PortfolioCreatePropertyData, PortfolioCreatePropertyResponse, PortfolioGetPropertyData, PortfolioGetPropertyResponse, PortfolioUpdatePropertyData, PortfolioUpdatePropertyResponse, PortfolioDeletePropertyData, PortfolioDeletePropertyResponse, PortfolioCreateTransactionData, PortfolioCreateTransactionResponse, PortfolioListTransactionsData, PortfolioListTransactionsResponse, PortfolioDeleteTransactionData, PortfolioDeleteTransactionResponse, PortfolioGetPortfolioSummaryResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProfessionalsGetFilterOptionsResponse, ProfessionalsListProfessionalsData, ProfessionalsListProfessionalsResponse, ProfessionalsGetProfessionalData, ProfessionalsGetProfessionalResponse, ProfessionalsCreateReviewData, ProfessionalsCreateReviewResponse, SearchSearchData, SearchSearchResponse, SubscriptionsGetCurrentSubscriptionResponse, SubscriptionsCreateCheckoutSessionData, SubscriptionsCreateCheckoutSessionResponse, SubscriptionsCreatePortalSessionData, SubscriptionsCreatePortalSessionResponse, SubscriptionsHandleWebhookData, SubscriptionsHandleWebhookResponse, SubscriptionsCancelSubscriptionResponse, TranslationsTranslateTextData, TranslationsTranslateTextResponse, TranslationsDetectLanguageData, TranslationsDetectLanguageResponse, TranslationsBatchTranslateData, TranslationsBatchTranslateResponse, TranslationsGetSupportedLanguagesResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersExportUserDataResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ArticlesListArticlesData, ArticlesListArticlesResponse, ArticlesCreateArticleData, ArticlesCreateArticleResponse, ArticlesSearchArticlesData, ArticlesSearchArticlesResponse, ArticlesGetCategoriesResponse, ArticlesGetArticleData, ArticlesGetArticleResponse, ArticlesRateArticleData, ArticlesRateArticleResponse, ArticlesUpdateArticleData, ArticlesUpdateArticleResponse, ArticlesDeleteArticleData, ArticlesDeleteArticleResponse, AuthRegisterData, AuthRegisterResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutData, AuthLogoutResponse, AuthVerifyEmailData, AuthVerifyEmailResponse, AuthResendVerificationData, AuthResendVerificationResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, CalculatorsGetStateRatesResponse, CalculatorsCompareStatesData, CalculatorsCompareStatesResponse, CalculatorsGetSharedCalculationData, CalculatorsGetSharedCalculationResponse, CalculatorsListCalculationsResponse, CalculatorsSaveCalculationData, CalculatorsSaveCalculationResponse, CalculatorsGetCalculationData, CalculatorsGetCalculationResponse, CalculatorsDeleteCalculationData, CalculatorsDeleteCalculationResponse, CalculatorsCompareRoiScenariosData, CalculatorsCompareRoiScenariosResponse, CalculatorsGetSharedRoiCalculationData, CalculatorsGetSharedRoiCalculationResponse, CalculatorsListRoiCalculationsResponse, CalculatorsSaveRoiCalculationData, CalculatorsSaveRoiCalculationResponse, CalculatorsGetRoiCalculationData, CalculatorsGetRoiCalculationResponse, CalculatorsDeleteRoiCalculationData, CalculatorsDeleteRoiCalculationResponse, CalculatorsGetSharedPropertyEvaluationData, CalculatorsGetSharedPropertyEvaluationResponse, CalculatorsListStepPropertyEvaluationsData, CalculatorsListStepPropertyEvaluationsResponse, CalculatorsCalculatePropertyEvaluationData, CalculatorsCalculatePropertyEvaluationResponse, CalculatorsListPropertyEvaluationsResponse, CalculatorsSavePropertyEvaluationData, CalculatorsSavePropertyEvaluationResponse, CalculatorsGetPropertyEvaluationData, CalculatorsGetPropertyEvaluationResponse, CalculatorsDeletePropertyEvaluationData, CalculatorsDeletePropertyEvaluationResponse, CalculatorsCalculateOwnershipComparisonData, CalculatorsCalculateOwnershipComparisonResponse, CalculatorsGetSharedOwnershipComparisonData, CalculatorsGetSharedOwnershipComparisonResponse, CalculatorsListOwnershipComparisonsResponse, CalculatorsSaveOwnershipComparisonData, CalculatorsSaveOwnershipComparisonResponse, CalculatorsGetOwnershipComparisonData, CalculatorsGetOwnershipComparisonResponse, CalculatorsDeleteOwnershipComparisonData, CalculatorsDeleteOwnershipComparisonResponse, DashboardGetDashboardOverviewResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsGetUsageResponse, DocumentsGetSharedDocumentData, DocumentsGetSharedDocumentResponse, DocumentsGetDocumentsByStepData, DocumentsGetDocumentsByStepResponse, DocumentsListDocumentsData, DocumentsListDocumentsResponse, DocumentsGetDocumentData, DocumentsGetDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsShareDocumentData, DocumentsShareDocumentResponse, DocumentsGetDocumentTranslationData, DocumentsGetDocumentTranslationResponse, DocumentsGetDocumentStatusData, DocumentsGetDocumentStatusResponse, FinancingGetSharedAssessmentData, FinancingGetSharedAssessmentResponse, FinancingListAssessmentsResponse, FinancingSaveAssessmentData, FinancingSaveAssessmentResponse, FinancingGetAssessmentData, FinancingGetAssessmentResponse, FinancingDeleteAssessmentData, FinancingDeleteAssessmentResponse, GlossaryListTermsData, GlossaryListTermsResponse, GlossarySearchGlossaryData, GlossarySearchGlossaryResponse, GlossaryListCategoriesResponse, GlossaryGetTermData, GlossaryGetTermResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JourneysCreateJourneyData, JourneysCreateJourneyResponse, JourneysListJourneysData, JourneysListJourneysResponse, JourneysGetJourneyData, JourneysGetJourneyResponse, JourneysUpdateJourneyData, JourneysUpdateJourneyResponse, JourneysDeleteJourneyData, JourneysDeleteJourneyResponse, JourneysGetJourneyProgressData, JourneysGetJourneyProgressResponse, JourneysGetNextStepData, JourneysGetNextStepResponse, JourneysUpdateStepStatusData, JourneysUpdateStepStatusResponse, JourneysUpdateTaskStatusData, JourneysUpdateTaskStatusResponse, JourneysGetPropertyGoalsData, JourneysGetPropertyGoalsResponse, JourneysUpdatePropertyGoalsData, JourneysUpdatePropertyGoalsResponse, LawsListLawsData, LawsListLawsResponse, LawsSearchLawsData, LawsSearchLawsResponse, LawsGetCategoriesResponse, LawsGetLawsForJourneyStepData, LawsGetLawsForJourneyStepResponse, LawsGetBookmarksResponse, LawsGetLawData, LawsGetLawResponse, LawsCreateBookmarkData, LawsCreateBookmarkResponse, LawsDeleteBookmarkData, LawsDeleteBookmarkResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MarketGetRentEstimateData, MarketGetRentEstimateResponse, MarketListAreasResponse, MarketCompareAreasData, MarketCompareAreasResponse, NotificationsListNotificationsData, NotificationsListNotificationsResponse, NotificationsMarkAllNotificationsReadResponse, NotificationsGetNotificationPreferencesResponse, NotificationsUpdateNotificationPreferencesData, NotificationsUpdateNotificationPreferencesResponse, NotificationsMarkNotificationReadData, NotificationsMarkNotificationReadResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsUnsubscribeData, NotificationsUnsubscribeResponse, PortfolioListPropertiesResponse, PortfolioCreatePropertyData, PortfolioCreatePropertyResponse, PortfolioGetPropertyData, PortfolioGetPropertyResponse, PortfolioUpdatePropertyData, PortfolioUpdatePropertyResponse, PortfolioDeletePropertyData, PortfolioDeletePropertyResponse, PortfolioCreateTransactionData, PortfolioCreateTransactionResponse, PortfolioListTransactionsData, PortfolioListTransactionsResponse, PortfolioDeleteTransactionData, PortfolioDeleteTransactionResponse, PortfolioGetPortfolioSummaryResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProfessionalsGetFilterOptionsResponse, ProfessionalsListProfessionalsData, ProfessionalsListProfessionalsResponse, ProfessionalsGetProfessionalData, ProfessionalsGetProfessionalResponse, ProfessionalsCreateReviewData, ProfessionalsCreateReviewResponse, SearchSearchData, SearchSearchResponse, SubscriptionsGetCurrentSubscriptionResponse, SubscriptionsCreateCheckoutSessionData, SubscriptionsCreateCheckoutSessionResponse, SubscriptionsCreatePortalSessionData, SubscriptionsCreatePortalSessionResponse, SubscriptionsHandleWebhookData, SubscriptionsHandleWebhookResponse, SubscriptionsCancelSubscriptionResponse, TranslationsTranslateTextData, TranslationsTranslateTextResponse, TranslationsDetectLanguageData, TranslationsDetectLanguageResponse, TranslationsBatchTranslateData, TranslationsBatchTranslateResponse, TranslationsGetSupportedLanguagesResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersExportUserDataResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ArticlesService {
     /**
@@ -1281,6 +1281,92 @@ export class FinancingService {
             url: '/api/v1/financing/eligibility/{assessment_id}',
             path: {
                 assessment_id: data.assessmentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class GlossaryService {
+    /**
+     * List Terms
+     * List glossary terms with optional category filter and pagination.
+     * @param data The data for the request.
+     * @param data.category
+     * @param data.page
+     * @param data.pageSize
+     * @returns GlossaryListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listTerms(data: GlossaryListTermsData = {}): CancelablePromise<GlossaryListTermsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/glossary/',
+            query: {
+                category: data.category,
+                page: data.page,
+                page_size: data.pageSize
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Search Glossary
+     * Search glossary terms using full-text search.
+     *
+     * Searches across German terms, English translations, and definitions.
+     * @param data The data for the request.
+     * @param data.q Search query
+     * @param data.limit
+     * @returns GlossarySearchResponse Successful Response
+     * @throws ApiError
+     */
+    public static searchGlossary(data: GlossarySearchGlossaryData): CancelablePromise<GlossarySearchGlossaryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/glossary/search',
+            query: {
+                q: data.q,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Categories
+     * Get all glossary categories with term counts.
+     * @returns GlossaryCategoriesResponse Successful Response
+     * @throws ApiError
+     */
+    public static listCategories(): CancelablePromise<GlossaryListCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/glossary/categories'
+        });
+    }
+    
+    /**
+     * Get Term
+     * Get a specific glossary term with full details and resolved related terms.
+     * @param data The data for the request.
+     * @param data.slug
+     * @returns GlossaryTermDetail Successful Response
+     * @throws ApiError
+     */
+    public static getTerm(data: GlossaryGetTermData): CancelablePromise<GlossaryGetTermResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/glossary/{slug}',
+            path: {
+                slug: data.slug
             },
             errors: {
                 422: 'Validation Error'
