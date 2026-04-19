@@ -29,7 +29,7 @@ function TaskCheckbox(props: IProps) {
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-lg border p-3 transition-colors",
+        "flex min-h-[44px] items-start gap-3 rounded-lg border p-3 transition-colors",
         task.is_completed && "bg-muted/50",
         !disabled && "hover:bg-muted/30",
         className,
@@ -40,7 +40,7 @@ function TaskCheckbox(props: IProps) {
         checked={task.is_completed}
         onCheckedChange={handleChange}
         disabled={disabled}
-        className="mt-0.5"
+        className="mt-0.5 size-5 sm:size-4"
       />
       <label
         htmlFor={`task-${task.id}`}

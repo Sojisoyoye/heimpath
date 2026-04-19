@@ -121,7 +121,7 @@ function FeatureCheckbox(props: {
     <label
       htmlFor={checkboxId}
       className={cn(
-        "flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 transition-all",
+        "flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2.5 transition-all",
         checked
           ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30"
           : "border-muted-foreground/20 hover:border-muted-foreground/40",
@@ -307,13 +307,13 @@ function PropertyGoalsForm(props: IProps) {
       </div>
 
       {/* Property Type — inline select */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
         <Label className="shrink-0 text-sm font-medium">Property Type</Label>
         <Select
           value={goals.preferred_property_type}
           onValueChange={handlePropertyTypeChange}
         >
-          <SelectTrigger className="w-auto min-w-0 flex-1">
+          <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
@@ -339,7 +339,7 @@ function PropertyGoalsForm(props: IProps) {
       />
 
       {/* Min. Rooms — inline */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
         <Label className="shrink-0 text-sm font-medium">Min. Rooms</Label>
         <Select
           value={goals.min_rooms?.toString() ?? ""}
@@ -347,7 +347,7 @@ function PropertyGoalsForm(props: IProps) {
             setGoals((prev) => ({ ...prev, min_rooms: Number(v) }))
           }
         >
-          <SelectTrigger className="w-auto min-w-0 flex-1">
+          <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
             <SelectValue placeholder="Any" />
           </SelectTrigger>
           <SelectContent>
@@ -361,7 +361,7 @@ function PropertyGoalsForm(props: IProps) {
       </div>
 
       {/* Min. Bathrooms — inline */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
         <Label className="shrink-0 text-sm font-medium">Min. Bathrooms</Label>
         <Select
           value={goals.min_bathrooms?.toString() ?? ""}
@@ -369,7 +369,7 @@ function PropertyGoalsForm(props: IProps) {
             setGoals((prev) => ({ ...prev, min_bathrooms: Number(v) }))
           }
         >
-          <SelectTrigger className="w-auto min-w-0 flex-1">
+          <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
             <SelectValue placeholder="Any" />
           </SelectTrigger>
           <SelectContent>
@@ -384,7 +384,7 @@ function PropertyGoalsForm(props: IProps) {
 
       {/* Preferred Floor & Elevator — inline */}
       {isFloorRelevant && (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
           <Label className="shrink-0 text-sm font-medium">Floor</Label>
           <Select
             value={goals.preferred_floor}
@@ -392,7 +392,7 @@ function PropertyGoalsForm(props: IProps) {
               setGoals((prev) => ({ ...prev, preferred_floor: v }))
             }
           >
-            <SelectTrigger className="w-auto min-w-0 flex-1">
+            <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
               <SelectValue placeholder="Any floor" />
             </SelectTrigger>
             <SelectContent>
