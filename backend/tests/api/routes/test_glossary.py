@@ -72,7 +72,12 @@ class TestListTerms:
 
     def test_filters_by_category(self, client: TestClient, db: Session) -> None:
         _cleanup_terms(db)
-        _create_term(db, slug="notar", term_de="Notar", category=GlossaryCategory.BUYING_PROCESS.value)
+        _create_term(
+            db,
+            slug="notar",
+            term_de="Notar",
+            category=GlossaryCategory.BUYING_PROCESS.value,
+        )
         _create_term(
             db,
             slug="grunderwerbsteuer",
@@ -161,7 +166,9 @@ class TestListCategories:
         data = r.json()
         assert data["categories"] == []
 
-    def test_category_has_expected_fields(self, client: TestClient, db: Session) -> None:
+    def test_category_has_expected_fields(
+        self, client: TestClient, db: Session
+    ) -> None:
         _cleanup_terms(db)
         _create_term(db)
         r = client.get(f"{BASE}/categories")
@@ -195,7 +202,9 @@ class TestGetTerm:
         assert "related_terms" in data
         _cleanup_terms(db)
 
-    def test_returns_404_for_missing_slug(self, client: TestClient, db: Session) -> None:
+    def test_returns_404_for_missing_slug(
+        self, client: TestClient, db: Session
+    ) -> None:
         _cleanup_terms(db)
         r = client.get(f"{BASE}/nonexistent-term")
         assert r.status_code == 404
