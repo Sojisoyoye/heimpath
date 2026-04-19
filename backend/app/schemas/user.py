@@ -103,17 +103,6 @@ class Message(BaseModel):
     message: str
 
 
-class ItemExport(BaseModel):
-    """Schema for item data in export."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    id: uuid.UUID
-    title: str
-    description: str | None = None
-    created_at: datetime
-
-
 class UserDataExport(BaseModel):
     """
     Schema for GDPR-compliant user data export.
@@ -140,6 +129,3 @@ class UserDataExport(BaseModel):
     subscription_tier: str
     created_at: datetime
     updated_at: datetime | None = None
-
-    # Related data
-    items: list[ItemExport] = []

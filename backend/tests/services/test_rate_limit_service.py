@@ -9,7 +9,11 @@ from app.services.rate_limit_service import (
     RateLimitInfo,
     get_status,
     is_locked,
+    is_password_reset_locked,
+    is_register_locked,
     record_failed_attempt,
+    record_password_reset_attempt,
+    record_register_attempt,
     record_successful_login,
     reset,
 )
@@ -130,3 +134,75 @@ class TestRateLimitFunctions:
         status = record_failed_attempt(email)
         assert status.is_locked is True
         assert status.attempts_remaining == 0
+
+
+# ── Register rate limiting ───────────────────────────────────────────────────
+
+
+class TestRegisterRateLimit:
+    def test_not_locked_initially(self) -> None:
+        assert is_register_locked("new@example.com") is False
+
+    def test_single_attempt_not_locked(self) -> None:
+        status = record_register_attempt("reg@example.com")
+        assert status.is_locked is False
+        assert status.attempts_remaining == 2
+
+    def test_lockout_after_three_attempts(self) -> None:
+        email = "reg-lockout@example.com"
+        for _ in range(2):
+            status = record_register_attempt(email)
+            assert status.is_locked is False
+        status = record_register_attempt(email)
+        assert status.is_locked is True
+        assert status.attempts_remaining == 0
+        assert status.lockout_expires_at is not None
+
+    def test_is_register_locked_after_max(self) -> None:
+        email = "reg-locked@example.com"
+        for _ in range(3):
+            record_register_attempt(email)
+        assert is_register_locked(email) is True
+
+    def test_register_and_login_limits_independent(self) -> None:
+        email = "independent@example.com"
+        for _ in range(3):
+            record_register_attempt(email)
+        assert is_register_locked(email) is True
+        assert is_locked(email) is False
+
+
+# ── Password reset rate limiting ─────────────────────────────────────────────
+
+
+class TestPasswordResetRateLimit:
+    def test_not_locked_initially(self) -> None:
+        assert is_password_reset_locked("new@example.com") is False
+
+    def test_single_attempt_not_locked(self) -> None:
+        status = record_password_reset_attempt("reset@example.com")
+        assert status.is_locked is False
+        assert status.attempts_remaining == 2
+
+    def test_lockout_after_three_attempts(self) -> None:
+        email = "reset-lockout@example.com"
+        for _ in range(2):
+            status = record_password_reset_attempt(email)
+            assert status.is_locked is False
+        status = record_password_reset_attempt(email)
+        assert status.is_locked is True
+        assert status.attempts_remaining == 0
+        assert status.lockout_expires_at is not None
+
+    def test_is_password_reset_locked_after_max(self) -> None:
+        email = "reset-locked@example.com"
+        for _ in range(3):
+            record_password_reset_attempt(email)
+        assert is_password_reset_locked(email) is True
+
+    def test_password_reset_and_login_limits_independent(self) -> None:
+        email = "pw-independent@example.com"
+        for _ in range(3):
+            record_password_reset_attempt(email)
+        assert is_password_reset_locked(email) is True
+        assert is_locked(email) is False
