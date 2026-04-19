@@ -2480,6 +2480,7 @@ export class ProfessionalsService {
      * @param data.city
      * @param data.language
      * @param data.minRating
+     * @param data.sortBy
      * @param data.page
      * @param data.pageSize
      * @returns ProfessionalListResponse Successful Response
@@ -2494,6 +2495,7 @@ export class ProfessionalsService {
                 city: data.city,
                 language: data.language,
                 min_rating: data.minRating,
+                sort_by: data.sortBy,
                 page: data.page,
                 page_size: data.pageSize
             },

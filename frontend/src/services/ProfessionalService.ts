@@ -11,6 +11,7 @@ import type {
   ProfessionalFilter,
   ProfessionalFilterOptions,
   ProfessionalReview,
+  ServiceType,
 } from "@/models/professional"
 import { PATHS } from "./common/Paths"
 import { transformKeys } from "./common/transformKeys"
@@ -51,6 +52,7 @@ class ProfessionalServiceClass {
     if (filters?.language) params.append("language", filters.language)
     if (filters?.minRating != null)
       params.append("min_rating", String(filters.minRating))
+    if (filters?.sortBy) params.append("sort_by", filters.sortBy)
     params.append("page", String(filters?.page ?? 1))
     params.append("page_size", String(filters?.pageSize ?? 20))
 
@@ -79,13 +81,26 @@ class ProfessionalServiceClass {
    */
   async submitReview(
     professionalId: string,
-    rating: number,
-    comment?: string,
+    data: {
+      rating: number
+      comment?: string
+      serviceUsed?: ServiceType
+      languageUsed?: string
+      wouldRecommend?: boolean
+      responseTimeRating?: number
+    },
   ): Promise<ProfessionalReview> {
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "POST",
       url: PATHS.PROFESSIONALS.REVIEWS(professionalId),
-      body: { rating, comment: comment || null },
+      body: {
+        rating: data.rating,
+        comment: data.comment ?? null,
+        service_used: data.serviceUsed ?? null,
+        language_used: data.languageUsed ?? null,
+        would_recommend: data.wouldRecommend ?? null,
+        response_time_rating: data.responseTimeRating ?? null,
+      },
       mediaType: "application/json",
     })
     return transformKeys<ProfessionalReview>(response)

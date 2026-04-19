@@ -5739,6 +5739,29 @@ export const ProfessionalDetailResponseSchema = {
             type: 'integer',
             title: 'Review Count'
         },
+        recommendation_rate: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recommendation Rate'
+        },
+        review_highlights: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Review Highlights'
+        },
         created_at: {
             type: 'string',
             format: 'date-time',
@@ -5868,6 +5891,29 @@ export const ProfessionalResponseSchema = {
         review_count: {
             type: 'integer',
             title: 'Review Count'
+        },
+        recommendation_rate: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recommendation Rate'
+        },
+        review_highlights: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Review Highlights'
         },
         created_at: {
             type: 'string',
@@ -7592,6 +7638,52 @@ export const ReviewCreateRequestSchema = {
                 }
             ],
             title: 'Comment'
+        },
+        service_used: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ServiceType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        language_used: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Language Used'
+        },
+        would_recommend: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Would Recommend'
+        },
+        response_time_rating: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    maximum: 5,
+                    minimum: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Response Time Rating'
         }
     },
     type: 'object',
@@ -7626,6 +7718,49 @@ export const ReviewResponseSchema = {
                 }
             ],
             title: 'Comment'
+        },
+        service_used: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ServiceType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        language_used: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Language Used'
+        },
+        would_recommend: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Would Recommend'
+        },
+        response_time_rating: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Response Time Rating'
         },
         created_at: {
             type: 'string',
@@ -7795,6 +7930,13 @@ export const SearchResultItemSchema = {
     required: ['id', 'title', 'snippet', 'result_type', 'url_path'],
     title: 'SearchResultItem',
     description: 'A single search result item from any content type.'
+} as const;
+
+export const ServiceTypeSchema = {
+    type: 'string',
+    enum: ['buying', 'selling', 'rental', 'tax', 'legal'],
+    title: 'ServiceType',
+    description: 'Types of services a professional can provide.'
 } as const;
 
 export const StateComparisonItemSchema = {

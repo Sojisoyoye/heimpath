@@ -4,14 +4,30 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, BadgeCheck, Globe, Mail, MapPin, Phone } from "lucide-react"
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Clock,
+  Globe,
+  Mail,
+  MapPin,
+  Phone,
+  ThumbsUp,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { ProfessionalDetail as ProfessionalDetailType } from "@/models/professional"
-import { PROFESSIONAL_TYPE_LABELS } from "@/models/professional"
+import type {
+  ProfessionalDetail as ProfessionalDetailType,
+  ProfessionalReview as ProfessionalReviewType,
+  ServiceType,
+} from "@/models/professional"
+import {
+  PROFESSIONAL_TYPE_LABELS,
+  SERVICE_TYPE_LABELS,
+} from "@/models/professional"
 import { ReviewForm } from "./ReviewForm"
 import { StarRating } from "./StarRating"
 
@@ -25,24 +41,46 @@ interface IProps {
 ******************************************************************************/
 
 /** Review item display. */
-function ReviewItem(
-  props: Readonly<{
-    rating: number
-    comment?: string
-    createdAt: string
-  }>,
-) {
-  const { rating, comment, createdAt } = props
+function ReviewItem(props: Readonly<{ review: ProfessionalReviewType }>) {
+  const { review } = props
 
   return (
     <div className="space-y-2 py-4">
-      <div className="flex items-center gap-3">
-        <StarRating rating={rating} />
+      <div className="flex items-center gap-3 flex-wrap">
+        <StarRating rating={review.rating} />
         <span className="text-xs text-muted-foreground">
-          {new Date(createdAt).toLocaleDateString()}
+          {new Date(review.createdAt).toLocaleDateString()}
         </span>
+        {review.serviceUsed && (
+          <Badge variant="outline" className="text-xs">
+            {SERVICE_TYPE_LABELS[review.serviceUsed]}
+          </Badge>
+        )}
+        {review.languageUsed && (
+          <Badge variant="outline" className="text-xs">
+            {review.languageUsed}
+          </Badge>
+        )}
+        {review.wouldRecommend != null && (
+          <span
+            className={`flex items-center gap-1 text-xs ${review.wouldRecommend ? "text-green-600" : "text-red-500"}`}
+          >
+            <ThumbsUp
+              className={`h-3 w-3 ${review.wouldRecommend ? "" : "rotate-180"}`}
+            />
+            {review.wouldRecommend ? "Recommends" : "Does not recommend"}
+          </span>
+        )}
+        {review.responseTimeRating != null && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            Response: {review.responseTimeRating}/5
+          </span>
+        )}
       </div>
-      {comment && <p className="text-sm text-muted-foreground">{comment}</p>}
+      {review.comment && (
+        <p className="text-sm text-muted-foreground">{review.comment}</p>
+      )}
     </div>
   )
 }
@@ -114,6 +152,72 @@ function ProfessionalDetail(props: Readonly<IProps>) {
             </Card>
           )}
 
+          {/* Trust signals */}
+          {(professional.recommendationRate != null ||
+            professional.reviewHighlights) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Trust Signals</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-6">
+                  {professional.recommendationRate != null && (
+                    <div className="flex items-center gap-2">
+                      <ThumbsUp className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {Math.round(professional.recommendationRate)}%
+                          recommended
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Based on {professional.reviewCount}{" "}
+                          {professional.reviewCount === 1
+                            ? "review"
+                            : "reviews"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {professional.reviewHighlights?.avgResponseTime != null && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {professional.reviewHighlights.avgResponseTime.toFixed(
+                            1,
+                          )}
+                          /5 response time
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Average rating
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {professional.reviewHighlights?.topServices &&
+                    professional.reviewHighlights.topServices.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-1">Top services</p>
+                        <div className="flex gap-1.5">
+                          {professional.reviewHighlights.topServices.map(
+                            (svc) => (
+                              <Badge
+                                key={svc}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {SERVICE_TYPE_LABELS[svc as ServiceType] ?? svc}
+                              </Badge>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Reviews */}
           <Card>
             <CardHeader>
@@ -129,12 +233,7 @@ function ProfessionalDetail(props: Readonly<IProps>) {
               ) : (
                 <div className="divide-y">
                   {professional.reviews.map((review) => (
-                    <ReviewItem
-                      key={review.id}
-                      rating={review.rating}
-                      comment={review.comment}
-                      createdAt={review.createdAt}
-                    />
+                    <ReviewItem key={review.id} review={review} />
                   ))}
                 </div>
               )}

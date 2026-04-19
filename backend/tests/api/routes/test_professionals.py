@@ -308,6 +308,197 @@ def test_get_filter_options(client: TestClient, db: Session) -> None:
     assert "English" in data["languages"]
 
 
+def test_create_review_with_structured_fields(client: TestClient, db: Session) -> None:
+    """Test submitting a review with all structured trust signal fields."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+        json={
+            "rating": 5,
+            "comment": "Excellent service!",
+            "service_used": "buying",
+            "language_used": "English",
+            "would_recommend": True,
+            "response_time_rating": 4,
+        },
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["rating"] == 5
+    assert data["service_used"] == "buying"
+    assert data["language_used"] == "English"
+    assert data["would_recommend"] is True
+    assert data["response_time_rating"] == 4
+
+
+def test_create_review_structured_fields_optional(
+    client: TestClient, db: Session
+) -> None:
+    """Test that structured fields are optional for backward compatibility."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+        json={"rating": 4},
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["rating"] == 4
+    assert data["service_used"] is None
+    assert data["language_used"] is None
+    assert data["would_recommend"] is None
+    assert data["response_time_rating"] is None
+
+
+def test_trust_signals_computed_after_review(client: TestClient, db: Session) -> None:
+    """Test that recommendation_rate is computed after submitting reviews."""
+    professional = create_sample_professional(db)
+
+    # Two recommending users
+    for _ in range(2):
+        headers, _ = get_auth_headers(client, db)
+        client.post(
+            f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+            json={"rating": 5, "would_recommend": True},
+            headers=headers,
+        )
+
+    # One non-recommending user
+    headers, _ = get_auth_headers(client, db)
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+        json={"rating": 2, "would_recommend": False},
+        headers=headers,
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/professionals/{professional.id}")
+    assert r.status_code == 200
+    data = r.json()
+    # 2 out of 3 recommend -> 66.7%
+    assert data["recommendation_rate"] is not None
+    assert abs(data["recommendation_rate"] - 66.7) < 0.1
+
+
+def test_list_professionals_sort_by_reviews(client: TestClient, db: Session) -> None:
+    """Test sorting professionals by review count."""
+    prof1 = create_sample_professional(db, name="Few Reviews Pro")
+    prof2 = create_sample_professional(db, name="Many Reviews Pro")
+
+    # Give prof2 more reviews
+    for _ in range(3):
+        headers, _ = get_auth_headers(client, db)
+        client.post(
+            f"{settings.API_V1_STR}/professionals/{prof2.id}/reviews",
+            json={"rating": 4},
+            headers=headers,
+        )
+
+    # Give prof1 one review
+    headers, _ = get_auth_headers(client, db)
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{prof1.id}/reviews",
+        json={"rating": 5},
+        headers=headers,
+    )
+
+    r = client.get(
+        f"{settings.API_V1_STR}/professionals/",
+        params={"sort_by": "reviews", "page_size": 100},
+    )
+    assert r.status_code == 200
+    data = r.json()["data"]
+    # First result should have more reviews
+    assert data[0]["review_count"] >= data[-1]["review_count"]
+
+
+def test_list_professionals_sort_by_recommended(
+    client: TestClient, db: Session
+) -> None:
+    """Test sorting professionals by recommendation rate."""
+    prof1 = create_sample_professional(db, name="Low Recommend Pro")
+    prof2 = create_sample_professional(db, name="High Recommend Pro")
+
+    # prof2: 100% recommendation
+    headers, _ = get_auth_headers(client, db)
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{prof2.id}/reviews",
+        json={"rating": 5, "would_recommend": True},
+        headers=headers,
+    )
+
+    # prof1: 0% recommendation
+    headers, _ = get_auth_headers(client, db)
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{prof1.id}/reviews",
+        json={"rating": 2, "would_recommend": False},
+        headers=headers,
+    )
+
+    r = client.get(
+        f"{settings.API_V1_STR}/professionals/",
+        params={"sort_by": "recommended", "page_size": 100},
+    )
+    assert r.status_code == 200
+    data = r.json()["data"]
+
+    # Find our two pros in the results
+    rec_rates = {item["name"]: item.get("recommendation_rate") for item in data}
+    assert rec_rates["High Recommend Pro"] == 100.0
+    assert rec_rates["Low Recommend Pro"] == 0.0
+
+
+def test_review_highlights_computed(client: TestClient, db: Session) -> None:
+    """Test that review_highlights JSON is computed after reviews."""
+    professional = create_sample_professional(db)
+
+    headers, _ = get_auth_headers(client, db)
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+        json={
+            "rating": 5,
+            "service_used": "buying",
+            "response_time_rating": 4,
+        },
+        headers=headers,
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/professionals/{professional.id}")
+    assert r.status_code == 200
+    data = r.json()
+    highlights = data["review_highlights"]
+    assert highlights is not None
+    assert "top_services" in highlights
+    assert "buying" in highlights["top_services"]
+    assert highlights["avg_response_time"] == 4.0
+
+
+def test_invalid_response_time_rating(client: TestClient, db: Session) -> None:
+    """Test that response_time_rating outside 1-5 returns 422."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+        json={"rating": 5, "response_time_rating": 6},
+        headers=headers,
+    )
+    assert r.status_code == 422
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/reviews",
+        json={"rating": 5, "response_time_rating": 0},
+        headers=headers,
+    )
+    assert r.status_code == 422
+
+
 def test_language_filter_escapes_wildcards(client: TestClient, db: Session) -> None:
     """Test that SQL wildcards in language filter are escaped properly."""
     create_sample_professional(db)

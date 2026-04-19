@@ -9,6 +9,16 @@ export type ProfessionalType =
   | "mortgage_broker"
   | "real_estate_agent"
 
+export type ServiceType = "buying" | "selling" | "rental" | "tax" | "legal"
+
+export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
+  buying: "Buying",
+  selling: "Selling",
+  rental: "Rental",
+  tax: "Tax",
+  legal: "Legal",
+}
+
 export interface Professional {
   id: string
   name: string
@@ -22,6 +32,11 @@ export interface Professional {
   isVerified: boolean
   averageRating: number
   reviewCount: number
+  recommendationRate?: number
+  reviewHighlights?: {
+    topServices: string[]
+    avgResponseTime: number | null
+  }
   createdAt: string
 }
 
@@ -30,6 +45,10 @@ export interface ProfessionalReview {
   professionalId: string
   rating: number
   comment?: string
+  serviceUsed?: ServiceType
+  languageUsed?: string
+  wouldRecommend?: boolean
+  responseTimeRating?: number
   createdAt: string
 }
 
@@ -47,6 +66,7 @@ export interface ProfessionalFilter {
   city?: string
   language?: string
   minRating?: number
+  sortBy?: string
   page?: number
   pageSize?: number
 }

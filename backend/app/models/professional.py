@@ -13,7 +13,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -29,7 +29,17 @@ class ProfessionalType(str, PyEnum):
     REAL_ESTATE_AGENT = "real_estate_agent"
 
 
-# PostgreSQL enum definition (created by migration)
+class ServiceType(str, PyEnum):
+    """Types of services a professional can provide."""
+
+    BUYING = "buying"
+    SELLING = "selling"
+    RENTAL = "rental"
+    TAX = "tax"
+    LEGAL = "legal"
+
+
+# PostgreSQL enum definitions (created by migration)
 _professional_type_enum = PgEnum(
     "lawyer",
     "notary",
@@ -37,6 +47,16 @@ _professional_type_enum = PgEnum(
     "mortgage_broker",
     "real_estate_agent",
     name="professionaltype",
+    create_type=False,
+)
+
+_service_type_enum = PgEnum(
+    "buying",
+    "selling",
+    "rental",
+    "tax",
+    "legal",
+    name="servicetype",
     create_type=False,
 )
 
@@ -57,6 +77,8 @@ class Professional(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     is_verified = Column(Boolean, nullable=False, default=True)
     average_rating = Column(Float, nullable=False, default=0.0)
     review_count = Column(Integer, nullable=False, default=0)
+    recommendation_rate = Column(Float, nullable=True)
+    review_highlights = Column(JSON, nullable=True)
 
     # Relationships
     reviews = relationship(
@@ -85,6 +107,10 @@ class ProfessionalReview(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     rating = Column(Integer, nullable=False)
     comment = Column(Text, nullable=True)
+    service_used = Column(_service_type_enum, nullable=True)
+    language_used = Column(String(100), nullable=True)
+    would_recommend = Column(Boolean, nullable=True)
+    response_time_rating = Column(Integer, nullable=True)
 
     # Relationships
     professional = relationship("Professional", back_populates="reviews")

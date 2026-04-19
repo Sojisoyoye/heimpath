@@ -1,7 +1,7 @@
 """Professional network directory API endpoints."""
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
 
@@ -38,6 +38,9 @@ async def list_professionals(
     city: str | None = None,
     language: str | None = None,
     min_rating: Annotated[float | None, Query(ge=0, le=5)] = None,
+    sort_by: Annotated[
+        Literal["rating", "reviews", "recommended"] | None, Query()
+    ] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> ProfessionalListResponse:
@@ -48,6 +51,7 @@ async def list_professionals(
         city=city,
         language=language,
         min_rating=min_rating,
+        sort_by=sort_by,
         page=page,
         page_size=page_size,
     )
@@ -111,6 +115,10 @@ async def create_review(
             user_id=current_user.id,
             rating=request.rating,
             comment=request.comment,
+            service_used=request.service_used,
+            language_used=request.language_used,
+            would_recommend=request.would_recommend,
+            response_time_rating=request.response_time_rating,
         )
     except professional_service.ProfessionalNotFoundError:
         raise HTTPException(

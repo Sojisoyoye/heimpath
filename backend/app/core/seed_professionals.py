@@ -222,3 +222,8 @@ def seed_professionals(session: Session) -> None:
 
     session.commit()
     logger.info("Seeded %d professionals.", inserted)
+
+    # Seed reviews after professionals are created
+    from app.core.seed_reviews import seed_reviews
+
+    seed_reviews(session)
