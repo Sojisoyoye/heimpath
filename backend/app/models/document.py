@@ -150,6 +150,9 @@ class DocumentTranslation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     risk_warnings = Column(MutableList.as_mutable(JSONB), nullable=False, default=list)
 
+    # AI analysis (Kaufvertrag only)
+    kaufvertrag_analysis = Column(JSONB, nullable=True, default=None)
+
     # Timing
     processing_started_at = Column(DateTime(timezone=True), nullable=True)
     processing_completed_at = Column(DateTime(timezone=True), nullable=True)

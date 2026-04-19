@@ -3,6 +3,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -99,6 +100,39 @@ class DocumentRiskWarning(BaseModel):
     page_number: int | None = None
 
 
+class AnalyzedClause(BaseModel):
+    """AI-analyzed clause from a Kaufvertrag."""
+
+    section_name: str
+    section_name_en: str
+    original_text: str
+    plain_english_explanation: str
+    risk_level: Literal["low", "medium", "high"]
+    risk_reason: str
+    is_unusual: bool = False
+    unusual_terms: list[str] = Field(default_factory=list)
+    page_number: int | None = None
+
+
+class NotaryQuestion(BaseModel):
+    """Question to ask a notary about a contract clause."""
+
+    question: str
+    related_clause: str
+    priority: Literal["essential", "recommended", "optional"]
+
+
+class KaufvertragAnalysis(BaseModel):
+    """Full AI analysis of a Kaufvertrag (purchase contract)."""
+
+    summary: str
+    analyzed_clauses: list[AnalyzedClause]
+    notary_checklist: list[NotaryQuestion]
+    overall_risk_assessment: Literal["low", "medium", "high"]
+    overall_risk_explanation: str
+    is_ai_generated: bool = True
+
+
 class DocumentTranslationResponse(BaseModel):
     """Full translation result for a document."""
 
@@ -111,6 +145,7 @@ class DocumentTranslationResponse(BaseModel):
     translated_pages: list[TranslatedPage]
     clauses_detected: list[DetectedClause]
     risk_warnings: list[DocumentRiskWarning]
+    kaufvertrag_analysis: KaufvertragAnalysis | None = None
     processing_started_at: datetime | None = None
     processing_completed_at: datetime | None = None
 

@@ -153,6 +153,16 @@ class Settings(BaseSettings):
     def translator_enabled(self) -> bool:
         return bool(self.AZURE_TRANSLATOR_KEY)
 
+    # Anthropic (Claude) configuration for AI analysis
+    ANTHROPIC_API_KEY: str | None = None
+    ANTHROPIC_MODEL: str = "claude-sonnet-4-20250514"
+    ANTHROPIC_MAX_TOKENS: int = 4096
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def anthropic_enabled(self) -> bool:
+        return bool(self.ANTHROPIC_API_KEY)
+
     # Document upload settings
     UPLOAD_DIR: str = "./uploads/documents"
     MAX_FILE_SIZE_MB: int = 20

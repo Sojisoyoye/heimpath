@@ -37,6 +37,63 @@ export const ActivityTypeSchema = {
     description: 'Types of user activity tracked on the dashboard.'
 } as const;
 
+export const AnalyzedClauseSchema = {
+    properties: {
+        section_name: {
+            type: 'string',
+            title: 'Section Name'
+        },
+        section_name_en: {
+            type: 'string',
+            title: 'Section Name En'
+        },
+        original_text: {
+            type: 'string',
+            title: 'Original Text'
+        },
+        plain_english_explanation: {
+            type: 'string',
+            title: 'Plain English Explanation'
+        },
+        risk_level: {
+            type: 'string',
+            enum: ['low', 'medium', 'high'],
+            title: 'Risk Level'
+        },
+        risk_reason: {
+            type: 'string',
+            title: 'Risk Reason'
+        },
+        is_unusual: {
+            type: 'boolean',
+            title: 'Is Unusual',
+            default: false
+        },
+        unusual_terms: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Unusual Terms'
+        },
+        page_number: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Number'
+        }
+    },
+    type: 'object',
+    required: ['section_name', 'section_name_en', 'original_text', 'plain_english_explanation', 'risk_level', 'risk_reason'],
+    title: 'AnalyzedClause',
+    description: 'AI-analyzed clause from a Kaufvertrag.'
+} as const;
+
 export const AnnualCashflowRowResponseSchema = {
     properties: {
         year: {
@@ -1707,6 +1764,16 @@ export const DocumentTranslationResponseSchema = {
             },
             type: 'array',
             title: 'Risk Warnings'
+        },
+        kaufvertrag_analysis: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/KaufvertragAnalysis'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         },
         processing_started_at: {
             anyOf: [
@@ -3458,6 +3525,47 @@ export const JourneysListResponseSchema = {
     description: 'Schema for list of journeys.'
 } as const;
 
+export const KaufvertragAnalysisSchema = {
+    properties: {
+        summary: {
+            type: 'string',
+            title: 'Summary'
+        },
+        analyzed_clauses: {
+            items: {
+                '$ref': '#/components/schemas/AnalyzedClause'
+            },
+            type: 'array',
+            title: 'Analyzed Clauses'
+        },
+        notary_checklist: {
+            items: {
+                '$ref': '#/components/schemas/NotaryQuestion'
+            },
+            type: 'array',
+            title: 'Notary Checklist'
+        },
+        overall_risk_assessment: {
+            type: 'string',
+            enum: ['low', 'medium', 'high'],
+            title: 'Overall Risk Assessment'
+        },
+        overall_risk_explanation: {
+            type: 'string',
+            title: 'Overall Risk Explanation'
+        },
+        is_ai_generated: {
+            type: 'boolean',
+            title: 'Is Ai Generated',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['summary', 'analyzed_clauses', 'notary_checklist', 'overall_risk_assessment', 'overall_risk_explanation'],
+    title: 'KaufvertragAnalysis',
+    description: 'Full AI analysis of a Kaufvertrag (purchase contract).'
+} as const;
+
 export const LanguageDetectionRequestSchema = {
     properties: {
         text: {
@@ -4059,6 +4167,28 @@ export const NextStepResponseSchema = {
     required: ['has_next'],
     title: 'NextStepResponse',
     description: 'Schema for next recommended step.'
+} as const;
+
+export const NotaryQuestionSchema = {
+    properties: {
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        related_clause: {
+            type: 'string',
+            title: 'Related Clause'
+        },
+        priority: {
+            type: 'string',
+            enum: ['essential', 'recommended', 'optional'],
+            title: 'Priority'
+        }
+    },
+    type: 'object',
+    required: ['question', 'related_clause', 'priority'],
+    title: 'NotaryQuestion',
+    description: 'Question to ask a notary about a contract clause.'
 } as const;
 
 export const NotificationListResponseSchema = {

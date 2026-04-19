@@ -16,6 +16,23 @@ export type ActivityItem = {
  */
 export type ActivityType = 'journey_started' | 'step_completed' | 'document_uploaded' | 'calculation_saved' | 'roi_calculated' | 'financing_assessed' | 'law_bookmarked';
 
+/**
+ * AI-analyzed clause from a Kaufvertrag.
+ */
+export type AnalyzedClause = {
+    section_name: string;
+    section_name_en: string;
+    original_text: string;
+    plain_english_explanation: string;
+    risk_level: 'low' | 'medium' | 'high';
+    risk_reason: string;
+    is_unusual?: boolean;
+    unusual_terms?: Array<(string)>;
+    page_number?: (number | null);
+};
+
+export type risk_level = 'low' | 'medium' | 'high';
+
 export type AnnualCashflowRowResponse = {
     year?: number;
     cold_rent?: number;
@@ -508,6 +525,7 @@ export type DocumentTranslationResponse = {
     translated_pages: Array<TranslatedPage>;
     clauses_detected: Array<DetectedClause>;
     risk_warnings: Array<DocumentRiskWarning>;
+    kaufvertrag_analysis?: (KaufvertragAnalysis | null);
     processing_started_at?: (string | null);
     processing_completed_at?: (string | null);
 };
@@ -988,6 +1006,20 @@ export type JourneyUpdate = {
 };
 
 /**
+ * Full AI analysis of a Kaufvertrag (purchase contract).
+ */
+export type KaufvertragAnalysis = {
+    summary: string;
+    analyzed_clauses: Array<AnalyzedClause>;
+    notary_checklist: Array<NotaryQuestion>;
+    overall_risk_assessment: 'low' | 'medium' | 'high';
+    overall_risk_explanation: string;
+    is_ai_generated?: boolean;
+};
+
+export type overall_risk_assessment = 'low' | 'medium' | 'high';
+
+/**
  * Request schema for language detection.
  */
 export type LanguageDetectionRequest = {
@@ -1175,6 +1207,17 @@ export type NextStepResponse = {
     step?: (JourneyStepResponse | null);
     message?: (string | null);
 };
+
+/**
+ * Question to ask a notary about a contract clause.
+ */
+export type NotaryQuestion = {
+    question: string;
+    related_clause: string;
+    priority: 'essential' | 'recommended' | 'optional';
+};
+
+export type priority = 'essential' | 'recommended' | 'optional';
 
 /**
  * Paginated list of notifications.
