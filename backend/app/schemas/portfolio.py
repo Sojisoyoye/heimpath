@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.portfolio import TransactionType
+from app.models.portfolio import CostCategory, TransactionType
 
 # ---------------------------------------------------------------------------
 # Property schemas
@@ -115,6 +115,8 @@ class PortfolioTransactionCreate(BaseModel):
     category: str | None = Field(None, max_length=100)
     description: str | None = Field(None, max_length=500)
     is_recurring: bool = False
+    cost_category: CostCategory | None = None
+    estimated_amount: float | None = Field(None, ge=0)
 
 
 class PortfolioTransactionResponse(BaseModel):
@@ -130,6 +132,8 @@ class PortfolioTransactionResponse(BaseModel):
     category: str | None = None
     description: str | None = None
     is_recurring: bool
+    cost_category: str | None = None
+    estimated_amount: float | None = None
     created_at: datetime
 
 
@@ -156,3 +160,30 @@ class PortfolioSummaryResponse(BaseModel):
     net_cash_flow: float
     vacancy_rate: float
     average_gross_yield: float
+
+
+# ---------------------------------------------------------------------------
+# Cost Summary schemas
+# ---------------------------------------------------------------------------
+
+
+class CostCategorySummary(BaseModel):
+    """Summary for a single Nebenkosten category."""
+
+    category: str
+    actual_total: float
+    estimated_total: float | None
+    variance: float | None
+    variance_percent: float | None
+    is_over_threshold: bool
+
+
+class CostSummaryResponse(BaseModel):
+    """Aggregated running-cost summary across all Nebenkosten categories."""
+
+    categories: list[CostCategorySummary]
+    total_actual: float
+    total_estimated: float | None
+    total_variance: float | None
+    highest_category: str | None
+    alert_categories: list[str]

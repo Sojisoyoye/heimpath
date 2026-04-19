@@ -97,6 +97,9 @@ export function useCreateTransaction() {
         queryKey: queryKeys.portfolio.transactions(variables.propertyId),
       })
       queryClient.invalidateQueries({
+        queryKey: queryKeys.portfolio.costSummary(variables.propertyId),
+      })
+      queryClient.invalidateQueries({
         queryKey: queryKeys.portfolio.summary(),
       })
     },
@@ -119,6 +122,9 @@ export function useDeleteTransaction() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.portfolio.transactions(variables.propertyId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.portfolio.costSummary(variables.propertyId),
       })
       queryClient.invalidateQueries({
         queryKey: queryKeys.portfolio.summary(),

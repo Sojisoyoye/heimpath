@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   useCreateTransaction,
   useDeleteProperty,
@@ -38,6 +39,7 @@ import type {
 } from "@/models/portfolio"
 import { INCOME_TYPES } from "@/models/portfolio"
 import { PropertyFormModal } from "./PropertyFormModal"
+import { RunningCostsTab } from "./RunningCostsTab"
 import { TransactionFormModal } from "./TransactionFormModal"
 import { TransactionList } from "./TransactionList"
 
@@ -206,131 +208,144 @@ function PropertyDetailPage(props: Readonly<IProps>) {
         </div>
       </div>
 
-      {/* Property Details */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Purchase Price
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatEur(property.purchasePrice)}
-            </p>
-            {property.currentValueEstimate && (
-              <p className="text-sm text-muted-foreground">
-                Est. value: {formatEur(property.currentValueEstimate)}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Size & Year
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{property.squareMeters} m²</p>
-            {property.buildingYear && (
-              <p className="text-sm text-muted-foreground">
-                Built in {property.buildingYear}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tenant
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {property.tenantName ?? "No tenant"}
-            </p>
-            {property.leaseStartDate && (
-              <p className="text-sm text-muted-foreground">
-                Lease: {formatDate(property.leaseStartDate)} -{" "}
-                {formatDate(property.leaseEndDate)}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="running-costs">Running Costs</TabsTrigger>
+        </TabsList>
 
-      {/* Income / Expense Summary */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Total Income</p>
-            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-              +{formatEur(totalIncome)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Total Expenses</p>
-            <p className="text-xl font-bold text-red-600 dark:text-red-400">
-              -{formatEur(totalExpenses)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Net Cash Flow</p>
-            <p
-              className={`text-xl font-bold ${
-                totalIncome - totalExpenses >= 0
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
-            >
-              {formatEur(totalIncome - totalExpenses)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="overview" className="space-y-6">
+          {/* Property Details */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Purchase Price
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {formatEur(property.purchasePrice)}
+                </p>
+                {property.currentValueEstimate && (
+                  <p className="text-sm text-muted-foreground">
+                    Est. value: {formatEur(property.currentValueEstimate)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Size & Year
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{property.squareMeters} m²</p>
+                {property.buildingYear && (
+                  <p className="text-sm text-muted-foreground">
+                    Built in {property.buildingYear}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Tenant
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {property.tenantName ?? "No tenant"}
+                </p>
+                {property.leaseStartDate && (
+                  <p className="text-sm text-muted-foreground">
+                    Lease: {formatDate(property.leaseStartDate)} -{" "}
+                    {formatDate(property.leaseEndDate)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Transactions */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Transactions</CardTitle>
-          <TransactionFormModal
-            trigger={
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Transaction
-              </Button>
-            }
-            onSubmit={handleCreateTransaction}
-            isPending={createTransaction.isPending}
-          />
-        </CardHeader>
-        <CardContent>
-          <TransactionList
-            transactions={transactions}
-            onDelete={handleDeleteTransaction}
-            isDeleting={deleteTransaction.isPending}
-          />
-        </CardContent>
-      </Card>
+          {/* Income / Expense Summary */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Total Income</p>
+                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                  +{formatEur(totalIncome)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Total Expenses</p>
+                <p className="text-xl font-bold text-red-600 dark:text-red-400">
+                  -{formatEur(totalExpenses)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Net Cash Flow</p>
+                <p
+                  className={`text-xl font-bold ${
+                    totalIncome - totalExpenses >= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
+                >
+                  {formatEur(totalIncome - totalExpenses)}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Notes */}
-      {property.notes && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-              {property.notes}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+          {/* Transactions */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Transactions</CardTitle>
+              <TransactionFormModal
+                trigger={
+                  <Button size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Transaction
+                  </Button>
+                }
+                onSubmit={handleCreateTransaction}
+                isPending={createTransaction.isPending}
+              />
+            </CardHeader>
+            <CardContent>
+              <TransactionList
+                transactions={transactions}
+                onDelete={handleDeleteTransaction}
+                isDeleting={deleteTransaction.isPending}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          {property.notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Notes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                  {property.notes}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="running-costs">
+          <RunningCostsTab propertyId={propertyId} />
+        </TabsContent>
+      </Tabs>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

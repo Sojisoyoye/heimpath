@@ -15,6 +15,27 @@ export type TransactionType =
 
 export const INCOME_TYPES: TransactionType[] = ["rent_income", "other_income"]
 
+export type CostCategory =
+  | "hausgeld"
+  | "grundsteuer"
+  | "insurance"
+  | "heating"
+  | "water"
+  | "electricity"
+  | "maintenance"
+  | "misc"
+
+export const COST_CATEGORY_LABELS: Record<CostCategory, string> = {
+  hausgeld: "Hausgeld",
+  grundsteuer: "Grundsteuer",
+  insurance: "Insurance",
+  heating: "Heating",
+  water: "Water",
+  electricity: "Electricity",
+  maintenance: "Maintenance",
+  misc: "Miscellaneous",
+}
+
 export interface PortfolioProperty {
   id: string
   address: string
@@ -75,6 +96,8 @@ export interface PortfolioTransaction {
   category: string | null
   description: string | null
   isRecurring: boolean
+  costCategory: CostCategory | null
+  estimatedAmount: number | null
   createdAt: string
 }
 
@@ -85,6 +108,8 @@ export interface PortfolioTransactionInput {
   category?: string | null
   description?: string | null
   isRecurring?: boolean
+  costCategory?: CostCategory | null
+  estimatedAmount?: number | null
 }
 
 export interface PortfolioSummary {
@@ -96,4 +121,22 @@ export interface PortfolioSummary {
   netCashFlow: number
   vacancyRate: number
   averageGrossYield: number
+}
+
+export interface CostCategorySummary {
+  category: string
+  actualTotal: number
+  estimatedTotal: number | null
+  variance: number | null
+  variancePercent: number | null
+  isOverThreshold: boolean
+}
+
+export interface CostSummaryResponse {
+  categories: CostCategorySummary[]
+  totalActual: number
+  totalEstimated: number | null
+  totalVariance: number | null
+  highestCategory: string | null
+  alertCategories: string[]
 }
