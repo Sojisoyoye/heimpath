@@ -35,7 +35,8 @@ class FinancingAssessmentCreate(BaseModel):
         "permanent_resident",
         "temporary_resident",
         "non_eu",
-    ] = Field(..., description="Residency status in Germany")
+        "non_resident",
+    ] = Field(..., description="Residency or citizenship status")
 
 
 class FinancingAssessmentResponse(BaseModel):

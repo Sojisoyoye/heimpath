@@ -109,6 +109,9 @@ class TestScoreResidency:
     def test_non_eu(self) -> None:
         assert _score_residency("non_eu") == 4.0
 
+    def test_non_resident(self) -> None:
+        assert _score_residency("non_resident") == 2.0
+
 
 class TestScoreEmploymentYears:
     def test_five_plus_years(self) -> None:
@@ -148,6 +151,18 @@ class TestEstimates:
     def test_recommended_dp_non_eu(self) -> None:
         result = _recommended_dp_percent("non_eu", "good")
         assert result == 30.0
+
+    def test_recommended_dp_non_resident(self) -> None:
+        result = _recommended_dp_percent("non_resident", "good")
+        assert result == 40.0
+
+    def test_recommended_dp_temporary_resident(self) -> None:
+        result = _recommended_dp_percent("temporary_resident", "good")
+        assert result == 30.0
+
+    def test_recommended_dp_permanent_resident(self) -> None:
+        result = _recommended_dp_percent("permanent_resident", "good")
+        assert result == 20.0
 
     def test_recommended_dp_german_excellent(self) -> None:
         result = _recommended_dp_percent("german_citizen", "excellent")
@@ -211,6 +226,13 @@ class TestAdvisoryBuilders:
         docs = _build_document_checklist(inputs)
         assert any("residence permit" in d.lower() for d in docs)
 
+    def test_document_checklist_non_resident(self) -> None:
+        inputs = _make_inputs(residency_status="non_resident")
+        docs = _build_document_checklist(inputs)
+        assert any("home country" in d.lower() for d in docs)
+        assert any("vollmacht" in d.lower() for d in docs)
+        assert any("herkunftsnachweis" in d.lower() for d in docs)
+
 
 class TestAssess:
     def test_returns_assessment_result(self) -> None:
@@ -255,6 +277,22 @@ class TestAssess:
         result = assess(inputs)
         assert result.total_score < 30
         assert result.likelihood_label in ("Low", "Very Low")
+
+    def test_non_resident_profile(self) -> None:
+        inputs = _make_inputs(
+            employment_status="permanent",
+            employment_years=3,
+            monthly_net_income=5000,
+            monthly_debt=500,
+            available_down_payment=60000,
+            schufa_rating="good",
+            residency_status="non_resident",
+        )
+        result = assess(inputs)
+        assert result.scores.residency == 2.0
+        assert result.recommended_down_payment_percent == 40.0
+        assert any("home country" in d.lower() for d in result.document_checklist)
+        assert any("non-resident" in imp.lower() for imp in result.improvements)
 
 
 # --- CRUD tests with mocked session ---

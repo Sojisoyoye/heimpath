@@ -1938,9 +1938,9 @@ export const FinancingAssessmentCreateSchema = {
         },
         residency_status: {
             type: 'string',
-            enum: ['german_citizen', 'eu_citizen', 'permanent_resident', 'temporary_resident', 'non_eu'],
+            enum: ['german_citizen', 'eu_citizen', 'permanent_resident', 'temporary_resident', 'non_eu', 'non_resident'],
             title: 'Residency Status',
-            description: 'Residency status in Germany'
+            description: 'Residency or citizenship status'
         }
     },
     type: 'object',

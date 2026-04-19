@@ -13,6 +13,7 @@ import {
   ExternalLink,
   FileText,
   Landmark,
+  Lightbulb,
   RefreshCw,
   Save,
   Share2,
@@ -131,6 +132,7 @@ const RESIDENCY_OPTIONS: { value: FinancingResidencyStatus; label: string }[] =
     { value: "permanent_resident", label: "Permanent Resident" },
     { value: "temporary_resident", label: "Temporary Resident" },
     { value: "non_eu", label: "Non-EU Resident" },
+    { value: "non_resident", label: "Non-Resident (Buying from Abroad)" },
   ]
 
 const LIKELIHOOD_COLORS: Record<string, string> = {
@@ -146,6 +148,105 @@ const SCORE_BAR_COLORS: Record<string, string> = {
   high: "bg-green-500",
   medium: "bg-amber-500",
   low: "bg-red-500",
+}
+
+type BankStatus = "yes" | "limited" | "unlikely"
+
+interface BankEntry {
+  bank: string
+  status: BankStatus
+}
+
+const BANK_COMPATIBILITY: Record<FinancingResidencyStatus, BankEntry[]> = {
+  german_citizen: [
+    { bank: "Sparkasse", status: "yes" },
+    { bank: "Deutsche Bank", status: "yes" },
+    { bank: "ING-DiBa", status: "yes" },
+    { bank: "Commerzbank", status: "yes" },
+    { bank: "Online Banks (N26/DKB)", status: "yes" },
+  ],
+  eu_citizen: [
+    { bank: "Sparkasse", status: "yes" },
+    { bank: "Deutsche Bank", status: "yes" },
+    { bank: "ING-DiBa", status: "yes" },
+    { bank: "Commerzbank", status: "yes" },
+    { bank: "Online Banks (N26/DKB)", status: "limited" },
+  ],
+  permanent_resident: [
+    { bank: "Sparkasse", status: "yes" },
+    { bank: "Deutsche Bank", status: "yes" },
+    { bank: "ING-DiBa", status: "yes" },
+    { bank: "Commerzbank", status: "yes" },
+    { bank: "Online Banks (N26/DKB)", status: "limited" },
+  ],
+  temporary_resident: [
+    { bank: "Sparkasse", status: "limited" },
+    { bank: "Deutsche Bank", status: "limited" },
+    { bank: "ING-DiBa", status: "limited" },
+    { bank: "Commerzbank", status: "limited" },
+    { bank: "Online Banks (N26/DKB)", status: "unlikely" },
+  ],
+  non_eu: [
+    { bank: "Sparkasse", status: "limited" },
+    { bank: "Deutsche Bank", status: "limited" },
+    { bank: "ING-DiBa", status: "unlikely" },
+    { bank: "Commerzbank", status: "unlikely" },
+    { bank: "Online Banks (N26/DKB)", status: "unlikely" },
+  ],
+  non_resident: [
+    { bank: "Sparkasse", status: "unlikely" },
+    { bank: "Deutsche Bank", status: "limited" },
+    { bank: "ING-DiBa", status: "unlikely" },
+    { bank: "Commerzbank", status: "unlikely" },
+    { bank: "Online Banks (N26/DKB)", status: "unlikely" },
+  ],
+}
+
+const BANK_STATUS_STYLES: Record<BankStatus, string> = {
+  yes: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  limited:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  unlikely: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+}
+
+const BANK_STATUS_LABELS: Record<BankStatus, string> = {
+  yes: "Likely",
+  limited: "Case-by-case",
+  unlikely: "Unlikely",
+}
+
+const FINANCING_TIPS: Record<FinancingResidencyStatus, string[]> = {
+  german_citizen: [
+    "Compare rates across banks — even 0.1% difference saves thousands over the loan term",
+    "Leverage Sondertilgung (special repayment) options to pay off your mortgage faster",
+    "Explore KfW programs for energy-efficient properties — subsidized rates available",
+  ],
+  eu_citizen: [
+    "Register at the Einwohnermeldeamt early — banks require proof of German address",
+    "Your SCHUFA history matters — start building it as soon as you arrive in Germany",
+    "Bring your EU credit history — some banks accept cross-border credit reports",
+  ],
+  permanent_resident: [
+    "Your Niederlassungserlaubnis is key proof of long-term intent — highlight it in applications",
+    "Bring complete employment history in Germany — continuity strengthens your case",
+    "Consider a Bausparvertrag (building savings contract) for favorable future rates",
+  ],
+  temporary_resident: [
+    "Demonstrate long-term intent to stay — job contracts and family ties help",
+    "Consider a co-signer with German residency or citizenship to strengthen the application",
+    "Gather extra documentation — banks will scrutinize temporary residents more closely",
+  ],
+  non_eu: [
+    "Target banks with international divisions — they have experience with non-EU applicants",
+    "Work with a mortgage broker (Kreditvermittler) who specializes in expat financing",
+    "Start building SCHUFA history early — even a mobile phone contract helps",
+  ],
+  non_resident: [
+    "Appoint a local representative with power of attorney (Vollmacht) for in-person steps",
+    "Expect 0.5–1% higher interest rates compared to resident buyers",
+    "Open a German bank account early — most lenders require it for mortgage disbursement",
+    "Consider specialized international mortgage brokers with cross-border experience",
+  ],
 }
 
 /******************************************************************************
@@ -206,6 +307,7 @@ function scoreResidency(status: FinancingResidencyStatus): number {
     permanent_resident: 11,
     temporary_resident: 6,
     non_eu: 4,
+    non_resident: 2,
   }
   return scores[status] ?? 4
 }
@@ -236,15 +338,21 @@ function recommendedDpPercent(
   residency: FinancingResidencyStatus,
   schufa: SchufaRating,
 ): number {
-  let base = 20
-  if (residency === "non_eu" || residency === "temporary_resident") base += 10
+  let base: number
+  if (residency === "non_resident") {
+    base = 40
+  } else if (residency === "non_eu" || residency === "temporary_resident") {
+    base = 30
+  } else {
+    base = 20
+  }
   if (schufa === "poor" || schufa === "unknown") base += 5
   if (
     residency === "german_citizen" &&
     (schufa === "excellent" || schufa === "good")
   )
     base = 15
-  return Math.min(base, 40)
+  return Math.min(base, 50)
 }
 
 function estimateRateRange(totalScore: number): [number, number] {
@@ -310,7 +418,11 @@ function buildImprovements(
     improvements.push(
       "Improve your SCHUFA score by paying debts on time and closing unused credit accounts",
     )
-  if (scores.residencyScore < 11)
+  if (scores.residencyScore < 3)
+    improvements.push(
+      "Consider establishing German residency before applying — non-resident buyers face significantly higher down payment requirements and limited bank options",
+    )
+  else if (scores.residencyScore < 11)
     improvements.push(
       "Apply for permanent residency (Niederlassungserlaubnis) to improve lending eligibility",
     )
@@ -351,6 +463,14 @@ function buildDocumentChecklist(
     docs.push(
       "Residence permit (Aufenthaltstitel)",
       "Registration certificate (Meldebescheinigung)",
+    )
+  }
+  if (residencyStatus === "non_resident") {
+    docs.push(
+      "Tax returns from home country — last 2 years",
+      "Proof of income from abroad (employment letter + payslips)",
+      "Power of attorney for German representative (Vollmacht)",
+      "Proof of funds origin (Herkunftsnachweis — anti-money-laundering)",
     )
   }
   if (residencyStatus === "eu_citizen") {
@@ -483,6 +603,64 @@ function ScoreBar(props: { label: string; score: number; maxScore: number }) {
           style={{ width: `${pct}%` }}
         />
       </div>
+    </div>
+  )
+}
+
+/** Bank compatibility table for selected residency status. */
+function BankCompatibilityTable(props: {
+  residencyStatus: FinancingResidencyStatus
+}) {
+  const banks = BANK_COMPATIBILITY[props.residencyStatus]
+
+  return (
+    <div className="space-y-2">
+      <h4 className="font-medium text-sm flex items-center gap-2">
+        <Landmark className="h-4 w-4" />
+        Bank Compatibility
+      </h4>
+      <div className="space-y-1.5">
+        {banks.map((entry) => (
+          <div
+            key={entry.bank}
+            className="flex items-center justify-between text-sm rounded-lg border px-3 py-2"
+          >
+            <span>{entry.bank}</span>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-medium",
+                BANK_STATUS_STYLES[entry.status],
+              )}
+            >
+              {BANK_STATUS_LABELS[entry.status]}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Financing tips card for selected residency status. */
+function FinancingTipsCard(props: {
+  residencyStatus: FinancingResidencyStatus
+}) {
+  const tips = FINANCING_TIPS[props.residencyStatus]
+
+  return (
+    <div className="space-y-2">
+      <h4 className="font-medium text-sm flex items-center gap-2">
+        <Lightbulb className="h-4 w-4 text-amber-500" />
+        Financing Tips for Your Situation
+      </h4>
+      <ul className="space-y-1">
+        {tips.map((tip) => (
+          <li key={tip} className="flex items-start gap-2 text-sm">
+            <Lightbulb className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <span>{tip}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -960,6 +1138,26 @@ function FinancingWizard(props: IProps) {
                     </div>
                   </div>
                 </div>
+
+                {/* Bank Compatibility */}
+                {inputs.residencyStatus && (
+                  <>
+                    <Separator />
+                    <BankCompatibilityTable
+                      residencyStatus={inputs.residencyStatus}
+                    />
+                  </>
+                )}
+
+                {/* Financing Tips */}
+                {inputs.residencyStatus && (
+                  <>
+                    <Separator />
+                    <FinancingTipsCard
+                      residencyStatus={inputs.residencyStatus}
+                    />
+                  </>
+                )}
 
                 <Separator />
 

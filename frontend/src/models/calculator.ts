@@ -189,6 +189,7 @@ export type FinancingResidencyStatus =
   | "permanent_resident"
   | "temporary_resident"
   | "non_eu"
+  | "non_resident"
 
 export interface FinancingAssessmentInput {
   name?: string

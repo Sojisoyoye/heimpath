@@ -126,6 +126,7 @@ def _score_residency(residency_status: str) -> float:
         "permanent_resident": 11.0,
         "temporary_resident": 6.0,
         "non_eu": 4.0,
+        "non_resident": 2.0,
     }
     return scores.get(residency_status, 4.0)
 
@@ -173,15 +174,24 @@ def _estimate_max_loan(monthly_income: float, monthly_debt: float) -> float:
 
 
 def _recommended_dp_percent(residency_status: str, schufa_rating: str) -> float:
-    """Recommend down payment percentage based on risk profile."""
-    base = 20.0
-    if residency_status in ("non_eu", "temporary_resident"):
-        base += 10.0
+    """Recommend down payment percentage based on risk profile.
+
+    Three-tier system:
+    - Residents (german_citizen, eu_citizen, permanent_resident): 20% base
+    - Non-EU residents in Germany (temporary_resident, non_eu): 30% base
+    - Non-residents abroad (non_resident): 40% base
+    """
+    if residency_status == "non_resident":
+        base = 40.0
+    elif residency_status in ("non_eu", "temporary_resident"):
+        base = 30.0
+    else:
+        base = 20.0
     if schufa_rating in ("poor", "unknown"):
         base += 5.0
     if residency_status == "german_citizen" and schufa_rating in ("excellent", "good"):
         base = 15.0
-    return min(base, 40.0)
+    return min(base, 50.0)
 
 
 def _estimate_rate_range(
@@ -257,7 +267,13 @@ def _build_improvements(
             "Improve your SCHUFA score by paying debts on time and closing unused "
             "credit accounts"
         )
-    if scores.residency < 11:
+    if scores.residency < 3:
+        improvements.append(
+            "Consider establishing German residency before applying — "
+            "non-resident buyers face significantly higher down payment requirements "
+            "and limited bank options"
+        )
+    elif scores.residency < 11:
         improvements.append(
             "Apply for permanent residency (Niederlassungserlaubnis) to improve "
             "lending eligibility"
@@ -295,6 +311,16 @@ def _build_document_checklist(inputs: FinancingAssessmentCreate) -> list[str]:
             [
                 "Residence permit (Aufenthaltstitel)",
                 "Registration certificate (Meldebescheinigung)",
+            ]
+        )
+
+    if inputs.residency_status == "non_resident":
+        docs.extend(
+            [
+                "Tax returns from home country — last 2 years",
+                "Proof of income from abroad (employment letter + payslips)",
+                "Power of attorney for German representative (Vollmacht)",
+                "Proof of funds origin (Herkunftsnachweis — anti-money-laundering)",
             ]
         )
 
