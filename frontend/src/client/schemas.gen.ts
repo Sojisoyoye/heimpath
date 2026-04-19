@@ -2230,6 +2230,191 @@ export const GlobalSearchResponseSchema = {
     description: 'Response for global search across laws and articles.'
 } as const;
 
+export const GlossaryCategoriesResponseSchema = {
+    properties: {
+        categories: {
+            items: {
+                '$ref': '#/components/schemas/GlossaryCategoryInfo'
+            },
+            type: 'array',
+            title: 'Categories'
+        }
+    },
+    type: 'object',
+    required: ['categories'],
+    title: 'GlossaryCategoriesResponse',
+    description: 'List of categories with counts.'
+} as const;
+
+export const GlossaryCategorySchema = {
+    type: 'string',
+    enum: ['buying_process', 'costs_taxes', 'financing', 'legal', 'rental', 'property_types'],
+    title: 'GlossaryCategory',
+    description: 'Categories for German real estate glossary terms.'
+} as const;
+
+export const GlossaryCategoryInfoSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'count'],
+    title: 'GlossaryCategoryInfo',
+    description: 'Category with term count.'
+} as const;
+
+export const GlossaryListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/GlossaryTermSummary'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        }
+    },
+    type: 'object',
+    required: ['data', 'total', 'page', 'page_size'],
+    title: 'GlossaryListResponse',
+    description: 'Paginated list of glossary terms.'
+} as const;
+
+export const GlossarySearchResponseSchema = {
+    properties: {
+        query: {
+            type: 'string',
+            title: 'Query'
+        },
+        results: {
+            items: {
+                '$ref': '#/components/schemas/GlossaryTermSummary'
+            },
+            type: 'array',
+            title: 'Results'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        }
+    },
+    type: 'object',
+    required: ['query', 'results', 'total'],
+    title: 'GlossarySearchResponse',
+    description: 'Search results response.'
+} as const;
+
+export const GlossaryTermDetailSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        term_de: {
+            type: 'string',
+            title: 'Term De'
+        },
+        term_en: {
+            type: 'string',
+            title: 'Term En'
+        },
+        slug: {
+            type: 'string',
+            title: 'Slug'
+        },
+        definition_short: {
+            type: 'string',
+            title: 'Definition Short'
+        },
+        category: {
+            '$ref': '#/components/schemas/GlossaryCategory'
+        },
+        definition_long: {
+            type: 'string',
+            title: 'Definition Long'
+        },
+        example_usage: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Example Usage'
+        },
+        related_terms: {
+            items: {
+                '$ref': '#/components/schemas/GlossaryTermSummary'
+            },
+            type: 'array',
+            title: 'Related Terms',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'term_de', 'term_en', 'slug', 'definition_short', 'category', 'definition_long'],
+    title: 'GlossaryTermDetail',
+    description: 'Full detail view of a glossary term.'
+} as const;
+
+export const GlossaryTermSummarySchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        term_de: {
+            type: 'string',
+            title: 'Term De'
+        },
+        term_en: {
+            type: 'string',
+            title: 'Term En'
+        },
+        slug: {
+            type: 'string',
+            title: 'Slug'
+        },
+        definition_short: {
+            type: 'string',
+            title: 'Definition Short'
+        },
+        category: {
+            '$ref': '#/components/schemas/GlossaryCategory'
+        }
+    },
+    type: 'object',
+    required: ['id', 'term_de', 'term_en', 'slug', 'definition_short', 'category'],
+    title: 'GlossaryTermSummary',
+    description: 'Summary view of a glossary term for list responses.'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {

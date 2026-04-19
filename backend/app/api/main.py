@@ -7,6 +7,7 @@ from app.api.routes import (
     dashboard,
     documents,
     financing,
+    glossary,
     items,
     journeys,
     laws,
@@ -44,6 +45,7 @@ api_router.include_router(search.router)
 api_router.include_router(market.router)
 api_router.include_router(professionals.router)
 api_router.include_router(portfolio.router)
+api_router.include_router(glossary.router)
 
 
 if settings.ENVIRONMENT == "local":

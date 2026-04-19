@@ -51,6 +51,7 @@ from app.models.document import (
     DocumentType,
 )
 from app.models.financing import FinancingAssessment
+from app.models.glossary import GlossaryCategory, GlossaryTerm
 from app.models.item import Item as ItemV2
 from app.models.journey import (
     FinancingType,
@@ -123,6 +124,8 @@ __all__ = [
     "Base",
     "DifficultyLevel",
     "FinancingAssessment",
+    "GlossaryCategory",
+    "GlossaryTerm",
     "HiddenCostCalculation",
     "Notification",
     "NotificationPreference",

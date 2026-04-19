@@ -696,6 +696,73 @@ export type GlobalSearchResponse = {
 };
 
 /**
+ * List of categories with counts.
+ */
+export type GlossaryCategoriesResponse = {
+    categories: Array<GlossaryCategoryInfo>;
+};
+
+/**
+ * Categories for German real estate glossary terms.
+ */
+export type GlossaryCategory = 'buying_process' | 'costs_taxes' | 'financing' | 'legal' | 'rental' | 'property_types';
+
+/**
+ * Category with term count.
+ */
+export type GlossaryCategoryInfo = {
+    id: string;
+    name: string;
+    count: number;
+};
+
+/**
+ * Paginated list of glossary terms.
+ */
+export type GlossaryListResponse = {
+    data: Array<GlossaryTermSummary>;
+    total: number;
+    page: number;
+    page_size: number;
+};
+
+/**
+ * Search results response.
+ */
+export type GlossarySearchResponse = {
+    query: string;
+    results: Array<GlossaryTermSummary>;
+    total: number;
+};
+
+/**
+ * Full detail view of a glossary term.
+ */
+export type GlossaryTermDetail = {
+    id: string;
+    term_de: string;
+    term_en: string;
+    slug: string;
+    definition_short: string;
+    category: GlossaryCategory;
+    definition_long: string;
+    example_usage?: (string | null);
+    related_terms?: Array<GlossaryTermSummary>;
+};
+
+/**
+ * Summary view of a glossary term for list responses.
+ */
+export type GlossaryTermSummary = {
+    id: string;
+    term_de: string;
+    term_en: string;
+    slug: string;
+    definition_short: string;
+    category: GlossaryCategory;
+};
+
+/**
  * Request to save a hidden cost calculation.
  */
 export type HiddenCostCalculationCreate = {
@@ -2713,6 +2780,32 @@ export type FinancingDeleteAssessmentData = {
 };
 
 export type FinancingDeleteAssessmentResponse = (void);
+
+export type GlossaryListTermsData = {
+    category?: (GlossaryCategory | null);
+    page?: number;
+    pageSize?: number;
+};
+
+export type GlossaryListTermsResponse = (GlossaryListResponse);
+
+export type GlossarySearchGlossaryData = {
+    limit?: number;
+    /**
+     * Search query
+     */
+    q: string;
+};
+
+export type GlossarySearchGlossaryResponse = (GlossarySearchResponse);
+
+export type GlossaryListCategoriesResponse = (GlossaryCategoriesResponse);
+
+export type GlossaryGetTermData = {
+    slug: string;
+};
+
+export type GlossaryGetTermResponse = (GlossaryTermDetail);
 
 export type ItemsReadItemsData = {
     limit?: number;
