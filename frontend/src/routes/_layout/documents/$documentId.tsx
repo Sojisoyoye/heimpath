@@ -7,6 +7,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, FileText, Share2, Trash2 } from "lucide-react"
 import { useCallback, useState } from "react"
 import {
+  ClauseAnalysis,
   ClauseHighlights,
   ProcessingStatus,
   RiskWarnings,
@@ -174,6 +175,10 @@ function DocumentDetailPage() {
             <TabsTrigger value="warnings">
               Warnings ({translation.riskWarnings.length})
             </TabsTrigger>
+            {doc.documentType === "kaufvertrag" &&
+              translation.kaufvertragAnalysis && (
+                <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
+              )}
           </TabsList>
 
           <TabsContent value="translation" className="mt-4">
@@ -187,6 +192,13 @@ function DocumentDetailPage() {
           <TabsContent value="warnings" className="mt-4">
             <RiskWarnings warnings={translation.riskWarnings} />
           </TabsContent>
+
+          {doc.documentType === "kaufvertrag" &&
+            translation.kaufvertragAnalysis && (
+              <TabsContent value="analysis" className="mt-4">
+                <ClauseAnalysis analysis={translation.kaufvertragAnalysis} />
+              </TabsContent>
+            )}
         </Tabs>
       )}
     </div>

@@ -25,6 +25,7 @@ from app.models.document import (
     DocumentType,
 )
 from app.schemas.translation import SupportedLanguage
+from app.services.clause_analyzer_service import analyze_kaufvertrag
 from app.services.translation_service import get_translation_service
 
 logger = logging.getLogger(__name__)
@@ -357,6 +358,13 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                     seen_terms.add(w["original_term"])
                     unique_warnings.append(w)
 
+            # AI analysis for Kaufvertrag documents
+            kaufvertrag_analysis_data = None
+            if document.document_type == DocumentType.KAUFVERTRAG.value:
+                kaufvertrag_analysis_data = await analyze_kaufvertrag(
+                    pages, document.document_type
+                )
+
             # Save translation record
             translation = DocumentTranslation(
                 document_id=document_id,
@@ -365,6 +373,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                 translated_pages=pages,
                 clauses_detected=all_clauses,
                 risk_warnings=unique_warnings,
+                kaufvertrag_analysis=kaufvertrag_analysis_data,
                 processing_started_at=processing_started_at,
                 processing_completed_at=datetime.now(timezone.utc),
             )

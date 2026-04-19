@@ -2,6 +2,7 @@
  * Documents component barrel exports
  */
 
+export { ClauseAnalysis } from "./ClauseAnalysis"
 export { ClauseHighlights } from "./ClauseHighlights"
 export { DocumentCard } from "./DocumentCard"
 export { DocumentList } from "./DocumentList"

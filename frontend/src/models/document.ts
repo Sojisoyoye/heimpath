@@ -49,6 +49,33 @@ export interface DocumentRiskWarning {
   pageNumber: number | null
 }
 
+export interface AnalyzedClause {
+  sectionName: string
+  sectionNameEn: string
+  originalText: string
+  plainEnglishExplanation: string
+  riskLevel: string
+  riskReason: string
+  isUnusual: boolean
+  unusualTerms: string[]
+  pageNumber: number | null
+}
+
+export interface NotaryQuestion {
+  question: string
+  relatedClause: string
+  priority: string
+}
+
+export interface KaufvertragAnalysis {
+  summary: string
+  analyzedClauses: AnalyzedClause[]
+  notaryChecklist: NotaryQuestion[]
+  overallRiskAssessment: string
+  overallRiskExplanation: string
+  isAiGenerated: boolean
+}
+
 export interface DocumentTranslation {
   id: string
   documentId: string
@@ -57,6 +84,7 @@ export interface DocumentTranslation {
   translatedPages: TranslatedPage[]
   clausesDetected: DetectedClause[]
   riskWarnings: DocumentRiskWarning[]
+  kaufvertragAnalysis: KaufvertragAnalysis | null
   processingStartedAt: string | null
   processingCompletedAt: string | null
 }
