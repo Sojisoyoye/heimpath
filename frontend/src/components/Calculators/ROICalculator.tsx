@@ -3,11 +3,14 @@
  * Calculates rental investment returns, investment grade, and 10-year projections
  */
 
+import { Link } from "@tanstack/react-router"
 import {
+  ArrowRight,
   ChevronDown,
   Download,
   Euro,
   ExternalLink,
+  Globe,
   Info,
   Lightbulb,
   RefreshCw,
@@ -1261,6 +1264,26 @@ function ROICalculator(props: IProps) {
                       </span>
                     </div>
                   </div>
+                </div>
+
+                {/* Cross-Border Tax Guide Link */}
+                <div className="rounded-lg border border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20 p-4">
+                  <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-1 flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Investing from abroad?
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-400 mb-2">
+                    See how your home country&apos;s tax treaty with Germany
+                    affects your returns.
+                  </p>
+                  <Link
+                    to="/calculators"
+                    search={{ tab: "tax-guide" }}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                  >
+                    View Cross-Border Tax Guide
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
 
                 <Button

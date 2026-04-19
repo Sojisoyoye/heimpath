@@ -3,7 +3,8 @@
  * Collapsible card explaining private vs GmbH tax rules in Germany
  */
 
-import { BookOpen, ChevronDown } from "lucide-react"
+import { Link } from "@tanstack/react-router"
+import { ArrowRight, BookOpen, ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/common/utils"
 import {
@@ -120,6 +121,18 @@ function EducationalSection() {
               <li>
                 Consider consulting a Steuerberater (tax advisor) for your
                 specific situation
+              </li>
+              <li>
+                Non-resident investors: DBA treaties may affect how GmbH
+                distributions are taxed in your home country —{" "}
+                <Link
+                  to="/calculators"
+                  search={{ tab: "tax-guide" }}
+                  className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  see the Cross-Border Tax Guide
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
               </li>
             </ul>
           </div>

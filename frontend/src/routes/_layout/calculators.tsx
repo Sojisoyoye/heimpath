@@ -11,12 +11,14 @@ import {
   CalendarClock,
   ClipboardList,
   Euro,
+  Globe,
   Landmark,
   Scale,
   TrendingUp,
 } from "lucide-react"
 import {
   CityComparison,
+  CrossBorderTaxGuide,
   FinancingWizard,
   HiddenCostsCalculator,
   MortgageAmortisation,
@@ -123,6 +125,14 @@ function CalculatorsPage() {
             <Building2 className="h-4 w-4" />
             <span className="hidden sm:inline">City Compare</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="tax-guide"
+            className="gap-2"
+            aria-label="Tax Guide"
+          >
+            <Globe className="h-4 w-4" />
+            <span className="hidden sm:inline">Tax Guide</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -155,6 +165,10 @@ function CalculatorsPage() {
 
         <TabsContent value="cities" className="mt-6">
           <CityComparison />
+        </TabsContent>
+
+        <TabsContent value="tax-guide" className="mt-6">
+          <CrossBorderTaxGuide />
         </TabsContent>
       </Tabs>
     </div>
