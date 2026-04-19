@@ -3,6 +3,7 @@
  */
 
 export { CityComparison } from "./CityComparison"
+export { CrossBorderTaxGuide } from "./CrossBorderTaxGuide"
 export { FinancingWizard } from "./FinancingWizard"
 export { HiddenCostsCalculator } from "./HiddenCostsCalculator"
 export { MortgageAmortisation } from "./MortgageAmortisation"
