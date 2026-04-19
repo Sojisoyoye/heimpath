@@ -4,6 +4,7 @@ from app import crud
 from app.core.config import settings
 from app.core.seed_professionals import seed_professionals
 from app.models import User, UserCreate
+from app.seed_glossary import seed_glossary
 from app.seed_laws import seed_laws
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
@@ -39,3 +40,4 @@ def init_db(session: Session) -> None:
 
     seed_laws(session)
     seed_professionals(session)
+    seed_glossary(session)
