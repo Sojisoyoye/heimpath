@@ -592,9 +592,9 @@ export type FinancingAssessmentCreate = {
      */
     schufa_rating: 'excellent' | 'good' | 'satisfactory' | 'adequate' | 'poor' | 'unknown';
     /**
-     * Residency status in Germany
+     * Residency or citizenship status
      */
-    residency_status: 'german_citizen' | 'eu_citizen' | 'permanent_resident' | 'temporary_resident' | 'non_eu';
+    residency_status: 'german_citizen' | 'eu_citizen' | 'permanent_resident' | 'temporary_resident' | 'non_eu' | 'non_resident';
 };
 
 /**
@@ -608,9 +608,9 @@ export type employment_status = 'permanent' | 'fixed_term' | 'self_employed' | '
 export type schufa_rating = 'excellent' | 'good' | 'satisfactory' | 'adequate' | 'poor' | 'unknown';
 
 /**
- * Residency status in Germany
+ * Residency or citizenship status
  */
-export type residency_status = 'german_citizen' | 'eu_citizen' | 'permanent_resident' | 'temporary_resident' | 'non_eu';
+export type residency_status = 'german_citizen' | 'eu_citizen' | 'permanent_resident' | 'temporary_resident' | 'non_eu' | 'non_resident';
 
 /**
  * List of saved financing assessments.
