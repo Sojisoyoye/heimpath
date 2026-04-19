@@ -2360,6 +2360,8 @@ export type UserDataExport = {
     citizenship?: (string | null);
     is_active: boolean;
     email_verified: boolean;
+    onboarding_completed?: boolean;
+    onboarding_persona?: (string | null);
     subscription_tier: string;
     created_at: string;
     updated_at?: (string | null);
@@ -2374,6 +2376,8 @@ export type UserPublic = {
     citizenship?: (string | null);
     id: string;
     email_verified?: boolean;
+    onboarding_completed?: boolean;
+    onboarding_persona?: (string | null);
     subscription_tier?: SubscriptionTier;
     created_at?: (string | null);
 };
@@ -2402,6 +2406,8 @@ export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
     citizenship?: (string | null);
+    onboarding_completed?: (boolean | null);
+    onboarding_persona?: (string | null);
 };
 
 export type ValidationError = {

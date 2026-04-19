@@ -8377,6 +8377,22 @@ export const UserDataExportSchema = {
             type: 'boolean',
             title: 'Email Verified'
         },
+        onboarding_completed: {
+            type: 'boolean',
+            title: 'Onboarding Completed',
+            default: false
+        },
+        onboarding_persona: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Onboarding Persona'
+        },
         subscription_tier: {
             type: 'string',
             title: 'Subscription Tier'
@@ -8467,6 +8483,22 @@ export const UserPublicSchema = {
             type: 'boolean',
             title: 'Email Verified',
             default: false
+        },
+        onboarding_completed: {
+            type: 'boolean',
+            title: 'Onboarding Completed',
+            default: false
+        },
+        onboarding_persona: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Onboarding Persona'
         },
         subscription_tier: {
             '$ref': '#/components/schemas/SubscriptionTier',
@@ -8627,6 +8659,29 @@ export const UserUpdateMeSchema = {
                 }
             ],
             title: 'Citizenship'
+        },
+        onboarding_completed: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Onboarding Completed'
+        },
+        onboarding_persona: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Onboarding Persona'
         }
     },
     type: 'object',

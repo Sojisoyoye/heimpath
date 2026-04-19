@@ -50,6 +50,8 @@ class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     citizenship: str | None = Field(default=None, max_length=50)
+    onboarding_completed: bool | None = None
+    onboarding_persona: str | None = Field(default=None, max_length=50)
 
 
 class UpdatePassword(SQLModel):
@@ -62,6 +64,8 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     email_verified: bool = Field(default=False)
+    onboarding_completed: bool = Field(default=False)
+    onboarding_persona: str | None = Field(default=None, max_length=50)
     subscription_tier: SubscriptionTier = Field(
         default=SubscriptionTier.FREE,
         sa_column=Column(
@@ -85,6 +89,8 @@ class User(UserBase, table=True):
 class UserPublic(UserBase):
     id: uuid.UUID
     email_verified: bool = False
+    onboarding_completed: bool = False
+    onboarding_persona: str | None = None
     subscription_tier: SubscriptionTier = SubscriptionTier.FREE
     created_at: datetime | None = None
 

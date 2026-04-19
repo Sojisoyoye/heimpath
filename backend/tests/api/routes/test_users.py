@@ -221,6 +221,53 @@ def test_update_user_me(
     assert user_db.full_name == full_name
 
 
+def test_user_onboarding_defaults(client: TestClient, db: Session) -> None:
+    """New users should have onboarding_completed=False by default."""
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    crud.create_user(session=db, user_create=user_in)
+
+    login_data = {"username": username, "password": password}
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    r = client.get(f"{settings.API_V1_STR}/users/me", headers=headers)
+    assert r.status_code == 200
+    assert r.json()["onboarding_completed"] is False
+    assert r.json()["onboarding_persona"] is None
+
+
+def test_update_onboarding_status(client: TestClient, db: Session) -> None:
+    """Users can update their onboarding status via PATCH /me."""
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    crud.create_user(session=db, user_create=user_in)
+
+    login_data = {"username": username, "password": password}
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    data = {"onboarding_completed": True, "onboarding_persona": "explorer"}
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/me",
+        headers=headers,
+        json=data,
+    )
+    assert r.status_code == 200
+    updated_user = r.json()
+    assert updated_user["onboarding_completed"] is True
+    assert updated_user["onboarding_persona"] == "explorer"
+
+    # Verify persisted in DB
+    user_query = select(User).where(User.email == username)
+    user_db = db.exec(user_query).first()
+    assert user_db
+    assert user_db.onboarding_completed is True
+    assert user_db.onboarding_persona == "explorer"
+
+
 def test_update_password_me(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:

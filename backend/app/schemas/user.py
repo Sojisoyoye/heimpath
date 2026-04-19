@@ -47,6 +47,8 @@ class UserUpdateMe(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     citizenship: str | None = Field(default=None, max_length=50)
+    onboarding_completed: bool | None = None
+    onboarding_persona: str | None = Field(default=None, max_length=50)
 
 
 class UpdatePassword(BaseModel):
@@ -64,6 +66,8 @@ class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime
     email_verified: bool = False
+    onboarding_completed: bool = False
+    onboarding_persona: str | None = None
 
 
 class UsersPublic(BaseModel):
@@ -131,6 +135,8 @@ class UserDataExport(BaseModel):
     citizenship: str | None = None
     is_active: bool
     email_verified: bool
+    onboarding_completed: bool = False
+    onboarding_persona: str | None = None
     subscription_tier: str
     created_at: datetime
     updated_at: datetime | None = None

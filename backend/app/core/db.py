@@ -33,6 +33,9 @@ def init_db(session: Session) -> None:
             is_superuser=True,
         )
         user = crud.create_user(session=session, user_create=user_in)
+        user.onboarding_completed = True
+        session.add(user)
+        session.commit()
 
     seed_laws(session)
     seed_professionals(session)
