@@ -4,10 +4,11 @@ Provides public endpoints for browsing, searching, and viewing
 German real estate glossary terms.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session
+from typing import Annotated
 
-from app.api.deps import get_db
+from fastapi import APIRouter, HTTPException, Query, status
+
+from app.api.deps import SessionDep
 from app.models.glossary import GlossaryCategory, GlossaryTerm
 from app.schemas.glossary import (
     GlossaryCategoriesResponse,
@@ -39,7 +40,7 @@ _CATEGORY_NAMES = {
 }
 
 
-def _term_to_summary(term: "GlossaryTerm") -> GlossaryTermSummary:
+def _term_to_summary(term: GlossaryTerm) -> GlossaryTermSummary:
     """Convert a GlossaryTerm model to a summary schema."""
     return GlossaryTermSummary(
         id=term.id,
@@ -51,12 +52,12 @@ def _term_to_summary(term: "GlossaryTerm") -> GlossaryTermSummary:
     )
 
 
-@router.get("/", response_model=GlossaryListResponse)
+@router.get("/")
 async def list_terms(
-    session: Session = Depends(get_db),
+    session: SessionDep,
     category: GlossaryCategory | None = None,
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> GlossaryListResponse:
     """
     List glossary terms with optional category filter and pagination.
@@ -71,11 +72,11 @@ async def list_terms(
     )
 
 
-@router.get("/search", response_model=GlossarySearchResponse)
+@router.get("/search")
 async def search_glossary(
-    q: str = Query(..., min_length=2, description="Search query"),
-    limit: int = Query(20, ge=1, le=50),
-    session: Session = Depends(get_db),
+    q: Annotated[str, Query(min_length=2, description="Search query")],
+    session: SessionDep,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> GlossarySearchResponse:
     """
     Search glossary terms using full-text search.
@@ -91,9 +92,9 @@ async def search_glossary(
     )
 
 
-@router.get("/categories", response_model=GlossaryCategoriesResponse)
+@router.get("/categories")
 async def list_categories(
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> GlossaryCategoriesResponse:
     """
     Get all glossary categories with term counts.
@@ -112,10 +113,10 @@ async def list_categories(
     return GlossaryCategoriesResponse(categories=categories)
 
 
-@router.get("/{slug}", response_model=GlossaryTermDetail)
+@router.get("/{slug}")
 async def get_term(
     slug: str,
-    session: Session = Depends(get_db),
+    session: SessionDep,
 ) -> GlossaryTermDetail:
     """
     Get a specific glossary term with full details and resolved related terms.

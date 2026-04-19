@@ -17,11 +17,21 @@ interface IProps {
 }
 
 /******************************************************************************
+                              Functions
+******************************************************************************/
+
+function formatResultCount(total: number): string {
+  if (total === 0) return "No results found"
+  const suffix = total === 1 ? "" : "s"
+  return `Found ${total} term${suffix}`
+}
+
+/******************************************************************************
                               Components
 ******************************************************************************/
 
 /** Default component. Glossary search interface with results. */
-function GlossarySearch(props: IProps) {
+function GlossarySearch(props: Readonly<IProps>) {
   const { className } = props
 
   const [query, setQuery] = useState("")
@@ -94,9 +104,7 @@ function GlossarySearch(props: IProps) {
           {data && !isLoading && (
             <>
               <p className="text-sm text-muted-foreground">
-                {data.total === 0
-                  ? "No results found"
-                  : `Found ${data.total} term${data.total !== 1 ? "s" : ""}`}
+                {formatResultCount(data.total)}
               </p>
 
               {data.results.length > 0 && (
