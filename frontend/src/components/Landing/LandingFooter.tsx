@@ -5,32 +5,41 @@ import { Separator } from "@/components/ui/separator"
                               Constants
 ******************************************************************************/
 
-const FOOTER_COLUMNS = [
-  {
-    title: "Product",
-    links: [
-      { label: "Features", href: "#features" },
-      { label: "How It Works", href: "#how-it-works" },
-      { label: "Pricing", href: "#" },
+/** [title, [label, href][]] */
+const FOOTER_COLUMNS: readonly [string, readonly [string, string][]][] = [
+  [
+    "Product",
+    [
+      ["Features", "#features"],
+      ["How It Works", "#how-it-works"],
+      ["Pricing", "#"],
     ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Contact", href: "mailto:support@heimpath.de" },
+  ],
+  [
+    "Free Tools",
+    [
+      ["Cost Calculator", "/tools/property-cost-calculator"],
+      ["Mortgage Calculator", "/tools/mortgage-calculator"],
+      ["ROI Calculator", "/tools/roi-calculator"],
     ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { label: "Terms of Service", href: "/terms" },
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Imprint", href: "#" },
+  ],
+  [
+    "Company",
+    [
+      ["About", "#"],
+      ["Blog", "#"],
+      ["Contact", "mailto:support@heimpath.com"],
     ],
-  },
-] as const
+  ],
+  [
+    "Legal",
+    [
+      ["Terms of Service", "/terms"],
+      ["Privacy Policy", "/privacy"],
+      ["Imprint", "#"],
+    ],
+  ],
+]
 
 /******************************************************************************
                               Components
@@ -43,7 +52,7 @@ function LandingFooter() {
   return (
     <footer className="border-t bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand column */}
           <div className="space-y-4">
             <Logo variant="full" asLink={false} />
@@ -54,17 +63,17 @@ function LandingFooter() {
           </div>
 
           {/* Navigation columns */}
-          {FOOTER_COLUMNS.map((column) => (
-            <div key={column.title}>
-              <h3 className="mb-3 text-sm font-semibold">{column.title}</h3>
+          {FOOTER_COLUMNS.map(([title, links]) => (
+            <div key={title}>
+              <h3 className="mb-3 text-sm font-semibold">{title}</h3>
               <ul className="space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.label}>
+                {links.map(([label, href]) => (
+                  <li key={label}>
                     <a
-                      href={link.href}
+                      href={href}
                       className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
-                      {link.label}
+                      {label}
                     </a>
                   </li>
                 ))}

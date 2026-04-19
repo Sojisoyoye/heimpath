@@ -11,8 +11,6 @@ import {
   Info,
   Lightbulb,
   RefreshCw,
-  Save,
-  Share2,
   Trash2,
   TrendingUp,
 } from "lucide-react"
@@ -47,6 +45,7 @@ import {
   useRentEstimate,
   useUserROICalculations,
 } from "@/hooks/queries/useCalculatorQueries"
+import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import type {
   ROICalculationInput,
@@ -54,6 +53,7 @@ import type {
 } from "@/models/calculator"
 import { handleError } from "@/utils"
 import { FormRow } from "./common/FormRow"
+import { SaveShareSection } from "./common/SaveShareSection"
 
 interface IProps {
   className?: string
@@ -661,6 +661,7 @@ function ROICalculator(props: IProps) {
   const [shareUrl, setShareUrl] = useState("")
   const [showTaxSettings, setShowTaxSettings] = useState(false)
 
+  const authenticated = isLoggedIn()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const saveROI = useSaveROICalculation()
   const deleteROI = useDeleteROICalculation()
@@ -1271,42 +1272,15 @@ function ROICalculator(props: IProps) {
                   Export Results
                 </Button>
 
-                {/* Save Section */}
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Name this calculation (optional)"
-                    value={saveName}
-                    onChange={(e) => setSaveName(e.target.value)}
-                  />
-                  <Button
-                    onClick={handleSave}
-                    disabled={saveROI.isPending}
-                    className="w-full gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    {saveROI.isPending ? "Saving..." : "Save Calculation"}
-                  </Button>
-                </div>
-
-                {/* Share URL */}
-                {shareUrl && (
-                  <div className="rounded-lg border p-3 space-y-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Share2 className="h-4 w-4" />
-                      Share Link
-                    </p>
-                    <div className="flex gap-2">
-                      <Input value={shareUrl} readOnly className="text-xs" />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopyShareUrl}
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                {/* Save / Share or Sign-Up CTA */}
+                <SaveShareSection
+                  saveName={saveName}
+                  onSaveNameChange={setSaveName}
+                  onSave={handleSave}
+                  isSaving={saveROI.isPending}
+                  shareUrl={shareUrl}
+                  onCopyShareUrl={handleCopyShareUrl}
+                />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -1398,7 +1372,7 @@ function ROICalculator(props: IProps) {
       )}
 
       {/* Saved Calculations */}
-      {savedCalcs && savedCalcs.data.length > 0 && (
+      {authenticated && savedCalcs && savedCalcs.data.length > 0 && (
         <SavedROICalculations
           calculations={savedCalcs.data}
           onDelete={handleDelete}
