@@ -66,7 +66,6 @@ function ProfessionalFilters(props: Readonly<IProps>) {
     filters.city,
     filters.language,
     filters.minRating,
-    filters.sortBy,
   ].filter(Boolean).length
 
   function handleClearFilters() {

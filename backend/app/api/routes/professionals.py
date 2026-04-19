@@ -1,7 +1,7 @@
 """Professional network directory API endpoints."""
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
 
@@ -38,7 +38,9 @@ async def list_professionals(
     city: str | None = None,
     language: str | None = None,
     min_rating: Annotated[float | None, Query(ge=0, le=5)] = None,
-    sort_by: str | None = None,
+    sort_by: Annotated[
+        Literal["rating", "reviews", "recommended"] | None, Query()
+    ] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> ProfessionalListResponse:

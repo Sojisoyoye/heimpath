@@ -10,6 +10,7 @@ import uuid
 from sqlmodel import Session, select
 
 from app.models.professional import Professional, ProfessionalReview
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -221,6 +222,29 @@ REVIEWS_BY_PROFESSIONAL: dict[str, list[dict]] = {
 }
 
 
+def _get_or_create_seed_users(session: Session, count: int) -> list[uuid.UUID]:
+    """Create dummy seed users for review authorship. Returns user IDs."""
+    user_ids: list[uuid.UUID] = []
+    for i in range(count):
+        email = f"seed-reviewer-{i}@heimpath.example"
+        existing = (
+            session.execute(select(User).where(User.email == email)).scalars().first()
+        )
+        if existing:
+            user_ids.append(existing.id)
+        else:
+            user = User(
+                email=email,
+                hashed_password="seeded-no-login",
+                full_name=f"Seed Reviewer {i + 1}",
+                is_active=False,
+            )
+            session.add(user)
+            session.flush()
+            user_ids.append(user.id)
+    return user_ids
+
+
 def seed_reviews(session: Session) -> None:
     """Seed sample reviews into the database. Idempotent."""
     existing = session.execute(select(ProfessionalReview).limit(1)).scalars().first()
@@ -232,7 +256,12 @@ def seed_reviews(session: Session) -> None:
     professionals = list(session.execute(select(Professional)).scalars().all())
     name_to_prof: dict[str, Professional] = {p.name: p for p in professionals}
 
+    # Count total reviews needed to create enough seed users
+    total_reviews = sum(len(r) for r in REVIEWS_BY_PROFESSIONAL.values())
+    user_ids = _get_or_create_seed_users(session, total_reviews)
+
     inserted = 0
+    user_idx = 0
     for prof_name, reviews in REVIEWS_BY_PROFESSIONAL.items():
         professional = name_to_prof.get(prof_name)
         if not professional:
@@ -242,25 +271,22 @@ def seed_reviews(session: Session) -> None:
         for review_data in reviews:
             review = ProfessionalReview(
                 professional_id=professional.id,
-                user_id=uuid.uuid4(),
+                user_id=user_ids[user_idx],
                 **review_data,
             )
             session.add(review)
             inserted += 1
+            user_idx += 1
 
     session.flush()
 
     # Recompute denormalized fields for each professional that got reviews
-    from app.services.professional_service import (
-        _update_professional_rating,
-        _update_trust_signals,
-    )
+    from app.services.professional_service import recompute_professional_stats
 
     for prof_name in REVIEWS_BY_PROFESSIONAL:
         professional = name_to_prof.get(prof_name)
         if professional:
-            _update_professional_rating(session, professional.id)
-            _update_trust_signals(session, professional.id)
+            recompute_professional_stats(session, professional.id)
 
     session.commit()
     logger.info("Seeded %d reviews.", inserted)

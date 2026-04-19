@@ -3149,7 +3149,7 @@ export type ProfessionalsListProfessionalsData = {
     minRating?: (number | null);
     page?: number;
     pageSize?: number;
-    sortBy?: (string | null);
+    sortBy?: ('rating' | 'reviews' | 'recommended' | null);
     type?: (string | null);
 };
 

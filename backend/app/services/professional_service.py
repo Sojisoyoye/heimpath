@@ -229,6 +229,12 @@ def _update_trust_signals(session: Session, professional_id: uuid.UUID) -> None:
     session.add(professional)
 
 
+def recompute_professional_stats(session: Session, professional_id: uuid.UUID) -> None:
+    """Recompute all denormalized stats (rating, count, trust signals)."""
+    _update_professional_rating(session, professional_id)
+    _update_trust_signals(session, professional_id)
+
+
 def get_available_cities(session: Session) -> list[str]:
     """Get distinct cities that have professionals."""
     query = select(Professional.city).distinct().order_by(Professional.city)

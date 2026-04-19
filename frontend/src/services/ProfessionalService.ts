@@ -95,11 +95,11 @@ class ProfessionalServiceClass {
       url: PATHS.PROFESSIONALS.REVIEWS(professionalId),
       body: {
         rating: data.rating,
-        comment: data.comment || null,
-        service_used: data.serviceUsed || null,
-        language_used: data.languageUsed || null,
+        comment: data.comment ?? null,
+        service_used: data.serviceUsed ?? null,
+        language_used: data.languageUsed ?? null,
         would_recommend: data.wouldRecommend ?? null,
-        response_time_rating: data.responseTimeRating || null,
+        response_time_rating: data.responseTimeRating ?? null,
       },
       mediaType: "application/json",
     })
