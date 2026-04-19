@@ -328,7 +328,7 @@ function JourneyWizard(props: IProps) {
         <CardContent className="pt-6">{renderStep()}</CardContent>
       </Card>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <Button
           variant="outline"
           onClick={handleBack}
