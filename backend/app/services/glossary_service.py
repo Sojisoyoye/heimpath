@@ -105,9 +105,7 @@ def search_terms(
     # Fetch all matched terms in a single query to avoid N+1
     term_ids = [row.id for row in rows]
     terms = list(
-        session.exec(
-            select(GlossaryTerm).where(GlossaryTerm.id.in_(term_ids))
-        )
+        session.exec(select(GlossaryTerm).where(GlossaryTerm.id.in_(term_ids)))
         .scalars()
         .all()
     )

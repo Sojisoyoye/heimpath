@@ -32,6 +32,7 @@ def upgrade() -> None:
     glossarycategory = sa.Enum(
         *GLOSSARY_CATEGORIES,
         name="glossarycategory",
+        create_type=False,
     )
     glossarycategory.create(op.get_bind(), checkfirst=True)
 

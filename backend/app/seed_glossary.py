@@ -505,7 +505,11 @@ TERMS: list[dict] = [
             "significantly reformed in 2020."
         ),
         "example_usage": "Under the WEG, major building renovations require a resolution at the Eigentümerversammlung.",
-        "related_terms": ["eigentumswohnung", "eigentuemergemeinschaft", "teilungserklaerung"],
+        "related_terms": [
+            "eigentumswohnung",
+            "eigentuemergemeinschaft",
+            "teilungserklaerung",
+        ],
     },
     {
         "term_de": "Mietrecht",

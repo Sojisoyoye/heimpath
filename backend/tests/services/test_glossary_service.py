@@ -88,9 +88,7 @@ class TestGetTerms:
         mock_exec_terms.scalars.return_value.all.return_value = [sample_term]
         mock_session.exec.side_effect = [mock_exec_count, mock_exec_terms]
 
-        terms, total = get_terms(
-            mock_session, category=GlossaryCategory.COSTS_TAXES
-        )
+        terms, total = get_terms(mock_session, category=GlossaryCategory.COSTS_TAXES)
 
         assert len(terms) == 1
         assert total == 1
@@ -161,9 +159,7 @@ class TestGetRelatedTerms:
             sample_term_2,
         ]
 
-        result = get_related_terms(
-            mock_session, ["grunderwerbsteuer", "kaufvertrag"]
-        )
+        result = get_related_terms(mock_session, ["grunderwerbsteuer", "kaufvertrag"])
 
         assert len(result) == 2
 

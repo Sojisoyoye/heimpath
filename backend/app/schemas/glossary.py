@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.glossary import GlossaryCategory
 
-
 # --- Term Schemas ---
 
 
