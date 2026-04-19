@@ -38,9 +38,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type {
+  CostCategory,
   PortfolioTransactionInput,
   TransactionType,
 } from "@/models/portfolio"
+import { COST_CATEGORY_LABELS, INCOME_TYPES } from "@/models/portfolio"
 
 interface IProps {
   trigger: React.ReactNode
@@ -64,6 +66,10 @@ const TRANSACTION_TYPES: { value: TransactionType; label: string }[] = [
   { value: "other_expense", label: "Other Expense" },
 ]
 
+const COST_CATEGORY_OPTIONS = Object.entries(COST_CATEGORY_LABELS).map(
+  ([value, label]) => ({ value, label }),
+)
+
 const formSchema = z.object({
   type: z.string().min(1, "Type is required"),
   amount: z.string().min(1, "Amount is required"),
@@ -71,6 +77,8 @@ const formSchema = z.object({
   category: z.string().max(100).optional(),
   description: z.string().max(500).optional(),
   isRecurring: z.boolean(),
+  costCategory: z.string().optional(),
+  estimatedAmount: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -94,10 +102,17 @@ function TransactionFormModal(props: Readonly<IProps>) {
       category: "",
       description: "",
       isRecurring: false,
+      costCategory: "",
+      estimatedAmount: "",
     },
   })
 
+  const selectedType = form.watch("type") as TransactionType
+  const isExpenseType = !!selectedType && !INCOME_TYPES.includes(selectedType)
+  const selectedCostCategory = form.watch("costCategory")
+
   const handleSubmit = async (data: FormData) => {
+    const isExpense = !INCOME_TYPES.includes(data.type as TransactionType)
     const input: PortfolioTransactionInput = {
       type: data.type as TransactionType,
       amount: Number(data.amount),
@@ -105,6 +120,12 @@ function TransactionFormModal(props: Readonly<IProps>) {
       category: data.category || null,
       description: data.description || null,
       isRecurring: data.isRecurring,
+      costCategory:
+        isExpense && data.costCategory
+          ? (data.costCategory as CostCategory)
+          : null,
+      estimatedAmount:
+        isExpense && data.estimatedAmount ? Number(data.estimatedAmount) : null,
     }
     try {
       await onSubmit(input)
@@ -227,6 +248,57 @@ function TransactionFormModal(props: Readonly<IProps>) {
                   </FormItem>
                 )}
               />
+
+              {isExpenseType && (
+                <FormField
+                  control={form.control}
+                  name="costCategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost Category</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select cost category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COST_CATEGORY_OPTIONS.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {isExpenseType && selectedCostCategory && (
+                <FormField
+                  control={form.control}
+                  name="estimatedAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estimated Amount (EUR)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Expected monthly cost"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

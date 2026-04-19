@@ -1250,6 +1250,67 @@ export const ComparisonResponseSchema = {
     description: 'Response for the area comparison endpoint.'
 } as const;
 
+export const CostCategorySchema = {
+    type: 'string',
+    enum: ['hausgeld', 'grundsteuer', 'insurance', 'heating', 'water', 'electricity', 'maintenance', 'misc'],
+    title: 'CostCategory',
+    description: 'Fine-grained Nebenkosten (running cost) categories.'
+} as const;
+
+export const CostCategorySummarySchema = {
+    properties: {
+        category: {
+            type: 'string',
+            title: 'Category'
+        },
+        actual_total: {
+            type: 'number',
+            title: 'Actual Total'
+        },
+        estimated_total: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Total'
+        },
+        variance: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Variance'
+        },
+        variance_percent: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Variance Percent'
+        },
+        is_over_threshold: {
+            type: 'boolean',
+            title: 'Is Over Threshold'
+        }
+    },
+    type: 'object',
+    required: ['category', 'actual_total', 'estimated_total', 'variance', 'variance_percent', 'is_over_threshold'],
+    title: 'CostCategorySummary',
+    description: 'Summary for a single Nebenkosten category.'
+} as const;
+
 export const CostDefaultsSchema = {
     properties: {
         notary_fee_percent: {
@@ -1269,6 +1330,66 @@ export const CostDefaultsSchema = {
     required: ['notary_fee_percent', 'land_registry_fee_percent', 'agent_commission_percent'],
     title: 'CostDefaults',
     description: 'Default cost percentages used in calculations.'
+} as const;
+
+export const CostSummaryResponseSchema = {
+    properties: {
+        categories: {
+            items: {
+                '$ref': '#/components/schemas/CostCategorySummary'
+            },
+            type: 'array',
+            title: 'Categories'
+        },
+        total_actual: {
+            type: 'number',
+            title: 'Total Actual'
+        },
+        total_estimated: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Total Estimated'
+        },
+        total_variance: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Total Variance'
+        },
+        highest_category: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Highest Category'
+        },
+        alert_categories: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Alert Categories'
+        }
+    },
+    type: 'object',
+    required: ['categories', 'total_actual', 'total_estimated', 'total_variance', 'highest_category', 'alert_categories'],
+    title: 'CostSummaryResponse',
+    description: 'Aggregated running-cost summary across all Nebenkosten categories.'
 } as const;
 
 export const CourtRulingResponseSchema = {
@@ -5545,6 +5666,28 @@ export const PortfolioTransactionCreateSchema = {
             type: 'boolean',
             title: 'Is Recurring',
             default: false
+        },
+        cost_category: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/CostCategory'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        estimated_amount: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Amount'
         }
     },
     type: 'object',
@@ -5623,6 +5766,28 @@ export const PortfolioTransactionResponseSchema = {
         is_recurring: {
             type: 'boolean',
             title: 'Is Recurring'
+        },
+        cost_category: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Cost Category'
+        },
+        estimated_amount: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Amount'
         },
         created_at: {
             type: 'string',

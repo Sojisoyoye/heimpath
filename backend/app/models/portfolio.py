@@ -33,6 +33,19 @@ class TransactionType(str, PyEnum):
     OTHER_EXPENSE = "other_expense"
 
 
+class CostCategory(str, PyEnum):
+    """Fine-grained Nebenkosten (running cost) categories."""
+
+    HAUSGELD = "hausgeld"
+    GRUNDSTEUER = "grundsteuer"
+    INSURANCE = "insurance"
+    HEATING = "heating"
+    WATER = "water"
+    ELECTRICITY = "electricity"
+    MAINTENANCE = "maintenance"
+    MISC = "misc"
+
+
 INCOME_TYPES = {TransactionType.RENT_INCOME, TransactionType.OTHER_INCOME}
 EXPENSE_TYPES = {
     TransactionType.OPERATING_EXPENSE,
@@ -55,6 +68,19 @@ _transaction_type_enum = PgEnum(
     "other_income",
     "other_expense",
     name="transactiontype",
+    create_type=False,
+)
+
+_cost_category_enum = PgEnum(
+    "hausgeld",
+    "grundsteuer",
+    "insurance",
+    "heating",
+    "water",
+    "electricity",
+    "maintenance",
+    "misc",
+    name="costcategory",
     create_type=False,
 )
 
@@ -119,3 +145,5 @@ class PortfolioTransaction(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     category = Column(String(100), nullable=True)
     description = Column(String(500), nullable=True)
     is_recurring = Column(Boolean, default=False, nullable=False)
+    cost_category = Column(_cost_category_enum, nullable=True)
+    estimated_amount = Column(Float, nullable=True)

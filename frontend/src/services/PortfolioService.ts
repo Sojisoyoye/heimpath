@@ -6,6 +6,7 @@
 import { OpenAPI } from "@/client"
 import { request } from "@/client/core/request"
 import type {
+  CostSummaryResponse,
   PortfolioProperty,
   PortfolioPropertyInput,
   PortfolioPropertySummary,
@@ -142,6 +143,30 @@ class PortfolioServiceClass {
       method: "DELETE",
       url: PATHS.PORTFOLIO.DELETE_TRANSACTION(id),
     })
+  }
+
+  /**
+   * Get running-cost summary for a property
+   */
+  async getCostSummary(
+    propertyId: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<CostSummaryResponse> {
+    const params = new URLSearchParams()
+    if (dateFrom) params.append("date_from", dateFrom)
+    if (dateTo) params.append("date_to", dateTo)
+
+    const queryStr = params.toString()
+    const url = queryStr
+      ? `${PATHS.PORTFOLIO.COST_SUMMARY(propertyId)}?${queryStr}`
+      : PATHS.PORTFOLIO.COST_SUMMARY(propertyId)
+
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url,
+    })
+    return transformKeys<CostSummaryResponse>(response)
   }
 
   /**

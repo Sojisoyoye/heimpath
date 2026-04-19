@@ -8,6 +8,7 @@ from fastapi import APIRouter, Query, status
 
 from app.api.deps import CurrentUser, SessionDep
 from app.schemas.portfolio import (
+    CostSummaryResponse,
     PortfolioPropertyCreate,
     PortfolioPropertyListResponse,
     PortfolioPropertyResponse,
@@ -143,6 +144,26 @@ async def delete_transaction(
 ) -> None:
     """Delete a transaction."""
     portfolio_service.delete_transaction(session, transaction_id, current_user.id)
+
+
+# ---------------------------------------------------------------------------
+# Cost Summary endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.get("/properties/{property_id}/cost-summary")
+async def get_cost_summary(
+    property_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: SessionDep,
+    date_from: Annotated[date | None, Query()] = None,
+    date_to: Annotated[date | None, Query()] = None,
+) -> CostSummaryResponse:
+    """Get running-cost summary for a property."""
+    summary = portfolio_service.calculate_cost_summary(
+        session, property_id, current_user.id, date_from=date_from, date_to=date_to
+    )
+    return CostSummaryResponse(**summary)
 
 
 # ---------------------------------------------------------------------------

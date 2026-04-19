@@ -365,12 +365,41 @@ export type ComparisonResponse = {
 };
 
 /**
+ * Fine-grained Nebenkosten (running cost) categories.
+ */
+export type CostCategory = 'hausgeld' | 'grundsteuer' | 'insurance' | 'heating' | 'water' | 'electricity' | 'maintenance' | 'misc';
+
+/**
+ * Summary for a single Nebenkosten category.
+ */
+export type CostCategorySummary = {
+    category: string;
+    actual_total: number;
+    estimated_total: (number | null);
+    variance: (number | null);
+    variance_percent: (number | null);
+    is_over_threshold: boolean;
+};
+
+/**
  * Default cost percentages used in calculations.
  */
 export type CostDefaults = {
     notary_fee_percent: number;
     land_registry_fee_percent: number;
     agent_commission_percent: number;
+};
+
+/**
+ * Aggregated running-cost summary across all Nebenkosten categories.
+ */
+export type CostSummaryResponse = {
+    categories: Array<CostCategorySummary>;
+    total_actual: number;
+    total_estimated: (number | null);
+    total_variance: (number | null);
+    highest_category: (string | null);
+    alert_categories: Array<(string)>;
 };
 
 /**
@@ -1554,6 +1583,8 @@ export type PortfolioTransactionCreate = {
     category?: (string | null);
     description?: (string | null);
     is_recurring?: boolean;
+    cost_category?: (CostCategory | null);
+    estimated_amount?: (number | null);
 };
 
 /**
@@ -1576,6 +1607,8 @@ export type PortfolioTransactionResponse = {
     category?: (string | null);
     description?: (string | null);
     is_recurring: boolean;
+    cost_category?: (string | null);
+    estimated_amount?: (number | null);
     created_at: string;
 };
 
@@ -3130,6 +3163,14 @@ export type PortfolioDeleteTransactionData = {
 };
 
 export type PortfolioDeleteTransactionResponse = (void);
+
+export type PortfolioGetCostSummaryData = {
+    dateFrom?: (string | null);
+    dateTo?: (string | null);
+    propertyId: string;
+};
+
+export type PortfolioGetCostSummaryResponse = (CostSummaryResponse);
 
 export type PortfolioGetPortfolioSummaryResponse = (PortfolioSummaryResponse);
 

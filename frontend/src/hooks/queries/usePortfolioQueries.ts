@@ -40,6 +40,17 @@ export function usePortfolioTransactions(propertyId: string) {
 }
 
 /**
+ * Get running-cost summary for a property
+ */
+export function usePortfolioCostSummary(propertyId: string) {
+  return useQuery({
+    queryKey: queryKeys.portfolio.costSummary(propertyId),
+    queryFn: () => PortfolioService.getCostSummary(propertyId),
+    enabled: !!propertyId,
+  })
+}
+
+/**
  * Get portfolio summary KPIs
  */
 export function usePortfolioSummary() {

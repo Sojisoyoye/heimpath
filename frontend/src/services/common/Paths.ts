@@ -167,6 +167,8 @@ export const PATHS = {
       `${API_V1}/portfolio/properties/${propertyId}/transactions`,
     DELETE_TRANSACTION: (id: string) =>
       `${API_V1}/portfolio/transactions/${id}`,
+    COST_SUMMARY: (propertyId: string) =>
+      `${API_V1}/portfolio/properties/${propertyId}/cost-summary`,
     SUMMARY: `${API_V1}/portfolio/summary`,
   },
 } as const

@@ -186,6 +186,8 @@ def create_transaction(
         category=data.category,
         description=data.description,
         is_recurring=data.is_recurring,
+        cost_category=data.cost_category,
+        estimated_amount=data.estimated_amount,
     )
     session.add(txn)
     session.commit()
@@ -333,4 +335,102 @@ def calculate_portfolio_summary(
         "net_cash_flow": net_cash_flow,
         "vacancy_rate": vacancy_rate,
         "average_gross_yield": round(average_gross_yield, 2),
+    }
+
+
+OVERCHARGE_THRESHOLD = 1.2  # 20 % over estimated triggers alert
+
+
+def _build_category_summary(category: str, txns: list[PortfolioTransaction]) -> dict:
+    """Build summary dict for a single cost category."""
+    actual_total = sum(t.amount for t in txns)
+    est_amounts = [t.estimated_amount for t in txns if t.estimated_amount is not None]
+    estimated_total = sum(est_amounts) if est_amounts else None
+
+    variance: float | None = None
+    variance_percent: float | None = None
+    is_over = False
+    if estimated_total is not None and estimated_total > 0:
+        variance = actual_total - estimated_total
+        variance_percent = round((variance / estimated_total) * 100, 1)
+        is_over = actual_total > estimated_total * OVERCHARGE_THRESHOLD
+
+    return {
+        "category": category,
+        "actual_total": actual_total,
+        "estimated_total": estimated_total,
+        "variance": variance,
+        "variance_percent": variance_percent,
+        "is_over_threshold": is_over,
+    }
+
+
+def calculate_cost_summary(
+    session: Session,
+    property_id: uuid.UUID,
+    user_id: uuid.UUID,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> dict:
+    """Calculate per-category running-cost summary for a property.
+
+    Args:
+        session: Sync database session.
+        property_id: Property UUID.
+        user_id: Authenticated user's UUID.
+        date_from: Optional start date filter.
+        date_to: Optional end date filter.
+
+    Returns:
+        Dict matching ``CostSummaryResponse`` shape.
+    """
+    get_property(session, property_id, user_id)
+
+    statement = (
+        select(PortfolioTransaction)
+        .where(PortfolioTransaction.property_id == property_id)
+        .where(PortfolioTransaction.cost_category.isnot(None))
+    )
+    if date_from:
+        statement = statement.where(PortfolioTransaction.date >= date_from)
+    if date_to:
+        statement = statement.where(PortfolioTransaction.date <= date_to)
+
+    transactions = list(session.exec(statement).all())
+
+    grouped: dict[str, list[PortfolioTransaction]] = {}
+    for txn in transactions:
+        grouped.setdefault(txn.cost_category, []).append(txn)
+
+    categories = []
+    alert_categories: list[str] = []
+    total_actual = 0.0
+    total_estimated = 0.0
+    has_any_estimated = False
+    highest_category: str | None = None
+    highest_actual = 0.0
+
+    for cat, txns in sorted(grouped.items()):
+        summary = _build_category_summary(cat, txns)
+        categories.append(summary)
+
+        if summary["is_over_threshold"]:
+            alert_categories.append(cat)
+        total_actual += summary["actual_total"]
+        if summary["estimated_total"] is not None:
+            total_estimated += summary["estimated_total"]
+            has_any_estimated = True
+        if summary["actual_total"] > highest_actual:
+            highest_actual = summary["actual_total"]
+            highest_category = cat
+
+    total_var = total_actual - total_estimated if has_any_estimated else None
+
+    return {
+        "categories": categories,
+        "total_actual": total_actual,
+        "total_estimated": total_estimated if has_any_estimated else None,
+        "total_variance": total_var,
+        "highest_category": highest_category,
+        "alert_categories": alert_categories,
     }
