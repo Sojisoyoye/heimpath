@@ -13,6 +13,8 @@ export interface UserPublic {
   isActive: boolean
   isSuperuser: boolean
   emailVerified: boolean
+  onboardingCompleted: boolean
+  onboardingPersona: string | null
   subscriptionTier: SubscriptionTier
   createdAt: string
   updatedAt: string

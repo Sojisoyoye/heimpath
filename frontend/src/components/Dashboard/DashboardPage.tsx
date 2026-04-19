@@ -18,6 +18,7 @@ import {
 
 import { cn } from "@/common/utils"
 import { ProgressBar } from "@/components/Journey/ProgressBar"
+import { GettingStartedChecklist } from "@/components/Onboarding"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -509,7 +510,7 @@ function DashboardSkeleton() {
 }
 
 /** Default component. Main dashboard layout. */
-function DashboardPage(props: IProps) {
+function DashboardPage(props: Readonly<IProps>) {
   const { data, isLoading, userName } = props
 
   if (isLoading || !data) {
@@ -540,6 +541,7 @@ function DashboardPage(props: IProps) {
 
         {/* Right column: 1/3 width */}
         <div className="space-y-6">
+          <GettingStartedChecklist data={data} />
           <QuickActions journeyId={data.journey?.id} />
           <ActivityTimeline activities={data.recentActivity} />
           <UsageStats
