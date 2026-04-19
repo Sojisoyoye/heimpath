@@ -34,6 +34,11 @@ function getCategoryLabel(category: string): string {
   return COST_CATEGORY_LABELS[category as CostCategory] ?? category
 }
 
+function formatVariancePercent(percent: number): string {
+  const sign = percent > 0 ? "+" : ""
+  return `${sign}${percent}%`
+}
+
 /******************************************************************************
                               Components
 ******************************************************************************/
@@ -71,13 +76,15 @@ function RunningCostsTab(props: Readonly<IProps>) {
   }
 
   const varianceDisplay =
-    data.totalVariance !== null ? formatEur(data.totalVariance) : "-"
-  const varianceColor =
-    data.totalVariance === null
-      ? "text-muted-foreground"
-      : data.totalVariance > 0
+    data.totalVariance === null ? "-" : formatEur(data.totalVariance)
+
+  let varianceColor = "text-muted-foreground"
+  if (data.totalVariance !== null) {
+    varianceColor =
+      data.totalVariance > 0
         ? "text-red-600 dark:text-red-400"
         : "text-emerald-600 dark:text-emerald-400"
+  }
 
   return (
     <div className="space-y-6">
@@ -161,14 +168,14 @@ function RunningCostsTab(props: Readonly<IProps>) {
                     {formatEur(cat.actualTotal)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {cat.estimatedTotal !== null
-                      ? formatEur(cat.estimatedTotal)
-                      : "-"}
+                    {cat.estimatedTotal === null
+                      ? "-"
+                      : formatEur(cat.estimatedTotal)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {cat.variancePercent !== null
-                      ? `${cat.variancePercent > 0 ? "+" : ""}${cat.variancePercent}%`
-                      : "-"}
+                    {cat.variancePercent === null
+                      ? "-"
+                      : formatVariancePercent(cat.variancePercent)}
                   </TableCell>
                   <TableCell>
                     {cat.isOverThreshold ? (
