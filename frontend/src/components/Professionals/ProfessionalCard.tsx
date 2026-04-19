@@ -4,7 +4,7 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { BadgeCheck, Globe, Mail, MapPin, Phone } from "lucide-react"
+import { BadgeCheck, Globe, Mail, MapPin, Phone, ThumbsUp } from "lucide-react"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -79,6 +79,17 @@ function ProfessionalCard(props: Readonly<IProps>) {
               {professional.reviewCount === 1 ? "review" : "reviews"})
             </span>
           </div>
+          {professional.recommendationRate != null &&
+            professional.recommendationRate > 80 &&
+            professional.reviewCount >= 3 && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+              >
+                <ThumbsUp className="h-3 w-3 mr-1" />
+                Recommended by {Math.round(professional.recommendationRate)}%
+              </Badge>
+            )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

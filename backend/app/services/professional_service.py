@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlmodel import Session
 
-from app.models.professional import Professional, ProfessionalReview
+from app.models.professional import Professional, ProfessionalReview, ServiceType
 
 
 class ProfessionalNotFoundError(Exception):
@@ -26,6 +26,7 @@ def get_professionals(
     city: str | None = None,
     language: str | None = None,
     min_rating: float | None = None,
+    sort_by: str | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Professional], int]:
@@ -52,13 +53,17 @@ def get_professionals(
     count_query = select(func.count()).select_from(query.subquery())
     total = session.execute(count_query).scalar() or 0
 
+    # Sort order
+    if sort_by == "reviews":
+        order = Professional.review_count.desc()
+    elif sort_by == "recommended":
+        order = Professional.recommendation_rate.desc().nulls_last()
+    else:
+        order = Professional.average_rating.desc()
+
     # Pagination
     offset = (page - 1) * page_size
-    query = (
-        query.order_by(Professional.average_rating.desc())
-        .offset(offset)
-        .limit(page_size)
-    )
+    query = query.order_by(order).offset(offset).limit(page_size)
 
     professionals = list(session.execute(query).scalars().all())
     return professionals, total
@@ -93,6 +98,10 @@ def submit_review(
     user_id: uuid.UUID,
     rating: int,
     comment: str | None = None,
+    service_used: ServiceType | None = None,
+    language_used: str | None = None,
+    would_recommend: bool | None = None,
+    response_time_rating: int | None = None,
 ) -> ProfessionalReview:
     """Submit a review for a professional. One review per user per professional."""
     # Verify professional exists
@@ -118,12 +127,17 @@ def submit_review(
         user_id=user_id,
         rating=rating,
         comment=comment,
+        service_used=service_used,
+        language_used=language_used,
+        would_recommend=would_recommend,
+        response_time_rating=response_time_rating,
     )
     session.add(review)
     session.flush()
 
-    # Update denormalized rating fields
+    # Update denormalized rating fields and trust signals
     _update_professional_rating(session, professional_id)
+    _update_trust_signals(session, professional_id)
 
     session.commit()
     session.refresh(review)
@@ -145,6 +159,73 @@ def _update_professional_rating(session: Session, professional_id: uuid.UUID) ->
     professional = get_professional_by_id(session, professional_id)
     professional.average_rating = round(avg_rating, 2)
     professional.review_count = count
+    session.add(professional)
+
+
+def _update_trust_signals(session: Session, professional_id: uuid.UUID) -> None:
+    """Recompute recommendation rate and review highlights for a professional."""
+    # Recommendation rate
+    recommend_total = (
+        session.execute(
+            select(func.count(ProfessionalReview.id)).where(
+                ProfessionalReview.professional_id == professional_id,
+                ProfessionalReview.would_recommend.is_not(None),
+            )
+        ).scalar()
+        or 0
+    )
+    recommend_yes = (
+        session.execute(
+            select(func.count(ProfessionalReview.id)).where(
+                ProfessionalReview.professional_id == professional_id,
+                ProfessionalReview.would_recommend.is_(True),
+            )
+        ).scalar()
+        or 0
+    )
+    recommendation_rate = (
+        round(recommend_yes / recommend_total * 100, 1) if recommend_total > 0 else None
+    )
+
+    # Review highlights
+    avg_response_time = session.execute(
+        select(func.avg(ProfessionalReview.response_time_rating)).where(
+            ProfessionalReview.professional_id == professional_id,
+            ProfessionalReview.response_time_rating.is_not(None),
+        )
+    ).scalar()
+
+    top_services_rows = (
+        session.execute(
+            select(
+                ProfessionalReview.service_used,
+                func.count(ProfessionalReview.id).label("cnt"),
+            )
+            .where(
+                ProfessionalReview.professional_id == professional_id,
+                ProfessionalReview.service_used.is_not(None),
+            )
+            .group_by(ProfessionalReview.service_used)
+            .order_by(func.count(ProfessionalReview.id).desc())
+            .limit(3)
+        )
+        .tuples()
+        .all()
+    )
+    top_services = [row[0] for row in top_services_rows]
+
+    review_highlights: dict | None = None
+    if top_services or avg_response_time is not None:
+        review_highlights = {
+            "top_services": top_services,
+            "avg_response_time": round(float(avg_response_time), 1)
+            if avg_response_time is not None
+            else None,
+        }
+
+    professional = get_professional_by_id(session, professional_id)
+    professional.recommendation_rate = recommendation_rate
+    professional.review_highlights = review_highlights
     session.add(professional)
 
 

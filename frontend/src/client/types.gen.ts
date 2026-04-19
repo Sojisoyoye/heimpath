@@ -1602,6 +1602,10 @@ export type ProfessionalDetailResponse = {
     is_verified: boolean;
     average_rating: number;
     review_count: number;
+    recommendation_rate?: (number | null);
+    review_highlights?: ({
+    [key: string]: unknown;
+} | null);
     created_at: string;
     reviews?: Array<ReviewResponse>;
 };
@@ -1633,6 +1637,10 @@ export type ProfessionalResponse = {
     is_verified: boolean;
     average_rating: number;
     review_count: number;
+    recommendation_rate?: (number | null);
+    review_highlights?: ({
+    [key: string]: unknown;
+} | null);
     created_at: string;
 };
 
@@ -1938,6 +1946,10 @@ export type ResetPasswordResponse = {
 export type ReviewCreateRequest = {
     rating: number;
     comment?: (string | null);
+    service_used?: (ServiceType | null);
+    language_used?: (string | null);
+    would_recommend?: (boolean | null);
+    response_time_rating?: (number | null);
 };
 
 /**
@@ -1948,6 +1960,10 @@ export type ReviewResponse = {
     professional_id: string;
     rating: number;
     comment?: (string | null);
+    service_used?: (ServiceType | null);
+    language_used?: (string | null);
+    would_recommend?: (boolean | null);
+    response_time_rating?: (number | null);
     created_at: string;
 };
 
@@ -2134,6 +2150,11 @@ export type SearchResultItem = {
 };
 
 export type result_type = 'law' | 'article';
+
+/**
+ * Types of services a professional can provide.
+ */
+export type ServiceType = 'buying' | 'selling' | 'rental' | 'tax' | 'legal';
 
 /**
  * Cost breakdown for a single state in comparison view.
@@ -3128,6 +3149,7 @@ export type ProfessionalsListProfessionalsData = {
     minRating?: (number | null);
     page?: number;
     pageSize?: number;
+    sortBy?: (string | null);
     type?: (string | null);
 };
 

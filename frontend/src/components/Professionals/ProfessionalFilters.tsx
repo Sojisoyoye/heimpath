@@ -43,6 +43,12 @@ const MIN_RATINGS = [
   { value: "4.5", label: "4.5+ stars" },
 ]
 
+const SORT_OPTIONS = [
+  { value: "rating", label: "Highest rated" },
+  { value: "reviews", label: "Most reviewed" },
+  { value: "recommended", label: "Most recommended" },
+]
+
 /******************************************************************************
                               Components
 ******************************************************************************/
@@ -60,6 +66,7 @@ function ProfessionalFilters(props: Readonly<IProps>) {
     filters.city,
     filters.language,
     filters.minRating,
+    filters.sortBy,
   ].filter(Boolean).length
 
   function handleClearFilters() {
@@ -169,6 +176,29 @@ function ProfessionalFilters(props: Readonly<IProps>) {
             {MIN_RATINGS.map((r) => (
               <SelectItem key={r.value} value={r.value}>
                 {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Sort by */}
+        <Select
+          value={filters.sortBy ?? "rating"}
+          onValueChange={(v) =>
+            onFiltersChange({
+              ...filters,
+              sortBy: v === "rating" ? undefined : v,
+              page: 1,
+            })
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>
