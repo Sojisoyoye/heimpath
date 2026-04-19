@@ -313,7 +313,7 @@ function PropertyGoalsForm(props: IProps) {
           value={goals.preferred_property_type}
           onValueChange={handlePropertyTypeChange}
         >
-          <SelectTrigger className="w-auto min-w-0 flex-1">
+          <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
@@ -347,7 +347,7 @@ function PropertyGoalsForm(props: IProps) {
             setGoals((prev) => ({ ...prev, min_rooms: Number(v) }))
           }
         >
-          <SelectTrigger className="w-auto min-w-0 flex-1">
+          <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
             <SelectValue placeholder="Any" />
           </SelectTrigger>
           <SelectContent>
@@ -369,7 +369,7 @@ function PropertyGoalsForm(props: IProps) {
             setGoals((prev) => ({ ...prev, min_bathrooms: Number(v) }))
           }
         >
-          <SelectTrigger className="w-auto min-w-0 flex-1">
+          <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
             <SelectValue placeholder="Any" />
           </SelectTrigger>
           <SelectContent>
@@ -392,7 +392,7 @@ function PropertyGoalsForm(props: IProps) {
               setGoals((prev) => ({ ...prev, preferred_floor: v }))
             }
           >
-            <SelectTrigger className="w-auto min-w-0 flex-1">
+            <SelectTrigger className="w-full min-w-0 sm:w-auto sm:flex-1">
               <SelectValue placeholder="Any floor" />
             </SelectTrigger>
             <SelectContent>
