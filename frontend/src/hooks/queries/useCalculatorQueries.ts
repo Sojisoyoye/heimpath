@@ -4,6 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query"
+import { isLoggedIn } from "@/hooks/useAuth"
 import { queryKeys } from "@/query/queryKeys"
 import { CalculatorService } from "@/services/CalculatorService"
 
@@ -47,6 +48,7 @@ export function useUserCalculations() {
   return useQuery({
     queryKey: queryKeys.calculators.hiddenCostsList(),
     queryFn: () => CalculatorService.getUserCalculations(),
+    enabled: isLoggedIn(),
   })
 }
 
@@ -116,6 +118,7 @@ export function useUserROICalculations() {
   return useQuery({
     queryKey: queryKeys.calculators.roiList(),
     queryFn: () => CalculatorService.getUserROICalculations(),
+    enabled: isLoggedIn(),
   })
 }
 

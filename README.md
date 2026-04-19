@@ -285,4 +285,4 @@ This project is proprietary software. All rights reserved.
 
 ## Support
 
-For support, please contact support@heimpath.de or open an issue in this repository.
+For support, please contact support@heimpath.com or open an issue in this repository.

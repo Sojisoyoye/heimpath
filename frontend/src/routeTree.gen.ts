@@ -11,12 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ToolsIndexRouteImport } from './routes/tools/index'
+import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools/roi-calculator'
+import { Route as ToolsPropertyCostCalculatorRouteImport } from './routes/tools/property-cost-calculator'
+import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mortgage-calculator'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
@@ -51,6 +56,11 @@ const UnsubscribeRoute = UnsubscribeRouteImport.update({
   path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -79,6 +89,27 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ToolsRoute,
+} as any)
+const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
+  id: '/roi-calculator',
+  path: '/roi-calculator',
+  getParentRoute: () => ToolsRoute,
+} as any)
+const ToolsPropertyCostCalculatorRoute =
+  ToolsPropertyCostCalculatorRouteImport.update({
+    id: '/property-cost-calculator',
+    path: '/property-cost-calculator',
+    getParentRoute: () => ToolsRoute,
+  } as any)
+const ToolsMortgageCalculatorRoute = ToolsMortgageCalculatorRouteImport.update({
+  id: '/mortgage-calculator',
+  path: '/mortgage-calculator',
+  getParentRoute: () => ToolsRoute,
 } as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
@@ -208,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/tools': typeof ToolsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof LayoutAdminRoute
@@ -216,6 +248,10 @@ export interface FileRoutesByFullPath {
   '/items': typeof LayoutItemsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
+  '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
+  '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
+  '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
+  '/tools/': typeof ToolsIndexRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
@@ -248,6 +284,10 @@ export interface FileRoutesByTo {
   '/items': typeof LayoutItemsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
+  '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
+  '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
+  '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
+  '/tools': typeof ToolsIndexRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/journeys/new': typeof LayoutJourneysNewRoute
@@ -273,6 +313,7 @@ export interface FileRoutesById {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/tools': typeof ToolsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_layout/admin': typeof LayoutAdminRoute
@@ -281,6 +322,10 @@ export interface FileRoutesById {
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
+  '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
+  '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
+  '/tools/': typeof ToolsIndexRoute
   '/_layout/articles/$slug': typeof LayoutArticlesSlugRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/_layout/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
@@ -307,6 +352,7 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/signup'
+    | '/tools'
     | '/unsubscribe'
     | '/verify-email'
     | '/admin'
@@ -315,6 +361,10 @@ export interface FileRouteTypes {
     | '/items'
     | '/search'
     | '/settings'
+    | '/tools/mortgage-calculator'
+    | '/tools/property-cost-calculator'
+    | '/tools/roi-calculator'
+    | '/tools/'
     | '/articles/$slug'
     | '/documents/$documentId'
     | '/journeys/$journeyId'
@@ -347,6 +397,10 @@ export interface FileRouteTypes {
     | '/items'
     | '/search'
     | '/settings'
+    | '/tools/mortgage-calculator'
+    | '/tools/property-cost-calculator'
+    | '/tools/roi-calculator'
+    | '/tools'
     | '/articles/$slug'
     | '/documents/$documentId'
     | '/journeys/new'
@@ -371,6 +425,7 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/signup'
+    | '/tools'
     | '/unsubscribe'
     | '/verify-email'
     | '/_layout/admin'
@@ -379,6 +434,10 @@ export interface FileRouteTypes {
     | '/_layout/items'
     | '/_layout/search'
     | '/_layout/settings'
+    | '/tools/mortgage-calculator'
+    | '/tools/property-cost-calculator'
+    | '/tools/roi-calculator'
+    | '/tools/'
     | '/_layout/articles/$slug'
     | '/_layout/documents/$documentId'
     | '/_layout/journeys/$journeyId'
@@ -405,6 +464,7 @@ export interface RootRouteChildren {
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  ToolsRoute: typeof ToolsRouteWithChildren
   UnsubscribeRoute: typeof UnsubscribeRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   SharedEvaluationShareIdRoute: typeof SharedEvaluationShareIdRoute
@@ -424,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/unsubscribe'
       fullPath: '/unsubscribe'
       preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -467,6 +534,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/tools/': {
+      id: '/tools/'
+      path: '/'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/roi-calculator': {
+      id: '/tools/roi-calculator'
+      path: '/roi-calculator'
+      fullPath: '/tools/roi-calculator'
+      preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/property-cost-calculator': {
+      id: '/tools/property-cost-calculator'
+      path: '/property-cost-calculator'
+      fullPath: '/tools/property-cost-calculator'
+      preLoaderRoute: typeof ToolsPropertyCostCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/mortgage-calculator': {
+      id: '/tools/mortgage-calculator'
+      path: '/mortgage-calculator'
+      fullPath: '/tools/mortgage-calculator'
+      preLoaderRoute: typeof ToolsMortgageCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
     }
     '/_layout/settings': {
       id: '/_layout/settings'
@@ -699,6 +794,22 @@ const LayoutRouteChildren: LayoutRouteChildren = {
 const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
 
+interface ToolsRouteChildren {
+  ToolsMortgageCalculatorRoute: typeof ToolsMortgageCalculatorRoute
+  ToolsPropertyCostCalculatorRoute: typeof ToolsPropertyCostCalculatorRoute
+  ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
+}
+
+const ToolsRouteChildren: ToolsRouteChildren = {
+  ToolsMortgageCalculatorRoute: ToolsMortgageCalculatorRoute,
+  ToolsPropertyCostCalculatorRoute: ToolsPropertyCostCalculatorRoute,
+  ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
+}
+
+const ToolsRouteWithChildren = ToolsRoute._addFileChildren(ToolsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LayoutRoute: LayoutRouteWithChildren,
@@ -706,6 +817,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  ToolsRoute: ToolsRouteWithChildren,
   UnsubscribeRoute: UnsubscribeRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   SharedEvaluationShareIdRoute: SharedEvaluationShareIdRoute,

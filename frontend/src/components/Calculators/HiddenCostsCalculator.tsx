@@ -10,8 +10,6 @@ import {
   ExternalLink,
   Info,
   RefreshCw,
-  Save,
-  Share2,
   Trash2,
 } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -43,8 +41,10 @@ import {
   useSaveCalculation,
 } from "@/hooks/mutations/useCalculatorMutations"
 import { useUserCalculations } from "@/hooks/queries/useCalculatorQueries"
+import { isLoggedIn } from "@/hooks/useAuth"
 import type { HiddenCostCalculationInput } from "@/models/calculator"
 import { FormRow } from "./common/FormRow"
+import { SaveShareSection } from "./common/SaveShareSection"
 
 interface IProps {
   className?: string
@@ -199,6 +199,7 @@ function HiddenCostsCalculator(props: IProps) {
   const [saveName, setSaveName] = useState("")
   const [shareUrl, setShareUrl] = useState("")
 
+  const authenticated = isLoggedIn()
   const saveCalculation = useSaveCalculation()
   const deleteCalculation = useDeleteCalculation()
   const { data: savedCalcs } = useUserCalculations()
@@ -539,44 +540,14 @@ function HiddenCostsCalculator(props: IProps) {
                   Export Results
                 </Button>
 
-                {/* Save Section */}
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Name this calculation (optional)"
-                    value={saveName}
-                    onChange={(e) => setSaveName(e.target.value)}
-                  />
-                  <Button
-                    onClick={handleSave}
-                    disabled={saveCalculation.isPending}
-                    className="w-full gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    {saveCalculation.isPending
-                      ? "Saving..."
-                      : "Save Calculation"}
-                  </Button>
-                </div>
-
-                {/* Share URL */}
-                {shareUrl && (
-                  <div className="rounded-lg border p-3 space-y-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Share2 className="h-4 w-4" />
-                      Share Link
-                    </p>
-                    <div className="flex gap-2">
-                      <Input value={shareUrl} readOnly className="text-xs" />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopyShareUrl}
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <SaveShareSection
+                  saveName={saveName}
+                  onSaveNameChange={setSaveName}
+                  onSave={handleSave}
+                  isSaving={saveCalculation.isPending}
+                  shareUrl={shareUrl}
+                  onCopyShareUrl={handleCopyShareUrl}
+                />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -591,7 +562,7 @@ function HiddenCostsCalculator(props: IProps) {
       </div>
 
       {/* Saved Calculations */}
-      {savedCalcs && savedCalcs.data.length > 0 && (
+      {authenticated && savedCalcs && savedCalcs.data.length > 0 && (
         <SavedCalculations
           calculations={savedCalcs.data}
           onDelete={handleDelete}

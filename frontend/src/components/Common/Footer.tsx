@@ -5,7 +5,7 @@
 const FOOTER_LINKS = [
   { label: "Terms", href: "/terms" },
   { label: "Privacy", href: "/privacy" },
-  { label: "Support", href: "mailto:support@heimpath.de" },
+  { label: "Support", href: "mailto:support@heimpath.com" },
 ] as const
 
 /******************************************************************************
