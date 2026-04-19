@@ -8,6 +8,7 @@ Create Date: 2026-04-19 14:00:00.000000
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
 # revision identifiers, used by Alembic.
@@ -28,13 +29,19 @@ GLOSSARY_CATEGORIES = (
 
 
 def upgrade() -> None:
-    # Create enum type
-    glossarycategory = sa.Enum(
+    # Create enum type with exception handling for idempotency
+    values_str = ", ".join(f"'{v}'" for v in GLOSSARY_CATEGORIES)
+    op.execute(
+        f"DO $$ BEGIN CREATE TYPE glossarycategory AS ENUM ({values_str}); "
+        "EXCEPTION WHEN duplicate_object THEN NULL; END $$;"
+    )
+
+    # Define enum for table column with create_type=False to prevent auto-creation
+    glossarycategory = postgresql.ENUM(
         *GLOSSARY_CATEGORIES,
         name="glossarycategory",
         create_type=False,
     )
-    glossarycategory.create(op.get_bind(), checkfirst=True)
 
     # Create table
     op.create_table(
