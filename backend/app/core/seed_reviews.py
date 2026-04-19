@@ -233,9 +233,10 @@ def _get_or_create_seed_users(session: Session, count: int) -> list[uuid.UUID]:
         if existing:
             user_ids.append(existing.id)
         else:
+            placeholder = f"seed-no-login-{i}"  # noqa: S105
             user = User(
                 email=email,
-                hashed_password="seeded-no-login",
+                hashed_password=placeholder,
                 full_name=f"Seed Reviewer {i + 1}",
                 is_active=False,
             )

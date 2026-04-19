@@ -53,7 +53,7 @@ function ReviewItem(props: Readonly<{ review: ProfessionalReviewType }>) {
         </span>
         {review.serviceUsed && (
           <Badge variant="outline" className="text-xs">
-            {SERVICE_TYPE_LABELS[review.serviceUsed as ServiceType]}
+            {SERVICE_TYPE_LABELS[review.serviceUsed]}
           </Badge>
         )}
         {review.languageUsed && (
@@ -66,7 +66,7 @@ function ReviewItem(props: Readonly<{ review: ProfessionalReviewType }>) {
             className={`flex items-center gap-1 text-xs ${review.wouldRecommend ? "text-green-600" : "text-red-500"}`}
           >
             <ThumbsUp
-              className={`h-3 w-3 ${!review.wouldRecommend ? "rotate-180" : ""}`}
+              className={`h-3 w-3 ${review.wouldRecommend ? "" : "rotate-180"}`}
             />
             {review.wouldRecommend ? "Recommends" : "Does not recommend"}
           </span>
