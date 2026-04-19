@@ -84,7 +84,7 @@ function NotaryChecklist(props: Readonly<INotaryChecklistProps>) {
           const isChecked = checkedQuestions.has(i)
           return (
             <button
-              key={i}
+              key={item.question}
               type="button"
               className="flex items-start gap-3 w-full text-left p-2 rounded-md hover:bg-muted/50 transition-colors"
               onClick={() => toggleQuestion(i)}
