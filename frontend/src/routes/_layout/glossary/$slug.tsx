@@ -7,7 +7,6 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { GlossaryDetail } from "@/components/Glossary"
 import { useGlossaryTerm } from "@/hooks/queries"
-import type { GlossaryTermDetail } from "@/models/glossary"
 
 /******************************************************************************
                               Route
@@ -47,7 +46,7 @@ function GlossaryTermPage() {
   }
 
   if (isLoading || !term) {
-    return <GlossaryDetail term={{} as GlossaryTermDetail} isLoading />
+    return <GlossaryDetail isLoading />
   }
 
   return <GlossaryDetail term={term} />

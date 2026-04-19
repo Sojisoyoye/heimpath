@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
 from app.api.deps import get_db
-from app.models.glossary import GlossaryCategory
+from app.models.glossary import GlossaryCategory, GlossaryTerm
 from app.schemas.glossary import (
     GlossaryCategoriesResponse,
     GlossaryCategoryInfo,
@@ -39,7 +39,7 @@ _CATEGORY_NAMES = {
 }
 
 
-def _term_to_summary(term) -> GlossaryTermSummary:
+def _term_to_summary(term: "GlossaryTerm") -> GlossaryTermSummary:
     """Convert a GlossaryTerm model to a summary schema."""
     return GlossaryTermSummary(
         id=term.id,

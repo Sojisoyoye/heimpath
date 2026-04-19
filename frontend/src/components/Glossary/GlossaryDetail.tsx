@@ -16,7 +16,7 @@ import type { GlossaryTermDetail as GlossaryTermDetailType } from "@/models/glos
 import { CATEGORY_COLORS, CATEGORY_LABELS, GlossaryCard } from "./GlossaryCard"
 
 interface IProps {
-  term: GlossaryTermDetailType
+  term?: GlossaryTermDetailType
   isLoading?: boolean
   className?: string
 }
@@ -62,7 +62,7 @@ function ExampleUsage(props: { text: string }) {
 function GlossaryDetail(props: IProps) {
   const { term, isLoading, className } = props
 
-  if (isLoading) {
+  if (isLoading || !term) {
     return <GlossaryDetailSkeleton />
   }
 
