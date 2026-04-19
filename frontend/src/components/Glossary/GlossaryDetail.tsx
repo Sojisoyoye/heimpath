@@ -40,7 +40,7 @@ function GlossaryDetailSkeleton() {
 }
 
 /** Example usage card. */
-function ExampleUsage(props: { text: string }) {
+function ExampleUsage(props: Readonly<{ text: string }>) {
   const { text } = props
 
   return (
@@ -59,7 +59,7 @@ function ExampleUsage(props: { text: string }) {
 }
 
 /** Default component. Full glossary term detail view. */
-function GlossaryDetail(props: IProps) {
+function GlossaryDetail(props: Readonly<IProps>) {
   const { term, isLoading, className } = props
 
   if (isLoading || !term) {
@@ -99,8 +99,8 @@ function GlossaryDetail(props: IProps) {
 
       {/* Full definition */}
       <div className="prose prose-slate dark:prose-invert max-w-none">
-        {term.definitionLong.split("\n\n").map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
+        {term.definitionLong.split("\n\n").map((paragraph) => (
+          <p key={paragraph.slice(0, 50)}>{paragraph}</p>
         ))}
       </div>
 

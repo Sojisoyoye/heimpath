@@ -48,7 +48,7 @@ const CATEGORY_COLORS: Record<GlossaryCategory, string> = {
 ******************************************************************************/
 
 /** Default component. Glossary term summary card. */
-function GlossaryCard(props: IProps) {
+function GlossaryCard(props: Readonly<IProps>) {
   const { term, showCategory = true, className } = props
 
   return (

@@ -26,13 +26,13 @@ interface IProps {
 ******************************************************************************/
 
 /** Loading skeleton for glossary list. */
-function GlossaryListSkeleton(props: { count?: number }) {
+function GlossaryListSkeleton(props: Readonly<{ count?: number }>) {
   const { count = 9 } = props
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="space-y-3 rounded-lg border p-4">
+        <div key={`skeleton-${i}`} className="space-y-3 rounded-lg border p-4">
           <Skeleton className="h-5 w-20" />
           <Skeleton className="h-6 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
@@ -44,7 +44,7 @@ function GlossaryListSkeleton(props: { count?: number }) {
 }
 
 /** Empty state when no terms found. */
-function EmptyState(props: { category?: GlossaryCategory }) {
+function EmptyState(props: Readonly<{ category?: GlossaryCategory }>) {
   const { category } = props
 
   return (
@@ -63,10 +63,12 @@ function EmptyState(props: { category?: GlossaryCategory }) {
 }
 
 /** Category filter bar. */
-function CategoryFilterBar(props: {
-  selected?: GlossaryCategory
-  onChange: (category: GlossaryCategory | undefined) => void
-}) {
+function CategoryFilterBar(
+  props: Readonly<{
+    selected?: GlossaryCategory
+    onChange: (category: GlossaryCategory | undefined) => void
+  }>,
+) {
   const { selected, onChange } = props
   const { data: categories } = useGlossaryCategories()
 
@@ -82,7 +84,7 @@ function CategoryFilterBar(props: {
   return (
     <div className="flex flex-wrap gap-2">
       <Button
-        variant={!selected ? "default" : "outline"}
+        variant={selected ? "outline" : "default"}
         size="sm"
         onClick={() => onChange(undefined)}
       >
@@ -112,7 +114,7 @@ function CategoryFilterBar(props: {
 }
 
 /** Default component. Paginated glossary list with filters. */
-function GlossaryList(props: IProps) {
+function GlossaryList(props: Readonly<IProps>) {
   const {
     initialCategory,
     showCategoryFilter = true,
