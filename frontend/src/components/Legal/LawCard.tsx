@@ -61,7 +61,8 @@ function LawCard(props: IProps) {
 
   const categoryLabel =
     LAW_CATEGORIES.find((c) => c.key === law.category)?.label || law.category
-  const PropertyIcon = PROPERTY_TYPE_ICONS[law.propertyType]
+  const propertyType = law.propertyType ?? "all"
+  const PropertyIcon = PROPERTY_TYPE_ICONS[propertyType]
 
   return (
     <Card className={cn("transition-shadow hover:shadow-md group", className)}>
@@ -79,7 +80,7 @@ function LawCard(props: IProps) {
               )}
               <Badge variant="outline" className="text-xs gap-1">
                 <PropertyIcon className="h-3 w-3" />
-                {PROPERTY_TYPE_LABELS[law.propertyType]}
+                {PROPERTY_TYPE_LABELS[propertyType]}
               </Badge>
             </div>
             <Link

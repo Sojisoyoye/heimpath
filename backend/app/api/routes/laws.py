@@ -123,6 +123,7 @@ async def search_laws(
             citation=law.citation,
             title_en=law.title_en,
             category=LawCategory(law.category),
+            property_type=PropertyTypeApplicability(law.property_type),
             one_line_summary=law.one_line_summary,
             relevance_score=min(score, 1.0),  # Normalize to 0-1
             matched_fields=[],  # TODO: Add matched field tracking

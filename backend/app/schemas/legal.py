@@ -125,6 +125,7 @@ class LawSearchResult(BaseModel):
     citation: str
     title_en: str
     category: LawCategory
+    property_type: PropertyTypeApplicability
     one_line_summary: str
     relevance_score: float = Field(..., ge=0, le=1)
     matched_fields: list[str] = []
