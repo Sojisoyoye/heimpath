@@ -1309,7 +1309,18 @@ function ROICalculator(props: IProps) {
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
-                  Enter property details to see ROI analysis
+                  Enter a{" "}
+                  <span className="font-medium text-foreground">
+                    Purchase Price
+                  </span>{" "}
+                  and{" "}
+                  <span className="font-medium text-foreground">
+                    Monthly Rent
+                  </span>{" "}
+                  to see your investment analysis
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Results update automatically as you type
                 </p>
               </div>
             )}
