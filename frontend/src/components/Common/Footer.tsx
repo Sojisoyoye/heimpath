@@ -1,10 +1,16 @@
+import { Link } from "@tanstack/react-router"
+
 /******************************************************************************
                               Constants
 ******************************************************************************/
 
-const FOOTER_LINKS = [
-  { label: "Terms", href: "/terms" },
-  { label: "Privacy", href: "/privacy" },
+const INTERNAL_LINKS = [
+  { label: "Terms", to: "/terms" },
+  { label: "Privacy", to: "/privacy" },
+  { label: "Imprint", to: "/imprint" },
+] as const
+
+const EXTERNAL_LINKS = [
   { label: "Support", href: "mailto:support@heimpath.com" },
 ] as const
 
@@ -20,10 +26,19 @@ function Footer() {
     <footer className="border-t py-4 px-6">
       <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
         <p className="text-muted-foreground text-xs">
-          {currentYear} HeimPath. All rights reserved.
+          &copy; {currentYear} HeimPath. All rights reserved.
         </p>
         <nav className="flex items-center gap-4">
-          {FOOTER_LINKS.map(({ label, href }) => (
+          {INTERNAL_LINKS.map(({ label, to }) => (
+            <Link
+              key={label}
+              to={to}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {label}
+            </Link>
+          ))}
+          {EXTERNAL_LINKS.map(({ label, href }) => (
             <a
               key={label}
               href={href}
