@@ -69,6 +69,7 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
   const { onCalculate } = props
   const [fields, setFields] = useState(INITIAL_STATE)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showErrors, setShowErrors] = useState(false)
 
   const update = (key: keyof typeof fields, v: string) =>
     setFields((prev) => ({ ...prev, [key]: v }))
@@ -128,7 +129,21 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
     }))
   }
 
+  const errors = {
+    propertyPrice: parseNum(fields.propertyPrice) <= 0,
+    downPayment: parseNum(fields.downPaymentAmount) <= 0,
+    interestRate: parseNum(fields.interestRate) <= 0,
+    repaymentRate: parseNum(fields.initialRepaymentRate) <= 0,
+  }
+
+  const isValid = !Object.values(errors).some(Boolean)
+
   const handleSubmit = () => {
+    if (!isValid) {
+      setShowErrors(true)
+      return
+    }
+    setShowErrors(false)
     const price = parseNum(fields.propertyPrice)
     const input: MortgageInput = {
       propertyPrice: price,
@@ -142,13 +157,10 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
     onCalculate(input)
   }
 
-  const handleReset = () => setFields(INITIAL_STATE)
-
-  const isValid =
-    parseNum(fields.propertyPrice) > 0 &&
-    parseNum(fields.downPaymentAmount) > 0 &&
-    parseNum(fields.interestRate) > 0 &&
-    parseNum(fields.initialRepaymentRate) > 0
+  const handleReset = () => {
+    setFields(INITIAL_STATE)
+    setShowErrors(false)
+  }
 
   return (
     <Card>
@@ -167,7 +179,15 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
           <h4 className="font-medium text-sm text-muted-foreground">
             Loan Details
           </h4>
-          <FormRow htmlFor="propertyPrice" label="Property Price">
+          <FormRow
+            htmlFor="propertyPrice"
+            label="Property Price"
+            error={
+              showErrors && errors.propertyPrice
+                ? "Enter a property price"
+                : undefined
+            }
+          >
             <Input
               id="propertyPrice"
               type="text"
@@ -175,12 +195,20 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
               placeholder="400.000"
               value={formatPrice(fields.propertyPrice)}
               onChange={handlePropertyPriceChange}
+              className={cn(
+                showErrors && errors.propertyPrice && "border-destructive",
+              )}
             />
           </FormRow>
           <FormRow
             htmlFor="downPayment"
             label="Down Payment"
             tooltip="Your equity contribution (Eigenkapital)"
+            error={
+              showErrors && errors.downPayment
+                ? "Enter a down payment amount"
+                : undefined
+            }
           >
             <div className="flex gap-2">
               <div className="flex-1">
@@ -191,6 +219,9 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
                   placeholder="80.000"
                   value={formatPrice(fields.downPaymentAmount)}
                   onChange={handleDownPaymentAmountChange}
+                  className={cn(
+                    showErrors && errors.downPayment && "border-destructive",
+                  )}
                 />
               </div>
               <div className="w-20">
@@ -219,6 +250,11 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
             htmlFor="interestRate"
             label="Interest Rate (Sollzins)"
             tooltip="Annual nominal interest rate from your bank offer"
+            error={
+              showErrors && errors.interestRate
+                ? "Enter an interest rate"
+                : undefined
+            }
           >
             <div className="flex items-center gap-2">
               <Input
@@ -229,6 +265,9 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
                 step="0.1"
                 value={fields.interestRate}
                 onChange={(e) => update("interestRate", e.target.value)}
+                className={cn(
+                  showErrors && errors.interestRate && "border-destructive",
+                )}
               />
               <span className="text-sm text-muted-foreground">%</span>
             </div>
@@ -237,6 +276,11 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
             htmlFor="initialRepaymentRate"
             label="Initial Repayment (Anfangstilgung)"
             tooltip="Starting annual repayment rate — higher means faster payoff"
+            error={
+              showErrors && errors.repaymentRate
+                ? "Enter a repayment rate"
+                : undefined
+            }
           >
             <div className="flex items-center gap-2">
               <Input
@@ -247,6 +291,9 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
                 step="0.5"
                 value={fields.initialRepaymentRate}
                 onChange={(e) => update("initialRepaymentRate", e.target.value)}
+                className={cn(
+                  showErrors && errors.repaymentRate && "border-destructive",
+                )}
               />
               <span className="text-sm text-muted-foreground">%</span>
             </div>
@@ -317,7 +364,7 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button onClick={handleSubmit} disabled={!isValid} className="gap-2">
+          <Button onClick={handleSubmit} className="gap-2">
             <Calculator className="h-4 w-4" />
             Calculate
           </Button>
