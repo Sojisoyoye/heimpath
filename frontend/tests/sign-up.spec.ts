@@ -148,9 +148,7 @@ test("Sign up with missing email", async ({ page }) => {
   await fillForm(page, fullName, email, password, password)
   await page.getByRole("button", { name: "Create Account" }).click()
 
-  await expect(
-    page.getByText("Please enter a valid email address"),
-  ).toBeVisible()
+  await expect(page.getByText("Email is required")).toBeVisible()
 })
 
 test("Sign up with missing password", async ({ page }) => {

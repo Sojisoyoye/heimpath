@@ -36,7 +36,10 @@ import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
 const formSchema = z
   .object({
-    email: z.string().email({ message: "Please enter a valid email address" }),
+    email: z
+      .string()
+      .min(1, { message: "Email is required" })
+      .email({ message: "Please enter a valid email address" }),
     full_name: z.string().min(1, { message: "Full name is required" }),
     citizenship: z.string().optional(),
     password: z

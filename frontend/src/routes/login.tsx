@@ -23,7 +23,10 @@ import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
 const formSchema = z.object({
-  username: z.string().email({ message: "Please enter a valid email address" }),
+  username: z
+    .string()
+    .min(1, { message: "Email is required" })
+    .email({ message: "Please enter a valid email address" }),
   password: z
     .string()
     .min(1, { message: "Password is required" })
