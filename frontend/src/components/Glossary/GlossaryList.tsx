@@ -56,7 +56,7 @@ function EmptyState(props: Readonly<{ category?: GlossaryCategory }>) {
       <p className="mt-2 text-sm text-muted-foreground max-w-sm">
         {category
           ? "No terms found in this category. Try selecting a different category."
-          : "No glossary terms available. Check back later for updates."}
+          : "We're building a comprehensive glossary of 120+ German real estate terms. This feature is coming soon."}
       </p>
     </div>
   )
