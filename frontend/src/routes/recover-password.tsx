@@ -9,7 +9,7 @@ import { Mail } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { LoginService } from "@/client"
+import { AuthService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -83,7 +83,7 @@ function RecoverPassword() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const recoverPassword = async (data: FormData) => {
-    await LoginService.recoverPassword({ requestBody: { email: data.email } })
+    await AuthService.forgotPassword({ requestBody: { email: data.email } })
   }
 
   const mutation = useMutation({
