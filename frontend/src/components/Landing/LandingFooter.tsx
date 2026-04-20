@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router"
+
 import { Logo } from "@/components/Common/Logo"
 import { Separator } from "@/components/ui/separator"
 
@@ -36,14 +38,40 @@ const FOOTER_COLUMNS: readonly [string, readonly [string, string][]][] = [
     [
       ["Terms of Service", "/terms"],
       ["Privacy Policy", "/privacy"],
-      ["Imprint", "#"],
+      ["Imprint", "/imprint"],
     ],
   ],
 ]
 
+/** Check if href is an internal route (starts with / but not # or mailto:). */
+function isInternalRoute(href: string): boolean {
+  return href.startsWith("/") && !href.startsWith("mailto:")
+}
+
 /******************************************************************************
                               Components
 ******************************************************************************/
+
+/** Footer link — uses TanStack Link for internal routes, plain <a> otherwise. */
+function FooterLink(props: { href: string; children: React.ReactNode }) {
+  const { href, children } = props
+  const className =
+    "text-sm text-muted-foreground transition-colors hover:text-foreground"
+
+  if (isInternalRoute(href)) {
+    return (
+      <Link to={href} className={className}>
+        {children}
+      </Link>
+    )
+  }
+
+  return (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  )
+}
 
 /** Default component. Landing page footer with navigation columns. */
 function LandingFooter() {
@@ -69,12 +97,7 @@ function LandingFooter() {
               <ul className="space-y-2">
                 {links.map(([label, href]) => (
                   <li key={label}>
-                    <a
-                      href={href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {label}
-                    </a>
+                    <FooterLink href={href}>{label}</FooterLink>
                   </li>
                 ))}
               </ul>
@@ -85,7 +108,7 @@ function LandingFooter() {
         <Separator className="my-8" />
 
         <p className="text-center text-xs text-muted-foreground">
-          {currentYear} HeimPath. All rights reserved.
+          &copy; {currentYear} HeimPath. All rights reserved.
         </p>
       </div>
     </footer>
