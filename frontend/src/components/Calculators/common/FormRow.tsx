@@ -13,6 +13,7 @@ interface IProps {
   tooltip?: string
   required?: boolean
   optional?: boolean
+  error?: string
   children: ReactNode
 }
 
@@ -22,7 +23,7 @@ interface IProps {
 
 /** Horizontal label-input row. Stacks on mobile, inline on sm+. */
 function FormRow(props: IProps) {
-  const { htmlFor, label, tooltip, required, optional, children } = props
+  const { htmlFor, label, tooltip, required, optional, error, children } = props
   return (
     <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
       <Label htmlFor={htmlFor} className="leading-tight sm:w-48 sm:shrink-0">
@@ -35,7 +36,10 @@ function FormRow(props: IProps) {
         )}
         {tooltip && <FieldTooltip text={tooltip} />}
       </Label>
-      <div className="min-w-0 sm:flex-1">{children}</div>
+      <div className="min-w-0 sm:flex-1">
+        {children}
+        {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      </div>
     </div>
   )
 }
