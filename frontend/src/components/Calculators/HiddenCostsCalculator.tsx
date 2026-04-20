@@ -45,6 +45,7 @@ import { isLoggedIn } from "@/hooks/useAuth"
 import type { HiddenCostCalculationInput } from "@/models/calculator"
 import { FormRow } from "./common/FormRow"
 import { SaveShareSection } from "./common/SaveShareSection"
+import { generateHiddenCostsPdf } from "./HiddenCosts/GenerateHiddenCostsPdf"
 
 interface IProps {
   className?: string
@@ -232,27 +233,19 @@ function HiddenCostsCalculator(props: IProps) {
   const handleExport = () => {
     if (!costs) return
 
-    const data = {
-      inputs: {
-        propertyPrice: costs.propertyPrice,
-        state: inputs.state,
-        propertyType: inputs.propertyType,
-      },
-      breakdown: costs,
-      generatedAt: new Date().toISOString(),
-    }
+    const stateName =
+      GERMAN_STATES.find((s) => s.code === inputs.state)?.name ?? inputs.state
+    const propertyTypeLabel =
+      PROPERTY_TYPES.find((t) => t.value === inputs.propertyType)?.label ??
+      inputs.propertyType
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
+    generateHiddenCostsPdf(costs, {
+      state: inputs.state,
+      stateName,
+      propertyType: inputs.propertyType,
+      propertyTypeLabel,
+      renovationLevel: inputs.renovationLevel,
     })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `cost-calculation-${Date.now()}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
   }
 
   const handleSave = () => {
