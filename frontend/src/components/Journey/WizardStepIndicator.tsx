@@ -65,7 +65,7 @@ function StepDot(props: {
       {!isLast && (
         <div
           className={cn(
-            "mx-1 sm:mx-2 h-0.5 w-4 sm:w-12 md:w-16",
+            "mx-1 sm:mx-2 h-0.5 w-4 shrink sm:min-w-4 sm:flex-1 sm:max-w-16",
             isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
           )}
         />
