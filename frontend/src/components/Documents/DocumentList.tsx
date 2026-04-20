@@ -3,7 +3,7 @@
  * Grid of DocumentCards with filtering and pagination
  */
 
-import { FileText, Search } from "lucide-react"
+import { FileText, RefreshCw, Search } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -140,10 +140,15 @@ function DocumentList(props: IProps) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center space-y-2">
-        <p className="text-sm text-destructive">Failed to load documents</p>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+        <h3 className="text-lg font-medium">Unable to load documents</h3>
+        <p className="text-sm text-muted-foreground mt-1 mb-4">
+          Something went wrong. Please try again.
+        </p>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
-          Try again
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Retry
         </Button>
       </div>
     )
