@@ -300,10 +300,12 @@ function ArticleDetail(props: IProps) {
             <Clock className="h-3.5 w-3.5" />
             {article.readingTimeMinutes} min read
           </span>
-          <span className="flex items-center gap-1">
-            <Eye className="h-3.5 w-3.5" />
-            {article.viewCount.toLocaleString()} views
-          </span>
+          {article.viewCount > 10 && (
+            <span className="flex items-center gap-1">
+              <Eye className="h-3.5 w-3.5" />
+              {article.viewCount.toLocaleString()} views
+            </span>
+          )}
         </div>
 
         <ShareButtons title={article.title} slug={article.slug} />
