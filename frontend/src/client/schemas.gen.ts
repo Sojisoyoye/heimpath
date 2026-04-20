@@ -4027,6 +4027,9 @@ export const LawSearchResultSchema = {
         category: {
             '$ref': '#/components/schemas/LawCategory'
         },
+        property_type: {
+            '$ref': '#/components/schemas/PropertyTypeApplicability'
+        },
         one_line_summary: {
             type: 'string',
             title: 'One Line Summary'
@@ -4047,7 +4050,7 @@ export const LawSearchResultSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'citation', 'title_en', 'category', 'one_line_summary', 'relevance_score'],
+    required: ['id', 'citation', 'title_en', 'category', 'property_type', 'one_line_summary', 'relevance_score'],
     title: 'LawSearchResult',
     description: 'Search result with relevance score.'
 } as const;

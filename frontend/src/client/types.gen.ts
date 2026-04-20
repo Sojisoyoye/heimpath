@@ -1173,6 +1173,7 @@ export type LawSearchResult = {
     citation: string;
     title_en: string;
     category: LawCategory;
+    property_type: PropertyTypeApplicability;
     one_line_summary: string;
     relevance_score: number;
     matched_fields?: Array<(string)>;
