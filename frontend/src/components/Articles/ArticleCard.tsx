@@ -101,10 +101,12 @@ function ArticleCard(props: IProps) {
               <Clock className="h-3 w-3" />
               {article.readingTimeMinutes} min read
             </span>
-            <span className="flex items-center gap-1">
-              <Eye className="h-3 w-3" />
-              {article.viewCount.toLocaleString()} views
-            </span>
+            {article.viewCount > 10 && (
+              <span className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                {article.viewCount.toLocaleString()} views
+              </span>
+            )}
           </div>
         </div>
       </CardHeader>
