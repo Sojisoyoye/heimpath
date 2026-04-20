@@ -14,7 +14,6 @@ const FOOTER_COLUMNS: readonly [string, readonly [string, string][]][] = [
     [
       ["Features", "#features"],
       ["How It Works", "#how-it-works"],
-      ["Pricing", "#"],
     ],
   ],
   [
@@ -25,14 +24,7 @@ const FOOTER_COLUMNS: readonly [string, readonly [string, string][]][] = [
       ["ROI Calculator", "/tools/roi-calculator"],
     ],
   ],
-  [
-    "Company",
-    [
-      ["About", "#"],
-      ["Blog", "#"],
-      ["Contact", "mailto:support@heimpath.com"],
-    ],
-  ],
+  ["Company", [["Contact", "mailto:support@heimpath.com"]]],
   [
     "Legal",
     [
