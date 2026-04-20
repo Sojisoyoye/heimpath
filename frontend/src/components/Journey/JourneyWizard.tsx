@@ -317,7 +317,7 @@ function JourneyWizard(props: IProps) {
   const isSubmitStep = showSummary
 
   return (
-    <div className={cn("space-y-8", className)}>
+    <div className={cn("space-y-8 overflow-hidden", className)}>
       <WizardStepIndicator
         steps={WIZARD_STEPS.map((s) => ({ id: s.id, title: s.title }))}
         currentStep={showSummary ? WIZARD_STEPS.length + 1 : currentStep}
