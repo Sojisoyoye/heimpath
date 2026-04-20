@@ -10,16 +10,14 @@ import uuid
 from fastapi import (
     APIRouter,
     BackgroundTasks,
-    Depends,
     HTTPException,
     Query,
     UploadFile,
     status,
 )
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import CurrentUser
+from app.api.deps import AsyncSessionDep, CurrentUser
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.models import SubscriptionTier
@@ -37,15 +35,6 @@ from app.schemas.document import (
 from app.services import document_service
 
 router = APIRouter(prefix="/documents", tags=["documents"])
-
-
-async def get_async_session() -> AsyncSession:  # type: ignore[misc]
-    """Provide async database session for document endpoints."""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session  # type: ignore[misc]
-        finally:
-            await session.close()
 
 
 def _build_detail_response(document: Document) -> DocumentDetailResponse:
@@ -89,8 +78,8 @@ async def upload_document(
     file: UploadFile,
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
+    session: AsyncSessionDep,
     journey_step_id: uuid.UUID | None = Query(default=None),
-    session: AsyncSession = Depends(get_async_session),
 ) -> DocumentUploadResponse:
     """
     Upload a German real estate PDF document for translation.
@@ -164,7 +153,7 @@ async def upload_document(
 @router.get("/usage", response_model=DocumentUsageResponse)
 async def get_usage(
     current_user: CurrentUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> DocumentUsageResponse:
     """
     Get document usage information for the current user.
@@ -193,7 +182,7 @@ async def get_usage(
 @router.get("/shared/{share_id}", response_model=DocumentDetailResponse)
 async def get_shared_document(
     share_id: str,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> DocumentDetailResponse:
     """
     Get a shared document by share_id.
@@ -208,7 +197,7 @@ async def get_shared_document(
 async def get_documents_by_step(
     step_id: uuid.UUID,
     current_user: CurrentUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> list[DocumentSummary]:
     """
     Get all documents linked to a journey step.
@@ -240,12 +229,12 @@ async def get_documents_by_step(
 @router.get("/", response_model=DocumentListResponse)
 async def list_documents(
     current_user: CurrentUser,
+    session: AsyncSessionDep,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     search: str | None = Query(default=None, max_length=200),
     document_type: DocumentType | None = Query(default=None),
     document_status: DocumentStatus | None = Query(default=None, alias="status"),
-    session: AsyncSession = Depends(get_async_session),
 ) -> DocumentListResponse:
     """
     Get paginated list of the current user's uploaded documents.
@@ -287,7 +276,7 @@ async def list_documents(
 async def get_document(
     document_id: str,
     current_user: CurrentUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> DocumentDetailResponse:
     """
     Get full document details including translation if completed.
@@ -310,7 +299,7 @@ async def get_document(
 async def share_document(
     document_id: str,
     current_user: CurrentUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> DocumentShareResponse:
     """
     Generate a shareable link for a completed document.
@@ -336,7 +325,7 @@ async def share_document(
 async def delete_document(
     document_id: str,
     current_user: CurrentUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> None:
     """
     Delete a document and its associated file.
@@ -352,7 +341,7 @@ async def delete_document(
 async def get_document_translation(
     document_id: str,
     current_user: CurrentUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> DocumentTranslationResponse:
     """
     Get translation results for a document.
@@ -394,7 +383,7 @@ async def get_document_translation(
 async def get_document_status(
     document_id: str,
     current_user: CurrentUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSessionDep,
 ) -> DocumentStatusResponse:
     """
     Lightweight polling endpoint for document processing status.
