@@ -16,6 +16,7 @@ import {
   Upload,
 } from "lucide-react"
 
+import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { ProgressBar } from "@/components/Journey/ProgressBar"
 import { GettingStartedChecklist } from "@/components/Onboarding"
@@ -49,19 +50,9 @@ interface IProps {
                               Constants
 ******************************************************************************/
 
-const PHASE_LABELS: Record<string, string> = {
-  research: "Research",
-  preparation: "Preparation",
-  buying: "Buying",
-  closing: "Closing",
-}
-
-const PHASE_COLORS: Record<string, string> = {
-  research: "bg-blue-100 text-blue-800",
-  preparation: "bg-purple-100 text-purple-800",
-  buying: "bg-orange-100 text-orange-800",
-  closing: "bg-green-100 text-green-800",
-}
+const PHASE_LABELS: Record<string, string> = Object.fromEntries(
+  JOURNEY_PHASES.map((p) => [p.key, p.label]),
+)
 
 const ACTIVITY_ICONS: Record<ActivityType, typeof FileText> = {
   journey_started: MapIcon,

@@ -6,7 +6,7 @@
 import { Check, ChevronDown, ChevronRight, Circle, Clock } from "lucide-react"
 import { useState } from "react"
 
-import { PHASE_COLORS } from "@/common/constants"
+import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -132,7 +132,8 @@ function StepCard(props: IProps) {
                 variant="outline"
                 className={cn("text-xs", PHASE_COLORS[step.phase])}
               >
-                {step.phase.charAt(0).toUpperCase() + step.phase.slice(1)}
+                {JOURNEY_PHASES.find((p) => p.key === step.phase)?.label ??
+                  step.phase}
               </Badge>
               <span className="text-xs text-muted-foreground">
                 Step {step.step_number}

@@ -9,6 +9,7 @@ import { useState } from "react"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
+  JOURNEY_PHASES,
   PHASE_COLORS,
   PROPERTY_TYPES,
 } from "@/common/constants"
@@ -234,8 +235,8 @@ function JourneyDetail(props: IProps) {
                   PHASE_COLORS[journey.current_phase],
                 )}
               >
-                {journey.current_phase.charAt(0).toUpperCase() +
-                  journey.current_phase.slice(1)}{" "}
+                {JOURNEY_PHASES.find((p) => p.key === journey.current_phase)
+                  ?.label ?? journey.current_phase}{" "}
                 Phase
               </Badge>
             </div>

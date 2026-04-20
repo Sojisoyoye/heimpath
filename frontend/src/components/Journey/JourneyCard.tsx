@@ -5,7 +5,12 @@
 
 import { Link } from "@tanstack/react-router"
 import { ArrowRight, Calendar, Home, MapPin, Trash2 } from "lucide-react"
-import { GERMAN_STATES, PHASE_COLORS, PROPERTY_TYPES } from "@/common/constants"
+import {
+  GERMAN_STATES,
+  JOURNEY_PHASES,
+  PHASE_COLORS,
+  PROPERTY_TYPES,
+} from "@/common/constants"
 import { cn, formatDate, formatEur } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -91,8 +96,8 @@ function JourneyCard(props: IProps) {
               variant="secondary"
               className={cn("shrink-0", PHASE_COLORS[journey.current_phase])}
             >
-              {journey.current_phase.charAt(0).toUpperCase() +
-                journey.current_phase.slice(1)}{" "}
+              {JOURNEY_PHASES.find((p) => p.key === journey.current_phase)
+                ?.label ?? journey.current_phase}{" "}
               Phase
             </Badge>
           </div>
