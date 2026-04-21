@@ -32,6 +32,8 @@ def fake_redis(monkeypatch: pytest.MonkeyPatch) -> fakeredis.FakeRedis:
     fake = fakeredis.FakeRedis(decode_responses=True)
     monkeypatch.setattr("app.services.auth_service._redis_client", fake)
     monkeypatch.setattr("app.services.rate_limit_service._redis_client", fake)
+    monkeypatch.setattr("app.services.email_verification_service._redis_client", fake)
+    monkeypatch.setattr("app.services.password_reset_service._redis_client", fake)
     return fake
 
 
