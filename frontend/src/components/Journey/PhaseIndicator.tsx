@@ -43,7 +43,7 @@ function PhaseStep(props: {
           <div
             className={cn(
               "flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-medium transition-colors sm:h-8 sm:w-8 sm:text-sm",
-              isCompleted && "border-green-600 bg-green-600 text-white",
+              isCompleted && "border-amber-600 bg-amber-600 text-white",
               isCurrent &&
                 !isCompleted &&
                 "border-blue-600 bg-blue-600 text-white",
@@ -62,7 +62,7 @@ function PhaseStep(props: {
             className={cn(
               "text-sm font-medium",
               isCurrent && "text-foreground",
-              isCompleted && "text-green-600",
+              isCompleted && "text-amber-600",
               !isCurrent && !isCompleted && "text-muted-foreground",
               variant === "horizontal" && "hidden sm:inline",
             )}
@@ -79,7 +79,7 @@ function PhaseStep(props: {
         <div
           className={cn(
             "mx-1 h-0.5 w-4 sm:mx-2 sm:w-auto sm:flex-1",
-            isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
+            isCompleted ? "bg-amber-600" : "bg-muted-foreground/30",
           )}
         />
       )}
@@ -88,7 +88,7 @@ function PhaseStep(props: {
         <div
           className={cn(
             "ml-4 mt-2 mb-2 w-0.5 h-8",
-            isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
+            isCompleted ? "bg-amber-600" : "bg-muted-foreground/30",
           )}
         />
       )}

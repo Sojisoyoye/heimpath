@@ -71,7 +71,7 @@ const ACTIVITY_ICONS: Record<ActivityType, typeof FileText> = {
 
 const ACTIVITY_COLORS: Record<ActivityType, string> = {
   journey_started: "text-blue-600 bg-blue-50",
-  step_completed: "text-green-600 bg-green-50",
+  step_completed: "text-amber-600 bg-amber-50",
   document_uploaded: "text-purple-600 bg-purple-50",
   calculation_saved: "text-orange-600 bg-orange-50",
   roi_calculated: "text-orange-600 bg-orange-50",

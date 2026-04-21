@@ -65,7 +65,7 @@ function ProfessionalCard(props: Readonly<IProps>) {
               {professional.isVerified && (
                 <Badge
                   variant="outline"
-                  className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
                 >
                   <BadgeCheck className="h-3 w-3 mr-1" />
                   Verified
@@ -88,7 +88,7 @@ function ProfessionalCard(props: Readonly<IProps>) {
               professional.reviewCount >= 3 && (
                 <Badge
                   variant="outline"
-                  className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                  className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
                 >
                   <ThumbsUp className="h-3 w-3 mr-1" />
                   Recommended by {Math.round(professional.recommendationRate)}%
