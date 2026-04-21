@@ -1,4 +1,11 @@
-import { ClipboardList, Handshake, KeyRound, Search } from "lucide-react"
+import {
+  Building2,
+  ClipboardList,
+  Handshake,
+  Home,
+  KeyRound,
+  Search,
+} from "lucide-react"
 
 /******************************************************************************
                               Constants
@@ -40,6 +47,23 @@ const PHASES = [
       "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400",
     ring: "ring-green-200 dark:ring-green-800",
   },
+  {
+    icon: Home,
+    title: "Ownership",
+    description:
+      "Handle land registry, insurance, tax setup, and property management after your purchase.",
+    color: "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400",
+    ring: "ring-teal-200 dark:ring-teal-800",
+  },
+  {
+    icon: Building2,
+    title: "Rental Setup",
+    description:
+      "Set up rental operations, understand landlord law, analyse yields, and onboard tenants.",
+    color:
+      "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400",
+    ring: "ring-emerald-200 dark:ring-emerald-800",
+  },
 ] as const
 
 /******************************************************************************
@@ -66,9 +90,7 @@ function PhaseStep(props: { phase: (typeof PHASES)[number]; index: number }) {
       </div>
 
       <h3 className="mt-4 font-semibold">{phase.title}</h3>
-      <p className="mt-1 max-w-48 text-sm text-muted-foreground">
-        {phase.description}
-      </p>
+      <p className="mt-1 text-sm text-muted-foreground">{phase.description}</p>
     </div>
   )
 }
@@ -83,15 +105,22 @@ function HowItWorksSection() {
             How It Works
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Four phases guide you from first research to getting your keys.
+            Six phases guide you from first research to managing your portfolio.
           </p>
         </div>
 
         {/* Desktop: horizontal timeline */}
-        <div className="relative hidden gap-8 md:flex">
+        <div className="relative hidden gap-4 lg:flex">
           {/* Dashed connector line */}
-          <div className="pointer-events-none absolute left-[12.5%] right-[12.5%] top-8 border-t-2 border-dashed border-muted-foreground/25" />
+          <div className="pointer-events-none absolute left-[8%] right-[8%] top-8 border-t-2 border-dashed border-muted-foreground/25" />
 
+          {PHASES.map((phase, i) => (
+            <PhaseStep key={phase.title} phase={phase} index={i} />
+          ))}
+        </div>
+
+        {/* Tablet: 3-column grid */}
+        <div className="hidden grid-cols-3 gap-6 md:grid lg:hidden">
           {PHASES.map((phase, i) => (
             <PhaseStep key={phase.title} phase={phase} index={i} />
           ))}

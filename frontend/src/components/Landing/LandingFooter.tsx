@@ -14,6 +14,7 @@ const FOOTER_COLUMNS: readonly [string, readonly [string, string][]][] = [
     [
       ["Features", "#features"],
       ["How It Works", "#how-it-works"],
+      ["Portfolio", "/portfolio"],
     ],
   ],
   [

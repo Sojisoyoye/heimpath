@@ -34,8 +34,8 @@ function HeroSection() {
 
           <p className="mt-6 max-w-xl animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards text-lg text-muted-foreground delay-200 duration-500 motion-reduce:animate-none">
             HeimPath guides foreign investors and immigrants through every step
-            of buying property in Germany — from research to closing, in a
-            language you understand.
+            of buying property in Germany — from first research to portfolio
+            management, in a language you understand.
           </p>
 
           <div className="mt-8 flex animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards flex-wrap gap-4 delay-300 duration-500 motion-reduce:animate-none">
