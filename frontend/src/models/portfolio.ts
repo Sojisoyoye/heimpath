@@ -54,6 +54,7 @@ export interface PortfolioProperty {
   monthlyHausgeld: number | null
   isVacant: boolean
   notes: string | null
+  journeyId: string | null
   createdAt: string
 }
 

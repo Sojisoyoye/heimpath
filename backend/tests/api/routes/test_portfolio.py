@@ -9,6 +9,7 @@ from sqlmodel import Session
 from app import crud
 from app.core.config import settings
 from app.models import UserCreate
+from app.models.journey import Journey
 from app.models.portfolio import (
     CostCategory,
     PortfolioProperty,
@@ -73,6 +74,23 @@ def create_sample_transaction(
     db.commit()
     db.refresh(txn)
     return txn
+
+
+def create_sample_journey(db: Session, user_id: uuid.UUID, **overrides) -> Journey:
+    """Create a sample journey for testing."""
+    journey = Journey(
+        id=overrides.get("id", uuid.uuid4()),
+        user_id=user_id,
+        title=overrides.get("title", "Test Journey"),
+        property_type=overrides.get("property_type", "apartment"),
+        property_location=overrides.get("property_location", "BW"),
+        budget_euros=overrides.get("budget_euros", 350000),
+        property_use=overrides.get("property_use", "live_in"),
+    )
+    db.add(journey)
+    db.commit()
+    db.refresh(journey)
+    return journey
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +200,124 @@ def test_get_property_wrong_user_returns_404(client: TestClient, db: Session) ->
     )
 
     assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# From-journey endpoint
+# ---------------------------------------------------------------------------
+
+
+def test_create_property_from_journey(client: TestClient, db: Session) -> None:
+    """Test creating a portfolio property from a journey returns 201."""
+    headers, user_id = get_auth_headers(client, db)
+    journey = create_sample_journey(
+        db,
+        user_id,
+        property_type="house",
+        property_location="BW",
+        budget_euros=400000,
+        property_use="rent_out",
+    )
+
+    r = client.post(
+        f"{settings.API_V1_STR}/portfolio/properties/from-journey/{journey.id}",
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["journey_id"] == str(journey.id)
+    assert "Baden-Württemberg" in data["address"]
+    assert data["city"] == "Baden-Württemberg"
+    assert data["purchase_price"] == 400000.0
+    assert data["is_vacant"] is True
+
+
+def test_create_property_from_journey_not_found(
+    client: TestClient, db: Session
+) -> None:
+    """Test from-journey with non-existent journey returns 404."""
+    headers, _ = get_auth_headers(client, db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/portfolio/properties/from-journey/{uuid.uuid4()}",
+        headers=headers,
+    )
+
+    assert r.status_code == 404
+
+
+def test_create_property_from_journey_wrong_user(
+    client: TestClient, db: Session
+) -> None:
+    """Test from-journey with another user's journey returns 404."""
+    _, owner_id = get_auth_headers(client, db)
+    journey = create_sample_journey(db, owner_id)
+
+    other_headers, _ = get_auth_headers(client, db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/portfolio/properties/from-journey/{journey.id}",
+        headers=other_headers,
+    )
+
+    assert r.status_code == 404
+
+
+def test_create_property_from_journey_duplicate_409(
+    client: TestClient, db: Session
+) -> None:
+    """Test from-journey returns 409 when property already exists for journey."""
+    headers, user_id = get_auth_headers(client, db)
+    journey = create_sample_journey(db, user_id)
+
+    # First call succeeds
+    r1 = client.post(
+        f"{settings.API_V1_STR}/portfolio/properties/from-journey/{journey.id}",
+        headers=headers,
+    )
+    assert r1.status_code == 201
+
+    # Second call returns 409
+    r2 = client.post(
+        f"{settings.API_V1_STR}/portfolio/properties/from-journey/{journey.id}",
+        headers=headers,
+    )
+    assert r2.status_code == 409
+
+
+def test_create_property_from_journey_missing_budget(
+    client: TestClient, db: Session
+) -> None:
+    """Test from-journey with no budget uses fallback purchase_price of 1.0."""
+    headers, user_id = get_auth_headers(client, db)
+    journey = create_sample_journey(db, user_id, budget_euros=None)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/portfolio/properties/from-journey/{journey.id}",
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["purchase_price"] == 1.0
+
+
+def test_create_property_from_journey_missing_location(
+    client: TestClient, db: Session
+) -> None:
+    """Test from-journey with no location uses empty strings gracefully."""
+    headers, user_id = get_auth_headers(client, db)
+    journey = create_sample_journey(db, user_id, property_location=None)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/portfolio/properties/from-journey/{journey.id}",
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["state_code"] is None
 
 
 # ---------------------------------------------------------------------------

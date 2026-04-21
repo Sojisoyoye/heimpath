@@ -5084,6 +5084,18 @@ export const PortfolioPropertyCreateSchema = {
                 }
             ],
             title: 'Notes'
+        },
+        journey_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Id'
         }
     },
     type: 'object',
@@ -5255,6 +5267,18 @@ export const PortfolioPropertyResponseSchema = {
                 }
             ],
             title: 'Notes'
+        },
+        journey_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Id'
         },
         created_at: {
             type: 'string',

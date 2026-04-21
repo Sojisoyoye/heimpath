@@ -5,7 +5,7 @@
 
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Calendar, Home, MapPin, Trash2, Wallet } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { JourneyProgress, JourneyPublic } from "@/models/journey"
+import { JourneyCompletionCta } from "./JourneyCompletionCta"
 import { JourneyProvider } from "./JourneyContext"
 import { PhaseIndicator } from "./PhaseIndicator"
 import { ProgressBar } from "./ProgressBar"
@@ -185,6 +186,17 @@ function JourneyDetail(props: IProps) {
     localStorage.setItem("heimpath-journey-view-mode", mode)
   }
 
+  const isOwnershipComplete = useMemo(() => {
+    if (!journey) return false
+    const ownershipSteps = journey.steps.filter((s) => s.phase === "ownership")
+    return (
+      ownershipSteps.length > 0 &&
+      ownershipSteps.every(
+        (s) => s.status === "completed" || s.status === "skipped",
+      )
+    )
+  }, [journey])
+
   if (isLoading || !journey) {
     return <JourneyDetailSkeleton />
   }
@@ -255,6 +267,9 @@ function JourneyDetail(props: IProps) {
         />
         <ViewModeToggle viewMode={viewMode} onChange={handleViewModeChange} />
       </div>
+
+      {/* Completion CTA */}
+      {isOwnershipComplete && <JourneyCompletionCta journeyId={journey.id} />}
 
       {/* Main content */}
       <JourneyProvider journey={journey}>

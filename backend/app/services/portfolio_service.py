@@ -14,6 +14,7 @@ from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
+from app.models.journey import Journey
 from app.models.portfolio import (
     INCOME_TYPES,
     PortfolioProperty,
@@ -24,6 +25,7 @@ from app.schemas.portfolio import (
     PortfolioPropertyUpdate,
     PortfolioTransactionCreate,
 )
+from app.services.calculator_service import STATE_RATES
 
 # Pre-compute income type string values for fast membership checks
 _INCOME_TYPE_VALUES = {t.value for t in INCOME_TYPES}
@@ -151,6 +153,66 @@ def delete_property(
     prop = get_property(session, property_id, user_id)
     session.delete(prop)
     session.commit()
+
+
+def create_property_from_journey(
+    session: Session,
+    journey_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> PortfolioProperty:
+    """Create a portfolio property pre-filled from a completed journey.
+
+    Args:
+        session: Sync database session.
+        journey_id: Journey UUID to link from.
+        user_id: Authenticated user's UUID.
+
+    Returns:
+        Persisted PortfolioProperty model.
+
+    Raises:
+        HTTPException: If journey not found or not owned by user.
+        HTTPException: If a portfolio property already exists for this journey.
+    """
+    journey = session.get(Journey, journey_id)
+    if not journey or journey.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Journey not found",
+        )
+
+    existing = session.exec(
+        select(PortfolioProperty).where(
+            PortfolioProperty.journey_id == journey_id,
+            PortfolioProperty.user_id == user_id,
+        )
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A portfolio property already exists for this journey",
+        )
+
+    property_type = journey.property_type or "apartment"
+    location_code = journey.property_location or ""
+    state_entry = STATE_RATES.get(location_code)
+    state_name = state_entry[0] if state_entry else location_code
+
+    prop = PortfolioProperty(
+        user_id=user_id,
+        journey_id=journey_id,
+        address=f"{property_type.capitalize()} in {state_name}",
+        city=state_name,
+        postcode="",
+        state_code=location_code[:2] if location_code else None,
+        purchase_price=float(journey.budget_euros) if journey.budget_euros else 1.0,
+        square_meters=1.0,
+        is_vacant=journey.property_use == "rent_out",
+    )
+    session.add(prop)
+    session.commit()
+    session.refresh(prop)
+    return prop
 
 
 # ---------------------------------------------------------------------------

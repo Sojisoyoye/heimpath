@@ -31,6 +31,7 @@ class PortfolioPropertyCreate(BaseModel):
     monthly_hausgeld: float | None = Field(None, ge=0)
     is_vacant: bool = False
     notes: str | None = None
+    journey_id: uuid.UUID | None = None
 
 
 class PortfolioPropertyUpdate(BaseModel):
@@ -76,6 +77,7 @@ class PortfolioPropertyResponse(BaseModel):
     monthly_hausgeld: float | None = None
     is_vacant: bool
     notes: str | None = None
+    journey_id: uuid.UUID | None = None
     created_at: datetime
 
 

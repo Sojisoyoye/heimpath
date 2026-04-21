@@ -32,6 +32,26 @@ export function useCreateProperty() {
 }
 
 /**
+ * Create a portfolio property from a completed journey
+ */
+export function useCreatePropertyFromJourney() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (journeyId: string) =>
+      PortfolioService.createFromJourney(journeyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.portfolio.properties(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.portfolio.summary(),
+      })
+    },
+  })
+}
+
+/**
  * Update an existing portfolio property
  */
 export function useUpdateProperty() {

@@ -171,5 +171,7 @@ export const PATHS = {
       `${API_V1}/portfolio/properties/${propertyId}/cost-summary`,
     SUMMARY: `${API_V1}/portfolio/summary`,
     PERFORMANCE: `${API_V1}/portfolio/performance`,
+    FROM_JOURNEY: (journeyId: string) =>
+      `${API_V1}/portfolio/properties/from-journey/${journeyId}`,
   },
 } as const

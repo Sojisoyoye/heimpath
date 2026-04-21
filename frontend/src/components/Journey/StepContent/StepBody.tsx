@@ -18,8 +18,17 @@ import { useJourneyContext } from "../JourneyContext"
 import { ProgressBar } from "../ProgressBar"
 import { TaskCheckbox } from "../TaskCheckbox"
 import { MarketInsights } from "./MarketInsights"
+import { OwnershipInsurance } from "./OwnershipInsurance"
+import { OwnershipManagement } from "./OwnershipManagement"
+import { OwnershipRegistration } from "./OwnershipRegistration"
+import { OwnershipTaxFinance } from "./OwnershipTaxFinance"
 import { PropertyEvaluationSummary } from "./PropertyEvaluationSummary"
 import { PropertyGoalsForm } from "./PropertyGoalsForm"
+import { RentalLandlordLaw } from "./RentalLandlordLaw"
+import { RentalOperationsSetup } from "./RentalOperationsSetup"
+import { RentalPropertyManagement } from "./RentalPropertyManagement"
+import { RentalTaxStrategy } from "./RentalTaxStrategy"
+import { RentalYieldAnalysis } from "./RentalYieldAnalysis"
 import { StepDocumentReview } from "./StepDocumentReview"
 
 interface IProps {
@@ -67,15 +76,15 @@ const STEP_CONTENT_REGISTRY: Record<
   ),
   due_diligence: (p) => <StepDocumentReview stepId={p.step.id} />,
   review_contract: (p) => <StepDocumentReview stepId={p.step.id} />,
-  rental_landlord_law: () => null,
-  rental_yield_analysis: () => null,
-  rental_property_management: () => null,
-  rental_tax_strategy: () => null,
-  rental_operations_setup: () => null,
-  ownership_registration: () => null,
-  ownership_insurance: () => null,
-  ownership_management: () => null,
-  ownership_tax_finance: () => null,
+  rental_landlord_law: (p) => <RentalLandlordLaw step={p.step} />,
+  rental_yield_analysis: (p) => <RentalYieldAnalysis step={p.step} />,
+  rental_property_management: (p) => <RentalPropertyManagement step={p.step} />,
+  rental_tax_strategy: (p) => <RentalTaxStrategy step={p.step} />,
+  rental_operations_setup: (p) => <RentalOperationsSetup step={p.step} />,
+  ownership_registration: (p) => <OwnershipRegistration step={p.step} />,
+  ownership_insurance: (p) => <OwnershipInsurance step={p.step} />,
+  ownership_management: (p) => <OwnershipManagement step={p.step} />,
+  ownership_tax_finance: (p) => <OwnershipTaxFinance step={p.step} />,
 }
 
 /******************************************************************************
