@@ -53,7 +53,9 @@ function FeatureItem(props: {
       </div>
       <div>
         <h3 className="font-medium">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="hidden text-sm text-muted-foreground md:block">
+          {description}
+        </p>
       </div>
     </div>
   )
@@ -64,22 +66,22 @@ function AuthLayout(props: IProps) {
   const { children } = props
 
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="bg-muted dark:bg-zinc-900 relative hidden lg:flex lg:flex-col lg:justify-center lg:p-12">
-        <div className="mx-auto max-w-md space-y-8">
+    <div className="grid min-h-svh md:grid-cols-2">
+      <div className="bg-muted dark:bg-zinc-900 relative flex max-h-[50vh] flex-col justify-center overflow-hidden p-6 md:max-h-none md:p-12">
+        <div className="mx-auto max-w-md space-y-4 md:space-y-8">
           <Logo variant="full" asLink={false} />
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight">
+          <div className="space-y-1 md:space-y-2">
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">
               Navigate German Real Estate with Confidence
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground md:text-base">
               HeimPath guides foreign investors and immigrants through the
               property buying process in Germany.
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-1 md:gap-4">
             {FEATURES.map((feature) => (
               <FeatureItem key={feature.title} {...feature} />
             ))}
@@ -88,10 +90,7 @@ function AuthLayout(props: IProps) {
       </div>
 
       <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex items-center justify-between lg:justify-end">
-          <div className="lg:hidden">
-            <Logo variant="icon" />
-          </div>
+        <div className="flex items-center justify-end">
           <Appearance />
         </div>
         <div className="flex flex-1 items-center justify-center">
