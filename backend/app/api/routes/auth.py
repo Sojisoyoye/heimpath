@@ -6,6 +6,7 @@ Provides registration and login endpoints with:
 - JWT access and refresh tokens
 """
 
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -52,6 +53,8 @@ from app.utils import (
     generate_reset_password_email,
     send_email,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -111,26 +114,32 @@ async def register(
     session.commit()
     session.refresh(user)
 
-    # Record attempt (even on success, to limit rapid account creation)
-    rate_limit_service.record_register_attempt(request.email)
+    # Post-commit operations: rate limiting, verification email.
+    # These must not fail the registration — the user is already persisted.
+    try:
+        rate_limit_service.record_register_attempt(request.email)
+    except Exception:
+        logger.warning("Failed to record register rate-limit for %s", request.email)
 
-    # Generate verification token and send email
-    token_data = generate_verification_token(
-        user_id=str(user.id),
-        email=user.email,
-    )
+    try:
+        token_data = generate_verification_token(
+            user_id=str(user.id),
+            email=user.email,
+        )
 
-    if settings.emails_enabled:
-        email_data = generate_email_verification_email(
-            email_to=user.email,
-            token=token_data.token,
-            valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
-        )
-        send_email(
-            email_to=user.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
-        )
+        if settings.emails_enabled:
+            email_data = generate_email_verification_email(
+                email_to=user.email,
+                token=token_data.token,
+                valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
+            )
+            send_email(
+                email_to=user.email,
+                subject=email_data.subject,
+                html_content=email_data.html_content,
+            )
+    except Exception:
+        logger.exception("Failed to send verification email to %s", user.email)
 
     return user
 
@@ -347,24 +356,26 @@ async def resend_verification(
             email_verified=True,
         )
 
-    # Generate new verification token
-    token_data = generate_verification_token(
-        user_id=str(user.id),
-        email=user.email,
-    )
+    # Generate new verification token and send email
+    try:
+        token_data = generate_verification_token(
+            user_id=str(user.id),
+            email=user.email,
+        )
 
-    # Send verification email (only if email service is configured)
-    if settings.emails_enabled:
-        email_data = generate_email_verification_email(
-            email_to=user.email,
-            token=token_data.token,
-            valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
-        )
-        send_email(
-            email_to=user.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
-        )
+        if settings.emails_enabled:
+            email_data = generate_email_verification_email(
+                email_to=user.email,
+                token=token_data.token,
+                valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
+            )
+            send_email(
+                email_to=user.email,
+                subject=email_data.subject,
+                html_content=email_data.html_content,
+            )
+    except Exception:
+        logger.exception("Failed to send verification email to %s", user.email)
 
     return success_response
 
@@ -405,22 +416,25 @@ async def forgot_password(
     if user is None or not user.is_active:
         return success_response
 
-    token_data = generate_reset_token(
-        user_id=str(user.id),
-        email=user.email,
-    )
-
-    if settings.emails_enabled:
-        email_data = generate_reset_password_email(
-            email_to=user.email,
+    try:
+        token_data = generate_reset_token(
+            user_id=str(user.id),
             email=user.email,
-            token=token_data.token,
         )
-        send_email(
-            email_to=user.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
-        )
+
+        if settings.emails_enabled:
+            email_data = generate_reset_password_email(
+                email_to=user.email,
+                email=user.email,
+                token=token_data.token,
+            )
+            send_email(
+                email_to=user.email,
+                subject=email_data.subject,
+                html_content=email_data.html_content,
+            )
+    except Exception:
+        logger.exception("Failed to send password reset email to %s", user.email)
 
     return success_response
 

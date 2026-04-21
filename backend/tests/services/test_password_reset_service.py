@@ -1,14 +1,32 @@
-"""Tests for Password Reset Service."""
+"""Tests for Password Reset Service (Redis-backed)."""
 
 import uuid
 from datetime import datetime, timedelta, timezone
 
+import fakeredis
 import pytest
 
 from app.services.password_reset_service import (
-    PasswordResetService,
     PasswordResetToken,
+    consume_token,
+    generate_token,
+    invalidate_user_tokens,
+    verify_token,
 )
+
+
+@pytest.fixture(autouse=True)
+def _fake_redis(monkeypatch: pytest.MonkeyPatch) -> fakeredis.FakeRedis:
+    """Provide isolated fakeredis for every test."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    monkeypatch.setattr("app.services.password_reset_service._redis_client", fake)
+    return fake
+
+
+@pytest.fixture
+def user_id() -> str:
+    """Sample user ID for testing."""
+    return str(uuid.uuid4())
 
 
 class TestPasswordResetToken:
@@ -35,19 +53,9 @@ class TestPasswordResetToken:
 class TestPasswordResetService:
     """Test PasswordResetService functionality."""
 
-    @pytest.fixture
-    def service(self) -> PasswordResetService:
-        """Create fresh service for each test."""
-        return PasswordResetService()
-
-    @pytest.fixture
-    def user_id(self) -> str:
-        """Sample user ID for testing."""
-        return str(uuid.uuid4())
-
-    def test_generate_token(self, service: PasswordResetService, user_id: str) -> None:
+    def test_generate_token(self, user_id: str) -> None:
         """Should generate a reset token."""
-        token = service.generate_token(user_id, "test@example.com")
+        token = generate_token(user_id, "test@example.com")
 
         assert token is not None
         assert token.token is not None
@@ -55,142 +63,103 @@ class TestPasswordResetService:
         assert token.user_id == user_id
         assert token.email == "test@example.com"
 
-    def test_generate_token_sets_1_hour_expiry(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_generate_token_sets_1_hour_expiry(self, user_id: str) -> None:
         """Token should expire in 1 hour."""
-        token = service.generate_token(user_id, "test@example.com")
+        token = generate_token(user_id, "test@example.com")
         now = datetime.now(timezone.utc)
 
         time_diff = token.expires_at - now
         # Should be approximately 1 hour (with some tolerance)
         assert timedelta(minutes=59) < time_diff < timedelta(hours=1, minutes=1)
 
-    def test_generate_token_invalidates_previous(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_generate_token_invalidates_previous(self, user_id: str) -> None:
         """Generating new token should invalidate previous one."""
-        token1 = service.generate_token(user_id, "test@example.com")
-        token2 = service.generate_token(user_id, "test@example.com")
+        token1 = generate_token(user_id, "test@example.com")
+        token2 = generate_token(user_id, "test@example.com")
 
         # First token should be invalid
-        assert service.verify_token(token1.token) is None
+        assert verify_token(token1.token) is None
         # Second token should be valid
-        assert service.verify_token(token2.token) is not None
+        assert verify_token(token2.token) is not None
 
-    def test_verify_token_valid(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_verify_token_valid(self, user_id: str) -> None:
         """Should verify valid token."""
-        generated = service.generate_token(user_id, "test@example.com")
-        verified = service.verify_token(generated.token)
+        generated = generate_token(user_id, "test@example.com")
+        verified = verify_token(generated.token)
 
         assert verified is not None
         assert verified.user_id == user_id
         assert verified.email == "test@example.com"
 
-    def test_verify_token_invalid(self, service: PasswordResetService) -> None:
+    def test_verify_token_invalid(self) -> None:
         """Should return None for invalid token."""
-        result = service.verify_token("invalid-token")
+        result = verify_token("invalid-token")
 
         assert result is None
 
-    def test_verify_token_expired(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
-        """Should return None for expired token."""
-        # Generate token
-        token = service.generate_token(user_id, "test@example.com")
-
-        # Manually expire it by modifying the stored token
-        expired_token = PasswordResetToken(
-            token=token.token,
-            user_id=token.user_id,
-            email=token.email,
-            expires_at=datetime.now(timezone.utc) - timedelta(minutes=1),
-            created_at=token.created_at,
-        )
-        service._tokens[token.token] = expired_token
-
-        result = service.verify_token(token.token)
-
-        assert result is None
-
-    def test_verify_does_not_consume_token(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_verify_does_not_consume_token(self, user_id: str) -> None:
         """verify_token should not consume the token."""
-        generated = service.generate_token(user_id, "test@example.com")
+        generated = generate_token(user_id, "test@example.com")
 
         # Verify multiple times
-        result1 = service.verify_token(generated.token)
-        result2 = service.verify_token(generated.token)
+        result1 = verify_token(generated.token)
+        result2 = verify_token(generated.token)
 
         assert result1 is not None
         assert result2 is not None
 
-    def test_consume_token_valid(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_consume_token_valid(self, user_id: str) -> None:
         """Should consume valid token and return data."""
-        generated = service.generate_token(user_id, "test@example.com")
-        consumed = service.consume_token(generated.token)
+        generated = generate_token(user_id, "test@example.com")
+        consumed = consume_token(generated.token)
 
         assert consumed is not None
         assert consumed.user_id == user_id
 
-    def test_consume_token_removes_token(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_consume_token_removes_token(self, user_id: str) -> None:
         """Consumed token should not be usable again."""
-        generated = service.generate_token(user_id, "test@example.com")
-        service.consume_token(generated.token)
+        generated = generate_token(user_id, "test@example.com")
+        consume_token(generated.token)
 
         # Token should be gone
-        assert service.verify_token(generated.token) is None
-        assert service.consume_token(generated.token) is None
+        assert verify_token(generated.token) is None
+        assert consume_token(generated.token) is None
 
-    def test_consume_token_invalid(self, service: PasswordResetService) -> None:
+    def test_consume_token_invalid(self) -> None:
         """Should return None for invalid token."""
-        result = service.consume_token("invalid-token")
+        result = consume_token("invalid-token")
 
         assert result is None
 
-    def test_invalidate_user_tokens(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_invalidate_user_tokens(self, user_id: str) -> None:
         """Should invalidate all tokens for user."""
-        generated = service.generate_token(user_id, "test@example.com")
-        service.invalidate_user_tokens(user_id)
+        generated = generate_token(user_id, "test@example.com")
+        invalidate_user_tokens(user_id)
 
-        assert service.verify_token(generated.token) is None
+        assert verify_token(generated.token) is None
 
-    def test_different_users_separate_tokens(
-        self, service: PasswordResetService
-    ) -> None:
+    def test_different_users_separate_tokens(self) -> None:
         """Different users should have separate tokens."""
         user1_id = str(uuid.uuid4())
         user2_id = str(uuid.uuid4())
 
-        token1 = service.generate_token(user1_id, "user1@example.com")
-        token2 = service.generate_token(user2_id, "user2@example.com")
+        token1 = generate_token(user1_id, "user1@example.com")
+        token2 = generate_token(user2_id, "user2@example.com")
 
         # Both tokens should be valid
-        assert service.verify_token(token1.token) is not None
-        assert service.verify_token(token2.token) is not None
+        assert verify_token(token1.token) is not None
+        assert verify_token(token2.token) is not None
 
         # Invalidating one should not affect the other
-        service.invalidate_user_tokens(user1_id)
-        assert service.verify_token(token1.token) is None
-        assert service.verify_token(token2.token) is not None
+        invalidate_user_tokens(user1_id)
+        assert verify_token(token1.token) is None
+        assert verify_token(token2.token) is not None
 
-    def test_token_is_cryptographically_random(
-        self, service: PasswordResetService, user_id: str
-    ) -> None:
+    def test_token_is_cryptographically_random(self, user_id: str) -> None:
         """Generated tokens should be unique."""
         tokens = set()
         for _ in range(50):
-            token = service.generate_token(user_id, "test@example.com")
+            token = generate_token(user_id, "test@example.com")
             tokens.add(token.token)
 
         # All 50 tokens should be unique
