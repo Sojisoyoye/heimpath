@@ -7,8 +7,8 @@ const useCustomToast = () => {
     })
   }
 
-  const showErrorToast = (description: string) => {
-    toast.error("Something went wrong!", {
+  const showErrorToast = (description: string, title = "Error") => {
+    toast.error(title, {
       description,
     })
   }
