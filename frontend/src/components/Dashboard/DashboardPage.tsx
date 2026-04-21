@@ -7,9 +7,11 @@ import { Link } from "@tanstack/react-router"
 import {
   ArrowRight,
   BookOpen,
+  Building2,
   Calculator,
   Clock,
   FileText,
+  LayoutDashboard,
   MapIcon,
   Plus,
   TrendingUp,
@@ -218,6 +220,31 @@ function PropertyEvaluationChip() {
   )
 }
 
+/** Portfolio CTA card for users who have started a journey. */
+function PortfolioCta() {
+  return (
+    <Card className="border-teal-200 bg-teal-50/50 dark:border-teal-900 dark:bg-teal-950/20">
+      <CardContent className="flex items-center gap-4 p-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/50">
+          <LayoutDashboard className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-semibold">Portfolio</h3>
+          <p className="text-xs text-muted-foreground">
+            Track properties, income, and performance
+          </p>
+        </div>
+        <Button size="sm" variant="outline" asChild>
+          <Link to="/portfolio">
+            View
+            <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 /** Quick action buttons grid. */
 function QuickActions(props: { journeyId?: string }) {
   const actions = [
@@ -245,6 +272,12 @@ function QuickActions(props: { journeyId?: string }) {
       icon: BookOpen,
       to: "/laws" as const,
       color: "text-indigo-600",
+    },
+    {
+      label: "View Portfolio",
+      icon: Building2,
+      to: "/portfolio" as const,
+      color: "text-teal-600",
     },
   ]
 
@@ -569,6 +602,8 @@ function DashboardPage(props: Readonly<IProps>) {
           ) : (
             <PropertyEvaluationCta />
           )}
+
+          {data.hasJourney && <PortfolioCta />}
 
           <SavedItemsSection
             documents={data.recentDocuments}

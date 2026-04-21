@@ -1,4 +1,10 @@
-import { Calculator, FileText, Home, Scale } from "lucide-react"
+import {
+  Calculator,
+  FileText,
+  Home,
+  LayoutDashboard,
+  Scale,
+} from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -38,6 +44,13 @@ const FEATURES = [
     color:
       "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400",
   },
+  {
+    icon: LayoutDashboard,
+    title: "Portfolio Management",
+    description:
+      "Track your properties, monitor rental yields, manage running costs, and view performance trends — all in one place after your purchase.",
+    color: "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400",
+  },
 ] as const
 
 /******************************************************************************
@@ -51,15 +64,15 @@ function FeaturesSection() {
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Everything You Need to Buy Property in Germany
+            Everything You Need — From Search to Portfolio
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             Purpose-built tools for international buyers navigating the German
-            real estate market.
+            real estate market and managing their investments.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <Card
               key={feature.title}
