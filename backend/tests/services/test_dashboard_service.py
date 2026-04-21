@@ -18,9 +18,11 @@ from app.schemas.dashboard import (
     JourneyOverview,
 )
 from app.services.dashboard_service import (
+    _compute_days_to_target,
     _count_documents_this_month,
     _count_total_bookmarks,
     _count_total_calculations,
+    _get_estimated_total_cost,
     _get_recent_bookmarks,
     _get_recent_calculations,
     _get_recent_documents,
@@ -143,14 +145,19 @@ class TestGetJourneyOverview:
         assert result is None
 
     @patch("app.services.dashboard_service.journey_service")
+    @patch("app.services.dashboard_service._get_estimated_total_cost")
     def test_returns_overview_for_active_journey(
-        self, mock_js, user_id: uuid.UUID
+        self, mock_cost, mock_js, user_id: uuid.UUID
     ) -> None:
         """Test that overview is built from the most recent active journey."""
+        mock_cost.return_value = 250_000.0
+
         mock_journey = MagicMock(spec=Journey)
         mock_journey.id = uuid.uuid4()
         mock_journey.title = "Berlin Apartment"
         mock_journey.started_at = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        mock_journey.budget_euros = 200_000
+        mock_journey.target_purchase_date = datetime(2026, 12, 1, tzinfo=timezone.utc)
 
         mock_next_step = MagicMock(spec=JourneyStep)
         mock_next_step.title = "Define Your Property Goals"
@@ -180,16 +187,25 @@ class TestGetJourneyOverview:
         assert result.total_steps == 15
         assert result.next_step_title == "Define Your Property Goals"
         assert result.next_step_id == mock_next_step.id
+        assert result.budget_euros == 200_000
+        assert result.estimated_total_cost == 250_000.0
+        assert result.days_to_target is not None
+        assert result.days_to_target >= 0
 
+    @patch("app.services.dashboard_service._get_estimated_total_cost")
     @patch("app.services.dashboard_service.journey_service")
     def test_handles_completed_journey_no_next_step(
-        self, mock_js, user_id: uuid.UUID
+        self, mock_js, mock_cost, user_id: uuid.UUID
     ) -> None:
         """Test overview when journey is complete (no next step)."""
+        mock_cost.return_value = None
+
         mock_journey = MagicMock(spec=Journey)
         mock_journey.id = uuid.uuid4()
         mock_journey.title = "Completed Journey"
         mock_journey.started_at = datetime(2025, 6, 1, tzinfo=timezone.utc)
+        mock_journey.budget_euros = None
+        mock_journey.target_purchase_date = None
 
         mock_js.get_user_journeys.return_value = [mock_journey]
         mock_js.get_progress.return_value = {
@@ -460,6 +476,65 @@ class TestCountTotalCalculations:
 
         result = _count_total_calculations(mock_session, user_id)
         assert result == 0
+
+
+class TestComputeDaysToTarget:
+    """Tests for days-to-target computation."""
+
+    def test_returns_none_when_no_target_date(self) -> None:
+        """Test None result when target date is not set."""
+        assert _compute_days_to_target(None) is None
+
+    def test_returns_positive_days_for_future_date(self) -> None:
+        """Test positive day count for a future target date."""
+        from datetime import timedelta
+
+        future = datetime.now(timezone.utc) + timedelta(days=100)
+        result = _compute_days_to_target(future)
+        assert result is not None
+        # Allow 1-day rounding tolerance
+        assert 99 <= result <= 100
+
+    def test_returns_zero_for_past_date(self) -> None:
+        """Test that past dates return 0 (not negative)."""
+        from datetime import timedelta
+
+        past = datetime.now(timezone.utc) - timedelta(days=30)
+        result = _compute_days_to_target(past)
+        assert result == 0
+
+    def test_handles_naive_datetime(self) -> None:
+        """Test that naive datetime is treated as UTC."""
+        from datetime import timedelta
+
+        naive_future = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+            days=50
+        )
+        result = _compute_days_to_target(naive_future)
+        assert result is not None
+        assert 49 <= result <= 50
+
+
+class TestGetEstimatedTotalCost:
+    """Tests for estimated total cost lookup."""
+
+    def test_returns_cost_from_most_recent_calculation(
+        self, user_id: uuid.UUID
+    ) -> None:
+        """Test that the most recent calculation's total_cost_of_ownership is returned."""
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = 350_000.0
+
+        result = _get_estimated_total_cost(mock_session, user_id)
+        assert result == 350_000.0
+
+    def test_returns_none_when_no_calculations(self, user_id: uuid.UUID) -> None:
+        """Test None when user has no hidden cost calculations."""
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = None
+
+        result = _get_estimated_total_cost(mock_session, user_id)
+        assert result is None
 
 
 class TestCountTotalBookmarks:

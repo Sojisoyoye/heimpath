@@ -25,6 +25,10 @@ export interface JourneyOverview {
   nextStepTitle: string | null
   nextStepId: string | null
   phases: Record<string, { total: number; completed: number }>
+  budgetEuros: number | null
+  targetPurchaseDate: string | null
+  daysToTarget: number | null
+  estimatedTotalCost: number | null
 }
 
 export interface SavedDocumentSummary {

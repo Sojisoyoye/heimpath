@@ -74,6 +74,9 @@ def get_journey_overview(
     progress = journey_service.get_progress(session, journey)
     next_step = journey_service.get_next_step(session, journey)
 
+    days_to_target = _compute_days_to_target(journey.target_purchase_date)
+    estimated_total_cost = _get_estimated_total_cost(session, user_id)
+
     return JourneyOverview(
         id=journey.id,
         title=journey.title,
@@ -87,7 +90,42 @@ def get_journey_overview(
         next_step_title=next_step.title if next_step else None,
         next_step_id=next_step.id if next_step else None,
         phases=progress["phases"],
+        budget_euros=journey.budget_euros,
+        target_purchase_date=journey.target_purchase_date,
+        days_to_target=days_to_target,
+        estimated_total_cost=estimated_total_cost,
     )
+
+
+def _compute_days_to_target(
+    target_purchase_date: datetime | None,
+) -> int | None:
+    """Compute days remaining until the target purchase date."""
+    if target_purchase_date is None:
+        return None
+    now = datetime.now(timezone.utc)
+    target = (
+        target_purchase_date.replace(tzinfo=timezone.utc)
+        if target_purchase_date.tzinfo is None
+        else target_purchase_date
+    )
+    delta = (target - now).days
+    return max(delta, 0)
+
+
+def _get_estimated_total_cost(
+    session: Session,
+    user_id: uuid.UUID,
+) -> float | None:
+    """Get the total cost of ownership from the user's most recent hidden cost calculation."""
+    statement = (
+        select(HiddenCostCalculation.total_cost_of_ownership)
+        .where(HiddenCostCalculation.user_id == user_id)
+        .order_by(HiddenCostCalculation.created_at.desc())
+        .limit(1)
+    )
+    result = session.exec(statement).first()
+    return result
 
 
 def _get_recent_documents(
