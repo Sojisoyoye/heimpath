@@ -313,8 +313,21 @@ async def resend_verification(
     Generates a new verification token and sends it to the user's email.
     Any previous token for the user is invalidated.
 
+    Rate limiting: 3 attempts per hour.
+
     Note: Always returns success to prevent email enumeration attacks.
     """
+    # Check rate limit before processing
+    if rate_limit_service.is_resend_verification_locked(request.email):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many verification email requests. Please try again later.",
+            headers={"Retry-After": "3600"},
+        )
+
+    # Record attempt regardless of outcome (prevents email enumeration via timing)
+    rate_limit_service.record_resend_verification_attempt(request.email)
+
     # Find user by email
     statement = select(User).where(User.email == request.email)
     user = session.exec(statement).first()
