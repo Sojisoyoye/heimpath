@@ -55,7 +55,7 @@ function ProgressBar(props: IProps) {
         <div
           className={cn(
             "h-full rounded-full bg-blue-600 transition-all duration-300 motion-reduce:transition-none",
-            percentage === 100 && "bg-green-600",
+            percentage === 100 && "bg-amber-600",
           )}
           style={{ width: `${animatedPercentage}%` }}
         />

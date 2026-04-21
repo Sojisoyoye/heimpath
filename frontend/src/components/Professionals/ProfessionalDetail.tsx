@@ -63,7 +63,7 @@ function ReviewItem(props: Readonly<{ review: ProfessionalReviewType }>) {
         )}
         {review.wouldRecommend != null && (
           <span
-            className={`flex items-center gap-1 text-xs ${review.wouldRecommend ? "text-green-600" : "text-red-500"}`}
+            className={`flex items-center gap-1 text-xs ${review.wouldRecommend ? "text-amber-600" : "text-red-500"}`}
           >
             <ThumbsUp
               className={`h-3 w-3 ${review.wouldRecommend ? "" : "rotate-180"}`}
@@ -114,7 +114,7 @@ function ProfessionalDetail(props: Readonly<IProps>) {
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-2xl font-bold">{professional.name}</h1>
           {professional.isVerified && (
-            <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
               <BadgeCheck className="h-3.5 w-3.5 mr-1" />
               Verified
             </Badge>
@@ -163,7 +163,7 @@ function ProfessionalDetail(props: Readonly<IProps>) {
                 <div className="flex flex-wrap gap-6">
                   {professional.recommendationRate != null && (
                     <div className="flex items-center gap-2">
-                      <ThumbsUp className="h-5 w-5 text-green-600" />
+                      <ThumbsUp className="h-5 w-5 text-amber-600" />
                       <div>
                         <p className="text-sm font-medium">
                           {Math.round(professional.recommendationRate)}%

@@ -32,6 +32,11 @@ const Base = {
     Default: "#eab308",
     Dark: "#a16207",
   },
+  Amber: {
+    Light: "#fbbf24",
+    Default: "#f59e0b",
+    Dark: "#d97706",
+  },
   Orange: {
     Light: "#fdba74",
     Default: "#f97316",
@@ -95,7 +100,7 @@ const Colors = {
   Status: {
     NotStarted: Base.Grey.Default,
     InProgress: Base.Blue.Default,
-    Completed: Base.Green.Default,
+    Completed: Base.Amber.Default,
     Skipped: Base.Grey.Light,
   },
 
@@ -103,7 +108,7 @@ const Colors = {
   Chart: {
     Blue: Base.Blue.Default,
     Green: Base.Green.Default,
-    Amber: "#f59e0b",
+    Amber: Base.Amber.Default,
     Purple: Base.Purple.Default,
   },
 } as const

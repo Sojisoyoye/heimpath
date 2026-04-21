@@ -117,7 +117,7 @@ function SubscriptionCard(props: IProps) {
           <ul className="space-y-2">
             {config.features.map((feature, index) => (
               <li key={index} className="flex items-center gap-2 text-sm">
-                <Check className="h-4 w-4 text-green-600 shrink-0" />
+                <Check className="h-4 w-4 text-amber-600 shrink-0" />
                 <span className="text-muted-foreground">{feature}</span>
               </li>
             ))}

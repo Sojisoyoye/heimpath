@@ -77,7 +77,7 @@ function StatusBadge(props: { status: StepStatus }) {
       className={cn(
         "gap-1",
         status === "completed" &&
-          "border border-green-200 bg-green-100 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-400",
+          "border border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
       )}
     >
       <Icon className="h-3 w-3" />
@@ -111,7 +111,7 @@ function StepCard(props: IProps) {
         "overflow-hidden transition-all",
         isActive && "ring-2 ring-blue-600 ring-offset-2",
         step.status === "completed" &&
-          "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20",
+          "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20",
         className,
       )}
     >

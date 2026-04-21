@@ -15,7 +15,7 @@ interface WizardStep {
 interface IProps {
   steps: WizardStep[]
   currentStep: number
-  /** Step IDs that have a confirmed selection — shown with green checkmark. */
+  /** Step IDs that have a confirmed selection — shown with amber checkmark. */
   completedSteps?: Set<number>
   className?: string
 }
@@ -40,7 +40,7 @@ function StepDot(props: {
           className={cn(
             "flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 text-xs sm:text-sm font-medium transition-all",
             isCompleted
-              ? "border-green-600 bg-green-600 text-white"
+              ? "border-amber-600 bg-amber-600 text-white"
               : isCurrent
                 ? "border-blue-600 bg-blue-600 text-white"
                 : "border-muted-foreground/30 bg-background text-muted-foreground",
@@ -52,7 +52,7 @@ function StepDot(props: {
           className={cn(
             "mt-2 text-xs font-medium text-center max-w-[80px] hidden sm:block",
             isCompleted
-              ? "text-green-600"
+              ? "text-amber-600"
               : isCurrent
                 ? "text-foreground"
                 : "text-muted-foreground",
@@ -66,7 +66,7 @@ function StepDot(props: {
         <div
           className={cn(
             "mx-1 sm:mx-2 h-0.5 w-4 shrink sm:min-w-4 sm:flex-1 sm:max-w-16",
-            isCompleted ? "bg-green-600" : "bg-muted-foreground/30",
+            isCompleted ? "bg-amber-600" : "bg-muted-foreground/30",
           )}
         />
       )}

@@ -103,7 +103,7 @@ function JourneyGenerating(props: IProps) {
 
   return (
     <div className="flex flex-col items-center justify-center space-y-6 py-16">
-      <CheckCircle2 className="h-12 w-12 text-green-500" />
+      <CheckCircle2 className="h-12 w-12 text-amber-500" />
       <div className="space-y-2 text-center">
         <h2 className="text-2xl font-bold">Your journey is ready!</h2>
         <p className="text-muted-foreground">
