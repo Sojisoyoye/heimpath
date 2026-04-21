@@ -18,7 +18,7 @@ import {
 
 import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
-import { ProgressBar } from "@/components/Journey/ProgressBar"
+import JourneyRingChart from "@/components/Dashboard/JourneyRingChart"
 import { GettingStartedChecklist } from "@/components/Onboarding"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -126,29 +126,10 @@ function JourneyOverviewCard(props: { journey: JourneyOverview }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Overall Progress</span>
-            <span className="font-medium">
-              {journey.completedSteps} / {journey.totalSteps} steps
-            </span>
-          </div>
-          <ProgressBar value={journey.progressPercentage} showLabel size="md" />
-        </div>
-
-        {/* Phase progress indicators */}
-        <div className="grid grid-cols-4 gap-2">
-          {Object.entries(journey.phases).map(([phase, counts]) => (
-            <div key={phase} className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">
-                {PHASE_LABELS[phase] ?? phase}
-              </div>
-              <div className="text-sm font-medium">
-                {counts.completed}/{counts.total}
-              </div>
-            </div>
-          ))}
-        </div>
+        <JourneyRingChart
+          phases={journey.phases}
+          overallPercentage={journey.progressPercentage}
+        />
 
         {journey.nextStepTitle && (
           <div className="flex items-center justify-between rounded-lg border p-3">
