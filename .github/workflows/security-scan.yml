@@ -25,7 +25,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
         working-directory: backend
       - name: Install pip-audit
         run: uv pip install pip-audit

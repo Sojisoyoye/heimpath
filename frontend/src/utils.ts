@@ -3,25 +3,46 @@ import { ApiError } from "./client/core/ApiError"
 
 function extractErrorMessage(err: Error): string {
   if (err instanceof AxiosError) {
+    if (err.code === "ERR_NETWORK") {
+      return "Unable to connect to the server. Please check your connection and try again."
+    }
     return err.message
   }
 
   if (err instanceof ApiError) {
     const errDetail = (err.body as Record<string, unknown>)?.detail
     if (Array.isArray(errDetail) && errDetail.length > 0) {
-      return errDetail[0].msg
+      return errDetail[0]?.msg ?? "Validation failed"
     }
     if (typeof errDetail === "string" && errDetail) {
       return errDetail
     }
   }
 
-  return err.message || "Something went wrong."
+  return err.message || "An unexpected error occurred. Please try again."
 }
 
-export const handleError = function (this: (msg: string) => void, err: Error) {
+function extractErrorTitle(err: Error): string {
+  if (err instanceof AxiosError && err.code === "ERR_NETWORK") {
+    return "Connection Error"
+  }
+
+  if (err instanceof ApiError) {
+    if (err.status === 429) return "Too Many Requests"
+    if (err.status === 422) return "Validation Error"
+    if (err.status >= 500) return "Server Error"
+  }
+
+  return "Error"
+}
+
+export const handleError = function (
+  this: (description: string, title?: string) => void,
+  err: Error,
+) {
   const errorMessage = extractErrorMessage(err)
-  this(errorMessage)
+  const errorTitle = extractErrorTitle(err)
+  this(errorMessage, errorTitle)
 }
 
 export const getInitials = (name: string): string => {
