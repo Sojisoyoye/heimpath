@@ -511,6 +511,57 @@ def test_get_portfolio_summary(client: TestClient, db: Session) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Performance
+# ---------------------------------------------------------------------------
+
+
+def test_get_performance_empty(client: TestClient, db: Session) -> None:
+    """Test performance endpoint with no transactions."""
+    headers, _ = get_auth_headers(client, db)
+
+    r = client.get(
+        f"{settings.API_V1_STR}/portfolio/performance",
+        headers=headers,
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["has_data"] is False
+    assert len(data["months"]) == 12
+    for month in data["months"]:
+        assert "month" in month
+        assert month["income"] == 0.0
+        assert month["expenses"] == 0.0
+        assert month["net_cash_flow"] == 0.0
+
+
+def test_get_performance_with_transactions(client: TestClient, db: Session) -> None:
+    """Test performance endpoint returns aggregated monthly data."""
+    headers, user_id = get_auth_headers(client, db)
+    prop = create_sample_property(db, user_id, purchase_price=250000.0)
+    create_sample_transaction(
+        db, prop.id, user_id, type=TransactionType.RENT_INCOME.value, amount=1200.0
+    )
+    create_sample_transaction(
+        db,
+        prop.id,
+        user_id,
+        type=TransactionType.OPERATING_EXPENSE.value,
+        amount=400.0,
+    )
+
+    r = client.get(
+        f"{settings.API_V1_STR}/portfolio/performance",
+        headers=headers,
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["has_data"] is True
+    assert len(data["months"]) == 12
+
+
+# ---------------------------------------------------------------------------
 # Auth
 # ---------------------------------------------------------------------------
 

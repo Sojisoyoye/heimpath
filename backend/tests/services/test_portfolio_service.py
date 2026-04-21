@@ -558,3 +558,112 @@ def test_summary_net_cash_flow_negative(_mock_select: MagicMock) -> None:
     result = calculate_portfolio_summary(session, prop.user_id)
 
     assert result["net_cash_flow"] == -1000.0
+
+
+# ---------------------------------------------------------------------------
+# Monthly performance
+# ---------------------------------------------------------------------------
+
+
+@patch("app.services.portfolio_service.select")
+def test_performance_no_transactions(_mock_select: MagicMock) -> None:
+    """Test performance with no transactions returns 12 months of zeros."""
+    from app.services.portfolio_service import calculate_monthly_performance
+
+    session = MagicMock()
+    session.exec.return_value.all.return_value = []
+
+    result = calculate_monthly_performance(session, uuid.uuid4())
+
+    assert result["has_data"] is False
+    assert len(result["months"]) == 12
+    for month in result["months"]:
+        assert month["income"] == 0.0
+        assert month["expenses"] == 0.0
+        assert month["net_cash_flow"] == 0.0
+
+
+@patch("app.services.portfolio_service.select")
+def test_performance_with_transactions(_mock_select: MagicMock) -> None:
+    """Test performance buckets income and expenses by month."""
+    from app.services.portfolio_service import calculate_monthly_performance
+
+    today = date.today()
+    current_month = today.replace(day=15)
+
+    txns = [
+        _make_transaction(
+            type=TransactionType.RENT_INCOME.value,
+            amount=1200.0,
+            date=current_month,
+        ),
+        _make_transaction(
+            type=TransactionType.OPERATING_EXPENSE.value,
+            amount=500.0,
+            date=current_month,
+        ),
+        _make_transaction(
+            type=TransactionType.RENT_INCOME.value,
+            amount=800.0,
+            date=current_month,
+        ),
+    ]
+
+    session = MagicMock()
+    session.exec.return_value.all.return_value = txns
+
+    result = calculate_monthly_performance(session, uuid.uuid4())
+
+    assert result["has_data"] is True
+    assert len(result["months"]) == 12
+
+    # Find the current month entry
+    current_key = today.strftime("%Y-%m")
+    current_entry = next(m for m in result["months"] if m["month"] == current_key)
+
+    assert current_entry["income"] == 2000.0
+    assert current_entry["expenses"] == 500.0
+    assert current_entry["net_cash_flow"] == 1500.0
+
+
+@patch("app.services.portfolio_service.select")
+def test_performance_months_are_ordered(_mock_select: MagicMock) -> None:
+    """Test that the 12 months are returned in chronological order."""
+    from app.services.portfolio_service import calculate_monthly_performance
+
+    session = MagicMock()
+    session.exec.return_value.all.return_value = []
+
+    result = calculate_monthly_performance(session, uuid.uuid4())
+
+    months = [m["month"] for m in result["months"]]
+    assert months == sorted(months)
+    assert len(set(months)) == 12
+
+
+@patch("app.services.portfolio_service.select")
+def test_performance_net_cash_flow_negative(_mock_select: MagicMock) -> None:
+    """Test net cash flow is negative when expenses exceed income."""
+    from app.services.portfolio_service import calculate_monthly_performance
+
+    today = date.today().replace(day=10)
+    txns = [
+        _make_transaction(
+            type=TransactionType.RENT_INCOME.value, amount=500.0, date=today
+        ),
+        _make_transaction(
+            type=TransactionType.MORTGAGE_INTEREST.value,
+            amount=1500.0,
+            date=today,
+        ),
+    ]
+
+    session = MagicMock()
+    session.exec.return_value.all.return_value = txns
+
+    result = calculate_monthly_performance(session, uuid.uuid4())
+
+    current_key = today.strftime("%Y-%m")
+    current_entry = next(m for m in result["months"] if m["month"] == current_key)
+
+    assert current_entry["net_cash_flow"] == -1000.0

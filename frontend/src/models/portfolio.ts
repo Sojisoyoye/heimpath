@@ -123,6 +123,18 @@ export interface PortfolioSummary {
   averageGrossYield: number
 }
 
+export interface MonthlyPerformance {
+  month: string
+  income: number
+  expenses: number
+  netCashFlow: number
+}
+
+export interface PortfolioPerformance {
+  months: MonthlyPerformance[]
+  hasData: boolean
+}
+
 export interface CostCategorySummary {
   category: string
   actualTotal: number

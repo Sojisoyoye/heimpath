@@ -211,5 +211,6 @@ export const queryKeys = {
     costSummary: (propertyId: string) =>
       [...queryKeys.portfolio.all, "costSummary", propertyId] as const,
     summary: () => [...queryKeys.portfolio.all, "summary"] as const,
+    performance: () => [...queryKeys.portfolio.all, "performance"] as const,
   },
 } as const

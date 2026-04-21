@@ -7,8 +7,10 @@ plus KPI calculations for the portfolio dashboard.
 from __future__ import annotations
 
 import uuid
+from collections import defaultdict
 from datetime import date, timedelta
 
+from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
@@ -22,6 +24,9 @@ from app.schemas.portfolio import (
     PortfolioPropertyUpdate,
     PortfolioTransactionCreate,
 )
+
+# Pre-compute income type string values for fast membership checks
+_INCOME_TYPE_VALUES = {t.value for t in INCOME_TYPES}
 
 # ---------------------------------------------------------------------------
 # Property CRUD
@@ -314,10 +319,9 @@ def calculate_portfolio_summary(
     vacant_count = sum(1 for p in properties if p.is_vacant)
 
     # Aggregate transaction amounts by income/expense
-    income_types_values = {t.value for t in INCOME_TYPES}
-    total_income = sum(t.amount for t in transactions if t.type in income_types_values)
+    total_income = sum(t.amount for t in transactions if t.type in _INCOME_TYPE_VALUES)
     total_expenses = sum(
-        t.amount for t in transactions if t.type not in income_types_values
+        t.amount for t in transactions if t.type not in _INCOME_TYPE_VALUES
     )
     net_cash_flow = total_income - total_expenses
 
@@ -335,6 +339,66 @@ def calculate_portfolio_summary(
         "net_cash_flow": net_cash_flow,
         "vacancy_rate": vacancy_rate,
         "average_gross_yield": round(average_gross_yield, 2),
+    }
+
+
+def calculate_monthly_performance(
+    session: Session,
+    user_id: uuid.UUID,
+) -> dict:
+    """Calculate monthly income/expenses/net cash flow for the trailing 12 months.
+
+    Returns one entry per month even if no transactions exist for that month.
+
+    Args:
+        session: Sync database session.
+        user_id: Authenticated user's UUID.
+
+    Returns:
+        Dict with ``months`` list and ``has_data`` flag.
+    """
+    today = date.today()
+    # Start of 11 months ago (12 months total including current)
+    start_month = today.replace(day=1) - relativedelta(months=11)
+
+    txn_stmt = (
+        select(PortfolioTransaction)
+        .where(PortfolioTransaction.user_id == user_id)
+        .where(PortfolioTransaction.date >= start_month)
+    )
+    transactions = list(session.exec(txn_stmt).all())
+
+    # Bucket transactions by YYYY-MM
+    income_by_month: dict[str, float] = defaultdict(float)
+    expense_by_month: dict[str, float] = defaultdict(float)
+
+    for txn in transactions:
+        key = txn.date.strftime("%Y-%m")
+        if txn.type in _INCOME_TYPE_VALUES:
+            income_by_month[key] += txn.amount
+        else:
+            expense_by_month[key] += txn.amount
+
+    # Build 12-month series
+    months: list[dict] = []
+    cursor = start_month
+    for _ in range(12):
+        key = cursor.strftime("%Y-%m")
+        income = round(income_by_month.get(key, 0.0), 2)
+        expenses = round(expense_by_month.get(key, 0.0), 2)
+        months.append(
+            {
+                "month": key,
+                "income": income,
+                "expenses": expenses,
+                "net_cash_flow": round(income - expenses, 2),
+            }
+        )
+        cursor += relativedelta(months=1)
+
+    return {
+        "months": months,
+        "has_data": len(transactions) > 0,
     }
 
 

@@ -167,6 +167,22 @@ class PortfolioSummaryResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class MonthlyPerformanceItem(BaseModel):
+    """Single month in the portfolio performance time series."""
+
+    month: str
+    income: float
+    expenses: float
+    net_cash_flow: float
+
+
+class PortfolioPerformanceResponse(BaseModel):
+    """Monthly portfolio performance for the trailing 12 months."""
+
+    months: list[MonthlyPerformanceItem]
+    has_data: bool
+
+
 class CostCategorySummary(BaseModel):
     """Summary for a single Nebenkosten category."""
 
