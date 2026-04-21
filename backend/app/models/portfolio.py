@@ -118,6 +118,13 @@ class PortfolioProperty(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     notes = Column(Text, nullable=True)
 
+    journey_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("journey.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
 
 class PortfolioTransaction(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """A financial transaction linked to a portfolio property."""

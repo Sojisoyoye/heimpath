@@ -97,6 +97,17 @@ class PortfolioServiceClass {
   }
 
   /**
+   * Create a portfolio property pre-filled from a completed journey
+   */
+  async createFromJourney(journeyId: string): Promise<PortfolioProperty> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.PORTFOLIO.FROM_JOURNEY(journeyId),
+    })
+    return transformKeys<PortfolioProperty>(response)
+  }
+
+  /**
    * Create a transaction for a property
    */
   async createTransaction(

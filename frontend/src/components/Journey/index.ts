@@ -7,6 +7,7 @@ export { DeleteJourneyDialog } from "./DeleteJourneyDialog"
 export { FinancingSelector } from "./FinancingSelector"
 // Dashboard components
 export { JourneyCard } from "./JourneyCard"
+export { JourneyCompletionCta } from "./JourneyCompletionCta"
 export { JourneyDetail } from "./JourneyDetail"
 export { JourneyGenerating } from "./JourneyGenerating"
 export { JourneyList } from "./JourneyList"

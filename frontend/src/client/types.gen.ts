@@ -1476,6 +1476,7 @@ export type PortfolioPropertyCreate = {
     monthly_hausgeld?: (number | null);
     is_vacant?: boolean;
     notes?: (string | null);
+    journey_id?: (string | null);
 };
 
 /**
@@ -1507,6 +1508,7 @@ export type PortfolioPropertyResponse = {
     monthly_hausgeld?: (number | null);
     is_vacant: boolean;
     notes?: (string | null);
+    journey_id?: (string | null);
     created_at: string;
 };
 
@@ -3080,6 +3082,12 @@ export type PortfolioCreatePropertyData = {
 };
 
 export type PortfolioCreatePropertyResponse = (PortfolioPropertyResponse);
+
+export type PortfolioCreatePropertyFromJourneyData = {
+    journeyId: string;
+};
+
+export type PortfolioCreatePropertyFromJourneyResponse = (PortfolioPropertyResponse);
 
 export type PortfolioGetPropertyData = {
     propertyId: string;

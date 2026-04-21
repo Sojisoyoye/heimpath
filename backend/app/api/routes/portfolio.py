@@ -43,6 +43,22 @@ async def create_property(
     return PortfolioPropertyResponse.model_validate(prop)
 
 
+@router.post(
+    "/properties/from-journey/{journey_id}",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_property_from_journey(
+    journey_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> PortfolioPropertyResponse:
+    """Create a portfolio property pre-filled from a completed journey."""
+    prop = portfolio_service.create_property_from_journey(
+        session, journey_id, current_user.id
+    )
+    return PortfolioPropertyResponse.model_validate(prop)
+
+
 @router.get("/properties")
 async def list_properties(
     current_user: CurrentUser,
