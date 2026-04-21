@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-import { HeroIllustration } from "./HeroIllustration"
+import { HeroPhoto } from "./HeroPhoto"
 
 /******************************************************************************
                               Components
@@ -48,9 +48,9 @@ function HeroSection() {
           </div>
         </div>
 
-        {/* Property illustration */}
+        {/* Property photo */}
         <div className="hidden flex-1 animate-in fade-in zoom-in-95 fill-mode-backwards delay-300 duration-700 motion-reduce:animate-none md:block md:max-w-xs lg:max-w-sm">
-          <HeroIllustration />
+          <HeroPhoto />
         </div>
       </div>
     </section>
