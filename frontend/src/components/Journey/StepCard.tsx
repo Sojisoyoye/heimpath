@@ -3,7 +3,7 @@
  * Collapsible journey step with status, dynamic content, and tasks
  */
 
-import { Check, ChevronDown, ChevronRight, Circle, Clock } from "lucide-react"
+import { Check, ChevronRight, Circle, Clock } from "lucide-react"
 import { useState } from "react"
 
 import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
@@ -122,12 +122,14 @@ function StepCard(props: IProps) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              {hasBody &&
-                (isExpanded ? (
-                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                ))}
+              {hasBody && (
+                <ChevronRight
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none",
+                    isExpanded && "rotate-90",
+                  )}
+                />
+              )}
               <Badge
                 variant="outline"
                 className={cn("text-xs", PHASE_COLORS[step.phase])}
