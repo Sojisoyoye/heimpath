@@ -7,6 +7,7 @@ import { OpenAPI } from "@/client"
 import { request } from "@/client/core/request"
 import type {
   CostSummaryResponse,
+  PortfolioPerformance,
   PortfolioProperty,
   PortfolioPropertyInput,
   PortfolioPropertySummary,
@@ -167,6 +168,17 @@ class PortfolioServiceClass {
       url,
     })
     return transformKeys<CostSummaryResponse>(response)
+  }
+
+  /**
+   * Get monthly portfolio performance (trailing 12 months)
+   */
+  async getPerformance(): Promise<PortfolioPerformance> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.PORTFOLIO.PERFORMANCE,
+    })
+    return transformKeys<PortfolioPerformance>(response)
   }
 
   /**

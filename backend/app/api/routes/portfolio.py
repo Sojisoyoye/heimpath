@@ -9,6 +9,7 @@ from fastapi import APIRouter, Query, status
 from app.api.deps import CurrentUser, SessionDep
 from app.schemas.portfolio import (
     CostSummaryResponse,
+    PortfolioPerformanceResponse,
     PortfolioPropertyCreate,
     PortfolioPropertyListResponse,
     PortfolioPropertyResponse,
@@ -164,6 +165,21 @@ async def get_cost_summary(
         session, property_id, current_user.id, date_from=date_from, date_to=date_to
     )
     return CostSummaryResponse(**summary)
+
+
+# ---------------------------------------------------------------------------
+# Performance endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.get("/performance")
+async def get_portfolio_performance(
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> PortfolioPerformanceResponse:
+    """Get monthly income/expenses/net cash flow for the trailing 12 months."""
+    data = portfolio_service.calculate_monthly_performance(session, current_user.id)
+    return PortfolioPerformanceResponse(**data)
 
 
 # ---------------------------------------------------------------------------

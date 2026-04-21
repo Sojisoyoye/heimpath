@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCreateProperty } from "@/hooks/mutations/usePortfolioMutations"
 import {
+  usePortfolioPerformance,
   usePortfolioProperties,
   usePortfolioSummary,
 } from "@/hooks/queries/usePortfolioQueries"
 import useCustomToast from "@/hooks/useCustomToast"
 import type { PortfolioPropertyInput } from "@/models/portfolio"
 import { KpiSummaryBar } from "./KpiSummaryBar"
+import { PerformanceChart } from "./PerformanceChart"
 import { PropertyCard } from "./PropertyCard"
 import { PropertyFormModal } from "./PropertyFormModal"
 
@@ -27,6 +29,8 @@ function PortfolioPage() {
   const { data: propertiesData, isLoading: isLoadingProperties } =
     usePortfolioProperties()
   const { data: summary, isLoading: isLoadingSummary } = usePortfolioSummary()
+  const { data: performance, isLoading: isLoadingPerformance } =
+    usePortfolioPerformance()
   const createProperty = useCreateProperty()
 
   const handleCreateProperty = (input: PortfolioPropertyInput) => {
@@ -71,6 +75,12 @@ function PortfolioPage() {
         </div>
       )}
       {!isLoadingSummary && summary && <KpiSummaryBar summary={summary} />}
+
+      {/* Performance Chart */}
+      {isLoadingPerformance && <Skeleton className="h-[380px]" />}
+      {!isLoadingPerformance && performance && (
+        <PerformanceChart performance={performance} />
+      )}
 
       {/* Property Grid */}
       {isLoadingProperties && (

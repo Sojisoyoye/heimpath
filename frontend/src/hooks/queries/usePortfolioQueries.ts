@@ -59,3 +59,13 @@ export function usePortfolioSummary() {
     queryFn: () => PortfolioService.getSummary(),
   })
 }
+
+/**
+ * Get monthly portfolio performance (trailing 12 months)
+ */
+export function usePortfolioPerformance() {
+  return useQuery({
+    queryKey: queryKeys.portfolio.performance(),
+    queryFn: () => PortfolioService.getPerformance(),
+  })
+}

@@ -4267,6 +4267,31 @@ export const MessageSchema = {
     title: 'Message'
 } as const;
 
+export const MonthlyPerformanceItemSchema = {
+    properties: {
+        month: {
+            type: 'string',
+            title: 'Month'
+        },
+        income: {
+            type: 'number',
+            title: 'Income'
+        },
+        expenses: {
+            type: 'number',
+            title: 'Expenses'
+        },
+        net_cash_flow: {
+            type: 'number',
+            title: 'Net Cash Flow'
+        }
+    },
+    type: 'object',
+    required: ['month', 'income', 'expenses', 'net_cash_flow'],
+    title: 'MonthlyPerformanceItem',
+    description: 'Single month in the portfolio performance time series.'
+} as const;
+
 export const NewPasswordSchema = {
     properties: {
         token: {
@@ -4843,6 +4868,26 @@ export const PortalResponseSchema = {
     required: ['url'],
     title: 'PortalResponse',
     description: 'Response with portal session URL.'
+} as const;
+
+export const PortfolioPerformanceResponseSchema = {
+    properties: {
+        months: {
+            items: {
+                '$ref': '#/components/schemas/MonthlyPerformanceItem'
+            },
+            type: 'array',
+            title: 'Months'
+        },
+        has_data: {
+            type: 'boolean',
+            title: 'Has Data'
+        }
+    },
+    type: 'object',
+    required: ['months', 'has_data'],
+    title: 'PortfolioPerformanceResponse',
+    description: 'Monthly portfolio performance for the trailing 12 months.'
 } as const;
 
 export const PortfolioPropertyCreateSchema = {

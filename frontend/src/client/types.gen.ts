@@ -1258,6 +1258,16 @@ export type Message = {
     message: string;
 };
 
+/**
+ * Single month in the portfolio performance time series.
+ */
+export type MonthlyPerformanceItem = {
+    month: string;
+    income: number;
+    expenses: number;
+    net_cash_flow: number;
+};
+
 export type NewPassword = {
     token: string;
     new_password: string;
@@ -1432,6 +1442,14 @@ export type PortalRequest = {
  */
 export type PortalResponse = {
     url: string;
+};
+
+/**
+ * Monthly portfolio performance for the trailing 12 months.
+ */
+export type PortfolioPerformanceResponse = {
+    months: Array<MonthlyPerformanceItem>;
+    has_data: boolean;
 };
 
 /**
@@ -3106,6 +3124,8 @@ export type PortfolioGetCostSummaryData = {
 };
 
 export type PortfolioGetCostSummaryResponse = (CostSummaryResponse);
+
+export type PortfolioGetPortfolioPerformanceResponse = (PortfolioPerformanceResponse);
 
 export type PortfolioGetPortfolioSummaryResponse = (PortfolioSummaryResponse);
 

@@ -170,5 +170,6 @@ export const PATHS = {
     COST_SUMMARY: (propertyId: string) =>
       `${API_V1}/portfolio/properties/${propertyId}/cost-summary`,
     SUMMARY: `${API_V1}/portfolio/summary`,
+    PERFORMANCE: `${API_V1}/portfolio/performance`,
   },
 } as const
