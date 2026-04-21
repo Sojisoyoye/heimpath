@@ -21,7 +21,10 @@ import { cn } from "@/common/utils"
 import BudgetGaugeCard from "@/components/Dashboard/BudgetGaugeCard"
 import DaysToTargetCard from "@/components/Dashboard/DaysToTargetCard"
 import JourneyRingChart from "@/components/Dashboard/JourneyRingChart"
-import { GettingStartedChecklist } from "@/components/Onboarding"
+import {
+  GettingStartedChecklist,
+  getCompletedItems,
+} from "@/components/Onboarding"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -81,6 +84,9 @@ const CALC_TYPE_LABELS: Record<string, string> = {
   roi: "ROI Analysis",
   financing: "Financing",
 }
+
+/** Show Getting Started at the top when fewer than this many steps are done. */
+const NEW_USER_THRESHOLD = 3
 
 /******************************************************************************
                               Components
@@ -177,7 +183,7 @@ function EmptyJourneyCard() {
   )
 }
 
-/** CTA card for property evaluation calculator. */
+/** Full CTA card for property evaluation calculator. */
 function PropertyEvaluationCta() {
   return (
     <Card className="border-dashed">
@@ -196,6 +202,19 @@ function PropertyEvaluationCta() {
         </Button>
       </CardContent>
     </Card>
+  )
+}
+
+/** Compact chip variant shown after the user leaves the Research phase. */
+function PropertyEvaluationChip() {
+  return (
+    <Button variant="outline" className="w-full justify-start gap-2" asChild>
+      <Link to="/calculators" search={{ tab: "property-evaluation" }}>
+        <TrendingUp className="h-4 w-4 text-teal-600" />
+        Evaluate a Property
+        <ArrowRight className="ml-auto h-4 w-4" />
+      </Link>
+    </Button>
   )
 }
 
@@ -278,10 +297,13 @@ function SavedItemsSection(props: {
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {/* Recent Documents */}
-      <Card>
+      <Card className="min-h-[180px] transition-shadow hover:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Recent Documents</CardTitle>
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-purple-600" />
+              <CardTitle className="text-base">Recent Documents</CardTitle>
+            </div>
             <Button variant="link" size="sm" className="h-auto p-0" asChild>
               <Link to="/documents">View all</Link>
             </Button>
@@ -297,7 +319,14 @@ function SavedItemsSection(props: {
               {documents.map((doc) => (
                 <li key={doc.id} className="flex items-center gap-2 text-sm">
                   <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{doc.originalFilename}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate">
+                      {doc.originalFilename}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatRelativeTime(doc.createdAt)}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -306,10 +335,13 @@ function SavedItemsSection(props: {
       </Card>
 
       {/* Recent Calculations */}
-      <Card>
+      <Card className="min-h-[180px] transition-shadow hover:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Calculations</CardTitle>
+            <div className="flex items-center gap-2">
+              <Calculator className="h-4 w-4 text-orange-600" />
+              <CardTitle className="text-base">Calculations</CardTitle>
+            </div>
             <Button variant="link" size="sm" className="h-auto p-0" asChild>
               <Link to="/calculators">View all</Link>
             </Button>
@@ -323,16 +355,18 @@ function SavedItemsSection(props: {
           ) : (
             <ul className="space-y-2">
               {calculations.map((calc) => (
-                <li
-                  key={calc.id}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="truncate">
-                    {calc.name ?? CALC_TYPE_LABELS[calc.calculatorType]}
+                <li key={calc.id} className="text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="truncate">
+                      {calc.name ?? CALC_TYPE_LABELS[calc.calculatorType]}
+                    </span>
+                    <Badge variant="outline" className="ml-2 shrink-0 text-xs">
+                      {calc.headlineValue}
+                    </Badge>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {formatRelativeTime(calc.createdAt)}
                   </span>
-                  <Badge variant="outline" className="ml-2 shrink-0 text-xs">
-                    {calc.headlineValue}
-                  </Badge>
                 </li>
               ))}
             </ul>
@@ -341,10 +375,13 @@ function SavedItemsSection(props: {
       </Card>
 
       {/* Bookmarked Laws */}
-      <Card>
+      <Card className="min-h-[180px] transition-shadow hover:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Bookmarked Laws</CardTitle>
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-indigo-600" />
+              <CardTitle className="text-base">Bookmarked Laws</CardTitle>
+            </div>
             <Button variant="link" size="sm" className="h-auto p-0" asChild>
               <Link to="/laws">View all</Link>
             </Button>
@@ -362,6 +399,9 @@ function SavedItemsSection(props: {
                   <span className="font-medium">{law.citation}</span>
                   <span className="ml-1 text-muted-foreground">
                     {law.titleEn}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {formatRelativeTime(law.bookmarkedAt)}
                   </span>
                 </li>
               ))}
@@ -491,9 +531,16 @@ function DashboardPage(props: Readonly<IProps>) {
     return <DashboardSkeleton />
   }
 
+  const isNewUser = getCompletedItems(data).size < NEW_USER_THRESHOLD
+  const isPastResearch =
+    data.hasJourney && data.journey?.currentPhase !== "research"
+
   return (
     <div className="space-y-6">
       <DashboardHeader userName={userName} />
+
+      {/* Promote Getting Started for new users — full width above the grid */}
+      {isNewUser && <GettingStartedChecklist data={data} />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column: 2/3 width */}
@@ -517,7 +564,11 @@ function DashboardPage(props: Readonly<IProps>) {
             <EmptyJourneyCard />
           )}
 
-          <PropertyEvaluationCta />
+          {isPastResearch ? (
+            <PropertyEvaluationChip />
+          ) : (
+            <PropertyEvaluationCta />
+          )}
 
           <SavedItemsSection
             documents={data.recentDocuments}
@@ -528,7 +579,8 @@ function DashboardPage(props: Readonly<IProps>) {
 
         {/* Right column: 1/3 width */}
         <div className="space-y-6">
-          <GettingStartedChecklist data={data} />
+          {/* Show Getting Started in sidebar for returning users */}
+          {!isNewUser && <GettingStartedChecklist data={data} />}
           <QuickActions journeyId={data.journey?.id} />
           <ActivityTimeline activities={data.recentActivity} />
           <UsageStats

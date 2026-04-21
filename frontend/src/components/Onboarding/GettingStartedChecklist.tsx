@@ -174,4 +174,4 @@ function GettingStartedChecklist(props: Readonly<IProps>) {
                               Export
 ******************************************************************************/
 
-export { GettingStartedChecklist }
+export { getCompletedItems, GettingStartedChecklist }
