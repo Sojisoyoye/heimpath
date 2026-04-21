@@ -18,6 +18,8 @@ import {
 
 import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
+import BudgetGaugeCard from "@/components/Dashboard/BudgetGaugeCard"
+import DaysToTargetCard from "@/components/Dashboard/DaysToTargetCard"
 import JourneyRingChart from "@/components/Dashboard/JourneyRingChart"
 import { GettingStartedChecklist } from "@/components/Onboarding"
 import { Badge } from "@/components/ui/badge"
@@ -497,7 +499,20 @@ function DashboardPage(props: Readonly<IProps>) {
         {/* Left column: 2/3 width */}
         <div className="space-y-6 lg:col-span-2">
           {data.hasJourney && data.journey ? (
-            <JourneyOverviewCard journey={data.journey} />
+            <>
+              <JourneyOverviewCard journey={data.journey} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <BudgetGaugeCard
+                  budgetEuros={data.journey.budgetEuros}
+                  estimatedTotalCost={data.journey.estimatedTotalCost}
+                />
+                <DaysToTargetCard
+                  daysToTarget={data.journey.daysToTarget}
+                  targetPurchaseDate={data.journey.targetPurchaseDate}
+                  journeyId={data.journey.id}
+                />
+              </div>
+            </>
           ) : (
             <EmptyJourneyCard />
           )}

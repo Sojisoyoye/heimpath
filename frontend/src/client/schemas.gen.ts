@@ -3061,6 +3061,51 @@ export const JourneyOverviewSchema = {
             },
             type: 'object',
             title: 'Phases'
+        },
+        budget_euros: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Budget Euros'
+        },
+        target_purchase_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Target Purchase Date'
+        },
+        days_to_target: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Days To Target'
+        },
+        estimated_total_cost: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Total Cost'
         }
     },
     type: 'object',

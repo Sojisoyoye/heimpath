@@ -36,6 +36,10 @@ class JourneyOverview(BaseModel):
     next_step_title: str | None = None
     next_step_id: uuid.UUID | None = None
     phases: dict[str, dict[str, int]]
+    budget_euros: int | None = None
+    target_purchase_date: datetime | None = None
+    days_to_target: int | None = None
+    estimated_total_cost: float | None = None
 
 
 class SavedDocumentSummary(BaseModel):

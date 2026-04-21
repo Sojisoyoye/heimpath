@@ -919,6 +919,10 @@ export type JourneyOverview = {
             [key: string]: (number);
         };
     };
+    budget_euros?: (number | null);
+    target_purchase_date?: (string | null);
+    days_to_target?: (number | null);
+    estimated_total_cost?: (number | null);
 };
 
 /**
