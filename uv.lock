@@ -234,6 +234,7 @@ dependencies = [
     { name = "azure-ai-translation-text" },
     { name = "email-validator" },
     { name = "emails" },
+    { name = "fakeredis" },
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "jinja2" },
@@ -258,7 +259,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "coverage" },
-    { name = "fakeredis" },
     { name = "mypy" },
     { name = "prek" },
     { name = "pytest" },
@@ -275,6 +275,7 @@ requires-dist = [
     { name = "azure-ai-translation-text", specifier = ">=1.0.0" },
     { name = "email-validator", specifier = ">=2.1.0.post1,<3.0.0.0" },
     { name = "emails", specifier = ">=0.6,<1.0" },
+    { name = "fakeredis", specifier = ">=2.0.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.116.0,<1.0.0" },
     { name = "httpx", specifier = ">=0.25.1,<1.0.0" },
     { name = "jinja2", specifier = ">=3.1.4,<4.0.0" },
@@ -299,7 +300,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "coverage", specifier = ">=7.4.3,<8.0.0" },
-    { name = "fakeredis", specifier = ">=2.0.0" },
     { name = "mypy", specifier = ">=1.8.0,<2.0.0" },
     { name = "prek", specifier = ">=0.2.24,<1.0.0" },
     { name = "pytest", specifier = ">=9.0.3" },

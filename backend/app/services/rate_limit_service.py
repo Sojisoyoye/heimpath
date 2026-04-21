@@ -12,7 +12,7 @@ from typing import NamedTuple
 
 import redis as redis_lib
 
-from app.core.config import settings
+from app.services.redis_client import get_redis
 
 # Login rate limit constants
 MAX_ATTEMPTS: int = 5
@@ -61,7 +61,7 @@ class RateLimitInfo(NamedTuple):
 def _redis() -> redis_lib.Redis:
     global _redis_client
     if _redis_client is None:
-        _redis_client = redis_lib.from_url(settings.REDIS_URL, decode_responses=True)
+        _redis_client = get_redis()
     return _redis_client
 
 

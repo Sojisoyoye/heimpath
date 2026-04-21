@@ -16,6 +16,7 @@ from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
 from app.core.config import settings
+from app.services.redis_client import get_redis
 
 ALGORITHM = "HS256"
 _BLACKLIST_PREFIX = "auth:blacklist:"
@@ -44,7 +45,7 @@ def _redis() -> redis_lib.Redis:
     """Return the shared Redis client (lazily initialised)."""
     global _redis_client
     if _redis_client is None:
-        _redis_client = redis_lib.from_url(settings.REDIS_URL, decode_responses=True)
+        _redis_client = get_redis()
     return _redis_client
 
 
