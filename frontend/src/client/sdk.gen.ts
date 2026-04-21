@@ -309,6 +309,8 @@ export class AuthService {
      * Generates a new verification token and sends it to the user's email.
      * Any previous token for the user is invalidated.
      *
+     * Rate limiting: 3 attempts per hour.
+     *
      * Note: Always returns success to prevent email enumeration attacks.
      * @param data The data for the request.
      * @param data.requestBody

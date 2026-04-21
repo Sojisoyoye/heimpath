@@ -29,6 +29,11 @@ PASSWORD_RESET_MAX_ATTEMPTS: int = 3
 PASSWORD_RESET_WINDOW_SECONDS: int = 3600  # 1 hour
 PASSWORD_RESET_LOCKOUT_SECONDS: int = 3600  # 1 hour
 
+# Resend verification rate limit constants
+RESEND_VERIFICATION_MAX_ATTEMPTS: int = 3
+RESEND_VERIFICATION_WINDOW_SECONDS: int = 3600  # 1 hour
+RESEND_VERIFICATION_LOCKOUT_SECONDS: int = 3600  # 1 hour
+
 _ATTEMPTS_PREFIX = "auth:ratelimit:attempts:"
 _LOCKOUT_PREFIX = "auth:ratelimit:lockout:"
 
@@ -37,6 +42,9 @@ _REGISTER_LOCKOUT_PREFIX = "auth:ratelimit:register:lockout:"
 
 _PASSWORD_RESET_ATTEMPTS_PREFIX = "auth:ratelimit:password_reset:attempts:"
 _PASSWORD_RESET_LOCKOUT_PREFIX = "auth:ratelimit:password_reset:lockout:"
+
+_RESEND_VERIFICATION_ATTEMPTS_PREFIX = "auth:ratelimit:resend_verification:attempts:"
+_RESEND_VERIFICATION_LOCKOUT_PREFIX = "auth:ratelimit:resend_verification:lockout:"
 
 # Module-level Redis client (connection pool, lazily initialised)
 _redis_client: redis_lib.Redis | None = None
@@ -214,4 +222,24 @@ def record_password_reset_attempt(identifier: str) -> RateLimitInfo:
         PASSWORD_RESET_MAX_ATTEMPTS,
         PASSWORD_RESET_WINDOW_SECONDS,
         PASSWORD_RESET_LOCKOUT_SECONDS,
+    )
+
+
+# ── Resend verification rate limiting ────────────────────────────────────────
+
+
+def is_resend_verification_locked(identifier: str) -> bool:
+    """Return *True* if the identifier is locked for resend verification."""
+    return _redis().ttl(f"{_RESEND_VERIFICATION_LOCKOUT_PREFIX}{identifier}") > 0
+
+
+def record_resend_verification_attempt(identifier: str) -> RateLimitInfo:
+    """Record a resend-verification attempt and return the updated status."""
+    return _record_attempt(
+        identifier,
+        _RESEND_VERIFICATION_ATTEMPTS_PREFIX,
+        _RESEND_VERIFICATION_LOCKOUT_PREFIX,
+        RESEND_VERIFICATION_MAX_ATTEMPTS,
+        RESEND_VERIFICATION_WINDOW_SECONDS,
+        RESEND_VERIFICATION_LOCKOUT_SECONDS,
     )
