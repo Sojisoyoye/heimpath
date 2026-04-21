@@ -6,7 +6,6 @@
 import { Link } from "@tanstack/react-router"
 import {
   AlertTriangle,
-  ArrowLeft,
   Building,
   Calendar,
   FileText,
@@ -21,7 +20,14 @@ import {
 import { GERMAN_STATES, LAW_CATEGORIES } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import {
   Card,
   CardContent,
@@ -220,38 +226,50 @@ function LawDetail(props: IProps) {
 
   return (
     <div className={cn("space-y-6", className)}>
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/laws">Laws</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>{categoryLabel}</BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage className="max-w-[200px] truncate sm:max-w-none">
+              {law.titleEn}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/laws">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div className="flex-1 space-y-2">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold">{law.titleEn}</h1>
-              <p className="text-muted-foreground">{law.titleDe}</p>
-            </div>
-            <BookmarkButton
-              lawId={law.id}
-              isBookmarked={law.isBookmarked ?? false}
-              variant="outline"
-              size="default"
-              showLabel
-            />
+      <div className="space-y-2">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">{law.titleEn}</h1>
+            <p className="text-muted-foreground">{law.titleDe}</p>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="font-mono">
-              {law.citation}
-            </Badge>
-            <Badge variant="secondary">{categoryLabel}</Badge>
-            {law.lastAmended && (
-              <span className="text-xs text-muted-foreground">
-                Last amended: {new Date(law.lastAmended).toLocaleDateString()}
-              </span>
-            )}
-          </div>
+          <BookmarkButton
+            lawId={law.id}
+            isBookmarked={law.isBookmarked ?? false}
+            variant="outline"
+            size="default"
+            showLabel
+          />
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="outline" className="font-mono">
+            {law.citation}
+          </Badge>
+          <Badge variant="secondary">{categoryLabel}</Badge>
+          {law.lastAmended && (
+            <span className="text-xs text-muted-foreground">
+              Last amended: {new Date(law.lastAmended).toLocaleDateString()}
+            </span>
+          )}
         </div>
       </div>
 

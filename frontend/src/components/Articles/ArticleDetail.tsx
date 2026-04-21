@@ -5,7 +5,6 @@
 
 import { Link } from "@tanstack/react-router"
 import {
-  ArrowLeft,
   Check,
   Clock,
   Copy,
@@ -22,6 +21,14 @@ import remarkGfm from "remark-gfm"
 
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -263,13 +270,22 @@ function ArticleDetail(props: IProps) {
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* Back button */}
-      <Button variant="ghost" size="sm" asChild>
-        <Link to="/articles">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Articles
-        </Link>
-      </Button>
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/articles">Articles</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage className="max-w-[200px] truncate sm:max-w-none">
+              {article.title}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       {/* Header */}
       <div className="space-y-4">
