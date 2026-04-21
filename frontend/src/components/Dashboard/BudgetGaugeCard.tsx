@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useAnimateOnMount } from "@/hooks/useAnimateOnMount"
 
 interface IProps {
   budgetEuros: number | null
@@ -64,6 +65,7 @@ function GaugeBar(props: Readonly<{ budget: number; estimated: number }>) {
   const { budget, estimated } = props
   const ratio = estimated / budget
   const fillPercent = Math.min(ratio * 100, 100)
+  const animatedFillPercent = useAnimateOnMount(fillPercent)
   const overflowPercent = ratio > 1 ? Math.min((ratio - 1) * 100, 100) : 0
 
   const status =
@@ -95,8 +97,11 @@ function GaugeBar(props: Readonly<{ budget: number; estimated: number }>) {
       {/* Gauge bar */}
       <div className="relative h-3 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className={cn("h-full rounded-full transition-all", barColor)}
-          style={{ width: `${fillPercent}%` }}
+          className={cn(
+            "h-full rounded-full transition-all motion-reduce:transition-none",
+            barColor,
+          )}
+          style={{ width: `${animatedFillPercent}%` }}
         />
         {overflowPercent > 0 && (
           <div

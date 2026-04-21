@@ -4,6 +4,7 @@
  */
 
 import { cn } from "@/common/utils"
+import { useAnimateOnMount } from "@/hooks/useAnimateOnMount"
 
 interface IProps {
   value: number
@@ -31,6 +32,7 @@ const SIZE_CLASSES = {
 function ProgressBar(props: IProps) {
   const { value, max = 100, showLabel = false, size = "md", className } = props
   const percentage = Math.min(Math.round((value / max) * 100), 100)
+  const animatedPercentage = useAnimateOnMount(percentage)
 
   return (
     <div className={cn("w-full", className)}>
@@ -52,10 +54,10 @@ function ProgressBar(props: IProps) {
       >
         <div
           className={cn(
-            "h-full rounded-full bg-blue-600 transition-all duration-300",
+            "h-full rounded-full bg-blue-600 transition-all duration-300 motion-reduce:transition-none",
             percentage === 100 && "bg-green-600",
           )}
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${animatedPercentage}%` }}
         />
       </div>
     </div>

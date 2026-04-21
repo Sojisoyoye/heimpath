@@ -13,6 +13,7 @@ import {
   useUpdateTask,
 } from "@/hooks/mutations/useJourneyMutations"
 import { useJourney, useJourneyProgress } from "@/hooks/queries"
+import { useCelebration } from "@/hooks/useCelebration"
 import useCustomToast from "@/hooks/useCustomToast"
 
 /******************************************************************************
@@ -46,6 +47,7 @@ function JourneyDetailPage() {
   const updateStep = useUpdateStep(journeyId)
   const deleteJourney = useDeleteJourney()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  useCelebration(journey?.steps ?? [])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleTaskToggle = (
