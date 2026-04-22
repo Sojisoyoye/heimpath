@@ -76,7 +76,14 @@ export const Route = createFileRoute("/signup")({
     }
   },
   head: () => ({
-    meta: [{ title: "Sign Up - HeimPath" }],
+    meta: [
+      { title: "Sign Up - HeimPath" },
+      {
+        name: "description",
+        content:
+          "Create a free HeimPath account to start your guided German property buying journey with personalised steps and financial tools.",
+      },
+    ],
   }),
 })
 

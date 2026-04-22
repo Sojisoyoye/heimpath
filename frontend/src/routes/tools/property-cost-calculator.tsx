@@ -10,6 +10,7 @@ export const Route = createFileRoute("/tools/property-cost-calculator")({
     meta: toolsMeta(
       "German Property Purchase Cost Calculator - HeimPath",
       "Calculate the total cost of buying property in Germany. Includes transfer tax, notary fees, land registry, agent commission, and renovation estimates by state.",
+      "/tools/property-cost-calculator",
     ),
   }),
 })

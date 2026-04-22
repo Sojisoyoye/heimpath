@@ -10,6 +10,7 @@ export const Route = createFileRoute("/tools/roi-calculator")({
     meta: toolsMeta(
       "German Rental Property ROI Calculator - HeimPath",
       "Analyse rental investment returns in Germany. Calculate gross yield, cap rate, cash-on-cash return, and view 10-year projections with German tax impact.",
+      "/tools/roi-calculator",
     ),
   }),
 })

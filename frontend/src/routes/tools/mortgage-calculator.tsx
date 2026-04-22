@@ -10,6 +10,7 @@ export const Route = createFileRoute("/tools/mortgage-calculator")({
     meta: toolsMeta(
       "German Mortgage Calculator with Amortisation Schedule - HeimPath",
       "Calculate monthly mortgage payments for German property. View a full amortisation schedule and compare interest rates side by side.",
+      "/tools/mortgage-calculator",
     ),
   }),
 })

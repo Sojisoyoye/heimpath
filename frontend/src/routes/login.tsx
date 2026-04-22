@@ -46,7 +46,14 @@ export const Route = createFileRoute("/login")({
     }
   },
   head: () => ({
-    meta: [{ title: "Log In - HeimPath" }],
+    meta: [
+      { title: "Log In - HeimPath" },
+      {
+        name: "description",
+        content:
+          "Log in to your HeimPath account to continue your German property buying journey.",
+      },
+    ],
   }),
 })
 
