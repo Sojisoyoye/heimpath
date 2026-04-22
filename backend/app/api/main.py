@@ -6,6 +6,7 @@ from app.api.routes import (
     calculators,
     dashboard,
     documents,
+    feedback,
     financing,
     glossary,
     journeys,
@@ -44,6 +45,7 @@ api_router.include_router(market.router)
 api_router.include_router(professionals.router)
 api_router.include_router(portfolio.router)
 api_router.include_router(glossary.router)
+api_router.include_router(feedback.router)
 
 
 if settings.ENVIRONMENT == "local":

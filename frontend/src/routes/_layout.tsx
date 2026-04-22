@@ -6,6 +6,7 @@ import { useState } from "react"
 import { AuthService, type UserPublic, UsersService } from "@/client"
 import { Footer } from "@/components/Common/Footer"
 import { NavUserMenu } from "@/components/Common/NavUserMenu"
+import { FeedbackDialog } from "@/components/Feedback/FeedbackDialog"
 import NotificationBell from "@/components/Notifications/NotificationBell"
 import { SearchTrigger } from "@/components/Search"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
@@ -209,6 +210,7 @@ function Layout() {
           </div>
         </main>
         <Footer />
+        <FeedbackDialog />
       </SidebarInset>
     </SidebarProvider>
   )
