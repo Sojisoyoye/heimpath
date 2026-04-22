@@ -5,13 +5,14 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.feedback import FeedbackCategory
+
 
 class FeedbackCreate(BaseModel):
     """Schema for creating feedback."""
 
-    category: str = Field(
+    category: FeedbackCategory = Field(
         ...,
-        pattern="^(bug|feature_request|improvement|question|other)$",
         description="Feedback category",
     )
     message: str = Field(..., min_length=10, max_length=2000)
@@ -24,7 +25,7 @@ class FeedbackResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    category: str
+    category: FeedbackCategory
     message: str
     page_url: str | None
     created_at: datetime

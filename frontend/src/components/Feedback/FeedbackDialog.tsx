@@ -53,7 +53,7 @@ function FeedbackDialog() {
     setMessage("")
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     submitMutation.mutate({
       category,
@@ -69,7 +69,7 @@ function FeedbackDialog() {
       <DialogTrigger asChild>
         <Button
           size="icon"
-          className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full shadow-lg"
+          className="fixed bottom-20 right-6 z-50 h-12 w-12 rounded-full shadow-lg sm:bottom-6"
           aria-label="Send feedback"
         >
           <MessageSquarePlus className="h-5 w-5" />

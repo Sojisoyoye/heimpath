@@ -596,13 +596,18 @@ export type DocumentUsageResponse = {
 };
 
 /**
+ * Categories of user feedback.
+ */
+export type FeedbackCategory = 'bug' | 'feature_request' | 'improvement' | 'question' | 'other';
+
+/**
  * Schema for creating feedback.
  */
 export type FeedbackCreate = {
     /**
      * Feedback category
      */
-    category: string;
+    category: FeedbackCategory;
     message: string;
     page_url?: (string | null);
 };
@@ -612,7 +617,7 @@ export type FeedbackCreate = {
  */
 export type FeedbackResponse = {
     id: string;
-    category: string;
+    category: FeedbackCategory;
     message: string;
     page_url: (string | null);
     created_at: string;

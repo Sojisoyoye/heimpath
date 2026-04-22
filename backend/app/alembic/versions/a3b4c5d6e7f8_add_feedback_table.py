@@ -1,7 +1,7 @@
 """Add feedback table
 
 Revision ID: a3b4c5d6e7f8
-Revises: z2v3w4x5y6a7
+Revises: a3w4x5y6z7b8
 Create Date: 2026-04-22 16:00:00.000000
 
 """
@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic
 revision = "a3b4c5d6e7f8"
-down_revision = "z2v3w4x5y6a7"
+down_revision = "a3w4x5y6z7b8"
 branch_labels = None
 depends_on = None
 

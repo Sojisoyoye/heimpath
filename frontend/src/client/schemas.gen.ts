@@ -2019,12 +2019,17 @@ export const DocumentUsageResponseSchema = {
     description: 'Document usage limits for the current user.'
 } as const;
 
+export const FeedbackCategorySchema = {
+    type: 'string',
+    enum: ['bug', 'feature_request', 'improvement', 'question', 'other'],
+    title: 'FeedbackCategory',
+    description: 'Categories of user feedback.'
+} as const;
+
 export const FeedbackCreateSchema = {
     properties: {
         category: {
-            type: 'string',
-            pattern: '^(bug|feature_request|improvement|question|other)$',
-            title: 'Category',
+            '$ref': '#/components/schemas/FeedbackCategory',
             description: 'Feedback category'
         },
         message: {
@@ -2060,8 +2065,7 @@ export const FeedbackResponseSchema = {
             title: 'Id'
         },
         category: {
-            type: 'string',
-            title: 'Category'
+            '$ref': '#/components/schemas/FeedbackCategory'
         },
         message: {
             type: 'string',

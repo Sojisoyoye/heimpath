@@ -20,11 +20,7 @@ class FeedbackCategory(str, PyEnum):
 
 
 _feedback_category_enum = PgEnum(
-    "bug",
-    "feature_request",
-    "improvement",
-    "question",
-    "other",
+    *(m.value for m in FeedbackCategory),
     name="feedbackcategory",
     create_type=False,
 )
