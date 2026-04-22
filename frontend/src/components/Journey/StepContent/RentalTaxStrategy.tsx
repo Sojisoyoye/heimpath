@@ -43,6 +43,8 @@ function RentalTaxStrategy(_props: Readonly<IProps>) {
           },
         ]}
         tip="Consider hiring a Steuerberater (tax advisor) experienced in rental income. Their fees are tax-deductible, and they often save more than they cost through optimized deductions."
+        ctaLabel="Find a Tax Advisor"
+        ctaHref="/professionals?type=tax_advisor"
       />
       <GuidanceCard
         title="Tax Optimization"

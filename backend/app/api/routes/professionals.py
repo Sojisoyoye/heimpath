@@ -3,17 +3,22 @@
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
+from app.models import User
 from app.schemas.professional import (
+    ProfessionalCreateRequest,
     ProfessionalDetailResponse,
     ProfessionalListResponse,
     ProfessionalResponse,
+    ProfessionalUpdateRequest,
     ReviewCreateRequest,
     ReviewResponse,
 )
 from app.services import professional_service
+
+SuperUser = Annotated[User, Depends(get_current_active_superuser)]
 
 router = APIRouter(prefix="/professionals", tags=["professionals"])
 
@@ -132,3 +137,83 @@ async def create_review(
         )
 
     return ReviewResponse.model_validate(review)
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoints (superuser only)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def create_professional(
+    request: ProfessionalCreateRequest,
+    session: SessionDep,
+    _current_user: SuperUser,
+) -> ProfessionalResponse:
+    """Create a new professional (admin only)."""
+    professional = professional_service.create_professional(
+        session, request.model_dump()
+    )
+    return ProfessionalResponse.model_validate(professional)
+
+
+@router.put("/{professional_id}")
+async def update_professional(
+    professional_id: uuid.UUID,
+    request: ProfessionalUpdateRequest,
+    session: SessionDep,
+    _current_user: SuperUser,
+) -> ProfessionalResponse:
+    """Update a professional (admin only)."""
+    try:
+        professional = professional_service.update_professional(
+            session,
+            professional_id,
+            request.model_dump(exclude_unset=True),
+        )
+    except professional_service.ProfessionalNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Professional {professional_id} not found",
+        )
+    return ProfessionalResponse.model_validate(professional)
+
+
+@router.delete("/{professional_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_professional(
+    professional_id: uuid.UUID,
+    session: SessionDep,
+    _current_user: SuperUser,
+) -> None:
+    """Delete a professional (admin only)."""
+    try:
+        professional_service.delete_professional(session, professional_id)
+    except professional_service.ProfessionalNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Professional {professional_id} not found",
+        )
+
+
+@router.patch("/{professional_id}/verify")
+async def toggle_verify_professional(
+    professional_id: uuid.UUID,
+    session: SessionDep,
+    _current_user: SuperUser,
+) -> ProfessionalResponse:
+    """Toggle is_verified for a professional (admin only)."""
+    try:
+        professional = professional_service.get_professional_by_id(
+            session, professional_id
+        )
+    except professional_service.ProfessionalNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Professional {professional_id} not found",
+        )
+    professional = professional_service.update_professional(
+        session,
+        professional_id,
+        {"is_verified": not professional.is_verified},
+    )
+    return ProfessionalResponse.model_validate(professional)

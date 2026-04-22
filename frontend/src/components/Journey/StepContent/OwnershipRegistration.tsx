@@ -37,6 +37,8 @@ function OwnershipRegistration(_props: Readonly<IProps>) {
           },
         ]}
         tip="Keep your Grundbuchauszug (land registry extract) in a safe place — you'll need it for insurance, tax, and any future sale."
+        ctaLabel="Find a Notary"
+        ctaHref="/professionals?type=notary"
       />
       <GuidanceCard
         title="Registrations & Utilities"

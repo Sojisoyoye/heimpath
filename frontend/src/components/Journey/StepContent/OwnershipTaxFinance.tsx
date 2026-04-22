@@ -49,6 +49,8 @@ function OwnershipTaxFinance(_props: Readonly<IProps>) {
           },
         ]}
         tip="Since the 2025 Grundsteuer reform, tax assessments are based on new property valuations. Check your Grundsteuerwertbescheid for accuracy and file an objection (Einspruch) within one month if incorrect."
+        ctaLabel="Find a Tax Advisor"
+        ctaHref="/professionals?type=tax_advisor"
       />
       <GuidanceCard
         title="Ongoing Financial Management"

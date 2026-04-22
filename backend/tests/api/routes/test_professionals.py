@@ -512,3 +512,171 @@ def test_language_filter_escapes_wildcards(client: TestClient, db: Session) -> N
     assert r.status_code == 200
     data = r.json()
     assert data["total"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoint tests
+# ---------------------------------------------------------------------------
+
+
+def test_create_professional_requires_superuser(
+    client: TestClient, db: Session
+) -> None:
+    """Test that creating a professional requires superuser privileges."""
+    headers, _ = get_auth_headers(client, db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/",
+        json={
+            "name": "Test Lawyer",
+            "type": "lawyer",
+            "city": "Berlin",
+            "languages": "German",
+        },
+        headers=headers,
+    )
+
+    assert r.status_code == 403
+
+
+def test_create_professional_as_superuser(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test creating a professional as superuser returns 201 with correct data."""
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/",
+        json={
+            "name": "Notary Weber",
+            "type": "notary",
+            "city": "Hamburg",
+            "languages": "German, English",
+            "email": "weber@notary.de",
+            "is_verified": True,
+        },
+        headers=superuser_token_headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["name"] == "Notary Weber"
+    assert data["type"] == "notary"
+    assert data["city"] == "Hamburg"
+    assert data["is_verified"] is True
+    assert "id" in data
+
+
+def test_update_professional_requires_superuser(
+    client: TestClient, db: Session
+) -> None:
+    """Test that updating a professional requires superuser privileges."""
+    professional = create_sample_professional(db)
+    headers, _ = get_auth_headers(client, db)
+
+    r = client.put(
+        f"{settings.API_V1_STR}/professionals/{professional.id}",
+        json={"name": "Updated Name"},
+        headers=headers,
+    )
+
+    assert r.status_code == 403
+
+
+def test_update_professional_as_superuser(
+    client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test updating a professional as superuser performs partial update."""
+    professional = create_sample_professional(db, name="Original Name", city="Berlin")
+
+    r = client.put(
+        f"{settings.API_V1_STR}/professionals/{professional.id}",
+        json={"name": "Updated Name"},
+        headers=superuser_token_headers,
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["name"] == "Updated Name"
+    assert data["city"] == "Berlin"
+
+
+def test_update_professional_not_found(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test updating a non-existent professional returns 404."""
+    r = client.put(
+        f"{settings.API_V1_STR}/professionals/{uuid.uuid4()}",
+        json={"name": "Ghost"},
+        headers=superuser_token_headers,
+    )
+
+    assert r.status_code == 404
+
+
+def test_delete_professional_requires_superuser(
+    client: TestClient, db: Session
+) -> None:
+    """Test that deleting a professional requires superuser privileges."""
+    professional = create_sample_professional(db)
+    headers, _ = get_auth_headers(client, db)
+
+    r = client.delete(
+        f"{settings.API_V1_STR}/professionals/{professional.id}",
+        headers=headers,
+    )
+
+    assert r.status_code == 403
+
+
+def test_delete_professional_as_superuser(
+    client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test deleting a professional as superuser returns 204."""
+    professional = create_sample_professional(db)
+
+    r = client.delete(
+        f"{settings.API_V1_STR}/professionals/{professional.id}",
+        headers=superuser_token_headers,
+    )
+
+    assert r.status_code == 204
+
+
+def test_delete_professional_not_found(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test deleting a non-existent professional returns 404."""
+    r = client.delete(
+        f"{settings.API_V1_STR}/professionals/{uuid.uuid4()}",
+        headers=superuser_token_headers,
+    )
+
+    assert r.status_code == 404
+
+
+def test_toggle_verify_professional_as_superuser(
+    client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test toggling is_verified for a professional as superuser."""
+    professional = create_sample_professional(db)
+    original_verified = professional.is_verified
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/verify",
+        headers=superuser_token_headers,
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["is_verified"] is not original_verified
+
+
+def test_toggle_verify_professional_not_found(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test toggling verify for a non-existent professional returns 404."""
+    r = client.patch(
+        f"{settings.API_V1_STR}/professionals/{uuid.uuid4()}/verify",
+        headers=superuser_token_headers,
+    )
+
+    assert r.status_code == 404
