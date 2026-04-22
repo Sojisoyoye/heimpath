@@ -1,0 +1,90 @@
+/**
+ * Phase Completion CTA
+ * Shows a "Continue to Next Phase" prompt when all steps in a phase are complete,
+ * or a "Journey Complete" message on the last phase.
+ */
+
+import { ArrowRight, CheckCircle2, PartyPopper } from "lucide-react"
+
+import { JOURNEY_PHASES } from "@/common/constants"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import type { JourneyPhase } from "@/models/journey"
+
+interface IProps {
+  currentPhase: JourneyPhase
+  onContinue: (nextPhase: JourneyPhase) => void
+}
+
+/******************************************************************************
+                              Constants
+******************************************************************************/
+
+const VISIBLE_PHASES = JOURNEY_PHASES.filter((p) => p.key !== "rental_setup")
+
+/******************************************************************************
+                              Components
+******************************************************************************/
+
+/** Default component. Phase completion CTA card. */
+function PhaseCompletionCta(props: Readonly<IProps>) {
+  const { currentPhase, onContinue } = props
+
+  const phaseIndex = VISIBLE_PHASES.findIndex((p) => p.key === currentPhase)
+  const isLastPhase =
+    phaseIndex === -1 || phaseIndex === VISIBLE_PHASES.length - 1
+  const nextPhase = isLastPhase ? null : VISIBLE_PHASES[phaseIndex + 1]
+  const currentLabel = VISIBLE_PHASES[phaseIndex]?.label ?? currentPhase
+
+  if (isLastPhase) {
+    return (
+      <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30">
+        <CardContent className="flex flex-col items-center gap-3 py-5 text-center sm:flex-row sm:text-left">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+            <PartyPopper className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-green-900 dark:text-green-100">
+              All phases complete!
+            </h3>
+            <p className="mt-0.5 text-sm text-green-700 dark:text-green-300">
+              Congratulations — you've completed every phase of your property
+              journey.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
+      <CardContent className="flex flex-col items-center gap-3 py-5 text-center sm:flex-row sm:text-left">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50">
+          <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+            {currentLabel} phase complete!
+          </h3>
+          <p className="mt-0.5 text-sm text-blue-700 dark:text-blue-300">
+            Great progress — ready to move on to the {nextPhase?.label} phase?
+          </p>
+        </div>
+        <Button
+          className="shrink-0 gap-2"
+          onClick={() => onContinue(nextPhase!.key as JourneyPhase)}
+        >
+          Continue to {nextPhase?.label}
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+/******************************************************************************
+                              Export
+******************************************************************************/
+
+export { PhaseCompletionCta }

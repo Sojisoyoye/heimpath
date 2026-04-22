@@ -10,6 +10,7 @@ import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { JourneyPhase, JourneyStep } from "@/models/journey"
+import { PhaseCompletionCta } from "./PhaseCompletionCta"
 import { StepCard } from "./StepCard"
 
 interface IProps {
@@ -54,6 +55,14 @@ function StepTabView(props: IProps) {
 
   const phaseSteps = stepsByPhase[effectivePhase]
 
+  const isPhaseComplete =
+    phaseSteps.length > 0 &&
+    phaseSteps.every((s) => s.status === "completed" || s.status === "skipped")
+
+  const handleContinueToPhase = (nextPhase: JourneyPhase) => {
+    setSelectedPhase(nextPhase)
+  }
+
   return (
     <div className="space-y-4">
       {/* Phase pills */}
@@ -90,6 +99,14 @@ function StepTabView(props: IProps) {
           onStepOpen={onStepOpen}
         />
       ))}
+
+      {/* Phase completion CTA */}
+      {isPhaseComplete && (
+        <PhaseCompletionCta
+          currentPhase={effectivePhase}
+          onContinue={handleContinueToPhase}
+        />
+      )}
     </div>
   )
 }
