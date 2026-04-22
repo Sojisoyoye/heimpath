@@ -15,6 +15,7 @@ export const Route = createFileRoute("/tools/")({
     meta: toolsMeta(
       "Free German Property Calculators - HeimPath",
       "Free calculators for buying property in Germany. Estimate hidden costs, mortgage payments, and rental ROI — no sign-up required.",
+      "/tools",
     ),
   }),
 })

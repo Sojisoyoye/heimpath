@@ -5,6 +5,7 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 
+import { seoMeta } from "@/common/seo"
 import { LegalSection } from "@/components/Common/LegalSection"
 import { LandingFooter } from "@/components/Landing/LandingFooter"
 import { LandingHeader } from "@/components/Landing/LandingHeader"
@@ -12,14 +13,12 @@ import { LandingHeader } from "@/components/Landing/LandingHeader"
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
   head: () => ({
-    meta: [
-      { title: "Terms of Service - HeimPath" },
-      {
-        name: "description",
-        content:
-          "Terms of Service for HeimPath, the German real estate navigator for foreign investors and immigrants.",
-      },
-    ],
+    meta: seoMeta({
+      title: "Terms of Service - HeimPath",
+      description:
+        "Terms of Service for HeimPath, the German real estate navigator for foreign investors and immigrants.",
+      path: "/terms",
+    }),
   }),
 })
 

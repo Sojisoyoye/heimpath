@@ -6,6 +6,7 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 
+import { seoMeta } from "@/common/seo"
 import { LegalSection } from "@/components/Common/LegalSection"
 import { LandingFooter } from "@/components/Landing/LandingFooter"
 import { LandingHeader } from "@/components/Landing/LandingHeader"
@@ -13,14 +14,12 @@ import { LandingHeader } from "@/components/Landing/LandingHeader"
 export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
   head: () => ({
-    meta: [
-      { title: "Privacy Policy - HeimPath" },
-      {
-        name: "description",
-        content:
-          "HeimPath privacy policy. Learn how we collect, use, and protect your personal data in compliance with GDPR.",
-      },
-    ],
+    meta: seoMeta({
+      title: "Privacy Policy - HeimPath",
+      description:
+        "HeimPath privacy policy. Learn how we collect, use, and protect your personal data in compliance with GDPR.",
+      path: "/privacy",
+    }),
   }),
 })
 

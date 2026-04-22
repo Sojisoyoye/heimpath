@@ -10,6 +10,7 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 
+import { seoMeta } from "@/common/seo"
 import { LegalSection } from "@/components/Common/LegalSection"
 import { LandingFooter } from "@/components/Landing/LandingFooter"
 import { LandingHeader } from "@/components/Landing/LandingHeader"
@@ -17,14 +18,12 @@ import { LandingHeader } from "@/components/Landing/LandingHeader"
 export const Route = createFileRoute("/imprint")({
   component: ImprintPage,
   head: () => ({
-    meta: [
-      { title: "Imprint - HeimPath" },
-      {
-        name: "description",
-        content:
-          "Impressum (Imprint) for HeimPath pursuant to §5 TMG. Company information, contact details, and legal notices.",
-      },
-    ],
+    meta: seoMeta({
+      title: "Imprint - HeimPath",
+      description:
+        "Impressum (Imprint) for HeimPath pursuant to §5 TMG. Company information, contact details, and legal notices.",
+      path: "/imprint",
+    }),
   }),
 })
 
