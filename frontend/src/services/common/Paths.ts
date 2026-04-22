@@ -175,4 +175,9 @@ export const PATHS = {
     FROM_JOURNEY: (journeyId: string) =>
       `${API_V1}/portfolio/properties/from-journey/${journeyId}`,
   },
+
+  // Feedback
+  FEEDBACK: {
+    SUBMIT: `${API_V1}/feedback/`,
+  },
 } as const

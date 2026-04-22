@@ -44,6 +44,7 @@ from app.models.document import (
     DocumentTranslation,
     DocumentType,
 )
+from app.models.feedback import Feedback, FeedbackCategory
 from app.models.financing import FinancingAssessment
 from app.models.glossary import GlossaryCategory, GlossaryTerm
 from app.models.journey import (
@@ -110,6 +111,8 @@ __all__ = [
     "ArticleStatus",
     "Base",
     "DifficultyLevel",
+    "Feedback",
+    "FeedbackCategory",
     "FinancingAssessment",
     "GlossaryCategory",
     "GlossaryTerm",

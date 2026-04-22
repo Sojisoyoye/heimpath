@@ -596,6 +596,29 @@ export type DocumentUsageResponse = {
 };
 
 /**
+ * Schema for creating feedback.
+ */
+export type FeedbackCreate = {
+    /**
+     * Feedback category
+     */
+    category: string;
+    message: string;
+    page_url?: (string | null);
+};
+
+/**
+ * Schema for feedback response.
+ */
+export type FeedbackResponse = {
+    id: string;
+    category: string;
+    message: string;
+    page_url: (string | null);
+    created_at: string;
+};
+
+/**
  * Request to create a financing eligibility assessment.
  */
 export type FinancingAssessmentCreate = {
@@ -2811,6 +2834,12 @@ export type DocumentsGetDocumentStatusData = {
 };
 
 export type DocumentsGetDocumentStatusResponse = (DocumentStatusResponse);
+
+export type FeedbackSubmitFeedbackData = {
+    requestBody: FeedbackCreate;
+};
+
+export type FeedbackSubmitFeedbackResponse = (FeedbackResponse);
 
 export type FinancingGetSharedAssessmentData = {
     shareId: string;

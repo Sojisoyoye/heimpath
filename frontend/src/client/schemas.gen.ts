@@ -2019,6 +2019,77 @@ export const DocumentUsageResponseSchema = {
     description: 'Document usage limits for the current user.'
 } as const;
 
+export const FeedbackCreateSchema = {
+    properties: {
+        category: {
+            type: 'string',
+            pattern: '^(bug|feature_request|improvement|question|other)$',
+            title: 'Category',
+            description: 'Feedback category'
+        },
+        message: {
+            type: 'string',
+            maxLength: 2000,
+            minLength: 10,
+            title: 'Message'
+        },
+        page_url: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Url'
+        }
+    },
+    type: 'object',
+    required: ['category', 'message'],
+    title: 'FeedbackCreate',
+    description: 'Schema for creating feedback.'
+} as const;
+
+export const FeedbackResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        category: {
+            type: 'string',
+            title: 'Category'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        page_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Url'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'category', 'message', 'page_url', 'created_at'],
+    title: 'FeedbackResponse',
+    description: 'Schema for feedback response.'
+} as const;
+
 export const FinancingAssessmentCreateSchema = {
     properties: {
         name: {
