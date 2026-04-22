@@ -9,6 +9,8 @@ export function useNotifications(limit = 20, offset = 0, unreadOnly = false) {
     queryFn: () =>
       NotificationService.getNotifications(limit, offset, unreadOnly),
     refetchInterval: 30000,
+    retry: false,
+    throwOnError: false,
   })
 }
 

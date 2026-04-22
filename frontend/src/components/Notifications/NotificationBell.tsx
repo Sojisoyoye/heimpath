@@ -116,7 +116,7 @@ function NotificationBell() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
 
-  const { data } = useNotifications()
+  const { data, isError } = useNotifications()
   const markRead = useMarkNotificationRead()
   const markAllRead = useMarkAllNotificationsRead()
 
@@ -168,7 +168,11 @@ function NotificationBell() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {isError ? (
+              <div className="px-3 py-8 text-center text-sm text-muted-foreground">
+                Unable to load notifications
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="px-3 py-8 text-center text-sm text-muted-foreground">
                 No notifications yet
               </div>
