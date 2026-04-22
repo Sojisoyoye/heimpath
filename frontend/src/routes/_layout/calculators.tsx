@@ -64,7 +64,7 @@ function CalculatorsPage() {
       </div>
 
       <Tabs defaultValue={tab || "costs"}>
-        <TabsList className="flex w-full overflow-x-auto">
+        <TabsList className="flex h-auto w-full flex-wrap gap-1">
           <TabsTrigger
             value="costs"
             className="gap-2"
