@@ -35,7 +35,7 @@ class TestCreateFeedback:
             page_url="/calculators",
         )
 
-        result = create_feedback(mock_session, user_id, data)
+        create_feedback(mock_session, user_id, data)
 
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
