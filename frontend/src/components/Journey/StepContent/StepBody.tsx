@@ -24,9 +24,13 @@ import { OwnershipRegistration } from "./OwnershipRegistration"
 import { OwnershipTaxFinance } from "./OwnershipTaxFinance"
 import { PropertyEvaluationSummary } from "./PropertyEvaluationSummary"
 import { PropertyGoalsForm } from "./PropertyGoalsForm"
+import { RentalApplicationGuide } from "./RentalApplicationGuide"
+import { RentalContractReview } from "./RentalContractReview"
 import { RentalLandlordLaw } from "./RentalLandlordLaw"
+import { RentalMoveInGuide } from "./RentalMoveInGuide"
 import { RentalOperationsSetup } from "./RentalOperationsSetup"
 import { RentalPropertyManagement } from "./RentalPropertyManagement"
+import { RentalSearchGuide } from "./RentalSearchGuide"
 import { RentalTaxStrategy } from "./RentalTaxStrategy"
 import { RentalYieldAnalysis } from "./RentalYieldAnalysis"
 import { StepDocumentReview } from "./StepDocumentReview"
@@ -85,6 +89,10 @@ const STEP_CONTENT_REGISTRY: Record<
   ownership_insurance: (p) => <OwnershipInsurance step={p.step} />,
   ownership_management: (p) => <OwnershipManagement step={p.step} />,
   ownership_tax_finance: (p) => <OwnershipTaxFinance step={p.step} />,
+  rental_search_requirements: (p) => <RentalSearchGuide step={p.step} />,
+  rental_application_documents: (p) => <RentalApplicationGuide step={p.step} />,
+  rental_contract_review: (p) => <RentalContractReview step={p.step} />,
+  rental_move_in_checklist: (p) => <RentalMoveInGuide step={p.step} />,
 }
 
 /******************************************************************************

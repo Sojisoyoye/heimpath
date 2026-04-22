@@ -19,6 +19,13 @@ from sqlalchemy.orm import relationship
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
+class JourneyType(str, PyEnum):
+    """Types of journeys."""
+
+    BUYING = "buying"
+    RENTAL = "rental"
+
+
 class JourneyPhase(str, PyEnum):
     """Phases of the property buying journey."""
 
@@ -28,6 +35,10 @@ class JourneyPhase(str, PyEnum):
     CLOSING = "closing"
     OWNERSHIP = "ownership"
     RENTAL_SETUP = "rental_setup"
+    RENTAL_SEARCH = "rental_search"
+    RENTAL_APPLICATION = "rental_application"
+    RENTAL_CONTRACT = "rental_contract"
+    RENTAL_MOVE_IN = "rental_move_in"
 
 
 class StepStatus(str, PyEnum):
@@ -58,6 +69,12 @@ class FinancingType(str, PyEnum):
 
 # Define PostgreSQL enum types with create_type=False to prevent auto-creation
 # These will be created by Alembic migration
+_journey_type_enum = PgEnum(
+    "buying",
+    "rental",
+    name="journeytype",
+    create_type=False,
+)
 _journey_phase_enum = PgEnum(
     "research",
     "preparation",
@@ -65,6 +82,10 @@ _journey_phase_enum = PgEnum(
     "closing",
     "ownership",
     "rental_setup",
+    "rental_search",
+    "rental_application",
+    "rental_contract",
+    "rental_move_in",
     name="journeyphase",
     create_type=False,
 )
@@ -103,6 +124,11 @@ class Journey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # Journey metadata
+    journey_type = Column(
+        _journey_type_enum,
+        default=JourneyType.BUYING.value,
+        nullable=False,
+    )
     title = Column(String(255), nullable=False, default="My Property Journey")
     current_phase = Column(
         _journey_phase_enum,

@@ -92,6 +92,7 @@ def _build_journey_response(journey: Journey) -> JourneyResponse:
     pct = round((completed / total) * 100, 1) if total > 0 else 0
     return JourneyResponse(
         id=journey.id,
+        journey_type=journey.journey_type,
         title=journey.title,
         current_phase=journey.current_phase,
         current_step_number=journey.current_step_number,

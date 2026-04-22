@@ -908,6 +908,7 @@ export type JourneyCreate = {
  */
 export type JourneyDetailResponse = {
     id: string;
+    journey_type?: JourneyType;
     title: string;
     current_phase: JourneyPhase;
     current_step_number: number;
@@ -960,7 +961,7 @@ export type JourneyOverview = {
 /**
  * Phases of the property buying journey.
  */
-export type JourneyPhase = 'research' | 'preparation' | 'buying' | 'closing' | 'ownership' | 'rental_setup';
+export type JourneyPhase = 'research' | 'preparation' | 'buying' | 'closing' | 'ownership' | 'rental_setup' | 'rental_search' | 'rental_application' | 'rental_contract' | 'rental_move_in';
 
 /**
  * Schema for journey progress.
@@ -985,6 +986,7 @@ export type JourneyProgressResponse = {
  */
 export type JourneyResponse = {
     id: string;
+    journey_type?: JourneyType;
     title: string;
     current_phase: JourneyPhase;
     current_step_number: number;
@@ -1094,6 +1096,11 @@ export type JourneyTaskResponse = {
 export type JourneyTaskUpdate = {
     is_completed: boolean;
 };
+
+/**
+ * Types of journeys.
+ */
+export type JourneyType = 'buying' | 'rental';
 
 /**
  * Schema for updating journey metadata.
@@ -1902,9 +1909,10 @@ export type PropertyTypeApplicability = 'all' | 'apartment' | 'house' | 'land' |
  * Answers from the onboarding questionnaire.
  */
 export type QuestionnaireAnswers = {
-    property_type: PropertyType;
+    journey_type?: JourneyType;
+    property_type?: (PropertyType | null);
     property_location: string;
-    financing_type: FinancingType;
+    financing_type?: (FinancingType | null);
     is_first_time_buyer?: boolean;
     has_german_residency?: boolean;
     budget_euros?: (number | null);

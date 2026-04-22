@@ -53,6 +53,7 @@ from app.models.journey import (
     JourneyPhase,
     JourneyStep,
     JourneyTask,
+    JourneyType,
     PropertyType,
     StepStatus,
 )
@@ -139,6 +140,7 @@ __all__ = [
     "JourneyPhase",
     "JourneyStep",
     "JourneyTask",
+    "JourneyType",
     "Law",
     "LawBookmark",
     "LawCategory",

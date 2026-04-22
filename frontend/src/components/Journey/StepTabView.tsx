@@ -39,6 +39,10 @@ function StepTabView(props: IProps) {
     closing: [],
     ownership: [],
     rental_setup: [],
+    rental_search: [],
+    rental_application: [],
+    rental_contract: [],
+    rental_move_in: [],
   }
   for (const step of steps) {
     stepsByPhase[step.phase].push(step)
