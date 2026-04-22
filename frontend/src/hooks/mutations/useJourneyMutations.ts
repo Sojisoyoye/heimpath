@@ -67,6 +67,9 @@ export function useUpdateStep(journeyId: string) {
       queryClient.invalidateQueries({
         queryKey: queryKeys.journeys.progress(journeyId),
       })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.journeys.list(),
+      })
     },
   })
 }
@@ -194,6 +197,9 @@ export function useUpdateTask(journeyId: string) {
       })
       queryClient.invalidateQueries({
         queryKey: queryKeys.journeys.progress(journeyId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.journeys.list(),
       })
     },
   })
