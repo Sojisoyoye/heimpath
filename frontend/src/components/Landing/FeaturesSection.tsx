@@ -8,6 +8,8 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card"
 
+import { AnimateIn } from "./AnimateIn"
+
 /******************************************************************************
                               Constants
 ******************************************************************************/
@@ -62,36 +64,37 @@ function FeaturesSection() {
   return (
     <section id="features" className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Everything You Need — From Search to Portfolio
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Purpose-built tools for international buyers navigating the German
-            real estate market and managing their investments.
-          </p>
-        </div>
+        <AnimateIn>
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              Everything You Need — From Search to Portfolio
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Purpose-built tools for international buyers navigating the German
+              real estate market and managing their investments.
+            </p>
+          </div>
+        </AnimateIn>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature) => (
-            <Card
-              key={feature.title}
-              className="transition-shadow hover:shadow-md"
-            >
-              <CardContent className="flex gap-4 p-6">
-                <div
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${feature.color}`}
-                >
-                  <feature.icon className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">{feature.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {FEATURES.map((feature, i) => (
+            <AnimateIn key={feature.title} delayMs={(i + 1) * 100}>
+              <Card className="h-full transition-shadow hover:shadow-md">
+                <CardContent className="flex gap-4 p-6">
+                  <div
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${feature.color}`}
+                  >
+                    <feature.icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{feature.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimateIn>
           ))}
         </div>
       </div>
