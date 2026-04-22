@@ -7,7 +7,6 @@ import { ArrowUpDown, Euro, TrendingDown, TrendingUp } from "lucide-react"
 import { useState } from "react"
 
 import { cn } from "@/common/utils"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -16,8 +15,9 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { useStateComparison } from "@/hooks/queries/useCalculatorQueries"
-import { FormRow } from "./common/FormRow"
 
 interface IProps {
   className?: string
@@ -64,8 +64,8 @@ function StateComparison(props: IProps) {
     <div className={cn("space-y-6", className)}>
       {/* Controls */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
             <ArrowUpDown className="h-5 w-5" />
             Compare All States
           </CardTitle>
@@ -73,35 +73,40 @@ function StateComparison(props: IProps) {
             See how hidden costs vary across all 16 German states
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <FormRow htmlFor="comparePrice" label="Property Price">
-            <div className="relative">
-              <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="comparePrice"
-                type="text"
-                inputMode="numeric"
-                placeholder="Enter property price"
-                value={
-                  priceInput
-                    ? parseInt(priceInput, 10).toLocaleString("de-DE")
-                    : ""
-                }
-                onChange={handlePriceChange}
-                className="pl-9"
-              />
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <Label htmlFor="comparePrice" className="mb-1.5 block text-sm">
+                Property Price
+              </Label>
+              <div className="relative">
+                <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="comparePrice"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter property price"
+                  value={
+                    priceInput
+                      ? parseInt(priceInput, 10).toLocaleString("de-DE")
+                      : ""
+                  }
+                  onChange={handlePriceChange}
+                  className="pl-9"
+                />
+              </div>
             </div>
-          </FormRow>
-          <FormRow label="Include Agent">
-            <Button
-              variant={includeAgent ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIncludeAgent(!includeAgent)}
-              className="whitespace-nowrap"
-            >
-              {includeAgent ? "Yes" : "No"}
-            </Button>
-          </FormRow>
+            <div className="flex items-center gap-2 sm:pb-0.5">
+              <Switch
+                id="includeAgent"
+                checked={includeAgent}
+                onCheckedChange={setIncludeAgent}
+              />
+              <Label htmlFor="includeAgent" className="text-sm">
+                Include Agent
+              </Label>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
