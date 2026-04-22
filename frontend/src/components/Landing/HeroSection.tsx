@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useParallax } from "@/hooks/useParallax"
 
 import { HeroPhoto } from "./HeroPhoto"
 
@@ -11,11 +12,20 @@ import { HeroPhoto } from "./HeroPhoto"
 
 /** Default component. Hero section with headline, CTAs, and property illustration. */
 function HeroSection() {
+  const blobTopRef = useParallax(0.3)
+  const blobBottomRef = useParallax(0.5)
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
-      {/* Decorative blur blobs */}
-      <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-purple-400/10 blur-3xl" />
+      {/* Decorative blur blobs — parallax on md+ screens */}
+      <div
+        ref={blobTopRef}
+        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl will-change-transform"
+      />
+      <div
+        ref={blobBottomRef}
+        className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-purple-400/10 blur-3xl will-change-transform"
+      />
 
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 py-20 md:flex-row md:px-6 md:py-28 lg:py-32">
         {/* Text content */}
