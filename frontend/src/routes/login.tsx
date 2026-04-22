@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import type { Body_login_login_access_token as AccessToken } from "@/client"
+import { seoMeta } from "@/common/seo"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
   Form,
@@ -46,14 +47,12 @@ export const Route = createFileRoute("/login")({
     }
   },
   head: () => ({
-    meta: [
-      { title: "Log In - HeimPath" },
-      {
-        name: "description",
-        content:
-          "Log in to your HeimPath account to continue your German property buying journey.",
-      },
-    ],
+    meta: seoMeta({
+      title: "Log In - HeimPath",
+      description:
+        "Log in to your HeimPath account to continue your German property buying journey.",
+      path: "/login",
+    }),
   }),
 })
 

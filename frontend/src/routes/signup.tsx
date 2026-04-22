@@ -8,6 +8,7 @@ import { CheckCircle } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { RESIDENCY_STATUS_OPTIONS } from "@/common/constants"
+import { seoMeta } from "@/common/seo"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
   Form,
@@ -76,14 +77,12 @@ export const Route = createFileRoute("/signup")({
     }
   },
   head: () => ({
-    meta: [
-      { title: "Sign Up - HeimPath" },
-      {
-        name: "description",
-        content:
-          "Create a free HeimPath account to start your guided German property buying journey with personalised steps and financial tools.",
-      },
-    ],
+    meta: seoMeta({
+      title: "Sign Up - HeimPath",
+      description:
+        "Create a free HeimPath account to start your guided German property buying journey with personalised steps and financial tools.",
+      path: "/signup",
+    }),
   }),
 })
 

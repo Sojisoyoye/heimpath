@@ -17,6 +17,11 @@ const DEFAULT_OG_IMAGE = `${SITE_URL}/images/og-default.jpg`
                               Types
 ******************************************************************************/
 
+type MetaTag =
+  | { title: string }
+  | { name: string; content: string }
+  | { property: string; content: string }
+
 interface SeoOptions {
   /** Page title — will be set as <title> and og:title */
   title: string
@@ -46,7 +51,7 @@ function seoMeta(options: SeoOptions) {
 
   const canonicalUrl = path ? `${SITE_URL}${path}` : undefined
 
-  const meta: Record<string, string>[] = [
+  const meta: MetaTag[] = [
     { title },
     { name: "description", content: description },
 
@@ -76,4 +81,4 @@ function seoMeta(options: SeoOptions) {
                               Export
 ******************************************************************************/
 
-export { seoMeta, SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE }
+export { seoMeta }
