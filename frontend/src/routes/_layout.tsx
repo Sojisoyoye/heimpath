@@ -179,7 +179,7 @@ function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="overflow-hidden">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 bg-background px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-2">
