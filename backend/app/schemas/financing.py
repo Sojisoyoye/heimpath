@@ -27,8 +27,8 @@ class FinancingAssessmentCreate(BaseModel):
         ..., ge=0, description="Available down payment in EUR"
     )
     schufa_rating: Literal[
-        "excellent", "good", "satisfactory", "adequate", "poor", "unknown"
-    ] = Field(..., description="SCHUFA credit rating category")
+        "excellent", "good", "acceptable", "sufficient", "insufficient", "unknown"
+    ] = Field(..., description="SCHUFA NextGen Score rating category")
     residency_status: Literal[
         "german_citizen",
         "eu_citizen",

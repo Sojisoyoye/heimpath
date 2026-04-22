@@ -621,9 +621,9 @@ export type FinancingAssessmentCreate = {
      */
     available_down_payment: number;
     /**
-     * SCHUFA credit rating category
+     * SCHUFA NextGen Score rating category
      */
-    schufa_rating: 'excellent' | 'good' | 'satisfactory' | 'adequate' | 'poor' | 'unknown';
+    schufa_rating: 'excellent' | 'good' | 'acceptable' | 'sufficient' | 'insufficient' | 'unknown';
     /**
      * Residency or citizenship status
      */
@@ -636,9 +636,9 @@ export type FinancingAssessmentCreate = {
 export type employment_status = 'permanent' | 'fixed_term' | 'self_employed' | 'freelance' | 'civil_servant';
 
 /**
- * SCHUFA credit rating category
+ * SCHUFA NextGen Score rating category
  */
-export type schufa_rating = 'excellent' | 'good' | 'satisfactory' | 'adequate' | 'poor' | 'unknown';
+export type schufa_rating = 'excellent' | 'good' | 'acceptable' | 'sufficient' | 'insufficient' | 'unknown';
 
 /**
  * Residency or citizenship status
