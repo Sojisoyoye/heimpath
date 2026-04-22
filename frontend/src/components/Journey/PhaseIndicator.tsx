@@ -34,15 +34,15 @@ function PhaseStep(props: {
       className={cn(
         "flex items-center",
         variant === "horizontal"
-          ? "min-w-0 flex-row items-center sm:flex-1"
+          ? "min-w-0 flex-row items-center lg:flex-1"
           : "flex-col",
       )}
     >
       <div className="flex flex-col items-center gap-0.5">
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 lg:gap-2">
           <div
             className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-medium transition-colors sm:h-8 sm:w-8 sm:text-sm",
+              "flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-medium transition-colors lg:h-8 lg:w-8 lg:text-sm",
               isCompleted && "border-amber-600 bg-amber-600 text-white",
               isCurrent &&
                 !isCompleted &&
@@ -53,7 +53,7 @@ function PhaseStep(props: {
             )}
           >
             {isCompleted ? (
-              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+              <Check className="h-3 w-3 lg:h-4 lg:w-4" />
             ) : (
               phase.order
             )}
@@ -64,21 +64,21 @@ function PhaseStep(props: {
               isCurrent && "text-foreground",
               isCompleted && "text-amber-600",
               !isCurrent && !isCompleted && "text-muted-foreground",
-              variant === "horizontal" && "hidden sm:inline",
+              variant === "horizontal" && "hidden lg:inline",
             )}
           >
             {phase.label}
           </span>
         </div>
         {isCurrent && !isCompleted && variant === "horizontal" && (
-          <div className="h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-blue-600 sm:hidden" />
+          <div className="h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-blue-600 lg:hidden" />
         )}
       </div>
 
       {!isLast && variant === "horizontal" && (
         <div
           className={cn(
-            "mx-1 h-0.5 w-4 sm:mx-2 sm:w-auto sm:flex-1",
+            "mx-1 h-0.5 w-4 lg:mx-2 lg:w-auto lg:flex-1",
             isCompleted ? "bg-amber-600" : "bg-muted-foreground/30",
           )}
         />
