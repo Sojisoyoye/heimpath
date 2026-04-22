@@ -68,6 +68,7 @@ class UserPublic(UserBase):
     email_verified: bool = False
     onboarding_completed: bool = False
     onboarding_persona: str | None = None
+    avatar_url: str | None = None
 
 
 class UsersPublic(BaseModel):
@@ -126,6 +127,7 @@ class UserDataExport(BaseModel):
     email_verified: bool
     onboarding_completed: bool = False
     onboarding_persona: str | None = None
+    avatar_url: str | None = None
     subscription_tier: str
     created_at: datetime
     updated_at: datetime | None = None

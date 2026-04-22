@@ -1,7 +1,10 @@
+import base64
+import io
 import uuid
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from PIL import Image
 from sqlmodel import Session, select
 
 from app import crud
@@ -682,3 +685,216 @@ def test_export_user_data_normal_user(
     assert export_data["email"] == current_user["email"]
     assert export_data["id"] == current_user["id"]
     assert "export_date" in export_data
+
+
+# Avatar Upload / Delete Tests
+
+
+def _create_test_image(
+    fmt: str = "PNG", size: tuple[int, int] = (100, 100)
+) -> io.BytesIO:
+    """Create a minimal in-memory image for testing."""
+    img = Image.new("RGB", size, color="red")
+    buf = io.BytesIO()
+    img.save(buf, format=fmt)
+    buf.seek(0)
+    return buf
+
+
+def test_upload_avatar(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Upload a valid PNG avatar and verify the response."""
+    buf = _create_test_image("PNG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.png", buf, "image/png")},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["avatar_url"].startswith("data:image/webp;base64,")
+
+
+def test_upload_avatar_jpeg(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Upload a valid JPEG avatar."""
+    buf = _create_test_image("JPEG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.jpg", buf, "image/jpeg")},
+    )
+    assert r.status_code == 200
+    assert r.json()["avatar_url"].startswith("data:image/webp;base64,")
+
+
+def test_upload_avatar_webp(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Upload a valid WebP avatar."""
+    buf = _create_test_image("WEBP")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.webp", buf, "image/webp")},
+    )
+    assert r.status_code == 200
+    assert r.json()["avatar_url"].startswith("data:image/webp;base64,")
+
+
+def test_upload_avatar_invalid_content_type(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Reject upload when content_type is not an allowed image type."""
+    buf = io.BytesIO(b"not an image")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("file.txt", buf, "text/plain")},
+    )
+    assert r.status_code == 400
+    assert "Invalid file type" in r.json()["detail"]
+
+
+def test_upload_avatar_too_large(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Reject files exceeding the 2 MB limit."""
+    big = io.BytesIO(b"\x00" * (2 * 1024 * 1024 + 1))
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("big.png", big, "image/png")},
+    )
+    assert r.status_code == 400
+    assert "File too large" in r.json()["detail"]
+
+
+def test_upload_avatar_unreadable_image(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Reject files that claim to be images but cannot be decoded."""
+    garbage = io.BytesIO(b"not-a-real-image-payload")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("bad.png", garbage, "image/png")},
+    )
+    assert r.status_code == 400
+    assert "Cannot read image" in r.json()["detail"]
+
+
+def test_upload_avatar_invalid_image_format(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Reject images whose actual format doesn't match allowed formats (e.g. BMP)."""
+    img = Image.new("RGB", (50, 50), color="blue")
+    buf = io.BytesIO()
+    img.save(buf, format="BMP")
+    buf.seek(0)
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.bmp", buf, "image/png")},
+    )
+    assert r.status_code == 400
+    assert "Invalid file type" in r.json()["detail"]
+
+
+def test_upload_avatar_resizes_large_image(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Uploaded images larger than 256x256 are resized down."""
+    buf = _create_test_image("PNG", size=(512, 512))
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("large.png", buf, "image/png")},
+    )
+    assert r.status_code == 200
+    avatar_url = r.json()["avatar_url"]
+    # Decode and verify dimensions
+    b64_data = avatar_url.split(",", 1)[1]
+    decoded = base64.b64decode(b64_data)
+    result_img = Image.open(io.BytesIO(decoded))
+    assert result_img.width <= 256
+    assert result_img.height <= 256
+
+
+def test_delete_avatar(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Upload an avatar then delete it — avatar_url should become null."""
+    # First upload
+    buf = _create_test_image("PNG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.png", buf, "image/png")},
+    )
+    assert r.status_code == 200
+    assert r.json()["avatar_url"] is not None
+
+    # Delete
+    r = client.delete(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+    )
+    assert r.status_code == 204
+
+    # Verify removed
+    r = client.get(
+        f"{settings.API_V1_STR}/users/me",
+        headers=normal_user_token_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["avatar_url"] is None
+
+
+def test_delete_avatar_when_none(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Deleting an avatar when none is set should still succeed with 204."""
+    r = client.delete(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+    )
+    assert r.status_code == 204
+
+
+def test_upload_avatar_unauthenticated(client: TestClient) -> None:
+    """Unauthenticated requests are rejected."""
+    buf = _create_test_image("PNG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        files={"file": ("avatar.png", buf, "image/png")},
+    )
+    assert r.status_code == 401
+
+
+def test_delete_avatar_unauthenticated(client: TestClient) -> None:
+    """Unauthenticated delete requests are rejected."""
+    r = client.delete(f"{settings.API_V1_STR}/users/me/avatar")
+    assert r.status_code == 401
+
+
+def test_export_includes_avatar_url(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """GDPR export includes the avatar_url field after upload."""
+    buf = _create_test_image("PNG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.png", buf, "image/png")},
+    )
+    assert r.status_code == 200
+
+    r = client.get(
+        f"{settings.API_V1_STR}/users/me/export",
+        headers=normal_user_token_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["avatar_url"].startswith("data:image/webp;base64,")

@@ -992,6 +992,19 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const Body_users_upload_avatarSchema = {
+    properties: {
+        file: {
+            type: 'string',
+            format: 'binary',
+            title: 'File'
+        }
+    },
+    type: 'object',
+    required: ['file'],
+    title: 'Body_users-upload_avatar'
+} as const;
+
 export const BookmarkCreateSchema = {
     properties: {
         notes: {
@@ -8658,6 +8671,17 @@ export const UserDataExportSchema = {
             ],
             title: 'Onboarding Persona'
         },
+        avatar_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Avatar Url'
+        },
         subscription_tier: {
             type: 'string',
             title: 'Subscription Tier'
@@ -8756,6 +8780,17 @@ export const UserPublicSchema = {
                 }
             ],
             title: 'Onboarding Persona'
+        },
+        avatar_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Avatar Url'
         },
         subscription_tier: {
             '$ref': '#/components/schemas/SubscriptionTier',

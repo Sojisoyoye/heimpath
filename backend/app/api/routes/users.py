@@ -1,8 +1,11 @@
+import base64
+import io
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from PIL import Image
 from sqlmodel import func, select
 
 from app import crud
@@ -28,6 +31,12 @@ from app.schemas.user import UserDataExport
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024  # 2 MB
+ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
+MAX_AVATAR_DIMENSION = 256
+AVATAR_WEBP_QUALITY = 80
 
 
 @router.get(
@@ -148,6 +157,7 @@ async def export_user_data(current_user: CurrentUser) -> Any:
         citizenship=current_user.citizenship,
         is_active=current_user.is_active,
         email_verified=current_user.email_verified,
+        avatar_url=current_user.avatar_url,
         subscription_tier=current_user.subscription_tier.value
         if hasattr(current_user.subscription_tier, "value")
         else str(current_user.subscription_tier),
@@ -166,6 +176,66 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> None
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
     session.delete(current_user)
+    session.commit()
+
+
+@router.put(
+    "/me/avatar",
+    response_model=UserPublic,
+    responses={400: {"description": "Invalid file type, size, or unreadable image"}},
+)
+async def upload_avatar(
+    session: SessionDep,
+    current_user: CurrentUser,
+    file: UploadFile,
+) -> Any:
+    """Upload or replace the current user's avatar."""
+    if file.content_type not in ALLOWED_AVATAR_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Allowed: JPEG, PNG, WebP.",
+        )
+
+    data = await file.read()
+    if len(data) > MAX_AVATAR_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail="File too large. Maximum size is 2 MB.",
+        )
+
+    try:
+        img = Image.open(io.BytesIO(data))
+    except OSError:
+        raise HTTPException(status_code=400, detail="Cannot read image file.")
+
+    if img.format not in ALLOWED_IMAGE_FORMATS:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Allowed: JPEG, PNG, WebP.",
+        )
+
+    img.thumbnail((MAX_AVATAR_DIMENSION, MAX_AVATAR_DIMENSION), Image.LANCZOS)
+    img = img.convert("RGB")
+
+    buf = io.BytesIO()
+    img.save(buf, format="WEBP", quality=AVATAR_WEBP_QUALITY)
+    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+
+    current_user.avatar_url = f"data:image/webp;base64,{encoded}"
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user
+
+
+@router.delete("/me/avatar", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_avatar(
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> None:
+    """Remove the current user's avatar."""
+    current_user.avatar_url = None
+    session.add(current_user)
     session.commit()
 
 
