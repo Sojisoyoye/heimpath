@@ -48,6 +48,7 @@ function ProfileTab() {
         subscriptionTier={user.subscription_tier || "free"}
         emailVerified={user.email_verified ?? false}
         createdAt={user.created_at || new Date().toISOString()}
+        avatarUrl={user.avatar_url ?? undefined}
       />
       <UserInformation />
     </div>

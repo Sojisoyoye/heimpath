@@ -73,6 +73,7 @@ class User(UserBase, table=True):
             nullable=False,
         ),
     )
+    avatar_url: str | None = Field(default=None)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -90,6 +91,7 @@ class UserPublic(UserBase):
     email_verified: bool = False
     onboarding_completed: bool = False
     onboarding_persona: str | None = None
+    avatar_url: str | None = None
     subscription_tier: SubscriptionTier = SubscriptionTier.FREE
     created_at: datetime | None = None
 

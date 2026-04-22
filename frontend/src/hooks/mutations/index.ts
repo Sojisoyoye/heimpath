@@ -3,6 +3,7 @@
  */
 
 export * from "./useArticleMutations"
+export * from "./useAvatarMutations"
 export * from "./useCalculatorMutations"
 export * from "./useDocumentMutations"
 export * from "./useJourneyMutations"

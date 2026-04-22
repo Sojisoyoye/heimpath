@@ -290,6 +290,10 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type Body_users_upload_avatar = {
+    file: (Blob | File);
+};
+
 /**
  * Request schema for creating a bookmark.
  */
@@ -2408,6 +2412,7 @@ export type UserDataExport = {
     email_verified: boolean;
     onboarding_completed?: boolean;
     onboarding_persona?: (string | null);
+    avatar_url?: (string | null);
     subscription_tier: string;
     created_at: string;
     updated_at?: (string | null);
@@ -2423,6 +2428,7 @@ export type UserPublic = {
     email_verified?: boolean;
     onboarding_completed?: boolean;
     onboarding_persona?: (string | null);
+    avatar_url?: (string | null);
     subscription_tier?: SubscriptionTier;
     created_at?: (string | null);
 };
@@ -3261,6 +3267,14 @@ export type UsersUpdatePasswordMeData = {
 export type UsersUpdatePasswordMeResponse = (Message);
 
 export type UsersExportUserDataResponse = (UserDataExport);
+
+export type UsersUploadAvatarData = {
+    formData: Body_users_upload_avatar;
+};
+
+export type UsersUploadAvatarResponse = (UserPublic);
+
+export type UsersDeleteAvatarResponse = (void);
 
 export type UsersRegisterUserData = {
     requestBody: UserRegister;

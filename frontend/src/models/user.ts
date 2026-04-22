@@ -15,6 +15,7 @@ export interface UserPublic {
   emailVerified: boolean
   onboardingCompleted: boolean
   onboardingPersona: string | null
+  avatarUrl?: string | null
   subscriptionTier: SubscriptionTier
   createdAt: string
   updatedAt: string

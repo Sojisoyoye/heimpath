@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { LogOut, Settings } from "lucide-react"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -40,6 +40,12 @@ function NavUserMenu() {
           data-testid="nav-user-menu"
         >
           <Avatar className="size-8">
+            {user?.avatar_url && (
+              <AvatarImage
+                src={user.avatar_url}
+                alt={user.full_name || "User"}
+              />
+            )}
             <AvatarFallback className="bg-zinc-600 text-xs text-white">
               {getInitials(user?.full_name || "User")}
             </AvatarFallback>

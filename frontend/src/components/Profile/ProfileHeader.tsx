@@ -6,7 +6,7 @@
 import { Building2, Calendar, Crown, Globe, Mail, Zap } from "lucide-react"
 
 import { cn } from "@/common/utils"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { AvatarUpload } from "@/components/Profile/AvatarUpload"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import type { SubscriptionTier } from "@/models/user"
@@ -18,6 +18,7 @@ interface IProps {
   subscriptionTier: SubscriptionTier
   emailVerified: boolean
   createdAt: string
+  avatarUrl?: string | null
   className?: string
 }
 
@@ -51,16 +52,6 @@ const TIER_CONFIG: Record<
                               Functions
 ******************************************************************************/
 
-/** Get initials from full name. */
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-}
-
 /** Format date for display. */
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -82,6 +73,7 @@ function ProfileHeader(props: IProps) {
     subscriptionTier,
     emailVerified,
     createdAt,
+    avatarUrl,
     className,
   } = props
 
@@ -93,11 +85,7 @@ function ProfileHeader(props: IProps) {
       <CardContent className="pt-6">
         <div className="flex flex-col sm:flex-row gap-6">
           {/* Avatar */}
-          <Avatar className="h-20 w-20">
-            <AvatarFallback className="text-2xl font-semibold bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400">
-              {getInitials(fullName)}
-            </AvatarFallback>
-          </Avatar>
+          <AvatarUpload avatarUrl={avatarUrl} fullName={fullName} />
 
           {/* Info */}
           <div className="flex-1 space-y-3">

@@ -2,7 +2,7 @@
 
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, Column, Enum, String
+from sqlalchemy import Boolean, Column, Enum, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -38,6 +38,7 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=SubscriptionTier.FREE,
         nullable=False,
     )
+    avatar_url = Column(Text, nullable=True)
 
     journeys = relationship(
         "Journey",

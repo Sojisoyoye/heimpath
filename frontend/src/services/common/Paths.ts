@@ -18,6 +18,7 @@ export const PATHS = {
   // Users
   USERS: {
     ME: `${API_V1}/users/me`,
+    AVATAR: `${API_V1}/users/me/avatar`,
     EXPORT: `${API_V1}/users/me/export`,
     DETAIL: (id: string) => `${API_V1}/users/${id}`,
   },
