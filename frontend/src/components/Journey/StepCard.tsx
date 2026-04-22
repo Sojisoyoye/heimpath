@@ -108,7 +108,7 @@ function StepCard(props: IProps) {
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-all",
+        "overflow-hidden py-3 transition-all",
         isActive && "ring-2 ring-blue-600 ring-offset-2",
         step.status === "completed" &&
           "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20",
@@ -116,10 +116,10 @@ function StepCard(props: IProps) {
       )}
     >
       <CardHeader
-        className={cn("pb-3", hasBody && "cursor-pointer select-none")}
+        className={cn("pb-2", hasBody && "cursor-pointer select-none")}
         onClick={handleToggleExpanded}
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-center gap-2">
               {hasBody && (
@@ -142,7 +142,9 @@ function StepCard(props: IProps) {
               </span>
             </div>
             <CardTitle className="text-base sm:text-lg">{step.title}</CardTitle>
-            <CardDescription>{step.description}</CardDescription>
+            {isExpanded && (
+              <CardDescription>{step.description}</CardDescription>
+            )}
           </div>
           <div className="self-start">
             <StatusBadge status={step.status} />
