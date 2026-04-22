@@ -14,7 +14,27 @@ function CtaSection() {
   const loggedIn = isLoggedIn()
 
   return (
-    <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-20 md:py-28">
+    <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 py-20 md:py-28">
+      {/* Geometric dot grid overlay — hidden on mobile */}
+      <svg
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 hidden h-full w-full md:block"
+      >
+        <defs>
+          <pattern
+            id="cta-dot-grid"
+            x="0"
+            y="0"
+            width="24"
+            height="24"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="2" cy="2" r="1.5" fill="white" fillOpacity="0.07" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#cta-dot-grid)" />
+      </svg>
+
       <AnimateIn>
         <div className="mx-auto max-w-3xl px-4 text-center md:px-6">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
