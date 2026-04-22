@@ -5,7 +5,7 @@
 
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Calendar, Home, MapPin, Trash2, Wallet } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
@@ -19,9 +19,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { JourneyProgress, JourneyPublic } from "@/models/journey"
+import type {
+  JourneyPhase,
+  JourneyProgress,
+  JourneyPublic,
+  JourneyStep,
+} from "@/models/journey"
 import { JourneyCompletionCta } from "./JourneyCompletionCta"
 import { JourneyProvider } from "./JourneyContext"
+import { PhaseCompletionCta } from "./PhaseCompletionCta"
 import { PhaseIndicator } from "./PhaseIndicator"
 import { ProgressBar } from "./ProgressBar"
 import { StepCard } from "./StepCard"
@@ -164,6 +170,73 @@ function JourneyDetailSkeleton() {
   )
 }
 
+/** List view with phase completion CTAs between phase groups. */
+function StepListView(props: {
+  steps: JourneyStep[]
+  activeStepNumber: number
+  onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
+  onStepOpen?: (stepId: string) => void
+}) {
+  const { steps, activeStepNumber, onTaskToggle, onStepOpen } = props
+  const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const handleContinueToPhase = useCallback((nextPhase: JourneyPhase) => {
+    phaseRefs.current[nextPhase]?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    })
+  }, [])
+
+  // Group steps by phase in order
+  const phaseGroups = useMemo(() => {
+    const groups: { phase: JourneyPhase; steps: JourneyStep[] }[] = []
+    for (const step of steps) {
+      const lastGroup = groups[groups.length - 1]
+      if (lastGroup && lastGroup.phase === step.phase) {
+        lastGroup.steps.push(step)
+      } else {
+        groups.push({ phase: step.phase, steps: [step] })
+      }
+    }
+    return groups
+  }, [steps])
+
+  return (
+    <>
+      {phaseGroups.map((group) => {
+        const isComplete = group.steps.every(
+          (s) => s.status === "completed" || s.status === "skipped",
+        )
+        return (
+          <div
+            key={group.phase}
+            ref={(el) => {
+              phaseRefs.current[group.phase] = el
+            }}
+            className="space-y-4"
+          >
+            {group.steps.map((step) => (
+              <StepCard
+                key={step.id}
+                step={step}
+                isActive={step.step_number === activeStepNumber}
+                onTaskToggle={onTaskToggle}
+                onStepOpen={onStepOpen}
+              />
+            ))}
+            {isComplete && (
+              <PhaseCompletionCta
+                currentPhase={group.phase}
+                onContinue={handleContinueToPhase}
+              />
+            )}
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
 /** Default component. Full journey detail view. */
 function JourneyDetail(props: IProps) {
   const {
@@ -277,15 +350,12 @@ function JourneyDetail(props: IProps) {
           {/* Steps */}
           <div className="lg:col-span-2 space-y-4">
             {viewMode === "list" ? (
-              journey.steps.map((step) => (
-                <StepCard
-                  key={step.id}
-                  step={step}
-                  isActive={step.step_number === journey.current_step_number}
-                  onTaskToggle={onTaskToggle}
-                  onStepOpen={onStepOpen}
-                />
-              ))
+              <StepListView
+                steps={journey.steps}
+                activeStepNumber={journey.current_step_number}
+                onTaskToggle={onTaskToggle}
+                onStepOpen={onStepOpen}
+              />
             ) : (
               <StepTabView
                 steps={journey.steps}
