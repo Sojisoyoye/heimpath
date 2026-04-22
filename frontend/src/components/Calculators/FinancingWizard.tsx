@@ -117,11 +117,11 @@ const EMPLOYMENT_OPTIONS: { value: EmploymentStatus; label: string }[] = [
 ]
 
 const SCHUFA_OPTIONS: { value: SchufaRating; label: string }[] = [
-  { value: "excellent", label: "Excellent (97.5%+)" },
-  { value: "good", label: "Good (95-97.5%)" },
-  { value: "satisfactory", label: "Satisfactory (90-95%)" },
-  { value: "adequate", label: "Adequate (80-90%)" },
-  { value: "poor", label: "Poor (<80%)" },
+  { value: "excellent", label: "Excellent — 776-999 pts" },
+  { value: "good", label: "Good — 709-775 pts" },
+  { value: "acceptable", label: "Acceptable — 642-708 pts" },
+  { value: "sufficient", label: "Sufficient — 100-641 pts" },
+  { value: "insufficient", label: "Insufficient — no score" },
   { value: "unknown", label: "Unknown / Not yet obtained" },
 ]
 
@@ -292,9 +292,9 @@ function scoreSchufa(rating: SchufaRating): number {
   const scores: Record<SchufaRating, number> = {
     excellent: 15,
     good: 12,
-    satisfactory: 9,
-    adequate: 5,
-    poor: 2,
+    acceptable: 9,
+    sufficient: 5,
+    insufficient: 2,
     unknown: 3,
   }
   return scores[rating] ?? 3
@@ -346,7 +346,7 @@ function recommendedDpPercent(
   } else {
     base = 20
   }
-  if (schufa === "poor" || schufa === "unknown") base += 5
+  if (schufa === "insufficient" || schufa === "unknown") base += 5
   if (
     residency === "german_citizen" &&
     (schufa === "excellent" || schufa === "good")

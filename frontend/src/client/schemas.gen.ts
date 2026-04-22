@@ -2066,9 +2066,9 @@ export const FinancingAssessmentCreateSchema = {
         },
         schufa_rating: {
             type: 'string',
-            enum: ['excellent', 'good', 'satisfactory', 'adequate', 'poor', 'unknown'],
+            enum: ['excellent', 'good', 'acceptable', 'sufficient', 'insufficient', 'unknown'],
             title: 'Schufa Rating',
-            description: 'SCHUFA credit rating category'
+            description: 'SCHUFA NextGen Score rating category'
         },
         residency_status: {
             type: 'string',

@@ -106,13 +106,22 @@ def _score_down_payment(available_dp: float) -> float:
 
 
 def _score_schufa(rating: str) -> float:
-    """Score SCHUFA rating on 0-15 scale."""
+    """Score SCHUFA NextGen Score rating on 0-15 scale.
+
+    Based on SCHUFA NextGen Score 1.0 (launched March 2026):
+    - Excellent (776-999): 15 pts
+    - Good (709-775): 12 pts
+    - Acceptable (642-708): 9 pts
+    - Sufficient (100-641): 5 pts
+    - Insufficient (no score): 2 pts
+    - Unknown: 3 pts
+    """
     scores = {
         "excellent": 15.0,
         "good": 12.0,
-        "satisfactory": 9.0,
-        "adequate": 5.0,
-        "poor": 2.0,
+        "acceptable": 9.0,
+        "sufficient": 5.0,
+        "insufficient": 2.0,
         "unknown": 3.0,
     }
     return scores.get(rating, 3.0)
@@ -187,7 +196,7 @@ def _recommended_dp_percent(residency_status: str, schufa_rating: str) -> float:
         base = 30.0
     else:
         base = 20.0
-    if schufa_rating in ("poor", "unknown"):
+    if schufa_rating in ("insufficient", "unknown"):
         base += 5.0
     if residency_status == "german_citizen" and schufa_rating in ("excellent", "good"):
         base = 15.0

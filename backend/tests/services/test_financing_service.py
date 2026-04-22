@@ -95,8 +95,17 @@ class TestScoreSchufa:
     def test_excellent(self) -> None:
         assert _score_schufa("excellent") == 15.0
 
-    def test_poor(self) -> None:
-        assert _score_schufa("poor") == 2.0
+    def test_good(self) -> None:
+        assert _score_schufa("good") == 12.0
+
+    def test_acceptable(self) -> None:
+        assert _score_schufa("acceptable") == 9.0
+
+    def test_sufficient(self) -> None:
+        assert _score_schufa("sufficient") == 5.0
+
+    def test_insufficient(self) -> None:
+        assert _score_schufa("insufficient") == 2.0
 
     def test_unknown_default(self) -> None:
         assert _score_schufa("unknown") == 3.0
@@ -167,6 +176,10 @@ class TestEstimates:
     def test_recommended_dp_german_excellent(self) -> None:
         result = _recommended_dp_percent("german_citizen", "excellent")
         assert result == 15.0
+
+    def test_recommended_dp_insufficient_penalty(self) -> None:
+        result = _recommended_dp_percent("eu_citizen", "insufficient")
+        assert result == 25.0
 
     def test_ltv(self) -> None:
         result = _estimate_ltv(50000, 200000)
@@ -271,7 +284,7 @@ class TestAssess:
             monthly_net_income=2000,
             monthly_debt=1200,
             available_down_payment=5000,
-            schufa_rating="poor",
+            schufa_rating="insufficient",
             residency_status="non_eu",
         )
         result = assess(inputs)

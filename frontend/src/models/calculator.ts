@@ -178,9 +178,9 @@ export type EmploymentStatus =
 export type SchufaRating =
   | "excellent"
   | "good"
-  | "satisfactory"
-  | "adequate"
-  | "poor"
+  | "acceptable"
+  | "sufficient"
+  | "insufficient"
   | "unknown"
 
 export type FinancingResidencyStatus =
