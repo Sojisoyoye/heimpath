@@ -2,6 +2,7 @@ import { Globe, LayoutDashboard, ShieldCheck, TrendingUp } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 
+import { ADVANTAGE_PATTERNS } from "./AdvantagePatterns"
 import { AnimateIn } from "./AnimateIn"
 
 /******************************************************************************
@@ -63,23 +64,29 @@ function AdvantagesSection() {
         </AnimateIn>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {ADVANTAGES.map((advantage, i) => (
-            <AnimateIn key={advantage.title} delayMs={(i + 1) * 100}>
-              <Card className="h-full transition-shadow hover:shadow-md">
-                <CardContent className="p-6">
-                  <div
-                    className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${advantage.color}`}
-                  >
-                    <advantage.icon className="h-6 w-6" />
+          {ADVANTAGES.map((advantage, i) => {
+            const Pattern = ADVANTAGE_PATTERNS[i]
+            return (
+              <AnimateIn key={advantage.title} delayMs={(i + 1) * 100}>
+                <Card className="relative h-full overflow-hidden transition-shadow hover:shadow-md">
+                  <CardContent className="relative z-10 p-6">
+                    <div
+                      className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${advantage.color}`}
+                    >
+                      <advantage.icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="font-semibold">{advantage.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {advantage.description}
+                    </p>
+                  </CardContent>
+                  <div className="pointer-events-none absolute -bottom-2 -right-2">
+                    <Pattern />
                   </div>
-                  <h3 className="font-semibold">{advantage.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {advantage.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </AnimateIn>
-          ))}
+                </Card>
+              </AnimateIn>
+            )
+          })}
         </div>
       </div>
     </section>
