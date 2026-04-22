@@ -4,7 +4,7 @@
  */
 
 import { Link } from "@tanstack/react-router"
-import { ArrowRight, Calendar, Home, MapPin, Trash2 } from "lucide-react"
+import { ArrowRight, Calendar, MapPin, Trash2 } from "lucide-react"
 import {
   GERMAN_STATES,
   JOURNEY_PHASES,
@@ -59,22 +59,18 @@ function JourneyCard(props: IProps) {
     formatDate(dateStr, { month: "short", day: "numeric", year: "numeric" })
 
   return (
-    <Card className={cn("transition-all hover:shadow-md", className)}>
+    <Card
+      className={cn("flex flex-col transition-all hover:shadow-md", className)}
+    >
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-1">
             <CardTitle className="text-lg sm:text-xl">
-              {propertyLabel?.split(" ")[0]} in {stateName}
+              {propertyLabel?.split(" ")[0]}
             </CardTitle>
-            <CardDescription className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 shrink-0" />
-                {stateName}
-              </span>
-              <span className="flex items-center gap-1">
-                <Home className="h-3.5 w-3.5 shrink-0" />
-                {propertyLabel?.split(" ")[0]}
-              </span>
+            <CardDescription className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              {stateName}
             </CardDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -137,7 +133,7 @@ function JourneyCard(props: IProps) {
         )}
       </CardContent>
 
-      <CardFooter className="pt-0">
+      <CardFooter className="mt-auto pt-0">
         <Button asChild className="w-full gap-2">
           <Link to="/journeys/$journeyId" params={{ journeyId: journey.id }}>
             Continue Journey
