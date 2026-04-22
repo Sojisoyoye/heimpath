@@ -16,15 +16,21 @@ function HeroSection() {
   const blobBottomRef = useParallax(0.5)
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+    <section className="relative overflow-hidden bg-gradient-to-br from-blue-100/50 to-purple-100/50 dark:from-blue-950/30 dark:to-purple-950/30">
+      {/* Gradient accent bar — echoes CTA gradient for visual bookend */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 to-purple-600"
+      />
+
       {/* Decorative blur blobs — parallax on md+ screens */}
       <div
         ref={blobTopRef}
-        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl will-change-transform"
+        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-blue-400/15 blur-3xl will-change-transform"
       />
       <div
         ref={blobBottomRef}
-        className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-purple-400/10 blur-3xl will-change-transform"
+        className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-purple-400/15 blur-3xl will-change-transform"
       />
 
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 py-20 md:flex-row md:px-6 md:py-28 lg:py-32">
