@@ -35,6 +35,10 @@ const PHASE_LABELS: Record<JourneyPhase, string> = {
   closing: "Closing",
   ownership: "Ownership",
   rental_setup: "Rental Setup",
+  rental_search: "Apartment Search",
+  rental_application: "Application",
+  rental_contract: "Lease Review",
+  rental_move_in: "Move-In",
 }
 
 /******************************************************************************
@@ -77,6 +81,10 @@ function JourneyGenerating(props: IProps) {
       closing: 0,
       ownership: 0,
       rental_setup: 0,
+      rental_search: 0,
+      rental_application: 0,
+      rental_contract: 0,
+      rental_move_in: 0,
     }
     for (const step of journey.steps) {
       counts[step.phase]++

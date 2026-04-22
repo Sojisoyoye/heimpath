@@ -4,6 +4,8 @@
  * Note: Uses snake_case to match backend API response
  */
 
+export type JourneyType = "buying" | "rental"
+
 export type JourneyPhase =
   | "research"
   | "preparation"
@@ -11,6 +13,10 @@ export type JourneyPhase =
   | "closing"
   | "ownership"
   | "rental_setup"
+  | "rental_search"
+  | "rental_application"
+  | "rental_contract"
+  | "rental_move_in"
 
 export type StepStatus = "not_started" | "in_progress" | "completed" | "skipped"
 
@@ -59,6 +65,7 @@ export interface JourneyStep {
 
 export interface JourneyPublic {
   id: string
+  journey_type?: JourneyType
   title: string
   current_phase: JourneyPhase
   current_step_number: number
@@ -95,9 +102,10 @@ export interface JourneyWizardData {
 
 /** Backend-compatible questionnaire answers */
 export interface QuestionnaireAnswers {
-  property_type: PropertyType
+  journey_type?: JourneyType
+  property_type?: PropertyType
   property_location: string
-  financing_type: FinancingType
+  financing_type?: FinancingType
   is_first_time_buyer: boolean
   has_german_residency: boolean
   budget_euros?: number

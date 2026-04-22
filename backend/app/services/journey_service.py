@@ -16,6 +16,7 @@ from app.models.journey import (
     JourneyPhase,
     JourneyStep,
     JourneyTask,
+    JourneyType,
     StepStatus,
 )
 from app.schemas.journey import QuestionnaireAnswers
@@ -816,6 +817,375 @@ STEP_TEMPLATES: list[StepTemplate] = [
     ),
 ]
 
+# Step templates for the tenant rental journey (apartment search → move-in).
+RENTAL_STEP_TEMPLATES: list[StepTemplate] = [
+    # RENTAL_SEARCH phase
+    StepTemplate(
+        step_number=1,
+        phase=JourneyPhase.RENTAL_SEARCH,
+        title="Define Your Rental Requirements",
+        description="Clarify your budget, preferred location, apartment size, and must-have features before starting your search.",
+        estimated_duration_days=3,
+        content_key="rental_search_requirements",
+        tasks=[
+            {
+                "title": "Set your monthly rent budget (Kaltmiete + Nebenkosten)",
+                "is_required": True,
+            },
+            {
+                "title": "List preferred neighborhoods or city districts",
+                "is_required": True,
+            },
+            {
+                "title": "Decide on minimum apartment size (sqm) and rooms",
+                "is_required": True,
+            },
+            {
+                "title": "List must-have features (balcony, elevator, fitted kitchen)",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=2,
+        phase=JourneyPhase.RENTAL_SEARCH,
+        title="Understand the German Rental Market",
+        description="Learn key concepts: Kaltmiete vs Warmmiete, Mietspiegel, tenant rights, and how the German rental system works.",
+        estimated_duration_days=3,
+        content_key="rental_market_overview",
+        prerequisites=[1],
+        tasks=[
+            {
+                "title": "Learn the difference between Kaltmiete (cold rent) and Warmmiete (warm rent)",
+                "is_required": True,
+            },
+            {
+                "title": "Look up the local Mietspiegel (rent index) for your target area",
+                "is_required": True,
+            },
+            {
+                "title": "Understand basic tenant rights under BGB Mietrecht (§535-580a)",
+                "is_required": True,
+            },
+            {
+                "title": "Research typical Nebenkosten (utilities) costs in your area",
+                "is_required": False,
+            },
+        ],
+        related_laws=["BGB §535-580a (Mietrecht)"],
+    ),
+    StepTemplate(
+        step_number=3,
+        phase=JourneyPhase.RENTAL_SEARCH,
+        title="Search for Apartments",
+        description="Use online portals, local networks, and agents to find available apartments matching your criteria.",
+        estimated_duration_days=14,
+        content_key="rental_apartment_search",
+        prerequisites=[2],
+        tasks=[
+            {"title": "Set up alerts on ImmoScout24 and Immowelt", "is_required": True},
+            {
+                "title": "Check WG-Gesucht for shared apartments (if applicable)",
+                "is_required": False,
+            },
+            {
+                "title": "Contact local Makler (agents) in your target area",
+                "is_required": False,
+            },
+            {
+                "title": "Check local newspapers and neighborhood bulletin boards",
+                "is_required": False,
+            },
+        ],
+    ),
+    # RENTAL_APPLICATION phase
+    StepTemplate(
+        step_number=4,
+        phase=JourneyPhase.RENTAL_APPLICATION,
+        title="Prepare Application Documents",
+        description="Gather all documents landlords typically require: SCHUFA, income proof, Mietschuldenfreiheitsbescheinigung, and Selbstauskunft.",
+        estimated_duration_days=7,
+        content_key="rental_application_documents",
+        prerequisites=[3],
+        tasks=[
+            {
+                "title": "Request your SCHUFA Auskunft (credit report)",
+                "is_required": True,
+            },
+            {
+                "title": "Get Mietschuldenfreiheitsbescheinigung from previous landlord",
+                "is_required": True,
+            },
+            {
+                "title": "Prepare Selbstauskunft (tenant self-disclosure form)",
+                "is_required": True,
+            },
+            {
+                "title": "Gather income proof (3 recent pay slips or employment contract)",
+                "is_required": True,
+            },
+            {"title": "Prepare copy of ID/passport", "is_required": True},
+        ],
+    ),
+    StepTemplate(
+        step_number=5,
+        phase=JourneyPhase.RENTAL_APPLICATION,
+        title="Attend Viewings (Besichtigung)",
+        description="Visit apartments, evaluate condition, ask the right questions, and watch for red flags.",
+        estimated_duration_days=14,
+        content_key="rental_viewings",
+        prerequisites=[4],
+        tasks=[
+            {"title": "Schedule and attend apartment viewings", "is_required": True},
+            {
+                "title": "Check water pressure, heating, windows, and electrical outlets",
+                "is_required": True,
+            },
+            {
+                "title": "Ask about Nebenkosten breakdown and last Betriebskostenabrechnung",
+                "is_required": True,
+            },
+            {
+                "title": "Note any existing damage or defects for documentation",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=6,
+        phase=JourneyPhase.RENTAL_APPLICATION,
+        title="Submit Applications",
+        description="Send your application package to landlords. Tips for standing out in a competitive market.",
+        estimated_duration_days=7,
+        content_key="rental_submit_application",
+        prerequisites=[5],
+        tasks=[
+            {
+                "title": "Write a brief, polite cover letter introducing yourself",
+                "is_required": True,
+            },
+            {
+                "title": "Attach all required documents (SCHUFA, income, Selbstauskunft)",
+                "is_required": True,
+            },
+            {
+                "title": "Follow up with landlords within 2-3 days if no response",
+                "is_required": False,
+            },
+        ],
+    ),
+    # RENTAL_CONTRACT phase
+    StepTemplate(
+        step_number=7,
+        phase=JourneyPhase.RENTAL_CONTRACT,
+        title="Review the Mietvertrag",
+        description="Carefully review the lease agreement. Understand key clauses, identify red flags, and know your rights.",
+        estimated_duration_days=5,
+        content_key="rental_contract_review",
+        prerequisites=[6],
+        tasks=[
+            {
+                "title": "Review rent amount, payment due date, and bank details",
+                "is_required": True,
+            },
+            {
+                "title": "Check Schonheitsreparaturen (cosmetic repair) clauses",
+                "is_required": True,
+            },
+            {
+                "title": "Understand notice period (Kundigungsfrist) — typically 3 months",
+                "is_required": True,
+            },
+            {
+                "title": "Look for Staffelmiete or Indexmiete (rent escalation) clauses",
+                "is_required": True,
+            },
+            {
+                "title": "Verify pet, subletting, and modification rules",
+                "is_required": False,
+            },
+        ],
+        related_laws=["BGB §535-548 (Mietvertrag)", "BGB §573-574c (Kundigung)"],
+    ),
+    StepTemplate(
+        step_number=8,
+        phase=JourneyPhase.RENTAL_CONTRACT,
+        title="Understand Kaution Requirements",
+        description="Learn about security deposit rules: maximum amount, payment options, and your rights regarding the deposit.",
+        estimated_duration_days=3,
+        content_key="rental_kaution",
+        prerequisites=[7],
+        tasks=[
+            {
+                "title": "Confirm Kaution amount (max 3 months Kaltmiete by law)",
+                "is_required": True,
+            },
+            {
+                "title": "Choose payment method: lump sum, 3 installments, or Kautionskonto",
+                "is_required": True,
+            },
+            {
+                "title": "Ensure landlord will hold deposit in a separate account",
+                "is_required": True,
+            },
+        ],
+        related_laws=["BGB §551 (Begrenzung und Anlage von Mietsicherheiten)"],
+    ),
+    StepTemplate(
+        step_number=9,
+        phase=JourneyPhase.RENTAL_CONTRACT,
+        title="Understand Nebenkosten",
+        description="Learn what's included in Nebenkosten (utility costs), how the annual Betriebskostenabrechnung works, and what landlords can charge.",
+        estimated_duration_days=3,
+        content_key="rental_nebenkosten",
+        prerequisites=[7],
+        tasks=[
+            {
+                "title": "Review the list of Nebenkosten items in your lease",
+                "is_required": True,
+            },
+            {
+                "title": "Understand the difference between warm and cold rent",
+                "is_required": True,
+            },
+            {
+                "title": "Learn about the annual Betriebskostenabrechnung (utility bill settlement)",
+                "is_required": True,
+            },
+            {
+                "title": "Check which costs are legally chargeable (BetrKV)",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "BetrKV (Betriebskostenverordnung)",
+            "HeizkostenV (Heizkostenverordnung)",
+        ],
+    ),
+    StepTemplate(
+        step_number=10,
+        phase=JourneyPhase.RENTAL_CONTRACT,
+        title="Negotiate Terms",
+        description="Know what's negotiable in a German lease and when to push back on unfavorable terms.",
+        estimated_duration_days=3,
+        content_key="rental_negotiate",
+        prerequisites=[7],
+        tasks=[
+            {
+                "title": "Identify clauses you want to negotiate (move-in date, Kaution installments)",
+                "is_required": False,
+            },
+            {
+                "title": "Request removal of unfair Schonheitsreparaturen clauses if present",
+                "is_required": False,
+            },
+            {
+                "title": "Negotiate any necessary apartment modifications or repairs before move-in",
+                "is_required": False,
+            },
+        ],
+    ),
+    # RENTAL_MOVE_IN phase
+    StepTemplate(
+        step_number=11,
+        phase=JourneyPhase.RENTAL_MOVE_IN,
+        title="Sign the Mietvertrag",
+        description="Finalize and sign the lease agreement. Know what to bring and what to verify before signing.",
+        estimated_duration_days=1,
+        content_key="rental_sign_lease",
+        prerequisites=[7, 8],
+        tasks=[
+            {
+                "title": "Bring valid ID and proof of income to signing",
+                "is_required": True,
+            },
+            {
+                "title": "Read through the final version of the contract carefully",
+                "is_required": True,
+            },
+            {"title": "Ensure both parties sign all copies", "is_required": True},
+            {"title": "Receive your signed copy and keep it safe", "is_required": True},
+        ],
+    ),
+    StepTemplate(
+        step_number=12,
+        phase=JourneyPhase.RENTAL_MOVE_IN,
+        title="Pay Kaution & First Rent",
+        description="Transfer the security deposit and first month's rent according to the lease terms.",
+        estimated_duration_days=3,
+        content_key="rental_initial_payment",
+        prerequisites=[11],
+        tasks=[
+            {
+                "title": "Transfer Kaution (or first installment) to landlord's account",
+                "is_required": True,
+            },
+            {
+                "title": "Transfer first month's rent before move-in date",
+                "is_required": True,
+            },
+            {
+                "title": "Keep transfer receipts as proof of payment",
+                "is_required": True,
+            },
+            {
+                "title": "Set up Dauerauftrag (standing order) for monthly rent",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=13,
+        phase=JourneyPhase.RENTAL_MOVE_IN,
+        title="Complete Wohnungsubergabe",
+        description="Conduct the apartment handover with the landlord. Document everything in the Ubergabeprotokoll.",
+        estimated_duration_days=1,
+        content_key="rental_handover",
+        prerequisites=[12],
+        tasks=[
+            {
+                "title": "Walk through every room and document existing defects with photos",
+                "is_required": True,
+            },
+            {
+                "title": "Record all meter readings (electricity, gas, water)",
+                "is_required": True,
+            },
+            {
+                "title": "Complete and sign the Ubergabeprotokoll (handover protocol)",
+                "is_required": True,
+            },
+            {"title": "Collect all keys and test them", "is_required": True},
+        ],
+    ),
+    StepTemplate(
+        step_number=14,
+        phase=JourneyPhase.RENTAL_MOVE_IN,
+        title="Complete Anmeldung & Utilities",
+        description="Register your new address at the Burgeramt and set up utilities, internet, and GEZ.",
+        estimated_duration_days=7,
+        content_key="rental_registration_utilities",
+        prerequisites=[13],
+        tasks=[
+            {
+                "title": "Register at Burgeramt (Anmeldung) within 14 days of moving in",
+                "is_required": True,
+            },
+            {
+                "title": "Get Wohnungsgeberbestatigung (landlord confirmation) for registration",
+                "is_required": True,
+            },
+            {"title": "Set up electricity and gas contracts", "is_required": True},
+            {"title": "Set up internet and phone", "is_required": False},
+            {
+                "title": "Register for GEZ (Rundfunkbeitrag) — 18.36 EUR/month",
+                "is_required": True,
+            },
+        ],
+        related_laws=["BMG §17 (Anmeldung bei der Meldebehorde)"],
+    ),
+]
+
 
 def _format_eur(amount: float) -> str:
     """Format a float as a rounded EUR string (e.g. '18,000 EUR')."""
@@ -981,36 +1351,59 @@ def generate_journey(
     Returns:
         Created Journey with generated steps.
     """
-    # Create the journey, pre-filling property_goals from questionnaire so
-    # Research Step 1 "Define Your Property Goals" loads with the type already selected.
-    journey = Journey(
-        user_id=user_id,
-        title=title,
-        property_type=answers.property_type,
-        property_location=answers.property_location,
-        financing_type=answers.financing_type,
-        is_first_time_buyer=answers.is_first_time_buyer,
-        has_german_residency=answers.has_german_residency,
-        budget_euros=answers.budget_euros,
-        target_purchase_date=answers.target_purchase_date,
-        property_use=answers.property_use,
-        started_at=datetime.now(timezone.utc),
-        property_goals={
-            "preferred_property_type": answers.property_type.value,
-            "budget_min_euros": answers.budget_min_euros,
-            "budget_max_euros": answers.budget_euros,
-            "property_use": answers.property_use,
-        },
-    )
+    is_rental = answers.journey_type == JourneyType.RENTAL
+
+    if is_rental:
+        journey = Journey(
+            user_id=user_id,
+            journey_type=JourneyType.RENTAL,
+            title=title or "My Rental Journey",
+            property_location=answers.property_location,
+            is_first_time_buyer=answers.is_first_time_buyer,
+            has_german_residency=answers.has_german_residency,
+            budget_euros=answers.budget_euros,
+            target_purchase_date=answers.target_purchase_date,
+            current_phase=JourneyPhase.RENTAL_SEARCH,
+            started_at=datetime.now(timezone.utc),
+        )
+    else:
+        # Create the journey, pre-filling property_goals from questionnaire so
+        # Research Step 1 "Define Your Property Goals" loads with the type already
+        # selected.
+        journey = Journey(
+            user_id=user_id,
+            journey_type=JourneyType.BUYING,
+            title=title or "My Property Journey",
+            property_type=answers.property_type,
+            property_location=answers.property_location,
+            financing_type=answers.financing_type,
+            is_first_time_buyer=answers.is_first_time_buyer,
+            has_german_residency=answers.has_german_residency,
+            budget_euros=answers.budget_euros,
+            target_purchase_date=answers.target_purchase_date,
+            property_use=answers.property_use,
+            started_at=datetime.now(timezone.utc),
+            property_goals={
+                "preferred_property_type": answers.property_type.value
+                if answers.property_type
+                else None,
+                "budget_min_euros": answers.budget_min_euros,
+                "budget_max_euros": answers.budget_euros,
+                "property_use": answers.property_use,
+            },
+        )
     session.add(journey)
     session.flush()  # Get journey ID
+
+    # Select template list based on journey type
+    templates = RENTAL_STEP_TEMPLATES if is_rental else STEP_TEMPLATES
 
     # Generate steps based on conditions
     step_number_map: dict[int, int] = {}  # Original -> New step number
     current_step = 0
 
-    for template in STEP_TEMPLATES:
-        if not _should_include_step(template, answers):
+    for template in templates:
+        if not is_rental and not _should_include_step(template, answers):
             continue
 
         current_step += 1
@@ -1030,7 +1423,7 @@ def generate_journey(
         # Personalize buying costs step with user's budget and state
         tasks_data = template.tasks
         step_estimated_costs = template.estimated_costs
-        if template.content_key == "buying_costs":
+        if not is_rental and template.content_key == "buying_costs":
             tasks_data, step_estimated_costs = _personalize_buying_costs(
                 template, answers
             )
@@ -1053,7 +1446,9 @@ def generate_journey(
         # Create tasks for this step, filtering by task-level conditions
         task_order = 0
         for task_data in tasks_data:
-            if not _matches_conditions(task_data.get("conditions"), answers):
+            if not is_rental and not _matches_conditions(
+                task_data.get("conditions"), answers
+            ):
                 continue
             task = JourneyTask(
                 step_id=step.id,

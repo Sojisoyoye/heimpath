@@ -2896,6 +2896,10 @@ export const JourneyDetailResponseSchema = {
             format: 'uuid',
             title: 'Id'
         },
+        journey_type: {
+            '$ref': '#/components/schemas/JourneyType',
+            default: 'buying'
+        },
         title: {
             type: 'string',
             title: 'Title'
@@ -3204,7 +3208,7 @@ export const JourneyOverviewSchema = {
 
 export const JourneyPhaseSchema = {
     type: 'string',
-    enum: ['research', 'preparation', 'buying', 'closing', 'ownership', 'rental_setup'],
+    enum: ['research', 'preparation', 'buying', 'closing', 'ownership', 'rental_setup', 'rental_search', 'rental_application', 'rental_contract', 'rental_move_in'],
     title: 'JourneyPhase',
     description: 'Phases of the property buying journey.'
 } as const;
@@ -3269,6 +3273,10 @@ export const JourneyResponseSchema = {
             type: 'string',
             format: 'uuid',
             title: 'Id'
+        },
+        journey_type: {
+            '$ref': '#/components/schemas/JourneyType',
+            default: 'buying'
         },
         title: {
             type: 'string',
@@ -3740,6 +3748,13 @@ export const JourneyTaskUpdateSchema = {
     required: ['is_completed'],
     title: 'JourneyTaskUpdate',
     description: 'Schema for updating a journey task.'
+} as const;
+
+export const JourneyTypeSchema = {
+    type: 'string',
+    enum: ['buying', 'rental'],
+    title: 'JourneyType',
+    description: 'Types of journeys.'
 } as const;
 
 export const JourneyUpdateSchema = {
@@ -7107,8 +7122,19 @@ export const PropertyTypeApplicabilitySchema = {
 
 export const QuestionnaireAnswersSchema = {
     properties: {
+        journey_type: {
+            '$ref': '#/components/schemas/JourneyType',
+            default: 'buying'
+        },
         property_type: {
-            '$ref': '#/components/schemas/PropertyType'
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/PropertyType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         },
         property_location: {
             type: 'string',
@@ -7116,7 +7142,14 @@ export const QuestionnaireAnswersSchema = {
             title: 'Property Location'
         },
         financing_type: {
-            '$ref': '#/components/schemas/FinancingType'
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/FinancingType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         },
         is_first_time_buyer: {
             type: 'boolean',
@@ -7178,7 +7211,7 @@ export const QuestionnaireAnswersSchema = {
         }
     },
     type: 'object',
-    required: ['property_type', 'property_location', 'financing_type'],
+    required: ['property_location'],
     title: 'QuestionnaireAnswers',
     description: 'Answers from the onboarding questionnaire.'
 } as const;

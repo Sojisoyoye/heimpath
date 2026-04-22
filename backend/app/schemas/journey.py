@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.journey import (
     FinancingType,
     JourneyPhase,
+    JourneyType,
     PropertyType,
     StepStatus,
 )
@@ -105,9 +106,10 @@ class PropertyGoalsUpdate(BaseModel):
 class QuestionnaireAnswers(BaseModel):
     """Answers from the onboarding questionnaire."""
 
-    property_type: PropertyType
+    journey_type: JourneyType = JourneyType.BUYING
+    property_type: PropertyType | None = None
     property_location: str = Field(..., max_length=255)
-    financing_type: FinancingType
+    financing_type: FinancingType | None = None
     is_first_time_buyer: bool = True
     has_german_residency: bool = False
     budget_euros: int | None = Field(default=None, ge=0)  # max budget
@@ -232,6 +234,7 @@ class JourneyResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    journey_type: JourneyType = JourneyType.BUYING
     title: str
     current_phase: JourneyPhase
     current_step_number: int

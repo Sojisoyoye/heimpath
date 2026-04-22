@@ -6,17 +6,23 @@
 import { Sparkles } from "lucide-react"
 import { GERMAN_STATES } from "@/common/constants"
 import { formatDate, formatEur } from "@/common/utils"
-import type { ResidencyStatus } from "@/models/journey"
+import type {
+  FinancingType,
+  JourneyType,
+  PropertyType,
+  ResidencyStatus,
+} from "@/models/journey"
 
 /******************************************************************************
                               Types
 ******************************************************************************/
 
 export interface WizardState {
-  propertyType?: string
+  journeyType?: JourneyType
+  propertyType?: PropertyType
   propertyUse?: "live_in" | "rent_out"
   targetState?: string
-  financingType?: string
+  financingType?: FinancingType
   budgetMin?: number
   budgetMax?: number
   targetDate?: string
@@ -51,6 +57,8 @@ const PROPERTY_USE_LABELS: Record<string, string> = {
 function JourneySummary(props: IProps) {
   const { state } = props
 
+  const isRental = state.journeyType === "rental"
+
   const stateName =
     GERMAN_STATES.find((s) => s.code === state.targetState)?.name ||
     state.targetState
@@ -63,37 +71,53 @@ function JourneySummary(props: IProps) {
       <div>
         <h3 className="text-lg font-semibold">Review Your Journey</h3>
         <p className="text-sm text-muted-foreground">
-          Here's a summary of your property buying journey
+          {isRental
+            ? "Here's a summary of your apartment rental journey"
+            : "Here's a summary of your property buying journey"}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Property Type</p>
-          <p className="font-medium capitalize">
-            {state.propertyType?.replace("_", " ")}
-          </p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Purpose</p>
+          <p className="text-sm text-muted-foreground">Journey Type</p>
           <p className="font-medium">
-            {state.propertyUse
-              ? PROPERTY_USE_LABELS[state.propertyUse]
-              : "Not specified"}
+            {isRental ? "Rent Apartment" : "Buy Property"}
           </p>
         </div>
+        {!isRental && (
+          <div className="rounded-lg border p-4">
+            <p className="text-sm text-muted-foreground">Property Type</p>
+            <p className="font-medium capitalize">
+              {state.propertyType?.replace("_", " ")}
+            </p>
+          </div>
+        )}
+        {!isRental && (
+          <div className="rounded-lg border p-4">
+            <p className="text-sm text-muted-foreground">Purpose</p>
+            <p className="font-medium">
+              {state.propertyUse
+                ? PROPERTY_USE_LABELS[state.propertyUse]
+                : "Not specified"}
+            </p>
+          </div>
+        )}
         <div className="rounded-lg border p-4">
           <p className="text-sm text-muted-foreground">Location</p>
           <p className="font-medium">{stateName}</p>
         </div>
+        {!isRental && (
+          <div className="rounded-lg border p-4">
+            <p className="text-sm text-muted-foreground">Financing</p>
+            <p className="font-medium capitalize">
+              {state.financingType?.replace("_", " ")}
+            </p>
+          </div>
+        )}
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Financing</p>
-          <p className="font-medium capitalize">
-            {state.financingType?.replace("_", " ")}
+          <p className="text-sm text-muted-foreground">
+            {isRental ? "Monthly Budget" : "Budget Range"}
           </p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Budget Range</p>
           <p className="font-medium">
             {state.budgetMin || state.budgetMax
               ? `${formatEur(state.budgetMin)} - ${formatEur(state.budgetMax)}`

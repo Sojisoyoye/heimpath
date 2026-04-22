@@ -54,6 +54,10 @@ export const JOURNEY_PHASES = [
   { key: "closing", label: "Closing", order: 4 },
   { key: "ownership", label: "Ownership", order: 5 },
   { key: "rental_setup", label: "Rental Setup", order: 6 },
+  { key: "rental_search", label: "Apartment Search", order: 7 },
+  { key: "rental_application", label: "Application", order: 8 },
+  { key: "rental_contract", label: "Lease Review", order: 9 },
+  { key: "rental_move_in", label: "Move-In", order: 10 },
 ] as const
 
 // Journey phase colors (used for phase badges across components)
@@ -69,6 +73,14 @@ export const PHASE_COLORS: Record<string, string> = {
     "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   rental_setup:
     "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
+  rental_search:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
+  rental_application:
+    "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
+  rental_contract:
+    "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400",
+  rental_move_in:
+    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
 }
 
 // Law categories

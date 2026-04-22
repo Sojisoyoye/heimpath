@@ -29,9 +29,13 @@ const PHASE_CHART_COLORS: Record<string, { stroke: string; bg: string }> = {
   preparation: { stroke: Colors.Journey.Preparation, bg: "#f3e8ff" },
   buying: { stroke: Colors.Journey.Buying, bg: "#ffedd5" },
   closing: { stroke: Colors.Journey.Closing, bg: "#dcfce7" },
-  // ownership and rental_setup are not in Colors.Journey — defined locally
+  // ownership and rental phases are not in Colors.Journey — defined locally
   ownership: { stroke: "#f59e0b", bg: "#fef3c7" },
   rental_setup: { stroke: "#14b8a6", bg: "#ccfbf1" },
+  rental_search: { stroke: "#6366f1", bg: "#e0e7ff" },
+  rental_application: { stroke: "#06b6d4", bg: "#cffafe" },
+  rental_contract: { stroke: "#f43f5e", bg: "#ffe4e6" },
+  rental_move_in: { stroke: "#10b981", bg: "#d1fae5" },
 }
 
 const DEFAULT_COLOR = { stroke: "#6b7280", bg: "#f3f4f6" }
