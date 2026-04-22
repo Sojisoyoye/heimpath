@@ -2,6 +2,8 @@ import { Globe, LayoutDashboard, ShieldCheck, TrendingUp } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 
+import { AnimateIn } from "./AnimateIn"
+
 /******************************************************************************
                               Constants
 ******************************************************************************/
@@ -48,34 +50,35 @@ function AdvantagesSection() {
   return (
     <section className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Why HeimPath?
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Built from the ground up for people buying property in a country
-            that isn't their own.
-          </p>
-        </div>
+        <AnimateIn>
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              Why HeimPath?
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Built from the ground up for people buying property in a country
+              that isn't their own.
+            </p>
+          </div>
+        </AnimateIn>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {ADVANTAGES.map((advantage) => (
-            <Card
-              key={advantage.title}
-              className="transition-shadow hover:shadow-md"
-            >
-              <CardContent className="p-6">
-                <div
-                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${advantage.color}`}
-                >
-                  <advantage.icon className="h-6 w-6" />
-                </div>
-                <h3 className="font-semibold">{advantage.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {advantage.description}
-                </p>
-              </CardContent>
-            </Card>
+          {ADVANTAGES.map((advantage, i) => (
+            <AnimateIn key={advantage.title} delayMs={(i + 1) * 100}>
+              <Card className="h-full transition-shadow hover:shadow-md">
+                <CardContent className="p-6">
+                  <div
+                    className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${advantage.color}`}
+                  >
+                    <advantage.icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-semibold">{advantage.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {advantage.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </AnimateIn>
           ))}
         </div>
       </div>
