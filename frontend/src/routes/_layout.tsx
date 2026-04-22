@@ -203,7 +203,7 @@ function Layout() {
             isSuccess={resendMutation.isSuccess}
           />
         )}
-        <main className="flex-1 p-6 md:p-8">
+        <main className="min-w-0 flex-1 p-6 md:p-8">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>

@@ -52,7 +52,7 @@ function CalculatorsPage() {
   const { tab } = Route.useSearch()
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Calculator className="h-6 w-6" />
@@ -64,7 +64,7 @@ function CalculatorsPage() {
       </div>
 
       <Tabs defaultValue={tab || "costs"}>
-        <TabsList className="flex w-full">
+        <TabsList className="flex w-full overflow-x-auto">
           <TabsTrigger
             value="costs"
             className="gap-2"
