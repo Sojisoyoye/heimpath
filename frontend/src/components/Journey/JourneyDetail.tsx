@@ -4,7 +4,16 @@
  */
 
 import { Link, useNavigate } from "@tanstack/react-router"
-import { ArrowLeft, Calendar, Home, MapPin, Trash2, Wallet } from "lucide-react"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Calendar,
+  Home,
+  MapPin,
+  Trash2,
+  Wallet,
+} from "lucide-react"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { ApiError } from "@/client"
 import {
@@ -21,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCreatePropertyFromJourney } from "@/hooks/mutations"
+import { usePortfolioProperties } from "@/hooks/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import type {
   JourneyPhase,
@@ -368,6 +378,34 @@ function StepListView(props: {
   )
 }
 
+/** Banner shown when this journey already has a linked portfolio property. */
+function ManagePortfolioCta(props: Readonly<{ propertyId: string }>) {
+  const { propertyId } = props
+  return (
+    <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
+      <CardContent className="flex flex-col items-center gap-4 py-5 text-center sm:flex-row sm:text-left">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50">
+          <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+            This property is in your portfolio
+          </h3>
+          <p className="mt-0.5 text-sm text-blue-700 dark:text-blue-300">
+            Track performance, rental income, and running costs.
+          </p>
+        </div>
+        <Button asChild className="shrink-0 gap-2">
+          <Link to="/portfolio/$propertyId" params={{ propertyId }}>
+            Manage Portfolio
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 /** Default component. Full journey detail view. */
 function JourneyDetail(props: IProps) {
   const {
@@ -383,6 +421,7 @@ function JourneyDetail(props: IProps) {
   const navigate = useNavigate()
   const createFromJourney = useCreatePropertyFromJourney()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const { data: portfolioData } = usePortfolioProperties()
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const stored = localStorage.getItem("heimpath-journey-view-mode")
@@ -428,6 +467,15 @@ function JourneyDetail(props: IProps) {
       )
     )
   }, [journey])
+
+  // Find the portfolio property already linked to this journey (if any).
+  const linkedPortfolioProperty = useMemo(
+    () =>
+      journey
+        ? (portfolioData?.data.find((p) => p.journeyId === journey.id) ?? null)
+        : null,
+    [journey, portfolioData],
+  )
 
   if (isLoading || !journey) {
     return <JourneyDetailSkeleton />
@@ -497,8 +545,13 @@ function JourneyDetail(props: IProps) {
         <ViewModeToggle viewMode={viewMode} onChange={handleViewModeChange} />
       </div>
 
-      {/* Completion CTA */}
-      {isOwnershipComplete && <JourneyCompletionCta journeyId={journey.id} />}
+      {/* Completion / Portfolio CTA */}
+      {isOwnershipComplete &&
+        (linkedPortfolioProperty ? (
+          <ManagePortfolioCta propertyId={linkedPortfolioProperty.id} />
+        ) : (
+          <JourneyCompletionCta journeyId={journey.id} />
+        ))}
 
       {/* Main content */}
       <JourneyProvider journey={journey}>
@@ -512,7 +565,9 @@ function JourneyDetail(props: IProps) {
                 onTaskToggle={onTaskToggle}
                 onStepOpen={onStepOpen}
                 onAddToPortfolio={
-                  isOwnershipComplete ? handleAddToPortfolio : undefined
+                  isOwnershipComplete && !linkedPortfolioProperty
+                    ? handleAddToPortfolio
+                    : undefined
                 }
               />
             ) : (
@@ -522,7 +577,9 @@ function JourneyDetail(props: IProps) {
                 onTaskToggle={onTaskToggle}
                 onStepOpen={onStepOpen}
                 onAddToPortfolio={
-                  isOwnershipComplete ? handleAddToPortfolio : undefined
+                  isOwnershipComplete && !linkedPortfolioProperty
+                    ? handleAddToPortfolio
+                    : undefined
                 }
               />
             )}

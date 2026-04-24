@@ -93,6 +93,7 @@ class PortfolioPropertySummary(BaseModel):
     purchase_price: float
     monthly_rent_target: float | None = None
     is_vacant: bool
+    journey_id: uuid.UUID | None = None
     created_at: datetime
 
 
