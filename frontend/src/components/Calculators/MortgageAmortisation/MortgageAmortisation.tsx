@@ -23,6 +23,7 @@ import { MortgageAmortisationResults } from "./MortgageAmortisationResults"
 import { MortgageAmortisationTable } from "./MortgageAmortisationTable"
 import { MortgageCompareRates } from "./MortgageCompareRates"
 import { MortgageEducationalSection } from "./MortgageEducationalSection"
+import { MortgageSaleProfitCard } from "./MortgageSaleProfitCard"
 import { calculateMortgage } from "./mortgageCalculations"
 
 interface IProps {
@@ -101,6 +102,14 @@ function MortgageAmortisation(props: Readonly<IProps>) {
             />
           </CardContent>
         </Card>
+      )}
+
+      {/* Sale profit estimator */}
+      {result && lastInput && (
+        <MortgageSaleProfitCard
+          result={result}
+          propertyPrice={lastInput.propertyPrice}
+        />
       )}
 
       {/* Compare Rates */}
