@@ -10,6 +10,7 @@ import tempfile
 import uuid
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from app.models.contract import ContractAnalysis
@@ -102,12 +103,16 @@ def get_analysis_by_id(
     Raises:
         ContractAnalysisNotFoundError: If not found or not owned by user.
     """
-    result = session.execute(
-        select(ContractAnalysis).where(
-            ContractAnalysis.id == analysis_id,
-            ContractAnalysis.user_id == user_id,
+    result = (
+        session.execute(
+            select(ContractAnalysis).where(
+                ContractAnalysis.id == analysis_id,
+                ContractAnalysis.user_id == user_id,
+            )
         )
-    ).scalars().first()
+        .scalars()
+        .first()
+    )
 
     if not result:
         raise ContractAnalysisNotFoundError(f"Analysis {analysis_id} not found")
@@ -123,9 +128,13 @@ def get_analysis_by_share_id(
     Raises:
         ContractAnalysisNotFoundError: If not found or not shared.
     """
-    result = session.execute(
-        select(ContractAnalysis).where(ContractAnalysis.share_id == share_id)
-    ).scalars().first()
+    result = (
+        session.execute(
+            select(ContractAnalysis).where(ContractAnalysis.share_id == share_id)
+        )
+        .scalars()
+        .first()
+    )
 
     if not result:
         raise ContractAnalysisNotFoundError(f"Shared analysis {share_id} not found")
@@ -141,9 +150,12 @@ def list_analyses(
     """List contract analyses for a user, newest first."""
     base_query = select(ContractAnalysis).where(ContractAnalysis.user_id == user_id)
 
-    total = session.execute(
-        select(func.count()).select_from(base_query.subquery())
-    ).scalar() or 0
+    total = (
+        session.execute(
+            select(func.count()).select_from(base_query.subquery())
+        ).scalar()
+        or 0
+    )
 
     offset = (page - 1) * page_size
     records = list(
@@ -170,8 +182,15 @@ def generate_share_id(
     """
     record = get_analysis_by_id(session, analysis_id, user_id)
     if not record.share_id:
-        record.share_id = secrets.token_urlsafe(8)
-        session.add(record)
-        session.commit()
-        session.refresh(record)
+        for _ in range(5):
+            try:
+                record.share_id = secrets.token_urlsafe(8)
+                session.add(record)
+                session.commit()
+                session.refresh(record)
+                break
+            except IntegrityError:
+                session.rollback()
+        else:
+            raise RuntimeError("Failed to generate a unique share_id after 5 attempts")
     return record

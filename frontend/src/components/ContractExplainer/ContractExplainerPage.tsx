@@ -3,6 +3,7 @@
  * Upload a German Kaufvertrag PDF and receive an AI clause-by-clause analysis
  */
 
+import { useNavigate } from "@tanstack/react-router"
 import {
   AlertTriangle,
   CheckSquare,
@@ -120,6 +121,7 @@ interface IUpgradeCtaProps {
 /** Premium upgrade CTA shown when clauses are truncated. */
 function UpgradeCta(props: Readonly<IUpgradeCtaProps>) {
   const { hiddenCount } = props
+  const navigate = useNavigate()
 
   return (
     <div className="relative">
@@ -137,7 +139,7 @@ function UpgradeCta(props: Readonly<IUpgradeCtaProps>) {
         <Button
           size="sm"
           className="bg-amber-600 hover:bg-amber-700 text-white"
-          onClick={() => window.location.assign("/subscriptions")}
+          onClick={() => navigate({ to: "/settings" })}
         >
           Upgrade to Premium
         </Button>

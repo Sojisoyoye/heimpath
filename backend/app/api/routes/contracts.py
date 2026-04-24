@@ -3,17 +3,17 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 
+from app._models_sqlmodel import SubscriptionTier
 from app.api.deps import CurrentUser, SessionDep
 from app.schemas.contract import (
+    ClauseExplanation,
     ContractAnalysisListResponse,
     ContractAnalysisResponse,
-    ClauseExplanation,
     NotaryQuestion,
 )
 from app.services import contract_service
-from app._models_sqlmodel import SubscriptionTier
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
 
@@ -32,16 +32,29 @@ def _build_response(
     all_clauses = record.analyzed_clauses or []
     all_checklist = record.notary_checklist or []
 
+    def _to_clause(c: dict) -> ClauseExplanation | None:
+        try:
+            return ClauseExplanation.model_validate(c)
+        except Exception:
+            return None
+
+    def _to_question(q: dict) -> NotaryQuestion | None:
+        try:
+            return NotaryQuestion.model_validate(q)
+        except Exception:
+            return None
+
+    parsed_clauses = [c for c in (_to_clause(x) for x in all_clauses) if c]
+    parsed_checklist = [q for q in (_to_question(x) for x in all_checklist) if q]
+
     if is_premium:
-        visible_clauses = [ClauseExplanation(**c) for c in all_clauses]
-        visible_checklist = [NotaryQuestion(**q) for q in all_checklist]
+        visible_clauses = parsed_clauses
+        visible_checklist = parsed_checklist
         is_truncated = False
     else:
-        visible_clauses = [
-            ClauseExplanation(**c) for c in all_clauses[:_FREE_TIER_LIMIT]
-        ]
+        visible_clauses = parsed_clauses[:_FREE_TIER_LIMIT]
         visible_checklist = []
-        is_truncated = len(all_clauses) > _FREE_TIER_LIMIT
+        is_truncated = len(parsed_clauses) > _FREE_TIER_LIMIT
 
     return ContractAnalysisResponse(
         id=record.id,
@@ -51,7 +64,9 @@ def _build_response(
         analyzed_clauses=visible_clauses,
         notary_checklist=visible_checklist,
         overall_risk_assessment=record.overall_risk_assessment,
-        overall_risk_explanation=record.overall_risk_explanation if is_premium else None,
+        overall_risk_explanation=record.overall_risk_explanation
+        if is_premium
+        else None,
         clause_count=len(all_clauses),
         is_truncated=is_truncated,
         created_at=record.created_at,
@@ -148,7 +163,7 @@ async def list_contract_analyses(
             clause_count=count,
             created_at=r.created_at,
         )
-        for r, count in zip(records, all_clauses_counts)
+        for r, count in zip(records, all_clauses_counts, strict=True)
     ]
     return ContractAnalysisListResponse(
         data=data, total=total, page=page, page_size=page_size
