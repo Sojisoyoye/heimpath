@@ -31,7 +31,9 @@ jobs:
         run: uv pip install pip-audit
         working-directory: backend
       - name: Run pip-audit
-        run: uv run pip-audit
+        # CVE-2026-3219: vulnerability in pip itself (CI runner toolchain),
+        # not in application dependencies. Ignored until pip releases a fix.
+        run: uv run pip-audit --ignore-vuln CVE-2026-3219
         working-directory: backend
 
   npm-audit:
