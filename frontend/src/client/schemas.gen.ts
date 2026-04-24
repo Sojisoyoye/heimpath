@@ -5887,6 +5887,85 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const ProfessionalCreateRequestSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Name'
+        },
+        type: {
+            '$ref': '#/components/schemas/ProfessionalType'
+        },
+        city: {
+            type: 'string',
+            maxLength: 255,
+            title: 'City'
+        },
+        languages: {
+            type: 'string',
+            maxLength: 500,
+            title: 'Languages'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        email: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Email'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        website: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Website'
+        },
+        is_verified: {
+            type: 'boolean',
+            title: 'Is Verified',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['name', 'type', 'city', 'languages'],
+    title: 'ProfessionalCreateRequest',
+    description: 'Request schema for creating a professional (admin only).'
+} as const;
+
 export const ProfessionalDetailResponseSchema = {
     properties: {
         id: {
@@ -6158,6 +6237,118 @@ export const ProfessionalTypeSchema = {
     enum: ['lawyer', 'notary', 'tax_advisor', 'mortgage_broker', 'real_estate_agent'],
     title: 'ProfessionalType',
     description: 'Types of professionals in the directory.'
+} as const;
+
+export const ProfessionalUpdateRequestSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        type: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ProfessionalType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        city: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'City'
+        },
+        languages: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Languages'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        email: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Email'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        website: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Website'
+        },
+        is_verified: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Verified'
+        }
+    },
+    type: 'object',
+    title: 'ProfessionalUpdateRequest',
+    description: 'Request schema for updating a professional (admin only). All fields optional.'
 } as const;
 
 export const ProjectionYearSchema = {

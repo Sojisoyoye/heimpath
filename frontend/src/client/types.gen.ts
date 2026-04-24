@@ -1651,6 +1651,21 @@ export type PrivateUserCreate = {
 };
 
 /**
+ * Request schema for creating a professional (admin only).
+ */
+export type ProfessionalCreateRequest = {
+    name: string;
+    type: ProfessionalType;
+    city: string;
+    languages: string;
+    description?: (string | null);
+    email?: (string | null);
+    phone?: (string | null);
+    website?: (string | null);
+    is_verified?: boolean;
+};
+
+/**
  * Professional detail with reviews.
  */
 export type ProfessionalDetailResponse = {
@@ -1712,6 +1727,21 @@ export type ProfessionalResponse = {
  * Types of professionals in the directory.
  */
 export type ProfessionalType = 'lawyer' | 'notary' | 'tax_advisor' | 'mortgage_broker' | 'real_estate_agent';
+
+/**
+ * Request schema for updating a professional (admin only). All fields optional.
+ */
+export type ProfessionalUpdateRequest = {
+    name?: (string | null);
+    type?: (ProfessionalType | null);
+    city?: (string | null);
+    languages?: (string | null);
+    description?: (string | null);
+    email?: (string | null);
+    phone?: (string | null);
+    website?: (string | null);
+    is_verified?: (boolean | null);
+};
 
 /**
  * Single year projection data.
@@ -3211,11 +3241,30 @@ export type ProfessionalsListProfessionalsData = {
 
 export type ProfessionalsListProfessionalsResponse = (ProfessionalListResponse);
 
+export type ProfessionalsCreateProfessionalData = {
+    requestBody: ProfessionalCreateRequest;
+};
+
+export type ProfessionalsCreateProfessionalResponse = (ProfessionalResponse);
+
 export type ProfessionalsGetProfessionalData = {
     professionalId: string;
 };
 
 export type ProfessionalsGetProfessionalResponse = (ProfessionalDetailResponse);
+
+export type ProfessionalsUpdateProfessionalData = {
+    professionalId: string;
+    requestBody: ProfessionalUpdateRequest;
+};
+
+export type ProfessionalsUpdateProfessionalResponse = (ProfessionalResponse);
+
+export type ProfessionalsDeleteProfessionalData = {
+    professionalId: string;
+};
+
+export type ProfessionalsDeleteProfessionalResponse = (void);
 
 export type ProfessionalsCreateReviewData = {
     professionalId: string;
@@ -3223,6 +3272,12 @@ export type ProfessionalsCreateReviewData = {
 };
 
 export type ProfessionalsCreateReviewResponse = (ReviewResponse);
+
+export type ProfessionalsToggleVerifyProfessionalData = {
+    professionalId: string;
+};
+
+export type ProfessionalsToggleVerifyProfessionalResponse = (ProfessionalResponse);
 
 export type SearchSearchData = {
     /**

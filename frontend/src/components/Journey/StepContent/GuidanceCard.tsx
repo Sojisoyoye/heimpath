@@ -3,8 +3,9 @@
  * Reusable informational card for journey step content
  */
 
+import { Link } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
-import { Lightbulb } from "lucide-react"
+import { ArrowRight, Lightbulb } from "lucide-react"
 
 import {
   Card,
@@ -25,6 +26,8 @@ interface IProps {
   description: string
   items: IGuidanceItem[]
   tip?: string
+  ctaLabel?: string
+  ctaHref?: string
 }
 
 /******************************************************************************
@@ -32,7 +35,7 @@ interface IProps {
 ******************************************************************************/
 
 function GuidanceCard(props: Readonly<IProps>) {
-  const { title, description, items, tip } = props
+  const { title, description, items, tip, ctaLabel, ctaHref } = props
 
   return (
     <Card>
@@ -55,6 +58,15 @@ function GuidanceCard(props: Readonly<IProps>) {
             <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <p className="text-xs text-amber-800 dark:text-amber-200">{tip}</p>
           </div>
+        )}
+        {ctaLabel && ctaHref && (
+          <Link
+            to={ctaHref}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            {ctaLabel}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         )}
       </CardContent>
     </Card>

@@ -7,6 +7,37 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.professional import ProfessionalType, ServiceType
 
+# --- Admin Requests ---
+
+
+class ProfessionalCreateRequest(BaseModel):
+    """Request schema for creating a professional (admin only)."""
+
+    name: str = Field(..., max_length=255)
+    type: ProfessionalType
+    city: str = Field(..., max_length=255)
+    languages: str = Field(..., max_length=500)
+    description: str | None = None
+    email: str | None = Field(None, max_length=255)
+    phone: str | None = Field(None, max_length=50)
+    website: str | None = Field(None, max_length=500)
+    is_verified: bool = False
+
+
+class ProfessionalUpdateRequest(BaseModel):
+    """Request schema for updating a professional (admin only). All fields optional."""
+
+    name: str | None = Field(None, max_length=255)
+    type: ProfessionalType | None = None
+    city: str | None = Field(None, max_length=255)
+    languages: str | None = Field(None, max_length=500)
+    description: str | None = None
+    email: str | None = Field(None, max_length=255)
+    phone: str | None = Field(None, max_length=50)
+    website: str | None = Field(None, max_length=500)
+    is_verified: bool | None = None
+
+
 # --- Professional Response ---
 
 

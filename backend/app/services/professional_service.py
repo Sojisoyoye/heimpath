@@ -235,6 +235,37 @@ def recompute_professional_stats(session: Session, professional_id: uuid.UUID) -
     _update_trust_signals(session, professional_id)
 
 
+def create_professional(session: Session, data: dict) -> Professional:
+    """Create a new professional (admin)."""
+    professional = Professional(**data)
+    session.add(professional)
+    session.commit()
+    session.refresh(professional)
+    return professional
+
+
+def update_professional(
+    session: Session, professional_id: uuid.UUID, data: dict
+) -> Professional:
+    """Update a professional (admin). Supports partial update."""
+    professional = get_professional_by_id(session, professional_id)
+
+    for key, value in data.items():
+        setattr(professional, key, value)
+
+    session.add(professional)
+    session.commit()
+    session.refresh(professional)
+    return professional
+
+
+def delete_professional(session: Session, professional_id: uuid.UUID) -> None:
+    """Delete a professional and cascade reviews (admin)."""
+    professional = get_professional_by_id(session, professional_id)
+    session.delete(professional)
+    session.commit()
+
+
 def get_available_cities(session: Session) -> list[str]:
     """Get distinct cities that have professionals."""
     query = select(Professional.city).distinct().order_by(Professional.city)
