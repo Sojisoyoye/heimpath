@@ -69,6 +69,7 @@ def _build_response(
         overall_risk_explanation=record.overall_risk_explanation
         if is_premium
         else None,
+        purchase_price=record.purchase_price,
         clause_count=len(all_clauses),
         is_truncated=is_truncated,
         created_at=record.created_at,

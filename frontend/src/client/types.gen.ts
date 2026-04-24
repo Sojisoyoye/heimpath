@@ -463,6 +463,7 @@ export type ContractAnalysisResponse = {
     notary_checklist: (Array<app__schemas__contract__NotaryQuestion> | null);
     overall_risk_assessment: (string | null);
     overall_risk_explanation: (string | null);
+    purchase_price?: (number | null);
     clause_count: number;
     is_truncated: boolean;
     created_at: string;

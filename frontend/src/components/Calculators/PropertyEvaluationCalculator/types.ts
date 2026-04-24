@@ -18,6 +18,7 @@ export interface PropertyEvaluationCalculatorProps {
   journeyStepId?: string
   initialState?: string // German state code for transfer tax
   initialBudget?: number
+  initialPurchasePrice?: number
   propertyUse?: "live_in" | "rent_out"
   className?: string
 }

@@ -35,8 +35,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const Route = createFileRoute("/_layout/calculators")({
   component: CalculatorsPage,
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: string; purchasePrice?: number } => ({
     tab: (search.tab as string) || undefined,
+    purchasePrice:
+      typeof search.purchasePrice === "number"
+        ? search.purchasePrice
+        : typeof search.purchasePrice === "string"
+          ? Number.parseFloat(search.purchasePrice) || undefined
+          : undefined,
   }),
   head: () => ({
     meta: [{ title: "Calculators - HeimPath" }],
@@ -49,7 +57,7 @@ export const Route = createFileRoute("/_layout/calculators")({
 
 /** Default component. Calculators page with tabs. */
 function CalculatorsPage() {
-  const { tab } = Route.useSearch()
+  const { tab, purchasePrice } = Route.useSearch()
 
   return (
     <div className="min-w-0 space-y-6">
@@ -152,7 +160,7 @@ function CalculatorsPage() {
         </TabsContent>
 
         <TabsContent value="property-evaluation" className="mt-6">
-          <PropertyEvaluationCalculator />
+          <PropertyEvaluationCalculator initialPurchasePrice={purchasePrice} />
         </TabsContent>
 
         <TabsContent value="ownership" className="mt-6">
