@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router"
 ******************************************************************************/
 
 const INTERNAL_LINKS = [
+  { label: "Free Tools", to: "/tools" },
   { label: "Terms", to: "/terms" },
   { label: "Privacy", to: "/privacy" },
   { label: "Imprint", to: "/imprint" },

@@ -1,6 +1,7 @@
 import { AdvantagesSection } from "./AdvantagesSection"
 import { CtaSection } from "./CtaSection"
 import { FeaturesSection } from "./FeaturesSection"
+import { FreeToolsSection } from "./FreeToolsSection"
 import { HeroSection } from "./HeroSection"
 import { HowItWorksSection } from "./HowItWorksSection"
 import { LandingFooter } from "./LandingFooter"
@@ -21,6 +22,7 @@ function LandingPage() {
         <FeaturesSection />
         <PropertyEvaluationCtaSection />
         <HowItWorksSection />
+        <FreeToolsSection />
         <AdvantagesSection />
         <CtaSection />
       </main>
