@@ -270,10 +270,13 @@ function StepListView(props: {
         onPhaseClick={(key) => handleContinueToPhase(key as JourneyPhase)}
       />
 
-      {phaseGroups.map((group) => {
+      {phaseGroups.map((group, groupIndex) => {
         const isComplete = group.steps.every(
           (s) => s.status === "completed" || s.status === "skipped",
         )
+        const nextGroup = phaseGroups[groupIndex + 1]
+        const nextPhaseStarted =
+          nextGroup?.steps.some((s) => s.status !== "not_started") ?? false
         const phaseLabel =
           JOURNEY_PHASES.find((p) => p.key === group.phase)?.label ??
           group.phase
@@ -308,7 +311,7 @@ function StepListView(props: {
                 onStepOpen={onStepOpen}
               />
             ))}
-            {isComplete && (
+            {isComplete && !nextPhaseStarted && (
               <PhaseCompletionCta
                 currentPhase={group.phase}
                 activePhaseKeys={navPhases.map((p) => p.key)}

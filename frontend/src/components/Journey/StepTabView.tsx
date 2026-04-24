@@ -60,6 +60,16 @@ function StepTabView(props: IProps) {
     phaseSteps.length > 0 &&
     phaseSteps.every((s) => s.status === "completed" || s.status === "skipped")
 
+  const effectivePhaseIndex = visiblePhases.findIndex(
+    (p) => p.key === effectivePhase,
+  )
+  const nextPhaseKey = visiblePhases[effectivePhaseIndex + 1]?.key as
+    | JourneyPhase
+    | undefined
+  const nextPhaseStarted = nextPhaseKey
+    ? stepsByPhase[nextPhaseKey].some((s) => s.status !== "not_started")
+    : false
+
   const handleContinueToPhase = (nextPhase: JourneyPhase) => {
     setSelectedPhase(nextPhase)
   }
@@ -90,7 +100,7 @@ function StepTabView(props: IProps) {
       ))}
 
       {/* Phase completion CTA */}
-      {isPhaseComplete && (
+      {isPhaseComplete && !nextPhaseStarted && (
         <PhaseCompletionCta
           currentPhase={effectivePhase}
           activePhaseKeys={visiblePhases.map((p) => p.key)}
