@@ -14,6 +14,7 @@ import {
   Globe,
   Landmark,
   Scale,
+  ShieldCheck,
   TrendingUp,
 } from "lucide-react"
 import {
@@ -22,6 +23,7 @@ import {
   FinancingWizard,
   HiddenCostsCalculator,
   MortgageAmortisation,
+  MortgageEligibilityGuide,
   OwnershipComparison,
   PropertyEvaluationCalculator,
   ROICalculator,
@@ -141,6 +143,14 @@ function CalculatorsPage() {
             <Globe className="h-4 w-4" />
             <span className="hidden sm:inline">Tax Guide</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="eligibility"
+            className="gap-2"
+            aria-label="Mortgage Eligibility"
+          >
+            <ShieldCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">Eligibility</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -177,6 +187,10 @@ function CalculatorsPage() {
 
         <TabsContent value="tax-guide" className="mt-6">
           <CrossBorderTaxGuide />
+        </TabsContent>
+
+        <TabsContent value="eligibility" className="mt-6">
+          <MortgageEligibilityGuide />
         </TabsContent>
       </Tabs>
     </div>
