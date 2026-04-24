@@ -17,6 +17,7 @@ import type {
 import { useJourneyContext } from "../JourneyContext"
 import { ProgressBar } from "../ProgressBar"
 import { TaskCheckbox } from "../TaskCheckbox"
+import { FinanceCheck } from "./FinanceCheck"
 import { MarketInsights } from "./MarketInsights"
 import { OwnershipInsurance } from "./OwnershipInsurance"
 import { OwnershipManagement } from "./OwnershipManagement"
@@ -59,6 +60,7 @@ const STEP_CONTENT_REGISTRY: Record<
   string,
   (props: IStepContentProps) => ReactNode
 > = {
+  finance_check: (p) => <FinanceCheck step={p.step} />,
   research_goals: (p) => (
     <PropertyGoalsForm
       journeyId={p.journeyId}
