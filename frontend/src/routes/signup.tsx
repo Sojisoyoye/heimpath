@@ -283,19 +283,19 @@ function SignUp() {
 
           <p className="text-center text-xs text-muted-foreground">
             By creating an account, you agree to our{" "}
-            <a
-              href="/terms"
+            <RouterLink
+              to="/terms"
               className="underline underline-offset-4 hover:text-foreground"
             >
               Terms of Service
-            </a>{" "}
+            </RouterLink>{" "}
             and{" "}
-            <a
-              href="/privacy"
+            <RouterLink
+              to="/privacy"
               className="underline underline-offset-4 hover:text-foreground"
             >
               Privacy Policy
-            </a>
+            </RouterLink>
           </p>
 
           <div className="text-center text-sm text-muted-foreground">
