@@ -72,11 +72,15 @@ function PhaseIconNav(props: IProps) {
             <TooltipTrigger asChild>
               <button
                 type="button"
+                aria-label={phase.label}
                 onClick={() => onPhaseClick(phase.key)}
                 className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-lg border transition-colors",
                   isActive
-                    ? cn(PHASE_COLORS[phase.key], "border-current/20")
+                    ? cn(
+                        PHASE_COLORS[phase.key] ?? "bg-muted text-foreground",
+                        "border-current/20",
+                      )
                     : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >

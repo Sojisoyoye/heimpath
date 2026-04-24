@@ -159,13 +159,15 @@ function PhaseProgressBar(props: { journey: JourneyPublic }) {
   const currentIdx = activePhases.findIndex(
     (p) => p.key === journey.current_phase,
   )
+  // Clamp to 0 so "Phase X of N" never shows "Phase 0" for an unknown phase.
+  const displayIdx = currentIdx >= 0 ? currentIdx : 0
   const currentPhaseLabel =
-    activePhases[currentIdx]?.label ?? journey.current_phase
+    activePhases[displayIdx]?.label ?? journey.current_phase
 
   return (
     <div className="flex items-center gap-3">
       <p className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
-        Phase {currentIdx + 1} of {activePhases.length}{" "}
+        Phase {displayIdx + 1} of {activePhases.length}{" "}
         <span className="font-medium text-foreground">{currentPhaseLabel}</span>
       </p>
       <div className="flex w-32 shrink-0 gap-0.5">
@@ -174,7 +176,7 @@ function PhaseProgressBar(props: { journey: JourneyPublic }) {
             key={phase.key}
             className={cn(
               "h-1 flex-1 rounded-full transition-colors",
-              i <= currentIdx ? "bg-primary" : "bg-muted",
+              i <= displayIdx ? "bg-primary" : "bg-muted",
             )}
           />
         ))}
@@ -197,8 +199,8 @@ function JourneyDetailSkeleton() {
       <Skeleton className="h-12 w-full" />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full" />
+          {["overview", "phase", "steps"].map((k) => (
+            <Skeleton key={k} className="h-48 w-full" />
           ))}
         </div>
         <Skeleton className="h-96 w-full" />
@@ -243,18 +245,24 @@ function StepListView(props: {
     phaseGroups[0]?.phase ??
     "research"
 
-  const navPhases = useMemo(
-    () =>
-      JOURNEY_PHASES.filter((p) =>
-        phaseGroups.some((g) => g.phase === p.key),
-      ).map((p) => ({
+  const navPhases = useMemo(() => {
+    // Build a map of phase → total step count. If a phase appears in
+    // non-consecutive groups (edge case from API ordering), counts are summed.
+    const stepCountByPhase = new Map<string, number>()
+    for (const g of phaseGroups) {
+      stepCountByPhase.set(
+        g.phase,
+        (stepCountByPhase.get(g.phase) ?? 0) + g.steps.length,
+      )
+    }
+    return JOURNEY_PHASES.filter((p) => stepCountByPhase.has(p.key)).map(
+      (p) => ({
         key: p.key,
         label: p.label,
-        stepCount:
-          phaseGroups.find((g) => g.phase === p.key)?.steps.length ?? 0,
-      })),
-    [phaseGroups],
-  )
+        stepCount: stepCountByPhase.get(p.key) ?? 0,
+      }),
+    )
+  }, [phaseGroups])
 
   return (
     <div className="space-y-4">
@@ -306,6 +314,7 @@ function StepListView(props: {
             {isComplete && (
               <PhaseCompletionCta
                 currentPhase={group.phase}
+                activePhaseKeys={phaseGroups.map((g) => g.phase)}
                 onContinue={handleContinueToPhase}
               />
             )}

@@ -93,6 +93,7 @@ function StepTabView(props: IProps) {
       {isPhaseComplete && (
         <PhaseCompletionCta
           currentPhase={effectivePhase}
+          activePhaseKeys={visiblePhases.map((p) => p.key)}
           onContinue={handleContinueToPhase}
         />
       )}

@@ -117,7 +117,7 @@ function StepCard(props: IProps) {
     <Card
       className={cn(
         "gap-0 overflow-hidden py-0 transition-all",
-        isActive && "ring-2 ring-blue-600 ring-offset-2",
+        isActive && "ring-2 ring-primary ring-offset-2",
         step.status === "completed" &&
           "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20",
         className,
@@ -149,7 +149,7 @@ function StepCard(props: IProps) {
             Step {step.step_number}
           </span>
           <span className="text-xs text-muted-foreground">·</span>
-          <CardTitle className="min-w-0 truncate text-sm">
+          <CardTitle className="min-w-0 truncate text-sm" title={step.title}>
             {step.title}
           </CardTitle>
           <div className="ml-auto shrink-0">
