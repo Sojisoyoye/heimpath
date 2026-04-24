@@ -4,7 +4,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlmodel import Session
 
 from app.models.professional import (
@@ -321,10 +321,14 @@ def submit_inquiry(
 
 
 def track_click(session: Session, professional_id: uuid.UUID) -> None:
-    """Increment referral click count for a professional."""
-    professional = get_professional_by_id(session, professional_id)
-    professional.click_count = (professional.click_count or 0) + 1
-    session.add(professional)
+    """Increment referral click count for a professional (atomic)."""
+    # Verify professional exists first
+    get_professional_by_id(session, professional_id)
+    session.execute(
+        update(Professional)
+        .where(Professional.id == professional_id)
+        .values(click_count=Professional.click_count + 1)
+    )
     session.commit()
 
 
@@ -344,6 +348,7 @@ def _send_inquiry_email(
         from app.core.config import settings
 
         if not settings.emails_enabled:
+            inquiry.status = "skipped"
             return
 
         from app.utils import render_email_template, send_email

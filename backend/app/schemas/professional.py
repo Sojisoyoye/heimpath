@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.professional import ProfessionalType, ServiceType
 
@@ -123,7 +123,7 @@ class ContactInquiryCreateRequest(BaseModel):
     """Request schema for submitting a contact inquiry."""
 
     sender_name: str = Field(..., max_length=255)
-    sender_email: str = Field(..., max_length=255)
+    sender_email: EmailStr = Field(..., max_length=255)
     message: str = Field(..., max_length=2000)
 
 

@@ -1273,6 +1273,7 @@ export const ContactInquiryCreateRequestSchema = {
         sender_email: {
             type: 'string',
             maxLength: 255,
+            format: 'email',
             title: 'Sender Email'
         },
         message: {

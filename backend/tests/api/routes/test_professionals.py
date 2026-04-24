@@ -706,7 +706,7 @@ def test_submit_inquiry_success(client: TestClient, db: Session) -> None:
     data = r.json()
     assert data["sender_name"] == "Alice Smith"
     assert data["sender_email"] == "alice@example.com"
-    assert data["status"] in ("pending", "sent", "failed")
+    assert data["status"] in ("pending", "sent", "failed", "skipped")
     assert "id" in data
     assert "professional_id" in data
     assert "created_at" in data
