@@ -4,7 +4,7 @@
  * or a "Journey Complete" message on the last phase.
  */
 
-import { ArrowRight, CheckCircle2, PartyPopper } from "lucide-react"
+import { ArrowRight, Building2, CheckCircle2, PartyPopper } from "lucide-react"
 
 import { JOURNEY_PHASES } from "@/common/constants"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,8 @@ interface IProps {
    * where steps span phases non-sequentially (e.g. rent_out investors).
    */
   nextPhaseKey?: JourneyPhase
+  /** Called when the user clicks "Add to Portfolio" on the all-phases-complete card. */
+  onAddToPortfolio?: () => void
 }
 
 /******************************************************************************
@@ -32,7 +34,13 @@ interface IProps {
 
 /** Default component. Phase completion CTA card. */
 function PhaseCompletionCta(props: Readonly<IProps>) {
-  const { currentPhase, activePhaseKeys, onContinue, nextPhaseKey } = props
+  const {
+    currentPhase,
+    activePhaseKeys,
+    onContinue,
+    nextPhaseKey,
+    onAddToPortfolio,
+  } = props
 
   // Only consider phases that actually have steps in this journey, preserving
   // canonical JOURNEY_PHASES order.
@@ -72,6 +80,12 @@ function PhaseCompletionCta(props: Readonly<IProps>) {
               journey.
             </p>
           </div>
+          {onAddToPortfolio && (
+            <Button className="shrink-0 gap-2" onClick={onAddToPortfolio}>
+              <Building2 className="h-4 w-4" />
+              Add to Portfolio
+            </Button>
+          )}
         </CardContent>
       </Card>
     )

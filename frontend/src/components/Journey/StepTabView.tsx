@@ -16,6 +16,7 @@ interface IProps {
   activeStepNumber: number
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
   onStepOpen?: (stepId: string) => void
+  onAddToPortfolio?: () => void
 }
 
 /******************************************************************************
@@ -23,7 +24,13 @@ interface IProps {
 ******************************************************************************/
 
 function StepTabView(props: IProps) {
-  const { steps, activeStepNumber, onTaskToggle, onStepOpen } = props
+  const {
+    steps,
+    activeStepNumber,
+    onTaskToggle,
+    onStepOpen,
+    onAddToPortfolio,
+  } = props
 
   const activeStep = steps.find((s) => s.step_number === activeStepNumber)
   const defaultPhase = activeStep?.phase ?? "research"
@@ -123,6 +130,7 @@ function StepTabView(props: IProps) {
           activePhaseKeys={visiblePhases.map((p) => p.key)}
           onContinue={handleContinueToPhase}
           nextPhaseKey={nextPhaseByStepOrder}
+          onAddToPortfolio={onAddToPortfolio}
         />
       )}
     </div>

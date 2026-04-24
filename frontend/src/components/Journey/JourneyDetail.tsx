@@ -3,9 +3,10 @@
  * Full journey view with all steps and progress
  */
 
-import { Link } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, Calendar, Home, MapPin, Trash2, Wallet } from "lucide-react"
 import { useCallback, useMemo, useRef, useState } from "react"
+import { ApiError } from "@/client"
 import {
   FINANCING_TYPES,
   GERMAN_STATES,
@@ -19,6 +20,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useCreatePropertyFromJourney } from "@/hooks/mutations"
+import useCustomToast from "@/hooks/useCustomToast"
 import type {
   JourneyPhase,
   JourneyProgress,
@@ -215,8 +218,15 @@ function StepListView(props: {
   activeStepNumber: number
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
   onStepOpen?: (stepId: string) => void
+  onAddToPortfolio?: () => void
 }) {
-  const { steps, activeStepNumber, onTaskToggle, onStepOpen } = props
+  const {
+    steps,
+    activeStepNumber,
+    onTaskToggle,
+    onStepOpen,
+    onAddToPortfolio,
+  } = props
   const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const handleContinueToPhase = useCallback((nextPhase: JourneyPhase) => {
@@ -348,6 +358,7 @@ function StepListView(props: {
                 activePhaseKeys={navPhases.map((p) => p.key)}
                 onContinue={handleContinueToPhase}
                 nextPhaseKey={nextPhaseByStepOrder}
+                onAddToPortfolio={onAddToPortfolio}
               />
             )}
           </div>
@@ -369,6 +380,10 @@ function JourneyDetail(props: IProps) {
     className,
   } = props
 
+  const navigate = useNavigate()
+  const createFromJourney = useCreatePropertyFromJourney()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const stored = localStorage.getItem("heimpath-journey-view-mode")
     return stored === "tab" ? "tab" : "list"
@@ -378,6 +393,26 @@ function JourneyDetail(props: IProps) {
     setViewMode(mode)
     localStorage.setItem("heimpath-journey-view-mode", mode)
   }
+
+  const handleAddToPortfolio = useCallback(() => {
+    if (!journey) return
+    createFromJourney.mutate(journey.id, {
+      onSuccess: (property) => {
+        showSuccessToast("Property added to your portfolio!")
+        navigate({
+          to: "/portfolio/$propertyId",
+          params: { propertyId: property.id },
+        })
+      },
+      onError: (err) => {
+        const message =
+          err instanceof ApiError && err.status === 409
+            ? "This journey is already linked to a portfolio property."
+            : "Failed to create portfolio property. Please try again."
+        showErrorToast(message)
+      },
+    })
+  }, [journey, createFromJourney, navigate, showSuccessToast, showErrorToast])
 
   // JourneyCompletionCta ("Add to Portfolio") is intentionally shown only for
   // buying/investor journeys where the ownership phase exists. Pure rental
@@ -476,6 +511,9 @@ function JourneyDetail(props: IProps) {
                 activeStepNumber={journey.current_step_number}
                 onTaskToggle={onTaskToggle}
                 onStepOpen={onStepOpen}
+                onAddToPortfolio={
+                  isOwnershipComplete ? handleAddToPortfolio : undefined
+                }
               />
             ) : (
               <StepTabView
@@ -483,6 +521,9 @@ function JourneyDetail(props: IProps) {
                 activeStepNumber={journey.current_step_number}
                 onTaskToggle={onTaskToggle}
                 onStepOpen={onStepOpen}
+                onAddToPortfolio={
+                  isOwnershipComplete ? handleAddToPortfolio : undefined
+                }
               />
             )}
           </div>
