@@ -213,4 +213,14 @@ export const queryKeys = {
     summary: () => [...queryKeys.portfolio.all, "summary"] as const,
     performance: () => [...queryKeys.portfolio.all, "performance"] as const,
   },
+
+  // Contract Explainer queries
+  contracts: {
+    all: ["contracts"] as const,
+    list: (page?: number) =>
+      [...queryKeys.contracts.all, "list", page] as const,
+    detail: (id: string) => [...queryKeys.contracts.all, "detail", id] as const,
+    shared: (shareId: string) =>
+      [...queryKeys.contracts.all, "shared", shareId] as const,
+  },
 } as const

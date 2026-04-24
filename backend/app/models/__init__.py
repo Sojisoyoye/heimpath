@@ -38,6 +38,7 @@ from app.models.article import (
 )
 from app.models.base import Base
 from app.models.calculator import HiddenCostCalculation
+from app.models.contract import ContractAnalysis
 from app.models.document import (
     Document,
     DocumentStatus,
@@ -126,6 +127,7 @@ __all__ = [
     "PortfolioProperty",
     "PortfolioTransaction",
     "TransactionType",
+    "ContractAnalysis",
     "ContactInquiry",
     "Professional",
     "ProfessionalReview",

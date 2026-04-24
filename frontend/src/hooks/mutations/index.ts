@@ -5,6 +5,7 @@
 export * from "./useArticleMutations"
 export * from "./useAvatarMutations"
 export * from "./useCalculatorMutations"
+export * from "./useContractMutations"
 export * from "./useDocumentMutations"
 export * from "./useJourneyMutations"
 export * from "./useLegalMutations"

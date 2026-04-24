@@ -182,4 +182,13 @@ export const PATHS = {
   FEEDBACK: {
     SUBMIT: `${API_V1}/feedback/`,
   },
+
+  // Contract Explainer
+  CONTRACTS: {
+    ANALYZE: `${API_V1}/contracts/analyze`,
+    LIST: `${API_V1}/contracts/`,
+    DETAIL: (id: string) => `${API_V1}/contracts/${id}`,
+    SHARE: (id: string) => `${API_V1}/contracts/${id}/share`,
+    SHARED: (shareId: string) => `${API_V1}/contracts/shared/${shareId}`,
+  },
 } as const

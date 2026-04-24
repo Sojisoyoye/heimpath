@@ -7,6 +7,7 @@ import {
   Home,
   Languages,
   Scale,
+  ScrollText,
   UserCheck,
   Users,
 } from "lucide-react"
@@ -28,6 +29,11 @@ const baseItems: Item[] = [
   { icon: Compass, title: "Journeys", path: "/journeys" },
   { icon: Building2, title: "Portfolio", path: "/portfolio" },
   { icon: FileText, title: "Documents", path: "/documents" },
+  {
+    icon: ScrollText,
+    title: "Contract Explainer",
+    path: "/contract-explainer",
+  },
   { icon: Scale, title: "Laws", path: "/laws" },
   { icon: Languages, title: "Glossary", path: "/glossary" },
   { icon: Calculator, title: "Calculators", path: "/calculators" },

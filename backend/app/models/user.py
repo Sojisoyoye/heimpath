@@ -50,3 +50,8 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    contract_analyses = relationship(
+        "ContractAnalysis",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
