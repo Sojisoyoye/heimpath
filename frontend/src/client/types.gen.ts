@@ -1651,6 +1651,7 @@ export type PortfolioPropertySummary = {
     purchase_price: number;
     monthly_rent_target?: (number | null);
     is_vacant: boolean;
+    journey_id?: (string | null);
     created_at: string;
 };
 

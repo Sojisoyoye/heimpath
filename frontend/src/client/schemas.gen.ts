@@ -5733,6 +5733,18 @@ export const PortfolioPropertySummarySchema = {
             type: 'boolean',
             title: 'Is Vacant'
         },
+        journey_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Id'
+        },
         created_at: {
             type: 'string',
             format: 'date-time',

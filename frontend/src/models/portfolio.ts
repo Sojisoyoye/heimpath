@@ -85,6 +85,7 @@ export interface PortfolioPropertySummary {
   purchasePrice: number
   monthlyRentTarget: number | null
   isVacant: boolean
+  journeyId: string | null
   createdAt: string
 }
 
