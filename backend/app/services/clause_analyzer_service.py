@@ -41,6 +41,7 @@ SYSTEM_PROMPT = """You are a German real estate legal expert helping foreign buy
    - "priority": "essential" (must ask), "recommended" (should ask), or "optional" (nice to know)
 4. **overall_risk_assessment**: "low", "medium", or "high"
 5. **overall_risk_explanation**: 1-2 sentence explanation of the overall risk level.
+6. **purchase_price_euros**: The purchase price as a plain number in euros (digits only, no currency symbols, no thousands separators). Extract this from the Kaufpreis section. Return null if not clearly stated.
 
 Return ONLY valid JSON. No markdown, no explanation outside the JSON."""
 

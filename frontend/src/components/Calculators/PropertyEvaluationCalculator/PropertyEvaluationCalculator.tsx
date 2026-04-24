@@ -276,6 +276,7 @@ function PropertyEvaluationCalculator(
     journeyStepId,
     initialState,
     initialBudget,
+    initialPurchasePrice,
     propertyUse,
     className,
   } = props
@@ -283,7 +284,11 @@ function PropertyEvaluationCalculator(
   const isOwnerOccupier = propertyUse === "live_in"
 
   const [state, setState] = useState<PropertyEvaluationState>(() =>
-    loadFromStorage(journeyId, initialState, initialBudget),
+    loadFromStorage(
+      journeyId,
+      initialState,
+      initialPurchasePrice ?? initialBudget,
+    ),
   )
   const [saveName, setSaveName] = useState("")
   const [shareUrl, setShareUrl] = useState("")

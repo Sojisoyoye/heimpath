@@ -86,6 +86,10 @@ async def analyze_contract_pdf(
         record.notary_checklist = analysis_data.get("notary_checklist", [])
         record.overall_risk_assessment = analysis_data.get("overall_risk_assessment")
         record.overall_risk_explanation = analysis_data.get("overall_risk_explanation")
+        raw_price = analysis_data.get("purchase_price_euros")
+        record.purchase_price = (
+            float(raw_price) if isinstance(raw_price, (int, float)) else None
+        )
 
     session.add(record)
     session.commit()

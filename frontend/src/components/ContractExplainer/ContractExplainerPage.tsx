@@ -3,9 +3,10 @@
  * Upload a German Kaufvertrag PDF and receive an AI clause-by-clause analysis
  */
 
-import { useNavigate } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 import {
   AlertTriangle,
+  Calculator,
   CheckSquare,
   Copy,
   FileText,
@@ -259,6 +260,37 @@ function AnalysisResults(props: Readonly<IResultsProps>) {
                 </div>
               </>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Evaluate this property CTA */}
+      {analysis.purchasePrice != null && analysis.purchasePrice > 0 && (
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
+          <CardContent className="flex flex-col items-center gap-3 py-4 text-center sm:flex-row sm:text-left">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50">
+              <Calculator className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Purchase price detected: €
+                {analysis.purchasePrice.toLocaleString("de-DE")}
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Analyse this property's investment return instantly.
+              </p>
+            </div>
+            <Button asChild size="sm" className="shrink-0">
+              <Link
+                to="/calculators"
+                search={{
+                  tab: "property-evaluation",
+                  purchasePrice: analysis.purchasePrice,
+                }}
+              >
+                Evaluate this property
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       )}

@@ -44,6 +44,7 @@ class ContractAnalysisResponse(BaseModel):
     notary_checklist: list[NotaryQuestion] | None
     overall_risk_assessment: str | None
     overall_risk_explanation: str | None
+    purchase_price: float | None = None
     clause_count: int
     is_truncated: bool
     created_at: datetime

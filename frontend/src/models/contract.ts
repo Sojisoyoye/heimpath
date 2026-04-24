@@ -32,6 +32,7 @@ export interface ContractAnalysis {
   notaryChecklist: NotaryQuestion[] | null
   overallRiskAssessment: RiskLevel | null
   overallRiskExplanation: string | null
+  purchasePrice: number | null
   clauseCount: number
   isTruncated: boolean
   createdAt: string

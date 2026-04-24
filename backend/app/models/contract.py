@@ -1,6 +1,6 @@
 """Contract analysis database model."""
 
-from sqlalchemy import Column, ForeignKey, String, Text
+from sqlalchemy import Column, Float, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import relationship
 
@@ -27,6 +27,9 @@ class ContractAnalysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     notary_checklist = Column(JSON, nullable=True)
     overall_risk_assessment = Column(String(10), nullable=True)
     overall_risk_explanation = Column(Text, nullable=True)
+
+    # Extracted financial data
+    purchase_price = Column(Float, nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="contract_analyses")

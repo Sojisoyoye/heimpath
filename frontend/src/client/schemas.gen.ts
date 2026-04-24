@@ -1565,6 +1565,17 @@ export const ContractAnalysisResponseSchema = {
             ],
             title: 'Overall Risk Explanation'
         },
+        purchase_price: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Purchase Price'
+        },
         clause_count: {
             type: 'integer',
             title: 'Clause Count'
