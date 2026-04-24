@@ -16,6 +16,14 @@ interface IProps {
   /** Keys of phases that have steps in this journey (determines next-phase target). */
   activePhaseKeys: string[]
   onContinue: (nextPhase: JourneyPhase) => void
+  /**
+   * Override the canonical next phase. When provided, this phase is used as
+   * the navigation target instead of the canonical JOURNEY_PHASES successor.
+   * Use this to navigate to the phase containing the first incomplete step
+   * (by step_number), which may differ from the canonical order for journeys
+   * where steps span phases non-sequentially (e.g. rent_out investors).
+   */
+  nextPhaseKey?: JourneyPhase
 }
 
 /******************************************************************************
@@ -24,7 +32,7 @@ interface IProps {
 
 /** Default component. Phase completion CTA card. */
 function PhaseCompletionCta(props: Readonly<IProps>) {
-  const { currentPhase, activePhaseKeys, onContinue } = props
+  const { currentPhase, activePhaseKeys, onContinue, nextPhaseKey } = props
 
   // Only consider phases that actually have steps in this journey, preserving
   // canonical JOURNEY_PHASES order.
@@ -33,9 +41,19 @@ function PhaseCompletionCta(props: Readonly<IProps>) {
   )
 
   const phaseIndex = visiblePhases.findIndex((p) => p.key === currentPhase)
-  const isLastPhase =
+  const canonicalIsLast =
     phaseIndex === -1 || phaseIndex === visiblePhases.length - 1
-  const nextPhase = isLastPhase ? null : visiblePhases[phaseIndex + 1]
+  const canonicalNext = canonicalIsLast ? null : visiblePhases[phaseIndex + 1]
+
+  // Use the explicit override if provided, otherwise fall back to the canonical
+  // successor. The override ensures users navigate to the section that actually
+  // contains their next incomplete step, rather than the canonical next phase
+  // (which can differ when steps span phases non-sequentially).
+  const nextPhase = nextPhaseKey
+    ? (visiblePhases.find((p) => p.key === nextPhaseKey) ?? canonicalNext)
+    : canonicalNext
+  const isLastPhase = nextPhase === null
+
   const currentLabel = visiblePhases[phaseIndex]?.label ?? currentPhase
 
   if (isLastPhase) {

@@ -274,12 +274,43 @@ function StepListView(props: {
         const isComplete = group.steps.every(
           (s) => s.status === "completed" || s.status === "skipped",
         )
-        const nextGroup = phaseGroups[groupIndex + 1]
-        const nextPhaseStarted =
-          nextGroup?.steps.some((s) => s.status !== "not_started") ?? false
         const phaseLabel =
           JOURNEY_PHASES.find((p) => p.key === group.phase)?.label ??
           group.phase
+
+        // Find the phase containing the first incomplete step that comes after
+        // the current phase (by step_number). This ensures the CTA navigates to
+        // the section with the user's actual next step, rather than the canonical
+        // successor — which can differ for rent_out journeys where some phases
+        // have lower step_numbers than earlier canonical phases.
+        const currentPhaseOrder = JOURNEY_PHASES.findIndex(
+          (p) => p.key === group.phase,
+        )
+        const phasesAfterCurrent = new Set(
+          JOURNEY_PHASES.slice(currentPhaseOrder + 1).map((p) => p.key),
+        )
+        const nextPhaseByStepOrder = steps
+          .filter(
+            (s) =>
+              phasesAfterCurrent.has(s.phase) &&
+              s.status !== "completed" &&
+              s.status !== "skipped",
+          )
+          .sort((a, b) => a.step_number - b.step_number)[0]?.phase as
+          | JourneyPhase
+          | undefined
+
+        // Don't show the CTA if the next phase (by step order) has already started.
+        // Falls back to canonical next phase group if no step-order next is found.
+        const nextPhaseStartedGroup = nextPhaseByStepOrder
+          ? (phaseGroups.find((g) => g.phase === nextPhaseByStepOrder) ??
+            phaseGroups[groupIndex + 1])
+          : phaseGroups[groupIndex + 1]
+        const nextPhaseStarted =
+          nextPhaseStartedGroup?.steps.some(
+            (s) => s.status !== "not_started",
+          ) ?? false
+
         return (
           <div
             key={group.phase}
@@ -316,6 +347,7 @@ function StepListView(props: {
                 currentPhase={group.phase}
                 activePhaseKeys={navPhases.map((p) => p.key)}
                 onContinue={handleContinueToPhase}
+                nextPhaseKey={nextPhaseByStepOrder}
               />
             )}
           </div>
