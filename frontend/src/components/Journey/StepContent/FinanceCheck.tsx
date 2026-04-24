@@ -38,7 +38,7 @@ function FinanceCheck(_props: Readonly<IProps>) {
           icon: BadgeCheck,
           label: "SCHUFA Credit Score",
           detail:
-            "Request a free SCHUFA self-disclosure once per year at schufa.de. A score above 97% is considered excellent for mortgage applications.",
+            "Request a free SCHUFA self-disclosure once per year at schufa.de. The new score runs from 100–999 pts — lenders typically want 776+ (Excellent) or 709+ (Good) for competitive mortgage terms.",
         },
         {
           icon: CreditCard,
