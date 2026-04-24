@@ -2311,6 +2311,23 @@ export type SavedDocumentSummary = {
 };
 
 /**
+ * Response schema for a list of saved professionals.
+ */
+export type SavedProfessionalListResponse = {
+    items: Array<SavedProfessionalResponse>;
+    total: number;
+};
+
+/**
+ * Response schema for a saved professional record.
+ */
+export type SavedProfessionalResponse = {
+    id: string;
+    professional_id: string;
+    created_at: string;
+};
+
+/**
  * Calculated results for a single ownership scenario (private or GmbH).
  */
 export type ScenarioResult = {
@@ -3371,6 +3388,8 @@ export type ProfessionalsCreateProfessionalData = {
 
 export type ProfessionalsCreateProfessionalResponse = (ProfessionalResponse);
 
+export type ProfessionalsGetSavedProfessionalsResponse = (SavedProfessionalListResponse);
+
 export type ProfessionalsGetProfessionalData = {
     professionalId: string;
 };
@@ -3403,6 +3422,18 @@ export type ProfessionalsCreateInquiryData = {
 };
 
 export type ProfessionalsCreateInquiryResponse = (ContactInquiryResponse);
+
+export type ProfessionalsSaveProfessionalData = {
+    professionalId: string;
+};
+
+export type ProfessionalsSaveProfessionalResponse = (SavedProfessionalResponse);
+
+export type ProfessionalsUnsaveProfessionalData = {
+    professionalId: string;
+};
+
+export type ProfessionalsUnsaveProfessionalResponse = (void);
 
 export type ProfessionalsTrackProfessionalClickData = {
     professionalId: string;

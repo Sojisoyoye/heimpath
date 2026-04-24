@@ -41,6 +41,12 @@ export interface Professional {
   createdAt: string
 }
 
+export interface SavedProfessional {
+  id: string
+  professionalId: string
+  createdAt: string
+}
+
 export interface ContactInquiryCreate {
   senderName: string
   senderEmail: string

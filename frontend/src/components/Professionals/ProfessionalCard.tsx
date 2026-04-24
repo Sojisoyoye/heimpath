@@ -11,10 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTrackClick } from "@/hooks/mutations"
 import type { Professional, ProfessionalType } from "@/models/professional"
 import { PROFESSIONAL_TYPE_LABELS } from "@/models/professional"
+import { SaveProfessionalButton } from "./SaveProfessionalButton"
 import { StarRating } from "./StarRating"
 
 interface IProps {
   professional: Professional
+  isSaved?: boolean
   className?: string
 }
 
@@ -40,7 +42,7 @@ const TYPE_COLORS: Record<ProfessionalType, string> = {
 
 /** Default component. Professional summary card. */
 function ProfessionalCard(props: Readonly<IProps>) {
-  const { professional, className } = props
+  const { professional, isSaved = false, className } = props
   const { mutate: trackClick } = useTrackClick()
 
   return (
@@ -52,10 +54,14 @@ function ProfessionalCard(props: Readonly<IProps>) {
     >
       <Card
         className={cn(
-          "cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 group h-full",
+          "relative cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 group h-full",
           className,
         )}
       >
+        <SaveProfessionalButton
+          professionalId={professional.id}
+          isSaved={isSaved}
+        />
         <CardHeader className="pb-2">
           <div className="space-y-2">
             <div className="flex items-center gap-2 flex-wrap">

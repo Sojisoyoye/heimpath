@@ -13,6 +13,7 @@ import type {
   ProfessionalFilter,
   ProfessionalFilterOptions,
   ProfessionalReview,
+  SavedProfessional,
   ServiceType,
 } from "@/models/professional"
 import { PATHS } from "./common/Paths"
@@ -136,6 +137,43 @@ class ProfessionalServiceClass {
       method: "POST",
       url: PATHS.PROFESSIONALS.CLICK(professionalId),
     })
+  }
+
+  /**
+   * Save a professional to the current user's list
+   */
+  async saveProfessional(id: string): Promise<SavedProfessional> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.PROFESSIONALS.SAVE(id),
+    })
+    return transformKeys<SavedProfessional>(response)
+  }
+
+  /**
+   * Remove a professional from the current user's saved list
+   */
+  async unsaveProfessional(id: string): Promise<void> {
+    await request(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.PROFESSIONALS.SAVE(id),
+    })
+  }
+
+  /**
+   * Get all saved professionals for the current user
+   */
+  async getSavedProfessionals(): Promise<{
+    items: SavedProfessional[]
+    total: number
+  }> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: PATHS.PROFESSIONALS.SAVED,
+    })
+    return transformKeys<{ items: SavedProfessional[]; total: number }>(
+      response,
+    )
   }
 }
 

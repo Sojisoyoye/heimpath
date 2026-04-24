@@ -182,6 +182,7 @@ export const queryKeys = {
       [...queryKeys.professionals.all, "detail", id] as const,
     filterOptions: () =>
       [...queryKeys.professionals.all, "filterOptions"] as const,
+    saved: () => [...queryKeys.professionals.all, "saved"] as const,
   },
 
   // Search queries

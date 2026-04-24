@@ -11,6 +11,7 @@ from app.models.professional import (
     ContactInquiry,
     Professional,
     ProfessionalReview,
+    SavedProfessional,
     ServiceType,
 )
 
@@ -25,6 +26,18 @@ class ProfessionalNotFoundError(Exception):
 
 class DuplicateReviewError(Exception):
     """Raised when a user tries to review the same professional twice."""
+
+    pass
+
+
+class ProfessionalAlreadySavedError(Exception):
+    """Raised when a user tries to save a professional they already saved."""
+
+    pass
+
+
+class SavedProfessionalNotFoundError(Exception):
+    """Raised when a saved professional record is not found."""
 
     pass
 
@@ -330,6 +343,72 @@ def track_click(session: Session, professional_id: uuid.UUID) -> None:
         .values(click_count=Professional.click_count + 1)
     )
     session.commit()
+
+
+def is_professional_saved(
+    session: Session, professional_id: uuid.UUID, user_id: uuid.UUID
+) -> bool:
+    """Return True if the user has already saved this professional."""
+    result = (
+        session.execute(
+            select(SavedProfessional).where(
+                SavedProfessional.professional_id == professional_id,
+                SavedProfessional.user_id == user_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
+    return result is not None
+
+
+def save_professional(
+    session: Session, professional_id: uuid.UUID, user_id: uuid.UUID
+) -> SavedProfessional:
+    """Save a professional for the user. Raises ProfessionalAlreadySavedError if duplicate."""
+    # Verify professional exists
+    get_professional_by_id(session, professional_id)
+
+    if is_professional_saved(session, professional_id, user_id):
+        raise ProfessionalAlreadySavedError("You have already saved this professional")
+
+    saved = SavedProfessional(professional_id=professional_id, user_id=user_id)
+    session.add(saved)
+    session.commit()
+    session.refresh(saved)
+    return saved
+
+
+def unsave_professional(
+    session: Session, professional_id: uuid.UUID, user_id: uuid.UUID
+) -> None:
+    """Remove a saved professional. Raises SavedProfessionalNotFoundError if not found."""
+    saved = (
+        session.execute(
+            select(SavedProfessional).where(
+                SavedProfessional.professional_id == professional_id,
+                SavedProfessional.user_id == user_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if not saved:
+        raise SavedProfessionalNotFoundError("Saved professional not found")
+    session.delete(saved)
+    session.commit()
+
+
+def get_saved_professionals(
+    session: Session, user_id: uuid.UUID
+) -> list[SavedProfessional]:
+    """Get all saved professionals for a user."""
+    query = (
+        select(SavedProfessional)
+        .where(SavedProfessional.user_id == user_id)
+        .order_by(SavedProfessional.created_at.desc())
+    )
+    return list(session.execute(query).scalars().all())
 
 
 def _send_inquiry_email(

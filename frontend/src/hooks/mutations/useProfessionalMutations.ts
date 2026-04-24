@@ -65,3 +65,41 @@ export function useTrackClick() {
       ProfessionalService.trackClick(professionalId),
   })
 }
+
+/**
+ * Save a professional to the current user's list
+ */
+export function useSaveProfessional() {
+  const queryClient = useQueryClient()
+  const { showSuccessToast } = useCustomToast()
+
+  return useMutation({
+    mutationFn: (professionalId: string) =>
+      ProfessionalService.saveProfessional(professionalId),
+    onSuccess: () => {
+      showSuccessToast("Saved")
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.professionals.saved(),
+      })
+    },
+  })
+}
+
+/**
+ * Remove a professional from the current user's saved list
+ */
+export function useUnsaveProfessional() {
+  const queryClient = useQueryClient()
+  const { showSuccessToast } = useCustomToast()
+
+  return useMutation({
+    mutationFn: (professionalId: string) =>
+      ProfessionalService.unsaveProfessional(professionalId),
+    onSuccess: () => {
+      showSuccessToast("Removed")
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.professionals.saved(),
+      })
+    },
+  })
+}

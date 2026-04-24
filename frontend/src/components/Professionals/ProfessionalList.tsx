@@ -6,7 +6,7 @@
 import { UserCheck } from "lucide-react"
 import { useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useProfessionals } from "@/hooks/queries"
+import { useProfessionals, useSavedProfessionals } from "@/hooks/queries"
 import type { ProfessionalFilter } from "@/models/professional"
 import { ProfessionalCard } from "./ProfessionalCard"
 import { ProfessionalFilters } from "./ProfessionalFilters"
@@ -36,6 +36,8 @@ function ProfessionalList() {
   })
 
   const { data, isLoading, error } = useProfessionals(filters)
+  const { data: savedData } = useSavedProfessionals()
+  const savedSet = new Set(savedData?.items.map((s) => s.professionalId) ?? [])
 
   return (
     <div className="space-y-6">
@@ -82,6 +84,7 @@ function ProfessionalList() {
               <ProfessionalCard
                 key={professional.id}
                 professional={professional}
+                isSaved={savedSet.has(professional.id)}
               />
             ))}
           </div>

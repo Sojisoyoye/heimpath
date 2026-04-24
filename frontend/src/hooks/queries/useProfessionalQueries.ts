@@ -41,3 +41,13 @@ export function useProfessionalFilterOptions() {
     staleTime: 5 * 60 * 1000,
   })
 }
+
+/**
+ * Get all saved professionals for the current user
+ */
+export function useSavedProfessionals() {
+  return useQuery({
+    queryKey: queryKeys.professionals.saved(),
+    queryFn: () => ProfessionalService.getSavedProfessionals(),
+  })
+}
