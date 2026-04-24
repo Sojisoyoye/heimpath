@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
 import {
   useDeleteCalculation,
   useSaveCalculation,
@@ -357,22 +358,6 @@ function HiddenCostsCalculator(props: IProps) {
               </Select>
             </FormRow>
 
-            {/* Agent Toggle */}
-            <FormRow
-              label="Include Agent Commission"
-              tooltip={`~${COST_DEFAULTS.AGENT_COMMISSION_PERCENT}% buyer's share`}
-            >
-              <Button
-                variant={inputs.includeAgent ? "default" : "outline"}
-                size="sm"
-                onClick={() =>
-                  updateInput("includeAgent", !inputs.includeAgent)
-                }
-              >
-                {inputs.includeAgent ? "Yes" : "No"}
-              </Button>
-            </FormRow>
-
             {/* Renovation Level */}
             <FormRow label="Expected Renovation">
               <Select
@@ -396,20 +381,30 @@ function HiddenCostsCalculator(props: IProps) {
               </Select>
             </FormRow>
 
+            {/* Agent Commission Toggle */}
+            <FormRow
+              htmlFor="includeAgent"
+              label="Include Agent Commission"
+              tooltip={`~${COST_DEFAULTS.AGENT_COMMISSION_PERCENT}% buyer's share`}
+            >
+              <Switch
+                id="includeAgent"
+                checked={inputs.includeAgent}
+                onCheckedChange={(v) => updateInput("includeAgent", v)}
+              />
+            </FormRow>
+
             {/* Moving Costs Toggle */}
             <FormRow
+              htmlFor="includeMoving"
               label="Include Moving Costs"
               tooltip={`~${CURRENCY_FORMATTER.format(MOVING_COST_ESTIMATE)} estimate`}
             >
-              <Button
-                variant={inputs.includeMoving ? "default" : "outline"}
-                size="sm"
-                onClick={() =>
-                  updateInput("includeMoving", !inputs.includeMoving)
-                }
-              >
-                {inputs.includeMoving ? "Yes" : "No"}
-              </Button>
+              <Switch
+                id="includeMoving"
+                checked={inputs.includeMoving}
+                onCheckedChange={(v) => updateInput("includeMoving", v)}
+              />
             </FormRow>
 
             <div className="flex gap-2">
