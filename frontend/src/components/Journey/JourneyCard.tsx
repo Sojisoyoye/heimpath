@@ -136,7 +136,7 @@ function JourneyCard(props: IProps) {
       <CardFooter className="mt-auto pt-0">
         <Button asChild className="w-full gap-2">
           <Link to="/journeys/$journeyId" params={{ journeyId: journey.id }}>
-            Continue Journey
+            {journey.completed_at ? "View Journey" : "Continue Journey"}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
