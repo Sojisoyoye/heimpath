@@ -425,7 +425,7 @@ function JourneyDetail(props: IProps) {
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const stored = localStorage.getItem("heimpath-journey-view-mode")
-    return stored === "tab" ? "tab" : "list"
+    return stored === "list" ? "list" : "tab"
   })
 
   const handleViewModeChange = (mode: ViewMode) => {
