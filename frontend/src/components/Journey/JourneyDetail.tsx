@@ -280,6 +280,29 @@ function StepListView(props: {
         const phaseLabel =
           JOURNEY_PHASES.find((p) => p.key === group.phase)?.label ??
           group.phase
+
+        // Find the phase containing the first incomplete step that comes after
+        // the current phase (by step_number). This ensures the CTA navigates to
+        // the section with the user's actual next step, rather than the canonical
+        // successor — which can differ for rent_out journeys where some phases
+        // have lower step_numbers than earlier canonical phases.
+        const currentPhaseOrder = JOURNEY_PHASES.findIndex(
+          (p) => p.key === group.phase,
+        )
+        const phasesAfterCurrent = new Set(
+          JOURNEY_PHASES.slice(currentPhaseOrder + 1).map((p) => p.key),
+        )
+        const nextPhaseByStepOrder = steps
+          .filter(
+            (s) =>
+              phasesAfterCurrent.has(s.phase) &&
+              s.status !== "completed" &&
+              s.status !== "skipped",
+          )
+          .sort((a, b) => a.step_number - b.step_number)[0]?.phase as
+          | JourneyPhase
+          | undefined
+
         return (
           <div
             key={group.phase}
@@ -316,6 +339,7 @@ function StepListView(props: {
                 currentPhase={group.phase}
                 activePhaseKeys={navPhases.map((p) => p.key)}
                 onContinue={handleContinueToPhase}
+                nextPhaseKey={nextPhaseByStepOrder}
               />
             )}
           </div>
