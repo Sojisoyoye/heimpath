@@ -61,13 +61,15 @@ const PROPERTY_USE_LABELS: Record<PropertyUse, string> = {
   rental: "Rental investment (I will rent it out)",
 }
 
-const LENDER_STATUS_ICONS: Record<EligibilityStatus, React.ReactNode> = {
-  easy: <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />,
-  conditional: <Info className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />,
-  difficult: (
-    <AlertTriangle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
-  ),
-  not_available: <XCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />,
+/** Returns the appropriate status icon for a given lender eligibility status. */
+function getLenderStatusIcon(status: EligibilityStatus) {
+  if (status === "easy")
+    return <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+  if (status === "conditional")
+    return <Info className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+  if (status === "difficult")
+    return <AlertTriangle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
+  return <XCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
 }
 
 /******************************************************************************
@@ -104,7 +106,7 @@ function LenderRow(props: Readonly<ILenderRowProps>) {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {LENDER_STATUS_ICONS[result.eligibility]}
+          {getLenderStatusIcon(result.eligibility)}
           <span
             className={cn(
               "text-xs font-medium",
@@ -128,8 +130,11 @@ function LenderRow(props: Readonly<ILenderRowProps>) {
       )}
       {result.notes.length > 0 && (
         <ul className="text-xs text-muted-foreground space-y-0.5 pl-3">
-          {result.notes.map((note) => (
-            <li key={note} className="list-disc list-outside">
+          {result.notes.map((note, i) => (
+            <li
+              key={`${result.lenderType}-note-${i}`}
+              className="list-disc list-outside"
+            >
               {note}
             </li>
           ))}
@@ -191,8 +196,8 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
             <div className="flex items-start gap-2 rounded-md bg-amber-50 p-3 dark:bg-amber-950/30">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
               <ul className="text-xs text-amber-800 dark:text-amber-200 space-y-1">
-                {employmentNotes.map((note) => (
-                  <li key={note}>{note}</li>
+                {employmentNotes.map((note, i) => (
+                  <li key={`emp-note-${i}`}>{note}</li>
                 ))}
               </ul>
             </div>
