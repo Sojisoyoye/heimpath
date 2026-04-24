@@ -39,7 +39,9 @@ function MortgageAmortisationTable(props: Readonly<IProps>) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-muted-foreground">
-              <th className="py-2 text-left font-medium">Year</th>
+              <th className="w-px whitespace-nowrap py-2 text-left font-medium">
+                Year
+              </th>
               <th className="py-2 text-right font-medium">Payment</th>
               <th className="py-2 text-right font-medium">Interest</th>
               <th className="py-2 text-right font-medium">Principal</th>
@@ -59,7 +61,7 @@ function MortgageAmortisationTable(props: Readonly<IProps>) {
                       "bg-blue-50/50 dark:bg-blue-950/20 font-medium",
                   )}
                 >
-                  <td className="py-2">
+                  <td className="w-px whitespace-nowrap py-2 pr-4">
                     Year {row.year}
                     {isFixedEnd && (
                       <span className="ml-1 text-xs text-blue-600 dark:text-blue-400">
