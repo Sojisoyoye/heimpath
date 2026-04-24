@@ -69,7 +69,7 @@ function AuthLayout(props: IProps) {
     <div className="grid min-h-svh md:grid-cols-2">
       <div className="bg-muted dark:bg-zinc-900 relative flex max-h-[50vh] flex-col justify-center overflow-hidden p-6 md:max-h-none md:p-12">
         <div className="mx-auto max-w-md space-y-4 md:space-y-8">
-          <Logo variant="full" asLink={false} />
+          <Logo variant="full" />
 
           <div className="space-y-1 md:space-y-2">
             <h2 className="text-xl font-bold tracking-tight md:text-2xl">
