@@ -12,8 +12,8 @@ const FOOTER_COLUMNS: readonly [string, readonly [string, string][]][] = [
   [
     "Product",
     [
-      ["Features", "#features"],
-      ["How It Works", "#how-it-works"],
+      ["Features", "/#features"],
+      ["How It Works", "/#how-it-works"],
       ["Portfolio", "/portfolio"],
     ],
   ],
@@ -36,9 +36,11 @@ const FOOTER_COLUMNS: readonly [string, readonly [string, string][]][] = [
   ],
 ]
 
-/** Check if href is an internal route (starts with / but not # or mailto:). */
+/** Check if href is an internal route (starts with / but not a hash anchor or mailto:). */
 function isInternalRoute(href: string): boolean {
-  return href.startsWith("/") && !href.startsWith("mailto:")
+  return (
+    href.startsWith("/") && !href.includes("#") && !href.startsWith("mailto:")
+  )
 }
 
 /******************************************************************************

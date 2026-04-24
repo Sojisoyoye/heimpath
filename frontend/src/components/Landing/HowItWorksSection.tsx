@@ -119,7 +119,7 @@ function PhaseStep(props: { phase: (typeof PHASES)[number]; index: number }) {
 /** Default component. How it works timeline section. */
 function HowItWorksSection() {
   return (
-    <section className="bg-muted/50 py-20 md:py-28">
+    <section id="how-it-works" className="bg-muted/50 py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <AnimateIn>
           <div className="mx-auto mb-12 max-w-2xl text-center">
