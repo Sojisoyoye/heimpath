@@ -1,4 +1,4 @@
-import { Calculator, FileText, Home, Scale } from "lucide-react"
+import { BarChart2, Calculator, FileText, Home, Scale } from "lucide-react"
 
 import { Appearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -32,6 +32,11 @@ const FEATURES = [
     icon: FileText,
     title: "Document Translation",
     description: "AI-powered translation of German legal documents",
+  },
+  {
+    icon: BarChart2,
+    title: "Portfolio Management",
+    description: "Track and manage all your German property investments",
   },
 ] as const
 
