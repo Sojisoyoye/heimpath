@@ -53,14 +53,12 @@ function FeatureItem(props: {
   const { icon: Icon, title, description } = props
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600/10 text-blue-600">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
         <Icon className="h-5 w-5" />
       </div>
       <div>
         <h3 className="font-medium">{title}</h3>
-        <p className="hidden text-sm text-muted-foreground md:block">
-          {description}
-        </p>
+        <p className="hidden text-sm text-white/70 md:block">{description}</p>
       </div>
     </div>
   )
@@ -72,15 +70,19 @@ function AuthLayout(props: IProps) {
 
   return (
     <div className="grid min-h-svh md:grid-cols-2">
-      <div className="bg-muted dark:bg-zinc-900 relative flex max-h-[50vh] flex-col justify-center overflow-hidden p-6 md:max-h-none md:p-12">
-        <div className="mx-auto max-w-md space-y-4 md:space-y-8">
+      <div
+        className="relative flex max-h-[50vh] flex-col justify-center overflow-hidden p-6 md:max-h-none md:p-12 bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/auth-bg.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="relative mx-auto max-w-md space-y-4 text-white md:space-y-8">
           <Logo variant="full" />
 
           <div className="space-y-1 md:space-y-2">
             <h2 className="text-xl font-bold tracking-tight md:text-2xl">
               Navigate German Real Estate with Confidence
             </h2>
-            <p className="text-sm text-muted-foreground md:text-base">
+            <p className="text-sm text-white/80 md:text-base">
               HeimPath guides foreign investors and immigrants through the
               property buying process in Germany.
             </p>
