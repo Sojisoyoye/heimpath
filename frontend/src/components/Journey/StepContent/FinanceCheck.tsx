@@ -47,7 +47,7 @@ function FinanceCheck(_props: Readonly<IProps>) {
             "A rough rule: banks lend up to 4–5x your annual gross income. Monthly repayments should stay below 35% of your net income.",
         },
       ]}
-      tip="Use the Financing Eligibility calculator below to get a personalised estimate of how much you may be able to borrow before approaching lenders."
+      tip="Use the Financing Eligibility calculator to get a personalised estimate of how much you may be able to borrow before approaching lenders."
       ctaLabel="Check Financing Eligibility"
       ctaHref="/calculators?tab=financing"
     />
