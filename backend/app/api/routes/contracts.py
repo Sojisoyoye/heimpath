@@ -7,8 +7,10 @@ from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 
 from app._models_sqlmodel import SubscriptionTier
 from app.api.deps import CurrentUser, SessionDep
+from app.models.contract import ContractAnalysis
 from app.schemas.contract import (
     ClauseExplanation,
+    ContractAnalysisListItem,
     ContractAnalysisListResponse,
     ContractAnalysisResponse,
     NotaryQuestion,
@@ -25,7 +27,7 @@ _FREE_TIER_LIMIT = contract_service.FREE_TIER_CLAUSE_LIMIT
 
 
 def _build_response(
-    record,
+    record: ContractAnalysis,
     is_premium: bool,
 ) -> ContractAnalysisResponse:
     """Build ContractAnalysisResponse, applying free-tier clause truncation."""
@@ -148,8 +150,6 @@ async def list_contract_analyses(
     page_size: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> ContractAnalysisListResponse:
     """List all contract analyses for the current user."""
-    from app.schemas.contract import ContractAnalysisListItem
-
     records, total = contract_service.list_analyses(
         session, current_user.id, page=page, page_size=page_size
     )

@@ -192,5 +192,9 @@ def generate_share_id(
             except IntegrityError:
                 session.rollback()
         else:
+            logger.error(
+                "share_id collision: failed to generate unique id for analysis %s after 5 attempts",
+                analysis_id,
+            )
             raise RuntimeError("Failed to generate a unique share_id after 5 attempts")
     return record

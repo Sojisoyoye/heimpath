@@ -20,7 +20,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useAnalyzeContract, useShareContractAnalysis } from "@/hooks/mutations"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -373,23 +372,10 @@ function UploadForm(props: Readonly<IUploadProps>) {
   )
 }
 
-/** Loading skeleton while analysis is in progress. */
-function AnalysisSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-48" />
-      <Skeleton className="h-24 w-full" />
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-32 w-full" />
-    </div>
-  )
-}
-
 /** Default component. Contract Explainer main page. */
 function ContractExplainerPage() {
   const { user } = useAuth()
   const [analysis, setAnalysis] = useState<ContractAnalysis | null>(null)
-  const isPending = useAnalyzeContract().isPending
 
   const isPremium =
     user?.subscription_tier === "premium" ||
@@ -425,8 +411,6 @@ function ContractExplainerPage() {
       {/* Upload or results */}
       {!analysis ? (
         <UploadForm onAnalyzed={setAnalysis} />
-      ) : isPending ? (
-        <AnalysisSkeleton />
       ) : (
         <>
           <Button variant="ghost" size="sm" onClick={() => setAnalysis(null)}>

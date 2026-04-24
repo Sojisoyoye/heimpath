@@ -40,6 +40,9 @@ export function useShareContractAnalysis(analysisId: string) {
       queryClient.invalidateQueries({
         queryKey: queryKeys.contracts.detail(analysisId),
       })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.contracts.all,
+      })
       showSuccessToast("Shareable link generated.")
     },
     onError: () => {
