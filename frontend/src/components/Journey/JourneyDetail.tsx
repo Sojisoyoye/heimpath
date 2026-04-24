@@ -226,18 +226,24 @@ function StepListView(props: {
     })
   }, [])
 
-  // Group steps by phase in order
+  // Group all steps by phase, then order groups by canonical JOURNEY_PHASES order.
+  // This merges non-consecutive steps of the same phase into a single section,
+  // preventing the same phase header from appearing multiple times in the list.
   const phaseGroups = useMemo(() => {
-    const groups: { phase: JourneyPhase; steps: JourneyStep[] }[] = []
+    const phaseMap = new Map<JourneyPhase, JourneyStep[]>()
     for (const step of steps) {
-      const lastGroup = groups[groups.length - 1]
-      if (lastGroup && lastGroup.phase === step.phase) {
-        lastGroup.steps.push(step)
-      } else {
-        groups.push({ phase: step.phase, steps: [step] })
-      }
+      const existing = phaseMap.get(step.phase) ?? []
+      existing.push(step)
+      phaseMap.set(step.phase, existing)
     }
-    return groups
+    return JOURNEY_PHASES.filter((p) =>
+      phaseMap.has(p.key as JourneyPhase),
+    ).map((p) => ({
+      phase: p.key as JourneyPhase,
+      steps: (phaseMap.get(p.key as JourneyPhase) ?? []).sort(
+        (a, b) => a.step_number - b.step_number,
+      ),
+    }))
   }, [steps])
 
   const activePhase =
@@ -245,24 +251,15 @@ function StepListView(props: {
     phaseGroups[0]?.phase ??
     "research"
 
-  const navPhases = useMemo(() => {
-    // Build a map of phase → total step count. If a phase appears in
-    // non-consecutive groups (edge case from API ordering), counts are summed.
-    const stepCountByPhase = new Map<string, number>()
-    for (const g of phaseGroups) {
-      stepCountByPhase.set(
-        g.phase,
-        (stepCountByPhase.get(g.phase) ?? 0) + g.steps.length,
-      )
-    }
-    return JOURNEY_PHASES.filter((p) => stepCountByPhase.has(p.key)).map(
-      (p) => ({
-        key: p.key,
-        label: p.label,
-        stepCount: stepCountByPhase.get(p.key) ?? 0,
-      }),
-    )
-  }, [phaseGroups])
+  const navPhases = useMemo(
+    () =>
+      phaseGroups.map((g) => ({
+        key: g.phase,
+        label: JOURNEY_PHASES.find((p) => p.key === g.phase)?.label ?? g.phase,
+        stepCount: g.steps.length,
+      })),
+    [phaseGroups],
+  )
 
   return (
     <div className="space-y-4">
