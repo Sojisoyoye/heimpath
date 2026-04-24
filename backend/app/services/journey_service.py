@@ -506,8 +506,12 @@ STEP_TEMPLATES: list[StepTemplate] = [
         related_laws=["GBO §13 (Eintragungsgrundsatz)"],
     ),
     # RENTAL INVESTOR STEPS (conditional on property_use = rent_out)
+    # Step numbers 29-31 place these after the post-purchase ownership onboarding
+    # (steps 25-28), ensuring they appear after the user takes possession and
+    # completes registration — the correct logical point for an investor to
+    # set up rental operations.
     StepTemplate(
-        step_number=20,
+        step_number=29,
         phase=JourneyPhase.RENTAL_SETUP,
         title="Understand Landlord Obligations",
         description="Learn about German landlord duties, tenant protections, and rental regulations before purchasing an investment property.",
@@ -543,7 +547,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
         ],
     ),
     StepTemplate(
-        step_number=21,
+        step_number=30,
         phase=JourneyPhase.RENTAL_SETUP,
         title="Analyze Rental Yield",
         description="Calculate expected rental returns, compare with local Mietspiegel, and assess the investment viability.",
@@ -779,7 +783,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
     ),
     # RENTAL SETUP PHASE (rent-out investors only)
     StepTemplate(
-        step_number=24,
+        step_number=31,
         phase=JourneyPhase.RENTAL_SETUP,
         title="Set Up Rental Operations",
         description="Prepare everything needed to start renting out your property: lease template, tenant screening, and utility accounting.",
