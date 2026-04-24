@@ -108,12 +108,17 @@ def test_analyze_contract_success(client: TestClient, db: Session) -> None:
     """Test uploading a PDF returns 201 with analysis data."""
     headers, _ = _get_auth_headers(client, db)
 
-    with patch(
-        "app.services.contract_service.analyze_kaufvertrag",
-        new=AsyncMock(return_value=_MOCK_ANALYSIS),
-    ), patch(
-        "app.services.contract_service._extract_pages_from_bytes",
-        return_value=[{"page_number": 1, "original_text": "Test", "translated_text": ""}],
+    with (
+        patch(
+            "app.services.contract_service.analyze_kaufvertrag",
+            new=AsyncMock(return_value=_MOCK_ANALYSIS),
+        ),
+        patch(
+            "app.services.contract_service._extract_pages_from_bytes",
+            return_value=[
+                {"page_number": 1, "original_text": "Test", "translated_text": ""}
+            ],
+        ),
     ):
         r = client.post(
             f"{settings.API_V1_STR}/contracts/analyze",
@@ -134,12 +139,17 @@ def test_analyze_contract_free_user_truncated(client: TestClient, db: Session) -
     """Test that free users see only the first 3 clauses."""
     headers, _ = _get_auth_headers(client, db)
 
-    with patch(
-        "app.services.contract_service.analyze_kaufvertrag",
-        new=AsyncMock(return_value=_MOCK_ANALYSIS),
-    ), patch(
-        "app.services.contract_service._extract_pages_from_bytes",
-        return_value=[{"page_number": 1, "original_text": "Test", "translated_text": ""}],
+    with (
+        patch(
+            "app.services.contract_service.analyze_kaufvertrag",
+            new=AsyncMock(return_value=_MOCK_ANALYSIS),
+        ),
+        patch(
+            "app.services.contract_service._extract_pages_from_bytes",
+            return_value=[
+                {"page_number": 1, "original_text": "Test", "translated_text": ""}
+            ],
+        ),
     ):
         r = client.post(
             f"{settings.API_V1_STR}/contracts/analyze",
@@ -171,7 +181,13 @@ def test_analyze_contract_invalid_file_type(client: TestClient, db: Session) -> 
 
     r = client.post(
         f"{settings.API_V1_STR}/contracts/analyze",
-        files={"file": ("contract.docx", io.BytesIO(b"fake docx"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")},
+        files={
+            "file": (
+                "contract.docx",
+                io.BytesIO(b"fake docx"),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
         headers=headers,
     )
     assert r.status_code == 400
@@ -181,12 +197,17 @@ def test_analyze_contract_no_api_key(client: TestClient, db: Session) -> None:
     """Test that analysis succeeds (with no clauses) when Anthropic not configured."""
     headers, _ = _get_auth_headers(client, db)
 
-    with patch(
-        "app.services.contract_service.analyze_kaufvertrag",
-        new=AsyncMock(return_value=None),
-    ), patch(
-        "app.services.contract_service._extract_pages_from_bytes",
-        return_value=[{"page_number": 1, "original_text": "", "translated_text": ""}],
+    with (
+        patch(
+            "app.services.contract_service.analyze_kaufvertrag",
+            new=AsyncMock(return_value=None),
+        ),
+        patch(
+            "app.services.contract_service._extract_pages_from_bytes",
+            return_value=[
+                {"page_number": 1, "original_text": "", "translated_text": ""}
+            ],
+        ),
     ):
         r = client.post(
             f"{settings.API_V1_STR}/contracts/analyze",
@@ -241,12 +262,17 @@ def test_get_analysis_not_owned(client: TestClient, db: Session) -> None:
     headers1, _ = _get_auth_headers(client, db)
     headers2, _ = _get_auth_headers(client, db)
 
-    with patch(
-        "app.services.contract_service.analyze_kaufvertrag",
-        new=AsyncMock(return_value=_MOCK_ANALYSIS),
-    ), patch(
-        "app.services.contract_service._extract_pages_from_bytes",
-        return_value=[{"page_number": 1, "original_text": "Test", "translated_text": ""}],
+    with (
+        patch(
+            "app.services.contract_service.analyze_kaufvertrag",
+            new=AsyncMock(return_value=_MOCK_ANALYSIS),
+        ),
+        patch(
+            "app.services.contract_service._extract_pages_from_bytes",
+            return_value=[
+                {"page_number": 1, "original_text": "Test", "translated_text": ""}
+            ],
+        ),
     ):
         r = client.post(
             f"{settings.API_V1_STR}/contracts/analyze",
@@ -273,12 +299,17 @@ def test_share_and_retrieve_analysis(client: TestClient, db: Session) -> None:
     """Test generating a share_id and retrieving via public endpoint."""
     headers, _ = _get_auth_headers(client, db)
 
-    with patch(
-        "app.services.contract_service.analyze_kaufvertrag",
-        new=AsyncMock(return_value=_MOCK_ANALYSIS),
-    ), patch(
-        "app.services.contract_service._extract_pages_from_bytes",
-        return_value=[{"page_number": 1, "original_text": "Test", "translated_text": ""}],
+    with (
+        patch(
+            "app.services.contract_service.analyze_kaufvertrag",
+            new=AsyncMock(return_value=_MOCK_ANALYSIS),
+        ),
+        patch(
+            "app.services.contract_service._extract_pages_from_bytes",
+            return_value=[
+                {"page_number": 1, "original_text": "Test", "translated_text": ""}
+            ],
+        ),
     ):
         r = client.post(
             f"{settings.API_V1_STR}/contracts/analyze",
