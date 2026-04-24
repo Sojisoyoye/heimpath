@@ -680,3 +680,130 @@ def test_toggle_verify_professional_not_found(
     )
 
     assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Contact inquiry and click tracking tests
+# ---------------------------------------------------------------------------
+
+
+def test_submit_inquiry_success(client: TestClient, db: Session) -> None:
+    """Test submitting a contact inquiry returns 201 with correct fields."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/inquiries",
+        json={
+            "sender_name": "Alice Smith",
+            "sender_email": "alice@example.com",
+            "message": "Hello, I need legal help with a property purchase.",
+        },
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["sender_name"] == "Alice Smith"
+    assert data["sender_email"] == "alice@example.com"
+    assert data["status"] in ("pending", "sent", "failed")
+    assert "id" in data
+    assert "professional_id" in data
+    assert "created_at" in data
+
+
+def test_submit_inquiry_unauthenticated(client: TestClient, db: Session) -> None:
+    """Test that submitting an inquiry without auth returns 401."""
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/inquiries",
+        json={
+            "sender_name": "Bob",
+            "sender_email": "bob@example.com",
+            "message": "Question.",
+        },
+    )
+
+    assert r.status_code == 401
+
+
+def test_submit_inquiry_professional_not_found(client: TestClient, db: Session) -> None:
+    """Test submitting an inquiry to a non-existent professional returns 404."""
+    headers, _ = get_auth_headers(client, db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{uuid.uuid4()}/inquiries",
+        json={
+            "sender_name": "Alice",
+            "sender_email": "alice@example.com",
+            "message": "Hello.",
+        },
+        headers=headers,
+    )
+
+    assert r.status_code == 404
+
+
+def test_submit_inquiry_missing_fields(client: TestClient, db: Session) -> None:
+    """Test that missing required fields returns 422."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/inquiries",
+        json={"sender_name": "Alice"},
+        headers=headers,
+    )
+
+    assert r.status_code == 422
+
+
+def test_track_click_success(client: TestClient, db: Session) -> None:
+    """Test tracking a referral click increments click_count and returns 200."""
+    professional = create_sample_professional(db)
+    initial_click_count = professional.click_count
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/click",
+    )
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["status"] == "ok"
+
+    db.refresh(professional)
+    assert professional.click_count == initial_click_count + 1
+
+
+def test_track_click_no_auth_required(client: TestClient, db: Session) -> None:
+    """Test that tracking a click does not require authentication."""
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/click",
+    )
+
+    assert r.status_code == 200
+
+
+def test_track_click_professional_not_found(client: TestClient) -> None:
+    """Test tracking a click for a non-existent professional returns 404."""
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{uuid.uuid4()}/click",
+    )
+
+    assert r.status_code == 404
+
+
+def test_professional_response_includes_click_count(
+    client: TestClient, db: Session
+) -> None:
+    """Test that professional detail response includes click_count."""
+    professional = create_sample_professional(db)
+
+    r = client.get(f"{settings.API_V1_STR}/professionals/{professional.id}")
+    assert r.status_code == 200
+    data = r.json()
+    assert "click_count" in data
+    assert data["click_count"] == 0

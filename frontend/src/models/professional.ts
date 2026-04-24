@@ -37,6 +37,23 @@ export interface Professional {
     topServices: string[]
     avgResponseTime: number | null
   }
+  clickCount: number
+  createdAt: string
+}
+
+export interface ContactInquiryCreate {
+  senderName: string
+  senderEmail: string
+  message: string
+}
+
+export interface ContactInquiry {
+  id: string
+  professionalId: string
+  senderName: string
+  senderEmail: string
+  status: "pending" | "sent" | "failed"
+  sentAt: string | null
   createdAt: string
 }
 

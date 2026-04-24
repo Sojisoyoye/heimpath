@@ -369,6 +369,28 @@ export type ComparisonResponse = {
 };
 
 /**
+ * Request schema for submitting a contact inquiry.
+ */
+export type ContactInquiryCreateRequest = {
+    sender_name: string;
+    sender_email: string;
+    message: string;
+};
+
+/**
+ * Response schema for a contact inquiry.
+ */
+export type ContactInquiryResponse = {
+    id: string;
+    professional_id: string;
+    sender_name: string;
+    sender_email: string;
+    status: string;
+    sent_at?: (string | null);
+    created_at: string;
+};
+
+/**
  * Fine-grained Nebenkosten (running cost) categories.
  */
 export type CostCategory = 'hausgeld' | 'grundsteuer' | 'insurance' | 'heating' | 'water' | 'electricity' | 'maintenance' | 'misc';
@@ -1685,6 +1707,7 @@ export type ProfessionalDetailResponse = {
     review_highlights?: ({
     [key: string]: unknown;
 } | null);
+    click_count?: number;
     created_at: string;
     reviews?: Array<ReviewResponse>;
 };
@@ -1720,6 +1743,7 @@ export type ProfessionalResponse = {
     review_highlights?: ({
     [key: string]: unknown;
 } | null);
+    click_count?: number;
     created_at: string;
 };
 
@@ -3272,6 +3296,21 @@ export type ProfessionalsCreateReviewData = {
 };
 
 export type ProfessionalsCreateReviewResponse = (ReviewResponse);
+
+export type ProfessionalsCreateInquiryData = {
+    professionalId: string;
+    requestBody: ContactInquiryCreateRequest;
+};
+
+export type ProfessionalsCreateInquiryResponse = (ContactInquiryResponse);
+
+export type ProfessionalsTrackProfessionalClickData = {
+    professionalId: string;
+};
+
+export type ProfessionalsTrackProfessionalClickResponse = ({
+    [key: string]: unknown;
+});
 
 export type ProfessionalsToggleVerifyProfessionalData = {
     professionalId: string;

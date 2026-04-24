@@ -8,6 +8,7 @@ import { BadgeCheck, Globe, Mail, MapPin, Phone, ThumbsUp } from "lucide-react"
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useTrackClick } from "@/hooks/mutations"
 import type { Professional, ProfessionalType } from "@/models/professional"
 import { PROFESSIONAL_TYPE_LABELS } from "@/models/professional"
 import { StarRating } from "./StarRating"
@@ -40,12 +41,14 @@ const TYPE_COLORS: Record<ProfessionalType, string> = {
 /** Default component. Professional summary card. */
 function ProfessionalCard(props: Readonly<IProps>) {
   const { professional, className } = props
+  const { mutate: trackClick } = useTrackClick()
 
   return (
     <Link
       to="/professionals/$professionalId"
       params={{ professionalId: professional.id }}
       className="block"
+      onClick={() => trackClick(professional.id)}
     >
       <Card
         className={cn(
