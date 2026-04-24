@@ -131,7 +131,6 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
 
   const errors = {
     propertyPrice: parseNum(fields.propertyPrice) <= 0,
-    downPayment: parseNum(fields.downPaymentAmount) <= 0,
     interestRate: parseNum(fields.interestRate) <= 0,
     repaymentRate: parseNum(fields.initialRepaymentRate) <= 0,
   }
@@ -203,12 +202,7 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
           <FormRow
             htmlFor="downPayment"
             label="Down Payment"
-            tooltip="Your equity contribution (Eigenkapital)"
-            error={
-              showErrors && errors.downPayment
-                ? "Enter a down payment amount"
-                : undefined
-            }
+            tooltip="Your equity contribution (Eigenkapital) — enter 0 for 100% financing"
           >
             <div className="flex gap-2">
               <div className="flex-1">
@@ -216,12 +210,9 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
                   id="downPayment"
                   type="text"
                   inputMode="numeric"
-                  placeholder="80.000"
+                  placeholder="0"
                   value={formatPrice(fields.downPaymentAmount)}
                   onChange={handleDownPaymentAmountChange}
-                  className={cn(
-                    showErrors && errors.downPayment && "border-destructive",
-                  )}
                 />
               </div>
               <div className="w-20">
