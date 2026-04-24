@@ -4,6 +4,7 @@
 
 export * from "./useArticleQueries"
 export * from "./useCalculatorQueries"
+export * from "./useContractQueries"
 export * from "./useDashboardQueries"
 export * from "./useDocumentQueries"
 export * from "./useGlossaryQueries"

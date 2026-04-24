@@ -57,6 +57,26 @@ export type AnnualCashflowRowResponse = {
 };
 
 /**
+ * A question to ask the notary.
+ */
+export type app__schemas__contract__NotaryQuestion = {
+    question: string;
+    related_clause: string;
+    priority: 'essential' | 'recommended' | 'optional';
+};
+
+export type priority = 'essential' | 'recommended' | 'optional';
+
+/**
+ * Question to ask a notary about a contract clause.
+ */
+export type app__schemas__document__NotaryQuestion = {
+    question: string;
+    related_clause: string;
+    priority: 'essential' | 'recommended' | 'optional';
+};
+
+/**
  * Response for the area listing endpoint.
  */
 export type AreaListResponse = {
@@ -277,6 +297,10 @@ export type BatchTranslationResponse = {
     total_warnings: number;
 };
 
+export type Body_contracts_analyze_contract = {
+    file: (Blob | File);
+};
+
 export type Body_documents_upload_document = {
     file: (Blob | File);
 };
@@ -340,6 +364,21 @@ export type CheckoutResponse = {
 };
 
 /**
+ * A single analyzed clause from a Kaufvertrag.
+ */
+export type ClauseExplanation = {
+    section_name: string;
+    section_name_en: string;
+    original_text: string;
+    plain_english_explanation: string;
+    risk_level: 'low' | 'medium' | 'high';
+    risk_reason: string;
+    is_unusual: boolean;
+    unusual_terms: Array<(string)>;
+    page_number?: (number | null);
+};
+
+/**
  * Full comparison metrics for a single area.
  */
 export type ComparisonMetrics = {
@@ -387,6 +426,45 @@ export type ContactInquiryResponse = {
     sender_email: string;
     status: string;
     sent_at?: (string | null);
+    created_at: string;
+};
+
+/**
+ * Summary item for listing analyses.
+ */
+export type ContractAnalysisListItem = {
+    id: string;
+    filename: string;
+    share_id: (string | null);
+    overall_risk_assessment: (string | null);
+    clause_count: number;
+    created_at: string;
+};
+
+/**
+ * Paginated list of contract analyses.
+ */
+export type ContractAnalysisListResponse = {
+    data: Array<ContractAnalysisListItem>;
+    total: number;
+    page: number;
+    page_size: number;
+};
+
+/**
+ * Full response for a contract analysis.
+ */
+export type ContractAnalysisResponse = {
+    id: string;
+    filename: string;
+    share_id: (string | null);
+    summary: (string | null);
+    analyzed_clauses: (Array<ClauseExplanation> | null);
+    notary_checklist: (Array<app__schemas__contract__NotaryQuestion> | null);
+    overall_risk_assessment: (string | null);
+    overall_risk_explanation: (string | null);
+    clause_count: number;
+    is_truncated: boolean;
     created_at: string;
 };
 
@@ -1139,7 +1217,7 @@ export type JourneyUpdate = {
 export type KaufvertragAnalysis = {
     summary: string;
     analyzed_clauses: Array<AnalyzedClause>;
-    notary_checklist: Array<NotaryQuestion>;
+    notary_checklist: Array<app__schemas__document__NotaryQuestion>;
     overall_risk_assessment: 'low' | 'medium' | 'high';
     overall_risk_explanation: string;
     is_ai_generated?: boolean;
@@ -1346,17 +1424,6 @@ export type NextStepResponse = {
     step?: (JourneyStepResponse | null);
     message?: (string | null);
 };
-
-/**
- * Question to ask a notary about a contract clause.
- */
-export type NotaryQuestion = {
-    question: string;
-    related_clause: string;
-    priority: 'essential' | 'recommended' | 'optional';
-};
-
-export type priority = 'essential' | 'recommended' | 'optional';
 
 /**
  * Paginated list of notifications.
@@ -2838,6 +2905,37 @@ export type CalculatorsDeleteOwnershipComparisonData = {
 };
 
 export type CalculatorsDeleteOwnershipComparisonResponse = (void);
+
+export type ContractsGetSharedAnalysisData = {
+    shareId: string;
+};
+
+export type ContractsGetSharedAnalysisResponse = (ContractAnalysisResponse);
+
+export type ContractsAnalyzeContractData = {
+    formData: Body_contracts_analyze_contract;
+};
+
+export type ContractsAnalyzeContractResponse = (ContractAnalysisResponse);
+
+export type ContractsListContractAnalysesData = {
+    page?: number;
+    pageSize?: number;
+};
+
+export type ContractsListContractAnalysesResponse = (ContractAnalysisListResponse);
+
+export type ContractsGetContractAnalysisData = {
+    analysisId: string;
+};
+
+export type ContractsGetContractAnalysisResponse = (ContractAnalysisResponse);
+
+export type ContractsShareContractAnalysisData = {
+    analysisId: string;
+};
+
+export type ContractsShareContractAnalysisResponse = (ContractAnalysisResponse);
 
 export type DashboardGetDashboardOverviewResponse = (DashboardOverviewResponse);
 

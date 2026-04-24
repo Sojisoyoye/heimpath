@@ -4,6 +4,7 @@ from app.api.routes import (
     articles,
     auth,
     calculators,
+    contracts,
     dashboard,
     documents,
     feedback,
@@ -43,6 +44,7 @@ api_router.include_router(articles.router)
 api_router.include_router(search.router)
 api_router.include_router(market.router)
 api_router.include_router(professionals.router)
+api_router.include_router(contracts.router)
 api_router.include_router(portfolio.router)
 api_router.include_router(glossary.router)
 api_router.include_router(feedback.router)

@@ -28,6 +28,7 @@ import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mort
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutContractExplainerRouteImport } from './routes/_layout/contract-explainer'
 import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutProfessionalsIndexRouteImport } from './routes/_layout/professionals/index'
@@ -143,6 +144,11 @@ const LayoutSearchRoute = LayoutSearchRouteImport.update({
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutContractExplainerRoute = LayoutContractExplainerRouteImport.update({
+  id: '/contract-explainer',
+  path: '/contract-explainer',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutCalculatorsRoute = LayoutCalculatorsRouteImport.update({
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof LayoutAdminRoute
   '/calculators': typeof LayoutCalculatorsRoute
+  '/contract-explainer': typeof LayoutContractExplainerRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof LayoutAdminRoute
   '/calculators': typeof LayoutCalculatorsRoute
+  '/contract-explainer': typeof LayoutContractExplainerRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -353,6 +361,7 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/calculators': typeof LayoutCalculatorsRoute
+  '/_layout/contract-explainer': typeof LayoutContractExplainerRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
@@ -396,6 +405,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin'
     | '/calculators'
+    | '/contract-explainer'
     | '/dashboard'
     | '/search'
     | '/settings'
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin'
     | '/calculators'
+    | '/contract-explainer'
     | '/dashboard'
     | '/search'
     | '/settings'
@@ -477,6 +488,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/_layout/admin'
     | '/_layout/calculators'
+    | '/_layout/contract-explainer'
     | '/_layout/dashboard'
     | '/_layout/search'
     | '/_layout/settings'
@@ -656,6 +668,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDashboardRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/contract-explainer': {
+      id: '/_layout/contract-explainer'
+      path: '/contract-explainer'
+      fullPath: '/contract-explainer'
+      preLoaderRoute: typeof LayoutContractExplainerRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/calculators': {
       id: '/_layout/calculators'
       path: '/calculators'
@@ -826,6 +845,7 @@ const LayoutJourneysJourneyIdRouteWithChildren =
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutCalculatorsRoute: typeof LayoutCalculatorsRoute
+  LayoutContractExplainerRoute: typeof LayoutContractExplainerRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
@@ -850,6 +870,7 @@ interface LayoutRouteChildren {
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutCalculatorsRoute: LayoutCalculatorsRoute,
+  LayoutContractExplainerRoute: LayoutContractExplainerRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,

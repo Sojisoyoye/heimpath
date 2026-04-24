@@ -922,6 +922,19 @@ export const BatchTranslationResponseSchema = {
     }
 } as const;
 
+export const Body_contracts_analyze_contractSchema = {
+    properties: {
+        file: {
+            type: 'string',
+            format: 'binary',
+            title: 'File'
+        }
+    },
+    type: 'object',
+    required: ['file'],
+    title: 'Body_contracts-analyze_contract'
+} as const;
+
 export const Body_documents_upload_documentSchema = {
     properties: {
         file: {
@@ -1130,6 +1143,62 @@ export const CheckoutResponseSchema = {
     description: 'Response with checkout session details.'
 } as const;
 
+export const ClauseExplanationSchema = {
+    properties: {
+        section_name: {
+            type: 'string',
+            title: 'Section Name'
+        },
+        section_name_en: {
+            type: 'string',
+            title: 'Section Name En'
+        },
+        original_text: {
+            type: 'string',
+            title: 'Original Text'
+        },
+        plain_english_explanation: {
+            type: 'string',
+            title: 'Plain English Explanation'
+        },
+        risk_level: {
+            type: 'string',
+            enum: ['low', 'medium', 'high'],
+            title: 'Risk Level'
+        },
+        risk_reason: {
+            type: 'string',
+            title: 'Risk Reason'
+        },
+        is_unusual: {
+            type: 'boolean',
+            title: 'Is Unusual'
+        },
+        unusual_terms: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Unusual Terms'
+        },
+        page_number: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Number'
+        }
+    },
+    type: 'object',
+    required: ['section_name', 'section_name_en', 'original_text', 'plain_english_explanation', 'risk_level', 'risk_reason', 'is_unusual', 'unusual_terms'],
+    title: 'ClauseExplanation',
+    description: 'A single analyzed clause from a Kaufvertrag.'
+} as const;
+
 export const ComparisonMetricsSchema = {
     properties: {
         key: {
@@ -1334,6 +1403,186 @@ export const ContactInquiryResponseSchema = {
     required: ['id', 'professional_id', 'sender_name', 'sender_email', 'status', 'created_at'],
     title: 'ContactInquiryResponse',
     description: 'Response schema for a contact inquiry.'
+} as const;
+
+export const ContractAnalysisListItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        filename: {
+            type: 'string',
+            title: 'Filename'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
+        overall_risk_assessment: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Overall Risk Assessment'
+        },
+        clause_count: {
+            type: 'integer',
+            title: 'Clause Count'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'filename', 'share_id', 'overall_risk_assessment', 'clause_count', 'created_at'],
+    title: 'ContractAnalysisListItem',
+    description: 'Summary item for listing analyses.'
+} as const;
+
+export const ContractAnalysisListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ContractAnalysisListItem'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        }
+    },
+    type: 'object',
+    required: ['data', 'total', 'page', 'page_size'],
+    title: 'ContractAnalysisListResponse',
+    description: 'Paginated list of contract analyses.'
+} as const;
+
+export const ContractAnalysisResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        filename: {
+            type: 'string',
+            title: 'Filename'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        analyzed_clauses: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/ClauseExplanation'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Analyzed Clauses'
+        },
+        notary_checklist: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/app__schemas__contract__NotaryQuestion'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notary Checklist'
+        },
+        overall_risk_assessment: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Overall Risk Assessment'
+        },
+        overall_risk_explanation: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Overall Risk Explanation'
+        },
+        clause_count: {
+            type: 'integer',
+            title: 'Clause Count'
+        },
+        is_truncated: {
+            type: 'boolean',
+            title: 'Is Truncated'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'filename', 'share_id', 'summary', 'analyzed_clauses', 'notary_checklist', 'overall_risk_assessment', 'overall_risk_explanation', 'clause_count', 'is_truncated', 'created_at'],
+    title: 'ContractAnalysisResponse',
+    description: 'Full response for a contract analysis.'
 } as const;
 
 export const CostCategorySchema = {
@@ -3908,7 +4157,7 @@ export const KaufvertragAnalysisSchema = {
         },
         notary_checklist: {
             items: {
-                '$ref': '#/components/schemas/NotaryQuestion'
+                '$ref': '#/components/schemas/app__schemas__document__NotaryQuestion'
             },
             type: 'array',
             title: 'Notary Checklist'
@@ -4563,28 +4812,6 @@ export const NextStepResponseSchema = {
     required: ['has_next'],
     title: 'NextStepResponse',
     description: 'Schema for next recommended step.'
-} as const;
-
-export const NotaryQuestionSchema = {
-    properties: {
-        question: {
-            type: 'string',
-            title: 'Question'
-        },
-        related_clause: {
-            type: 'string',
-            title: 'Related Clause'
-        },
-        priority: {
-            type: 'string',
-            enum: ['essential', 'recommended', 'optional'],
-            title: 'Priority'
-        }
-    },
-    type: 'object',
-    required: ['question', 'related_clause', 'priority'],
-    title: 'NotaryQuestion',
-    description: 'Question to ask a notary about a contract clause.'
 } as const;
 
 export const NotificationListResponseSchema = {
@@ -9493,4 +9720,48 @@ export const YearProjectionSchema = {
     required: ['year', 'rental_income', 'tax', 'net_income_after_tax', 'cumulative_net_income', 'property_value'],
     title: 'YearProjection',
     description: 'Single year projection for one ownership scenario.'
+} as const;
+
+export const app__schemas__contract__NotaryQuestionSchema = {
+    properties: {
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        related_clause: {
+            type: 'string',
+            title: 'Related Clause'
+        },
+        priority: {
+            type: 'string',
+            enum: ['essential', 'recommended', 'optional'],
+            title: 'Priority'
+        }
+    },
+    type: 'object',
+    required: ['question', 'related_clause', 'priority'],
+    title: 'NotaryQuestion',
+    description: 'A question to ask the notary.'
+} as const;
+
+export const app__schemas__document__NotaryQuestionSchema = {
+    properties: {
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        related_clause: {
+            type: 'string',
+            title: 'Related Clause'
+        },
+        priority: {
+            type: 'string',
+            enum: ['essential', 'recommended', 'optional'],
+            title: 'Priority'
+        }
+    },
+    type: 'object',
+    required: ['question', 'related_clause', 'priority'],
+    title: 'NotaryQuestion',
+    description: 'Question to ask a notary about a contract clause.'
 } as const;
