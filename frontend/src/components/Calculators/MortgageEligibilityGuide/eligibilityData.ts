@@ -7,6 +7,7 @@
 import type {
   EligibilityStatus,
   IEligibilityProfile,
+  ILenderResult,
   NationalityGroup,
 } from "./types"
 
@@ -49,6 +50,36 @@ export const LENDER_STATUS_STYLES: Record<EligibilityStatus, string> = {
                               Eligibility Profiles
 ******************************************************************************/
 
+// Lender type labels shared across profiles
+const SPARKASSE_TYPE = "Sparkasse / Volksbank"
+const PRIVATE_TYPE = "Private banks"
+const ONLINE_TYPE = "Online banks"
+const SPECIALIST_TYPE = "International / specialist brokers"
+
+// Lender example strings that appear in multiple profiles
+const SPARKASSE_EX = "Local savings & cooperative banks"
+const PRIVATE_STD_EX = "Deutsche Bank, Commerzbank, Hypovereinsbank"
+const ONLINE_STD_EX = "ING-DiBa, DKB, Interhyp (broker)"
+
+/** Builds a typed lender result entry. Reduces repeated object structure in profiles. */
+function mkLender(
+  lenderType: string,
+  lenderExamples: string,
+  eligibility: EligibilityStatus,
+  maxLtv: number | null,
+  minDownPayment: number | null,
+  notes: string[],
+): ILenderResult {
+  return {
+    lenderType,
+    lenderExamples,
+    eligibility,
+    maxLtv,
+    minDownPayment,
+    notes,
+  }
+}
+
 export const ELIGIBILITY_PROFILES: Record<
   NationalityGroup,
   IEligibilityProfile
@@ -82,48 +113,27 @@ export const ELIGIBILITY_PROFILES: Record<
     rentalNote:
       "Rental investment properties are typically financed at a 5–10% lower LTV than primary residences. Expected rental income can partially count toward affordability assessment.",
     lenders: [
-      {
-        lenderType: "Sparkasse / Volksbank",
-        lenderExamples: "Local savings & cooperative banks",
-        eligibility: "easy",
-        maxLtv: 80,
-        minDownPayment: 20,
-        notes: [
-          "Strong preference for local applicants with German address.",
-          "Relationship banking — visit a branch in person for best results.",
-        ],
-      },
-      {
-        lenderType: "Private banks",
-        lenderExamples: "Deutsche Bank, Commerzbank, Hypovereinsbank",
-        eligibility: "easy",
-        maxLtv: 80,
-        minDownPayment: 20,
-        notes: [
-          "Online application available; branch visit may still be required for signing.",
-        ],
-      },
-      {
-        lenderType: "Online banks",
-        lenderExamples: "ING-DiBa, DKB, Interhyp (broker)",
-        eligibility: "easy",
-        maxLtv: 85,
-        minDownPayment: 15,
-        notes: [
-          "Interhyp is a broker comparing 500+ lenders — highly recommended for rate shopping.",
-          "ING-DiBa offers up to 85% LTV for strong profiles.",
-        ],
-      },
-      {
-        lenderType: "International / specialist brokers",
-        lenderExamples: "DSL Bank, PlanetHome, independent mortgage brokers",
-        eligibility: "easy",
-        maxLtv: 80,
-        minDownPayment: 20,
-        notes: [
+      mkLender(SPARKASSE_TYPE, SPARKASSE_EX, "easy", 80, 20, [
+        "Strong preference for local applicants with German address.",
+        "Relationship banking — visit a branch in person for best results.",
+      ]),
+      mkLender(PRIVATE_TYPE, PRIVATE_STD_EX, "easy", 80, 20, [
+        "Online application available; branch visit may still be required for signing.",
+      ]),
+      mkLender(ONLINE_TYPE, ONLINE_STD_EX, "easy", 85, 15, [
+        "Interhyp is a broker comparing 500+ lenders — highly recommended for rate shopping.",
+        "ING-DiBa offers up to 85% LTV for strong profiles.",
+      ]),
+      mkLender(
+        SPECIALIST_TYPE,
+        "DSL Bank, PlanetHome, independent mortgage brokers",
+        "easy",
+        80,
+        20,
+        [
           "Specialist brokers can navigate complex income structures (e.g. bonus-heavy pay).",
         ],
-      },
+      ),
     ],
   },
 
@@ -161,48 +171,27 @@ export const ELIGIBILITY_PROFILES: Record<
     rentalNote:
       "Rental properties are financeable but typically at 60–65% LTV. Lenders want at least 35–40% equity on investment properties for non-EU applicants.",
     lenders: [
-      {
-        lenderType: "Sparkasse / Volksbank",
-        lenderExamples: "Local savings & cooperative banks",
-        eligibility: "conditional",
-        maxLtv: 70,
-        minDownPayment: 30,
-        notes: [
-          "Local Sparkassen vary widely — some actively finance non-EU residents, others don't.",
-          "In-branch relationship is critical; bring all documents translated into German.",
-        ],
-      },
-      {
-        lenderType: "Private banks",
-        lenderExamples: "Deutsche Bank, Commerzbank, Hypovereinsbank",
-        eligibility: "conditional",
-        maxLtv: 70,
-        minDownPayment: 30,
-        notes: [
-          "More standardised underwriting — decision based on income ratios, not local relationship.",
-        ],
-      },
-      {
-        lenderType: "Online banks",
-        lenderExamples: "ING-DiBa, DKB, Interhyp (broker)",
-        eligibility: "conditional",
-        maxLtv: 70,
-        minDownPayment: 30,
-        notes: [
-          "ING and DKB accept non-EU applicants with permanent residence.",
-          "Interhyp (broker) is the most efficient route — compares lenders that work with non-EU profiles.",
-        ],
-      },
-      {
-        lenderType: "International / specialist brokers",
-        lenderExamples: "DSL Bank, PlanetHome, Baufi24",
-        eligibility: "conditional",
-        maxLtv: 70,
-        minDownPayment: 30,
-        notes: [
+      mkLender(SPARKASSE_TYPE, SPARKASSE_EX, "conditional", 70, 30, [
+        "Local Sparkassen vary widely — some actively finance non-EU residents, others don't.",
+        "In-branch relationship is critical; bring all documents translated into German.",
+      ]),
+      mkLender(PRIVATE_TYPE, PRIVATE_STD_EX, "conditional", 70, 30, [
+        "More standardised underwriting — decision based on income ratios, not local relationship.",
+      ]),
+      mkLender(ONLINE_TYPE, ONLINE_STD_EX, "conditional", 70, 30, [
+        "ING and DKB accept non-EU applicants with permanent residence.",
+        "Interhyp (broker) is the most efficient route — compares lenders that work with non-EU profiles.",
+      ]),
+      mkLender(
+        SPECIALIST_TYPE,
+        "DSL Bank, PlanetHome, Baufi24",
+        "conditional",
+        70,
+        30,
+        [
           "Specialist brokers have relationships with lenders that actively seek non-EU applicants.",
         ],
-      },
+      ),
     ],
   },
 
@@ -240,50 +229,29 @@ export const ELIGIBILITY_PROFILES: Record<
     rentalNote:
       "Investment properties are rarely financed for non-EU applicants on limited visas. If attempted, expect 40–50% down payment and significantly higher interest rates.",
     lenders: [
-      {
-        lenderType: "Sparkasse / Volksbank",
-        lenderExamples: "Local savings & cooperative banks",
-        eligibility: "not_available",
-        maxLtv: null,
-        minDownPayment: null,
-        notes: [
-          "Most local savings banks decline applicants on limited visas as a blanket policy.",
-          "Exceptions may exist in large cities — worth asking, but do not rely on this.",
-        ],
-      },
-      {
-        lenderType: "Private banks",
-        lenderExamples: "Deutsche Bank, Commerzbank, Hypovereinsbank",
-        eligibility: "conditional",
-        maxLtv: 65,
-        minDownPayment: 35,
-        notes: [
-          "Case-by-case — high income and excellent Schufa are non-negotiable.",
-          "Relationship manager at a large branch gives best results.",
-        ],
-      },
-      {
-        lenderType: "Online banks",
-        lenderExamples: "ING-DiBa, DKB, Interhyp (broker)",
-        eligibility: "difficult",
-        maxLtv: 60,
-        minDownPayment: 40,
-        notes: [
-          "Standard online applications are usually rejected automatically.",
-          "Via Interhyp or a specialist broker, a subset of their lender panel may still consider you.",
-        ],
-      },
-      {
-        lenderType: "International / specialist brokers",
-        lenderExamples: "PlanetHome, Baufi24, expat mortgage specialists",
-        eligibility: "conditional",
-        maxLtv: 65,
-        minDownPayment: 35,
-        notes: [
+      mkLender(SPARKASSE_TYPE, SPARKASSE_EX, "not_available", null, null, [
+        "Most local savings banks decline applicants on limited visas as a blanket policy.",
+        "Exceptions may exist in large cities — worth asking, but do not rely on this.",
+      ]),
+      mkLender(PRIVATE_TYPE, PRIVATE_STD_EX, "conditional", 65, 35, [
+        "Case-by-case — high income and excellent Schufa are non-negotiable.",
+        "Relationship manager at a large branch gives best results.",
+      ]),
+      mkLender(ONLINE_TYPE, ONLINE_STD_EX, "difficult", 60, 40, [
+        "Standard online applications are usually rejected automatically.",
+        "Via Interhyp or a specialist broker, a subset of their lender panel may still consider you.",
+      ]),
+      mkLender(
+        SPECIALIST_TYPE,
+        "PlanetHome, Baufi24, expat mortgage specialists",
+        "conditional",
+        65,
+        35,
+        [
           "Best route — specialist brokers know which lenders actively work with limited-visa applicants.",
           "Fees may be higher but access is significantly better than going direct.",
         ],
-      },
+      ),
     ],
   },
 
@@ -320,52 +288,36 @@ export const ELIGIBILITY_PROFILES: Record<
     rentalNote:
       "Rental investment is the more common use case for non-residents, and some lenders (especially private banks) will specifically finance income-producing properties. Expected rental income typically counts 70–80% toward affordability.",
     lenders: [
-      {
-        lenderType: "Sparkasse / Volksbank",
-        lenderExamples: "Local savings & cooperative banks",
-        eligibility: "not_available",
-        maxLtv: null,
-        minDownPayment: null,
-        notes: [
-          "Sparkassen require German Anmeldung. Non-residents are uniformly declined.",
-        ],
-      },
-      {
-        lenderType: "Private banks",
-        lenderExamples:
-          "Deutsche Bank Private Banking, BNP Paribas, HSBC Germany",
-        eligibility: "conditional",
-        maxLtv: 55,
-        minDownPayment: 45,
-        notes: [
+      mkLender(SPARKASSE_TYPE, SPARKASSE_EX, "not_available", null, null, [
+        "Sparkassen require German Anmeldung. Non-residents are uniformly declined.",
+      ]),
+      mkLender(
+        PRIVATE_TYPE,
+        "Deutsche Bank Private Banking, BNP Paribas, HSBC Germany",
+        "conditional",
+        55,
+        45,
+        [
           "Private banking clients (typically €500k+ assets) may access non-resident mortgages.",
           "BNP Paribas and HSBC have specific non-resident mortgage products for investment properties.",
         ],
-      },
-      {
-        lenderType: "Online banks",
-        lenderExamples: "ING-DiBa, DKB",
-        eligibility: "not_available",
-        maxLtv: null,
-        minDownPayment: null,
-        notes: [
-          "Online retail banks universally require German Anmeldung.",
-          "Not an option for non-residents.",
-        ],
-      },
-      {
-        lenderType: "International / specialist brokers",
-        lenderExamples:
-          "German Mortgage International, expat finance specialists",
-        eligibility: "conditional",
-        maxLtv: 55,
-        minDownPayment: 45,
-        notes: [
+      ),
+      mkLender("Online banks", "ING-DiBa, DKB", "not_available", null, null, [
+        "Online retail banks universally require German Anmeldung.",
+        "Not an option for non-residents.",
+      ]),
+      mkLender(
+        SPECIALIST_TYPE,
+        "German Mortgage International, expat finance specialists",
+        "conditional",
+        55,
+        45,
+        [
           "Specialist international mortgage brokers are the primary route for non-residents.",
           "They work with a network of private lenders that specifically target non-resident investors.",
           "Expect higher arrangement fees and interest rate premiums of 0.5–1.5% above resident rates.",
         ],
-      },
+      ),
     ],
   },
 }
