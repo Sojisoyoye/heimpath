@@ -49,7 +49,8 @@ function FinanceCheck(_props: Readonly<IProps>) {
       ]}
       tip="Use the Financing Eligibility calculator to get a personalised estimate of how much you may be able to borrow before approaching lenders."
       ctaLabel="Check Financing Eligibility"
-      ctaHref="/calculators?tab=financing"
+      ctaHref="/calculators"
+      ctaSearch={{ tab: "financing" }}
     />
   )
 }
