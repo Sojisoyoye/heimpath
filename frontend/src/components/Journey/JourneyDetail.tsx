@@ -314,7 +314,7 @@ function StepListView(props: {
             {isComplete && (
               <PhaseCompletionCta
                 currentPhase={group.phase}
-                activePhaseKeys={phaseGroups.map((g) => g.phase)}
+                activePhaseKeys={navPhases.map((p) => p.key)}
                 onContinue={handleContinueToPhase}
               />
             )}
@@ -347,6 +347,10 @@ function JourneyDetail(props: IProps) {
     localStorage.setItem("heimpath-journey-view-mode", mode)
   }
 
+  // JourneyCompletionCta ("Add to Portfolio") is intentionally shown only for
+  // buying/investor journeys where the ownership phase exists. Pure rental
+  // journeys (renter persona) have no ownership phase so this stays false,
+  // which is correct — renters don't add a purchased property to portfolio.
   const isOwnershipComplete = useMemo(() => {
     if (!journey) return false
     const ownershipSteps = journey.steps.filter((s) => s.phase === "ownership")
