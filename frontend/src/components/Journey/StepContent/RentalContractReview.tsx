@@ -50,7 +50,8 @@ function RentalContractReview(_props: Readonly<IProps>) {
         ]}
         tip="If anything is unclear, consider consulting a Mieterverein (tenant association) before signing. Membership costs 50-100 EUR/year and includes legal advice on lease matters."
         ctaLabel="Find a Lawyer"
-        ctaHref="/professionals?type=lawyer"
+        ctaHref="/professionals"
+        ctaSearch={{ type: "lawyer" }}
       />
     </div>
   )

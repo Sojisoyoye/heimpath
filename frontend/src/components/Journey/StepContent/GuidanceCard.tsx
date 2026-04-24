@@ -28,6 +28,7 @@ interface IProps {
   tip?: string
   ctaLabel?: string
   ctaHref?: string
+  ctaSearch?: Record<string, string>
 }
 
 /******************************************************************************
@@ -35,7 +36,7 @@ interface IProps {
 ******************************************************************************/
 
 function GuidanceCard(props: Readonly<IProps>) {
-  const { title, description, items, tip, ctaLabel, ctaHref } = props
+  const { title, description, items, tip, ctaLabel, ctaHref, ctaSearch } = props
 
   return (
     <Card>
@@ -62,6 +63,7 @@ function GuidanceCard(props: Readonly<IProps>) {
         {ctaLabel && ctaHref && (
           <Link
             to={ctaHref}
+            search={ctaSearch}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
           >
             {ctaLabel}
