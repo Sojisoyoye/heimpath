@@ -274,9 +274,6 @@ function StepListView(props: {
         const isComplete = group.steps.every(
           (s) => s.status === "completed" || s.status === "skipped",
         )
-        const nextGroup = phaseGroups[groupIndex + 1]
-        const nextPhaseStarted =
-          nextGroup?.steps.some((s) => s.status !== "not_started") ?? false
         const phaseLabel =
           JOURNEY_PHASES.find((p) => p.key === group.phase)?.label ??
           group.phase
@@ -302,6 +299,17 @@ function StepListView(props: {
           .sort((a, b) => a.step_number - b.step_number)[0]?.phase as
           | JourneyPhase
           | undefined
+
+        // Don't show the CTA if the next phase (by step order) has already started.
+        // Falls back to canonical next phase group if no step-order next is found.
+        const nextPhaseStartedGroup = nextPhaseByStepOrder
+          ? (phaseGroups.find((g) => g.phase === nextPhaseByStepOrder) ??
+            phaseGroups[groupIndex + 1])
+          : phaseGroups[groupIndex + 1]
+        const nextPhaseStarted =
+          nextPhaseStartedGroup?.steps.some(
+            (s) => s.status !== "not_started",
+          ) ?? false
 
         return (
           <div

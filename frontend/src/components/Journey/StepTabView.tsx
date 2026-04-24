@@ -60,18 +60,6 @@ function StepTabView(props: IProps) {
     phaseSteps.length > 0 &&
     phaseSteps.every((s) => s.status === "completed" || s.status === "skipped")
 
-  const effectivePhaseIndex = visiblePhases.findIndex(
-    (p) => p.key === effectivePhase,
-  )
-  const canonicalNextPhaseKey = visiblePhases[effectivePhaseIndex + 1]?.key as
-    | JourneyPhase
-    | undefined
-  const nextPhaseStarted = canonicalNextPhaseKey
-    ? stepsByPhase[canonicalNextPhaseKey].some(
-        (s) => s.status !== "not_started",
-      )
-    : false
-
   // Find the phase containing the first incomplete step that comes after
   // the current phase (by step_number). This ensures the CTA navigates to
   // the section with the user's actual next step, rather than the canonical
@@ -93,6 +81,11 @@ function StepTabView(props: IProps) {
     .sort((a, b) => a.step_number - b.step_number)[0]?.phase as
     | JourneyPhase
     | undefined
+
+  // Don't show the CTA if the next phase (by step order) has already started.
+  const nextPhaseStarted = nextPhaseByStepOrder
+    ? stepsByPhase[nextPhaseByStepOrder].some((s) => s.status !== "not_started")
+    : false
 
   const handleContinueToPhase = (nextPhase: JourneyPhase) => {
     setSelectedPhase(nextPhase)
