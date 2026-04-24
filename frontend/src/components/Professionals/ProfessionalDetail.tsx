@@ -11,14 +11,19 @@ import {
   Globe,
   Mail,
   MapPin,
+  MessageSquare,
+  MousePointerClick,
   Phone,
   ThumbsUp,
 } from "lucide-react"
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useTrackClick } from "@/hooks/mutations"
+import useAuth from "@/hooks/useAuth"
 import type {
   ProfessionalDetail as ProfessionalDetailType,
   ProfessionalReview as ProfessionalReviewType,
@@ -28,6 +33,7 @@ import {
   PROFESSIONAL_TYPE_LABELS,
   SERVICE_TYPE_LABELS,
 } from "@/models/professional"
+import { ContactModal } from "./ContactModal"
 import { ReviewForm } from "./ReviewForm"
 import { StarRating } from "./StarRating"
 
@@ -88,6 +94,9 @@ function ReviewItem(props: Readonly<{ review: ProfessionalReviewType }>) {
 /** Default component. Professional full profile view. */
 function ProfessionalDetail(props: Readonly<IProps>) {
   const { professional, isLoading } = props
+  const { user } = useAuth()
+  const { mutate: trackClick } = useTrackClick()
+  const [contactOpen, setContactOpen] = useState(false)
 
   if (isLoading || !professional) {
     return (
@@ -293,10 +302,40 @@ function ProfessionalDetail(props: Readonly<IProps>) {
                   </a>
                 </div>
               )}
+
+              <Separator />
+
+              <Button
+                className="w-full gap-2"
+                onClick={() => {
+                  trackClick(professional.id)
+                  setContactOpen(true)
+                }}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Contact Professional
+              </Button>
+
+              {user?.is_superuser && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                  <MousePointerClick className="h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    {professional.clickCount} referral click
+                    {professional.clickCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <ContactModal
+        professionalId={professional.id}
+        professionalName={professional.name}
+        open={contactOpen}
+        onClose={() => setContactOpen(false)}
+      />
     </div>
   )
 }

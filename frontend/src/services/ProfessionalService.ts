@@ -6,6 +6,8 @@
 import { OpenAPI } from "@/client"
 import { request } from "@/client/core/request"
 import type {
+  ContactInquiry,
+  ContactInquiryCreate,
   Professional,
   ProfessionalDetail,
   ProfessionalFilter,
@@ -104,6 +106,36 @@ class ProfessionalServiceClass {
       mediaType: "application/json",
     })
     return transformKeys<ProfessionalReview>(response)
+  }
+
+  /**
+   * Submit a contact inquiry to a professional
+   */
+  async submitInquiry(
+    professionalId: string,
+    data: ContactInquiryCreate,
+  ): Promise<ContactInquiry> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.PROFESSIONALS.INQUIRIES(professionalId),
+      body: {
+        sender_name: data.senderName,
+        sender_email: data.senderEmail,
+        message: data.message,
+      },
+      mediaType: "application/json",
+    })
+    return transformKeys<ContactInquiry>(response)
+  }
+
+  /**
+   * Track a referral click for a professional
+   */
+  async trackClick(professionalId: string): Promise<void> {
+    await request(OpenAPI, {
+      method: "POST",
+      url: PATHS.PROFESSIONALS.CLICK(professionalId),
+    })
   }
 }
 

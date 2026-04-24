@@ -80,6 +80,7 @@ from app.models.portfolio import (
     TransactionType,
 )
 from app.models.professional import (
+    ContactInquiry,
     Professional,
     ProfessionalReview,
     ProfessionalType,
@@ -125,6 +126,7 @@ __all__ = [
     "PortfolioProperty",
     "PortfolioTransaction",
     "TransactionType",
+    "ContactInquiry",
     "Professional",
     "ProfessionalReview",
     "ProfessionalType",

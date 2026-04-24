@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.models import User
 from app.schemas.professional import (
+    ContactInquiryCreateRequest,
+    ContactInquiryResponse,
     ProfessionalCreateRequest,
     ProfessionalDetailResponse,
     ProfessionalListResponse,
@@ -137,6 +139,49 @@ async def create_review(
         )
 
     return ReviewResponse.model_validate(review)
+
+
+@router.post(
+    "/{professional_id}/inquiries",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_inquiry(
+    professional_id: uuid.UUID,
+    request: ContactInquiryCreateRequest,
+    _current_user: CurrentUser,
+    session: SessionDep,
+) -> ContactInquiryResponse:
+    """Submit a contact inquiry to a professional."""
+    try:
+        inquiry = professional_service.submit_inquiry(
+            session,
+            professional_id=professional_id,
+            sender_name=request.sender_name,
+            sender_email=request.sender_email,
+            message=request.message,
+        )
+    except professional_service.ProfessionalNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Professional {professional_id} not found",
+        )
+    return ContactInquiryResponse.model_validate(inquiry)
+
+
+@router.post("/{professional_id}/click", status_code=status.HTTP_200_OK)
+async def track_professional_click(
+    professional_id: uuid.UUID,
+    session: SessionDep,
+) -> dict:
+    """Track a referral click for a professional (no auth required)."""
+    try:
+        professional_service.track_click(session, professional_id)
+    except professional_service.ProfessionalNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Professional {professional_id} not found",
+        )
+    return {"status": "ok"}
 
 
 # ---------------------------------------------------------------------------

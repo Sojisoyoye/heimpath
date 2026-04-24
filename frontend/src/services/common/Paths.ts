@@ -139,6 +139,8 @@ export const PATHS = {
     LIST: `${API_V1}/professionals/`,
     DETAIL: (id: string) => `${API_V1}/professionals/${id}`,
     REVIEWS: (id: string) => `${API_V1}/professionals/${id}/reviews`,
+    INQUIRIES: (id: string) => `${API_V1}/professionals/${id}/inquiries`,
+    CLICK: (id: string) => `${API_V1}/professionals/${id}/click`,
   },
 
   // Search

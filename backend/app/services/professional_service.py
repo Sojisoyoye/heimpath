@@ -1,11 +1,20 @@
 """Professional network directory service."""
 
+import logging
 import uuid
+from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlmodel import Session
 
-from app.models.professional import Professional, ProfessionalReview, ServiceType
+from app.models.professional import (
+    ContactInquiry,
+    Professional,
+    ProfessionalReview,
+    ServiceType,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class ProfessionalNotFoundError(Exception):
@@ -282,3 +291,91 @@ def get_available_languages(session: Session) -> list[str]:
             if stripped:
                 languages.add(stripped)
     return sorted(languages)
+
+
+def submit_inquiry(
+    session: Session,
+    professional_id: uuid.UUID,
+    sender_name: str,
+    sender_email: str,
+    message: str,
+) -> ContactInquiry:
+    """Submit a contact inquiry to a professional and attempt email delivery."""
+    professional = get_professional_by_id(session, professional_id)
+
+    inquiry = ContactInquiry(
+        professional_id=professional_id,
+        sender_name=sender_name,
+        sender_email=sender_email,
+        message=message,
+        status="pending",
+    )
+    session.add(inquiry)
+    session.flush()
+
+    _send_inquiry_email(professional, sender_name, sender_email, message, inquiry)
+
+    session.commit()
+    session.refresh(inquiry)
+    return inquiry
+
+
+def track_click(session: Session, professional_id: uuid.UUID) -> None:
+    """Increment referral click count for a professional (atomic)."""
+    # Verify professional exists first
+    get_professional_by_id(session, professional_id)
+    session.execute(
+        update(Professional)
+        .where(Professional.id == professional_id)
+        .values(click_count=Professional.click_count + 1)
+    )
+    session.commit()
+
+
+def _send_inquiry_email(
+    professional: Professional,
+    sender_name: str,
+    sender_email: str,
+    message: str,
+    inquiry: ContactInquiry,
+) -> None:
+    """Send inquiry email to the professional. Fails silently if email is unavailable."""
+    try:
+        if not professional.email:
+            inquiry.status = "failed"
+            return
+
+        from app.core.config import settings
+
+        if not settings.emails_enabled:
+            inquiry.status = "skipped"
+            return
+
+        from app.utils import render_email_template, send_email
+
+        html_content = render_email_template(
+            template_name="notification.html",
+            context={
+                "project_name": settings.PROJECT_NAME,
+                "title": f"New inquiry from {sender_name}",
+                "message": (
+                    f"You have received a new inquiry from {sender_name} "
+                    f"({sender_email}):\n\n{message}"
+                ),
+                "action_url": settings.FRONTEND_HOST,
+                "action_text": "View HeimPath",
+                "unsubscribe_url": None,
+            },
+        )
+
+        send_email(
+            email_to=professional.email,
+            subject=f"{settings.PROJECT_NAME}: New inquiry from {sender_name}",
+            html_content=html_content,
+        )
+
+        inquiry.status = "sent"
+        inquiry.sent_at = datetime.now(timezone.utc)
+    except Exception:
+        logger.exception("Failed to send inquiry email to %s", professional.email)
+        inquiry.status = "failed"

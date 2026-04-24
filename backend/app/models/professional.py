@@ -5,6 +5,7 @@ from enum import Enum as PyEnum
 from sqlalchemy import (
     Boolean,
     Column,
+    DateTime,
     Float,
     ForeignKey,
     Integer,
@@ -80,9 +81,16 @@ class Professional(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     recommendation_rate = Column(Float, nullable=True)
     review_highlights = Column(JSON, nullable=True)
 
+    click_count = Column(Integer, nullable=False, default=0)
+
     # Relationships
     reviews = relationship(
         "ProfessionalReview",
+        back_populates="professional",
+        cascade="all, delete-orphan",
+    )
+    inquiries = relationship(
+        "ContactInquiry",
         back_populates="professional",
         cascade="all, delete-orphan",
     )
@@ -120,3 +128,25 @@ class ProfessionalReview(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "professional_id", "user_id", name="uq_professional_review_user"
         ),
     )
+
+
+class ContactInquiry(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """Contact inquiry submitted by a user to a professional."""
+
+    __tablename__ = "contact_inquiry"
+
+    professional_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("professional.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    sender_name = Column(String(255), nullable=False)
+    sender_email = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    # "pending" | "sent" | "failed"
+    status = Column(String(20), nullable=False, default="pending")
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Relationships
+    professional = relationship("Professional", back_populates="inquiries")

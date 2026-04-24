@@ -1263,6 +1263,79 @@ export const ComparisonResponseSchema = {
     description: 'Response for the area comparison endpoint.'
 } as const;
 
+export const ContactInquiryCreateRequestSchema = {
+    properties: {
+        sender_name: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Sender Name'
+        },
+        sender_email: {
+            type: 'string',
+            maxLength: 255,
+            format: 'email',
+            title: 'Sender Email'
+        },
+        message: {
+            type: 'string',
+            maxLength: 2000,
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['sender_name', 'sender_email', 'message'],
+    title: 'ContactInquiryCreateRequest',
+    description: 'Request schema for submitting a contact inquiry.'
+} as const;
+
+export const ContactInquiryResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        professional_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Professional Id'
+        },
+        sender_name: {
+            type: 'string',
+            title: 'Sender Name'
+        },
+        sender_email: {
+            type: 'string',
+            title: 'Sender Email'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        sent_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sent At'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'professional_id', 'sender_name', 'sender_email', 'status', 'created_at'],
+    title: 'ContactInquiryResponse',
+    description: 'Response schema for a contact inquiry.'
+} as const;
+
 export const CostCategorySchema = {
     type: 'string',
     enum: ['hausgeld', 'grundsteuer', 'insurance', 'heating', 'water', 'electricity', 'maintenance', 'misc'],
@@ -6067,6 +6140,11 @@ export const ProfessionalDetailResponseSchema = {
             ],
             title: 'Review Highlights'
         },
+        click_count: {
+            type: 'integer',
+            title: 'Click Count',
+            default: 0
+        },
         created_at: {
             type: 'string',
             format: 'date-time',
@@ -6219,6 +6297,11 @@ export const ProfessionalResponseSchema = {
                 }
             ],
             title: 'Review Highlights'
+        },
+        click_count: {
+            type: 'integer',
+            title: 'Click Count',
+            default: 0
         },
         created_at: {
             type: 'string',

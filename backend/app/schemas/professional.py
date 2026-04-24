@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.professional import ProfessionalType, ServiceType
 
@@ -60,6 +60,7 @@ class ProfessionalResponse(BaseModel):
     review_count: int
     recommendation_rate: float | None = None
     review_highlights: dict | None = None
+    click_count: int = 0
     created_at: datetime
 
 
@@ -113,3 +114,28 @@ class ProfessionalDetailResponse(ProfessionalResponse):
     """Professional detail with reviews."""
 
     reviews: list[ReviewResponse] = []
+
+
+# --- Contact Inquiry ---
+
+
+class ContactInquiryCreateRequest(BaseModel):
+    """Request schema for submitting a contact inquiry."""
+
+    sender_name: str = Field(..., max_length=255)
+    sender_email: EmailStr = Field(..., max_length=255)
+    message: str = Field(..., max_length=2000)
+
+
+class ContactInquiryResponse(BaseModel):
+    """Response schema for a contact inquiry."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    professional_id: uuid.UUID
+    sender_name: str
+    sender_email: str
+    status: str
+    sent_at: datetime | None = None
+    created_at: datetime
