@@ -164,7 +164,9 @@ function JourneyRingChart(props: Readonly<IProps>) {
 
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold">{overallPercentage}%</span>
+          <span className="text-2xl font-bold">
+            {Math.round(overallPercentage)}%
+          </span>
           <span className="text-xs text-muted-foreground">Complete</span>
         </div>
       </div>

@@ -508,7 +508,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
     # RENTAL INVESTOR STEPS (conditional on property_use = rent_out)
     StepTemplate(
         step_number=20,
-        phase=JourneyPhase.RESEARCH,
+        phase=JourneyPhase.RENTAL_SETUP,
         title="Understand Landlord Obligations",
         description="Learn about German landlord duties, tenant protections, and rental regulations before purchasing an investment property.",
         estimated_duration_days=5,
@@ -544,7 +544,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
     ),
     StepTemplate(
         step_number=21,
-        phase=JourneyPhase.RESEARCH,
+        phase=JourneyPhase.RENTAL_SETUP,
         title="Analyze Rental Yield",
         description="Calculate expected rental returns, compare with local Mietspiegel, and assess the investment viability.",
         estimated_duration_days=5,
@@ -576,7 +576,7 @@ STEP_TEMPLATES: list[StepTemplate] = [
     ),
     StepTemplate(
         step_number=22,
-        phase=JourneyPhase.PREPARATION,
+        phase=JourneyPhase.OWNERSHIP,
         title="Plan Property Management",
         description="Decide between self-management and hiring a Hausverwaltung, and understand the associated costs.",
         estimated_duration_days=7,
