@@ -74,27 +74,27 @@ function ScenarioRow(
 
   return (
     <div className="rounded-lg border border-dashed p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h5 className="text-sm font-medium">Scenario {index + 1}</h5>
+      <div className="flex items-center gap-2">
+        <input
+          id={`label-${index}`}
+          type="text"
+          placeholder={`Scenario ${index + 1}`}
+          value={scenario.label}
+          onChange={(e) => updateField("label", e.target.value)}
+          className="min-w-0 flex-1 bg-transparent text-sm font-semibold placeholder:text-muted-foreground/60 focus:outline-none border-b border-transparent focus:border-border transition-colors"
+          aria-label={`Scenario ${index + 1} name`}
+        />
         {canRemove && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onRemove}
-            className="h-6 w-6 p-0"
+            className="h-6 w-6 shrink-0 p-0"
           >
             <X className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>
-      <FormRow htmlFor={`label-${index}`} label="Label">
-        <Input
-          id={`label-${index}`}
-          placeholder={`e.g. Bank ${index + 1}`}
-          value={scenario.label}
-          onChange={(e) => updateField("label", e.target.value)}
-        />
-      </FormRow>
       <FormRow htmlFor={`rate-${index}`} label="Interest Rate (%)">
         <Input
           id={`rate-${index}`}
