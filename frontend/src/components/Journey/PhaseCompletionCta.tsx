@@ -13,14 +13,10 @@ import type { JourneyPhase } from "@/models/journey"
 
 interface IProps {
   currentPhase: JourneyPhase
+  /** Keys of phases that have steps in this journey (determines next-phase target). */
+  activePhaseKeys: string[]
   onContinue: (nextPhase: JourneyPhase) => void
 }
-
-/******************************************************************************
-                              Constants
-******************************************************************************/
-
-const VISIBLE_PHASES = JOURNEY_PHASES.filter((p) => p.key !== "rental_setup")
 
 /******************************************************************************
                               Components
@@ -28,13 +24,19 @@ const VISIBLE_PHASES = JOURNEY_PHASES.filter((p) => p.key !== "rental_setup")
 
 /** Default component. Phase completion CTA card. */
 function PhaseCompletionCta(props: Readonly<IProps>) {
-  const { currentPhase, onContinue } = props
+  const { currentPhase, activePhaseKeys, onContinue } = props
 
-  const phaseIndex = VISIBLE_PHASES.findIndex((p) => p.key === currentPhase)
+  // Only consider phases that actually have steps in this journey, preserving
+  // canonical JOURNEY_PHASES order.
+  const visiblePhases = JOURNEY_PHASES.filter((p) =>
+    activePhaseKeys.includes(p.key),
+  )
+
+  const phaseIndex = visiblePhases.findIndex((p) => p.key === currentPhase)
   const isLastPhase =
-    phaseIndex === -1 || phaseIndex === VISIBLE_PHASES.length - 1
-  const nextPhase = isLastPhase ? null : VISIBLE_PHASES[phaseIndex + 1]
-  const currentLabel = VISIBLE_PHASES[phaseIndex]?.label ?? currentPhase
+    phaseIndex === -1 || phaseIndex === visiblePhases.length - 1
+  const nextPhase = isLastPhase ? null : visiblePhases[phaseIndex + 1]
+  const currentLabel = visiblePhases[phaseIndex]?.label ?? currentPhase
 
   if (isLastPhase) {
     return (

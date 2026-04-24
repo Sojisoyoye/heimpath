@@ -1,16 +1,14 @@
 /**
  * Step Tab View Component
- * Phase pills to filter steps, then lists matching steps as cards
+ * Phase icon buttons to filter steps, then lists matching steps as cards
  * Alternative to the list view for viewing journey steps
  */
 
 import { useState } from "react"
-
-import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
-import { cn } from "@/common/utils"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { JOURNEY_PHASES } from "@/common/constants"
 import type { JourneyPhase, JourneyStep } from "@/models/journey"
 import { PhaseCompletionCta } from "./PhaseCompletionCta"
+import { PhaseIconNav } from "./PhaseIconNav"
 import { StepCard } from "./StepCard"
 
 interface IProps {
@@ -52,7 +50,6 @@ function StepTabView(props: IProps) {
     (phase) => stepsByPhase[phase.key as JourneyPhase].length > 0,
   )
 
-  // If the selected phase was filtered out (no steps), fall back to the first visible phase
   const effectivePhase = visiblePhases.some((p) => p.key === selectedPhase)
     ? selectedPhase
     : ((visiblePhases[0]?.key ?? "research") as JourneyPhase)
@@ -69,29 +66,16 @@ function StepTabView(props: IProps) {
 
   return (
     <div className="space-y-4">
-      {/* Phase pills */}
-      <Tabs
-        value={effectivePhase}
-        onValueChange={(v) => setSelectedPhase(v as JourneyPhase)}
-      >
-        <TabsList className="flex w-full flex-wrap gap-1">
-          {visiblePhases.map((phase) => (
-            <TabsTrigger
-              key={phase.key}
-              value={phase.key}
-              className={cn(
-                "text-xs sm:text-sm",
-                effectivePhase === phase.key && PHASE_COLORS[phase.key],
-              )}
-            >
-              {phase.label}
-              <span className="ml-1 hidden text-xs text-muted-foreground sm:inline">
-                ({stepsByPhase[phase.key as JourneyPhase].length})
-              </span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      {/* Phase icon buttons */}
+      <PhaseIconNav
+        phases={visiblePhases.map((p) => ({
+          key: p.key,
+          label: p.label,
+          stepCount: stepsByPhase[p.key as JourneyPhase].length,
+        }))}
+        activePhase={effectivePhase}
+        onPhaseClick={(key) => setSelectedPhase(key as JourneyPhase)}
+      />
 
       {/* Steps for selected phase */}
       {phaseSteps.map((step) => (
@@ -99,6 +83,7 @@ function StepTabView(props: IProps) {
           key={step.id}
           step={step}
           isActive={step.step_number === activeStepNumber}
+          showPhaseBadge={false}
           onTaskToggle={onTaskToggle}
           onStepOpen={onStepOpen}
         />
@@ -108,6 +93,7 @@ function StepTabView(props: IProps) {
       {isPhaseComplete && (
         <PhaseCompletionCta
           currentPhase={effectivePhase}
+          activePhaseKeys={visiblePhases.map((p) => p.key)}
           onContinue={handleContinueToPhase}
         />
       )}

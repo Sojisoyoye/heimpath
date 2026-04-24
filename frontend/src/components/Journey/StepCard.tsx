@@ -22,6 +22,7 @@ import { STEP_CONTENT_REGISTRY, StepBody } from "./StepContent/StepBody"
 interface IProps {
   step: JourneyStep
   isActive?: boolean
+  showPhaseBadge?: boolean
   onTaskToggle?: (stepId: string, taskId: string, isCompleted: boolean) => void
   onStepOpen?: (stepId: string) => void
   className?: string
@@ -88,7 +89,14 @@ function StatusBadge(props: { status: StepStatus }) {
 
 /** Default component. Collapsible step card. */
 function StepCard(props: IProps) {
-  const { step, isActive = false, onTaskToggle, onStepOpen, className } = props
+  const {
+    step,
+    isActive = false,
+    showPhaseBadge = true,
+    onTaskToggle,
+    onStepOpen,
+    className,
+  } = props
 
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -108,48 +116,51 @@ function StepCard(props: IProps) {
   return (
     <Card
       className={cn(
-        "overflow-hidden py-3 transition-all",
-        isActive && "ring-2 ring-blue-600 ring-offset-2",
+        "gap-0 overflow-hidden py-0 transition-all",
+        isActive && "ring-2 ring-primary ring-offset-2",
         step.status === "completed" &&
           "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20",
         className,
       )}
     >
       <CardHeader
-        className={cn("pb-2", hasBody && "cursor-pointer select-none")}
+        className={cn("px-4 py-3", hasBody && "cursor-pointer select-none")}
         onClick={handleToggleExpanded}
       >
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-          <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              {hasBody && (
-                <ChevronRight
-                  className={cn(
-                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none",
-                    isExpanded && "rotate-90",
-                  )}
-                />
+        <div className="flex items-center gap-2">
+          {hasBody && (
+            <ChevronRight
+              className={cn(
+                "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none",
+                isExpanded && "rotate-90",
               )}
-              <Badge
-                variant="outline"
-                className={cn("text-xs", PHASE_COLORS[step.phase])}
-              >
-                {JOURNEY_PHASES.find((p) => p.key === step.phase)?.label ??
-                  step.phase}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Step {step.step_number}
-              </span>
-            </div>
-            <CardTitle className="text-base sm:text-lg">{step.title}</CardTitle>
-            {isExpanded && (
-              <CardDescription>{step.description}</CardDescription>
-            )}
-          </div>
-          <div className="self-start">
+            />
+          )}
+          {showPhaseBadge && (
+            <Badge
+              variant="outline"
+              className={cn("shrink-0 text-xs", PHASE_COLORS[step.phase])}
+            >
+              {JOURNEY_PHASES.find((p) => p.key === step.phase)?.label ??
+                step.phase}
+            </Badge>
+          )}
+          <span className="shrink-0 text-xs text-muted-foreground">
+            Step {step.step_number}
+          </span>
+          <span className="text-xs text-muted-foreground">·</span>
+          <CardTitle className="min-w-0 truncate text-sm" title={step.title}>
+            {step.title}
+          </CardTitle>
+          <div className="ml-auto shrink-0">
             <StatusBadge status={step.status} />
           </div>
         </div>
+        {isExpanded && step.description && (
+          <CardDescription className="mt-1 pl-6">
+            {step.description}
+          </CardDescription>
+        )}
       </CardHeader>
 
       {hasBody && (

@@ -47,6 +47,21 @@ const Base = {
     Default: "#a855f7",
     Dark: "#7e22ce",
   },
+  Teal: {
+    Default: "#14b8a6",
+  },
+  Indigo: {
+    Default: "#6366f1",
+  },
+  Cyan: {
+    Default: "#06b6d4",
+  },
+  Rose: {
+    Default: "#f43f5e",
+  },
+  Emerald: {
+    Default: "#10b981",
+  },
 } as const
 
 const Colors = {
@@ -94,6 +109,12 @@ const Colors = {
     Preparation: Base.Purple.Default,
     Buying: Base.Orange.Default,
     Closing: Base.Green.Default,
+    Ownership: Base.Amber.Default,
+    RentalSetup: Base.Teal.Default,
+    RentalSearch: Base.Indigo.Default,
+    RentalApplication: Base.Cyan.Default,
+    RentalContract: Base.Rose.Default,
+    RentalMoveIn: Base.Emerald.Default,
   },
 
   // Status colors

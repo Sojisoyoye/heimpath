@@ -34,51 +34,41 @@ function PhaseStep(props: {
       className={cn(
         "flex items-center",
         variant === "horizontal"
-          ? "min-w-0 flex-row items-center lg:flex-1"
+          ? "shrink-0 flex-row items-center"
           : "flex-col",
       )}
     >
-      <div className="flex flex-col items-center gap-0.5">
-        <div className="flex items-center gap-1 lg:gap-2">
-          <div
-            className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-medium transition-colors lg:h-8 lg:w-8 lg:text-sm",
-              isCompleted && "border-amber-600 bg-amber-600 text-white",
-              isCurrent &&
-                !isCompleted &&
-                "border-blue-600 bg-blue-600 text-white",
-              !isCurrent &&
-                !isCompleted &&
-                "border-muted-foreground/30 text-muted-foreground",
-            )}
-          >
-            {isCompleted ? (
-              <Check className="h-3 w-3 lg:h-4 lg:w-4" />
-            ) : (
-              phase.order
-            )}
-          </div>
-          <span
-            className={cn(
-              "text-sm font-medium",
-              isCurrent && "text-foreground",
-              isCompleted && "text-amber-600",
-              !isCurrent && !isCompleted && "text-muted-foreground",
-              variant === "horizontal" && "hidden lg:inline",
-            )}
-          >
-            {phase.label}
-          </span>
+      <div className="flex items-center gap-1.5">
+        <div
+          className={cn(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-medium transition-colors",
+            isCompleted && "border-amber-600 bg-amber-600 text-white",
+            isCurrent &&
+              !isCompleted &&
+              "border-blue-600 bg-blue-600 text-white",
+            !isCurrent &&
+              !isCompleted &&
+              "border-muted-foreground/30 text-muted-foreground",
+          )}
+        >
+          {isCompleted ? <Check className="h-3.5 w-3.5" /> : phase.order}
         </div>
-        {isCurrent && !isCompleted && variant === "horizontal" && (
-          <div className="h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-blue-600 lg:hidden" />
-        )}
+        <span
+          className={cn(
+            "whitespace-nowrap text-xs font-medium",
+            isCurrent && "text-foreground",
+            isCompleted && "text-amber-600",
+            !isCurrent && !isCompleted && "text-muted-foreground",
+          )}
+        >
+          {phase.label}
+        </span>
       </div>
 
       {!isLast && variant === "horizontal" && (
         <div
           className={cn(
-            "mx-1 h-0.5 w-4 lg:mx-2 lg:w-auto lg:flex-1",
+            "mx-2 h-0.5 w-8 shrink-0",
             isCompleted ? "bg-amber-600" : "bg-muted-foreground/30",
           )}
         />
@@ -87,7 +77,7 @@ function PhaseStep(props: {
       {!isLast && variant === "vertical" && (
         <div
           className={cn(
-            "ml-4 mt-2 mb-2 w-0.5 h-8",
+            "mb-2 ml-4 mt-2 h-8 w-0.5",
             isCompleted ? "bg-amber-600" : "bg-muted-foreground/30",
           )}
         />
@@ -112,24 +102,32 @@ function PhaseIndicator(props: IProps) {
   return (
     <div
       className={cn(
-        "flex",
-        variant === "horizontal" ? "flex-row items-center" : "flex-col",
+        variant === "horizontal" ? "overflow-x-auto" : "flex flex-col",
         className,
       )}
     >
-      {JOURNEY_PHASES.map((phase, index) => (
-        <PhaseStep
-          key={phase.key}
-          phase={phase}
-          isCurrent={phase.key === currentPhase}
-          isCompleted={
-            completedPhases.includes(phase.key as JourneyPhase) ||
-            index < currentPhaseIndex
-          }
-          isLast={index === JOURNEY_PHASES.length - 1}
-          variant={variant}
-        />
-      ))}
+      <div
+        className={cn(
+          "flex",
+          variant === "horizontal"
+            ? "min-w-max flex-row items-center py-1"
+            : "flex-col",
+        )}
+      >
+        {JOURNEY_PHASES.map((phase, index) => (
+          <PhaseStep
+            key={phase.key}
+            phase={phase}
+            isCurrent={phase.key === currentPhase}
+            isCompleted={
+              completedPhases.includes(phase.key as JourneyPhase) ||
+              index < currentPhaseIndex
+            }
+            isLast={index === JOURNEY_PHASES.length - 1}
+            variant={variant}
+          />
+        ))}
+      </div>
     </div>
   )
 }

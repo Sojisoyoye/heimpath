@@ -28,7 +28,7 @@ import type {
 import { JourneyCompletionCta } from "./JourneyCompletionCta"
 import { JourneyProvider } from "./JourneyContext"
 import { PhaseCompletionCta } from "./PhaseCompletionCta"
-import { PhaseIndicator } from "./PhaseIndicator"
+import { PhaseIconNav } from "./PhaseIconNav"
 import { ProgressBar } from "./ProgressBar"
 import { StepCard } from "./StepCard"
 import { StepTabView } from "./StepTabView"
@@ -129,20 +129,59 @@ function JourneyOverview(props: {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Overall Progress</span>
-            <span className="font-medium">
+            <span className="text-muted-foreground">
               {progress?.completed_steps ?? 0} /{" "}
               {progress?.total_steps ?? journey.steps.length} steps
             </span>
+            <span className="font-medium">
+              {Math.round(progress?.progress_percentage ?? 0)}%
+            </span>
           </div>
-          <ProgressBar
-            value={progress?.progress_percentage ?? 0}
-            showLabel
-            size="md"
-          />
+          <ProgressBar value={progress?.progress_percentage ?? 0} size="md" />
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+/** Compact phase progress bar replacing the full phase stepper. */
+function PhaseProgressBar(props: { journey: JourneyPublic }) {
+  const { journey } = props
+
+  const activePhases = useMemo(
+    () =>
+      JOURNEY_PHASES.filter((p) =>
+        journey.steps.some((s) => s.phase === p.key),
+      ),
+    [journey.steps],
+  )
+
+  const currentIdx = activePhases.findIndex(
+    (p) => p.key === journey.current_phase,
+  )
+  // Clamp to 0 so "Phase X of N" never shows "Phase 0" for an unknown phase.
+  const displayIdx = currentIdx >= 0 ? currentIdx : 0
+  const currentPhaseLabel =
+    activePhases[displayIdx]?.label ?? journey.current_phase
+
+  return (
+    <div className="flex items-center gap-3">
+      <p className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
+        Phase {displayIdx + 1} of {activePhases.length}{" "}
+        <span className="font-medium text-foreground">{currentPhaseLabel}</span>
+      </p>
+      <div className="flex w-32 shrink-0 gap-0.5">
+        {activePhases.map((phase, i) => (
+          <div
+            key={phase.key}
+            className={cn(
+              "h-1 flex-1 rounded-full transition-colors",
+              i <= displayIdx ? "bg-primary" : "bg-muted",
+            )}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -160,8 +199,8 @@ function JourneyDetailSkeleton() {
       <Skeleton className="h-12 w-full" />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full" />
+          {["overview", "phase", "steps"].map((k) => (
+            <Skeleton key={k} className="h-48 w-full" />
           ))}
         </div>
         <Skeleton className="h-96 w-full" />
@@ -201,25 +240,73 @@ function StepListView(props: {
     return groups
   }, [steps])
 
+  const activePhase =
+    steps.find((s) => s.step_number === activeStepNumber)?.phase ??
+    phaseGroups[0]?.phase ??
+    "research"
+
+  const navPhases = useMemo(() => {
+    // Build a map of phase → total step count. If a phase appears in
+    // non-consecutive groups (edge case from API ordering), counts are summed.
+    const stepCountByPhase = new Map<string, number>()
+    for (const g of phaseGroups) {
+      stepCountByPhase.set(
+        g.phase,
+        (stepCountByPhase.get(g.phase) ?? 0) + g.steps.length,
+      )
+    }
+    return JOURNEY_PHASES.filter((p) => stepCountByPhase.has(p.key)).map(
+      (p) => ({
+        key: p.key,
+        label: p.label,
+        stepCount: stepCountByPhase.get(p.key) ?? 0,
+      }),
+    )
+  }, [phaseGroups])
+
   return (
-    <>
+    <div className="space-y-4">
+      {/* Phase icon nav — click to scroll to that phase */}
+      <PhaseIconNav
+        phases={navPhases}
+        activePhase={activePhase}
+        onPhaseClick={(key) => handleContinueToPhase(key as JourneyPhase)}
+      />
+
       {phaseGroups.map((group) => {
         const isComplete = group.steps.every(
           (s) => s.status === "completed" || s.status === "skipped",
         )
+        const phaseLabel =
+          JOURNEY_PHASES.find((p) => p.key === group.phase)?.label ??
+          group.phase
         return (
           <div
             key={group.phase}
             ref={(el) => {
               phaseRefs.current[group.phase] = el
             }}
-            className="space-y-4"
+            className="space-y-2"
           >
+            {/* Phase section header */}
+            <div className="flex items-center gap-2 px-1 pt-2">
+              <span
+                className={cn(
+                  "inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold",
+                  PHASE_COLORS[group.phase],
+                )}
+              >
+                {phaseLabel}
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
             {group.steps.map((step) => (
               <StepCard
                 key={step.id}
                 step={step}
                 isActive={step.step_number === activeStepNumber}
+                showPhaseBadge={false}
                 onTaskToggle={onTaskToggle}
                 onStepOpen={onStepOpen}
               />
@@ -227,13 +314,14 @@ function StepListView(props: {
             {isComplete && (
               <PhaseCompletionCta
                 currentPhase={group.phase}
+                activePhaseKeys={navPhases.map((p) => p.key)}
                 onContinue={handleContinueToPhase}
               />
             )}
           </div>
         )
       })}
-    </>
+    </div>
   )
 }
 
@@ -259,6 +347,10 @@ function JourneyDetail(props: IProps) {
     localStorage.setItem("heimpath-journey-view-mode", mode)
   }
 
+  // JourneyCompletionCta ("Add to Portfolio") is intentionally shown only for
+  // buying/investor journeys where the ownership phase exists. Pure rental
+  // journeys (renter persona) have no ownership phase so this stays false,
+  // which is correct — renters don't add a purchased property to portfolio.
   const isOwnershipComplete = useMemo(() => {
     if (!journey) return false
     const ownershipSteps = journey.steps.filter((s) => s.phase === "ownership")
@@ -332,12 +424,9 @@ function JourneyDetail(props: IProps) {
         </div>
       </div>
 
-      {/* Phase indicator + view toggle */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        <PhaseIndicator
-          currentPhase={journey.current_phase}
-          className="min-w-0 flex-1"
-        />
+      {/* Phase progress + view toggle — single row */}
+      <div className="flex items-center justify-between gap-3">
+        <PhaseProgressBar journey={journey} />
         <ViewModeToggle viewMode={viewMode} onChange={handleViewModeChange} />
       </div>
 

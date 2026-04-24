@@ -29,13 +29,15 @@ const PHASE_CHART_COLORS: Record<string, { stroke: string; bg: string }> = {
   preparation: { stroke: Colors.Journey.Preparation, bg: "#f3e8ff" },
   buying: { stroke: Colors.Journey.Buying, bg: "#ffedd5" },
   closing: { stroke: Colors.Journey.Closing, bg: "#dcfce7" },
-  // ownership and rental phases are not in Colors.Journey — defined locally
-  ownership: { stroke: "#f59e0b", bg: "#fef3c7" },
-  rental_setup: { stroke: "#14b8a6", bg: "#ccfbf1" },
-  rental_search: { stroke: "#6366f1", bg: "#e0e7ff" },
-  rental_application: { stroke: "#06b6d4", bg: "#cffafe" },
-  rental_contract: { stroke: "#f43f5e", bg: "#ffe4e6" },
-  rental_move_in: { stroke: "#10b981", bg: "#d1fae5" },
+  ownership: { stroke: Colors.Journey.Ownership, bg: "#fef3c7" },
+  rental_setup: { stroke: Colors.Journey.RentalSetup, bg: "#ccfbf1" },
+  rental_search: { stroke: Colors.Journey.RentalSearch, bg: "#e0e7ff" },
+  rental_application: {
+    stroke: Colors.Journey.RentalApplication,
+    bg: "#cffafe",
+  },
+  rental_contract: { stroke: Colors.Journey.RentalContract, bg: "#ffe4e6" },
+  rental_move_in: { stroke: Colors.Journey.RentalMoveIn, bg: "#d1fae5" },
 }
 
 const DEFAULT_COLOR = { stroke: "#6b7280", bg: "#f3f4f6" }
@@ -164,7 +166,9 @@ function JourneyRingChart(props: Readonly<IProps>) {
 
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold">{overallPercentage}%</span>
+          <span className="text-2xl font-bold">
+            {Math.round(overallPercentage)}%
+          </span>
           <span className="text-xs text-muted-foreground">Complete</span>
         </div>
       </div>

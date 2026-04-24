@@ -595,11 +595,10 @@ class TestStepTemplates:
             (5, "buying_costs"),
         ]
         research_steps = [t for t in STEP_TEMPLATES if t.phase == JourneyPhase.RESEARCH]
-        # 5 base + 2 rental investor (landlord law, yield analysis)
-        assert len(research_steps) == 7
-        # First 5 should be the base steps
+        # 5 base steps only — rental investor steps were reclassified to rental_setup/ownership
+        assert len(research_steps) == 5
         for template, (expected_num, expected_key) in zip(
-            research_steps[:5], expected, strict=True
+            research_steps, expected, strict=True
         ):
             assert template.step_number == expected_num
             assert template.content_key == expected_key
@@ -1308,8 +1307,13 @@ class TestRentalInvestorSteps:
         """Test that progress calculation includes RENTAL_SETUP phase for investor journeys."""
         steps = _generate_steps(rent_out_answers)
         rental_setup_steps = [s for s in steps if s.phase == JourneyPhase.RENTAL_SETUP]
-        assert len(rental_setup_steps) == 1
-        assert rental_setup_steps[0].title == "Set Up Rental Operations"
+        # 3 rental_setup steps: "Understand Landlord Obligations", "Analyze Rental Yield",
+        # and "Set Up Rental Operations"
+        assert len(rental_setup_steps) == 3
+        titles = {s.title for s in rental_setup_steps}
+        assert "Set Up Rental Operations" in titles
+        assert "Understand Landlord Obligations" in titles
+        assert "Analyze Rental Yield" in titles
 
     def test_property_use_stored_on_journey(
         self, rent_out_answers: QuestionnaireAnswers
@@ -1368,11 +1372,15 @@ class TestRentalInvestorSteps:
             for t in STEP_TEMPLATES
             if t.conditions and "property_use" in t.conditions
         }
-        assert rental_templates["rental_landlord_law"].phase == JourneyPhase.RESEARCH
-        assert rental_templates["rental_yield_analysis"].phase == JourneyPhase.RESEARCH
+        assert (
+            rental_templates["rental_landlord_law"].phase == JourneyPhase.RENTAL_SETUP
+        )
+        assert (
+            rental_templates["rental_yield_analysis"].phase == JourneyPhase.RENTAL_SETUP
+        )
         assert (
             rental_templates["rental_property_management"].phase
-            == JourneyPhase.PREPARATION
+            == JourneyPhase.OWNERSHIP
         )
         assert rental_templates["rental_tax_strategy"].phase == JourneyPhase.BUYING
         assert (
@@ -1591,12 +1599,14 @@ class TestOwnershipPhaseSteps:
     # --- Template existence tests ---
 
     def test_ownership_templates_exist(self) -> None:
-        """Test that all 4 ownership step templates exist with correct content_keys."""
+        """Test that all 5 ownership step templates exist with correct content_keys."""
+        # 4 base templates (all buyers) + 1 investor-only (rental_property_management)
         ownership_keys = {
             "ownership_registration",
             "ownership_insurance",
             "ownership_management",
             "ownership_tax_finance",
+            "rental_property_management",
         }
         found_keys = {
             t.content_key for t in STEP_TEMPLATES if t.phase == JourneyPhase.OWNERSHIP
@@ -1604,12 +1614,23 @@ class TestOwnershipPhaseSteps:
         assert found_keys == ownership_keys
 
     def test_ownership_templates_have_no_step_level_conditions(self) -> None:
-        """Test that ownership steps have no step-level conditions (included for all)."""
-        ownership_templates = [
-            t for t in STEP_TEMPLATES if t.phase == JourneyPhase.OWNERSHIP
+        """Test that base ownership steps have no step-level conditions (included for all).
+
+        The investor-only "Plan Property Management" step (rental_property_management)
+        is also in the ownership phase but carries property_use conditions.
+        """
+        base_ownership_templates = [
+            t
+            for t in STEP_TEMPLATES
+            if t.phase == JourneyPhase.OWNERSHIP and t.conditions is None
         ]
-        for template in ownership_templates:
-            assert template.conditions is None
+        base_keys = {t.content_key for t in base_ownership_templates}
+        assert base_keys == {
+            "ownership_registration",
+            "ownership_insurance",
+            "ownership_management",
+            "ownership_tax_finance",
+        }
 
     # --- Step inclusion tests ---
 
@@ -1651,15 +1672,43 @@ class TestOwnershipPhaseSteps:
     def test_ownership_phase_before_rental_setup(
         self, rent_out_house_answers: QuestionnaireAnswers
     ) -> None:
-        """Test that OWNERSHIP steps appear before RENTAL_SETUP in rent-out journeys."""
+        """Test that investor rental steps are in the correct relative order.
+
+        After the phase reclassification, the sequence for rent-out journeys is:
+        - Early rental_setup steps (landlord law, yield analysis): appear before
+          all ownership steps — investors research before they buy.
+        - Base ownership steps (registration, insurance, etc.): post-purchase
+          onboarding, appear before "Set Up Rental Operations".
+        - "Set Up Rental Operations": last step — you need to own before operating.
+        """
         steps = _generate_steps(rent_out_house_answers)
         ownership_steps = [s for s in steps if s.phase == JourneyPhase.OWNERSHIP]
         rental_steps = [s for s in steps if s.phase == JourneyPhase.RENTAL_SETUP]
-        assert len(ownership_steps) == 4
-        assert len(rental_steps) == 1
-        max_ownership_num = max(s.step_number for s in ownership_steps)
-        min_rental_num = min(s.step_number for s in rental_steps)
-        assert max_ownership_num < min_rental_num
+        # 5 ownership steps: 4 base + investor "Plan Property Management"
+        assert len(ownership_steps) == 5
+        # 3 rental_setup steps: "Understand Landlord Obligations", "Analyze Rental Yield",
+        # and "Set Up Rental Operations"
+        assert len(rental_steps) == 3
+
+        base_ownership_steps = [
+            s for s in ownership_steps if s.title != "Plan Property Management"
+        ]
+        max_base_ownership_num = max(s.step_number for s in base_ownership_steps)
+
+        # Early investor rental_setup steps come before base ownership onboarding
+        early_rental_steps = [
+            s
+            for s in rental_steps
+            if s.title in ("Understand Landlord Obligations", "Analyze Rental Yield")
+        ]
+        min_early_rental_num = min(s.step_number for s in early_rental_steps)
+        assert min_early_rental_num < max_base_ownership_num
+
+        # "Set Up Rental Operations" comes after base ownership onboarding
+        setup_step = next(
+            s for s in rental_steps if s.title == "Set Up Rental Operations"
+        )
+        assert setup_step.step_number > max_base_ownership_num
 
     def test_ownership_phase_after_closing(
         self, live_in_apartment_answers: QuestionnaireAnswers
