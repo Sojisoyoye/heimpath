@@ -133,7 +133,6 @@ All calculators are available without login at `/tools/*` for public access.
 ### Infrastructure
 - **Azure Container Apps** - Cloud hosting (staging and production)
 - **Docker Compose** - Local development and container orchestration
-- **Traefik** - Reverse proxy with automatic HTTPS
 - **GHCR** - Container image registry
 - **GitHub Actions** - CI/CD pipelines
 - **Sentry** - Error monitoring (optional)
@@ -180,7 +179,7 @@ Key environment variables to configure:
 
 | Variable | Description |
 |----------|-------------|
-| `DOMAIN` | Domain for Traefik routing (default: `localhost`) |
+| `DOMAIN` | Domain for the application (default: `localhost`) |
 | `FRONTEND_HOST` | Frontend URL for email links |
 | `ENVIRONMENT` | `local`, `staging`, or `production` |
 | `SECRET_KEY` | JWT secret key |
@@ -317,8 +316,7 @@ heimpath/
 │   │   └── query/           # Query key factory
 │   └── tests/               # E2E tests (Playwright)
 ├── compose.yml              # Docker Compose (local + deployment)
-├── compose.override.yml     # Local development overrides
-└── compose.traefik.yml      # Traefik reverse proxy config
+└── compose.override.yml     # Local development overrides
 ```
 
 ## Development
