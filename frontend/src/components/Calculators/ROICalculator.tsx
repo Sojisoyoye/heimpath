@@ -60,6 +60,7 @@ import { SaveShareSection } from "./common/SaveShareSection"
 
 interface IProps {
   className?: string
+  initialMonthlyRent?: number
 }
 
 /******************************************************************************
@@ -641,13 +642,15 @@ function SavedROICalculations(props: {
 }
 
 /** Default component. ROI calculator. */
-function ROICalculator(props: IProps) {
-  const { className } = props
+function ROICalculator(props: Readonly<IProps>) {
+  const { className, initialMonthlyRent } = props
 
   const [inputs, setInputs] = useState<CalculatorInputs>({
     purchasePrice: "",
     downPayment: "",
-    monthlyRent: "",
+    monthlyRent: initialMonthlyRent
+      ? String(Math.round(initialMonthlyRent))
+      : "",
     monthlyExpenses: "",
     annualAppreciation: "2",
     vacancyRate: "5",

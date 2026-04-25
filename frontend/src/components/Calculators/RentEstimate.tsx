@@ -316,7 +316,15 @@ function RentEstimate(props: Readonly<IProps>) {
                   </p>
                   <Link
                     to="/calculators"
-                    search={{ tab: "roi" }}
+                    search={{
+                      tab: "roi",
+                      monthlyRent:
+                        estimate.monthlyRent != null
+                          ? Math.round(estimate.monthlyRent)
+                          : estimate.estimatedRentPerSqm != null
+                            ? Math.round(estimate.estimatedRentPerSqm)
+                            : undefined,
+                    }}
                     className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                   >
                     Open ROI Calculator

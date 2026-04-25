@@ -41,13 +41,19 @@ export const Route = createFileRoute("/_layout/calculators")({
   component: CalculatorsPage,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { tab?: string; purchasePrice?: number } => ({
+  ): { tab?: string; purchasePrice?: number; monthlyRent?: number } => ({
     tab: (search.tab as string) || undefined,
     purchasePrice:
       typeof search.purchasePrice === "number"
         ? search.purchasePrice
         : typeof search.purchasePrice === "string"
           ? Number.parseFloat(search.purchasePrice) || undefined
+          : undefined,
+    monthlyRent:
+      typeof search.monthlyRent === "number"
+        ? search.monthlyRent
+        : typeof search.monthlyRent === "string"
+          ? Number.parseFloat(search.monthlyRent) || undefined
           : undefined,
   }),
   head: () => ({
@@ -61,7 +67,7 @@ export const Route = createFileRoute("/_layout/calculators")({
 
 /** Default component. Calculators page with tabs. */
 function CalculatorsPage() {
-  const { tab, purchasePrice } = Route.useSearch()
+  const { tab, purchasePrice, monthlyRent } = Route.useSearch()
 
   return (
     <div className="min-w-0 space-y-6">
@@ -168,7 +174,7 @@ function CalculatorsPage() {
         </TabsContent>
 
         <TabsContent value="roi" className="mt-6">
-          <ROICalculator />
+          <ROICalculator initialMonthlyRent={monthlyRent} />
         </TabsContent>
 
         <TabsContent value="compare" className="mt-6">
