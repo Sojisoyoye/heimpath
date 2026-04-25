@@ -1,7 +1,7 @@
 """Add saved_professional table
 
 Revision ID: b5c6d7e8f9a0
-Revises: z2v3w4x5y6a7
+Revises: h3i4j5k6l7m8
 Create Date: 2026-04-24 10:00:00.000000
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic
 revision = "b5c6d7e8f9a0"
-down_revision = "z2v3w4x5y6a7"
+down_revision = "h3i4j5k6l7m8"
 branch_labels = None
 depends_on = None
 
