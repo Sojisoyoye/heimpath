@@ -233,7 +233,7 @@ function RentEstimate(props: Readonly<IProps>) {
                     Estimated rent per m²
                   </p>
                   <p className="text-3xl font-bold tabular-nums">
-                    {CURRENCY_PER_SQM.format(estimate.estimatedRentPerSqm!)}
+                    {CURRENCY_PER_SQM.format(estimate.estimatedRentPerSqm ?? 0)}
                   </p>
                   {estimate.monthlyRent != null && sizeSqm && (
                     <p className="text-sm text-muted-foreground mt-0.5">
@@ -246,24 +246,30 @@ function RentEstimate(props: Readonly<IProps>) {
                   )}
                 </div>
 
-                <Separator />
-
-                {/* Range */}
                 {estimate.rentRange && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Range min</p>
-                      <p className="font-semibold">
-                        {CURRENCY_PER_SQM.format(estimate.rentRange.min)}/m²
-                      </p>
+                  <>
+                    <Separator />
+
+                    {/* Range */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Range min
+                        </p>
+                        <p className="font-semibold">
+                          {CURRENCY_PER_SQM.format(estimate.rentRange.min)}/m²
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Range max
+                        </p>
+                        <p className="font-semibold">
+                          {CURRENCY_PER_SQM.format(estimate.rentRange.max)}/m²
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Range max</p>
-                      <p className="font-semibold">
-                        {CURRENCY_PER_SQM.format(estimate.rentRange.max)}/m²
-                      </p>
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 <Separator />
