@@ -13,6 +13,7 @@ import {
   Euro,
   Globe,
   Landmark,
+  MapPin,
   Scale,
   ShieldCheck,
   TrendingUp,
@@ -26,6 +27,7 @@ import {
   MortgageEligibilityGuide,
   OwnershipComparison,
   PropertyEvaluationCalculator,
+  RentEstimate,
   ROICalculator,
   StateComparison,
 } from "@/components/Calculators"
@@ -151,6 +153,14 @@ function CalculatorsPage() {
             <ShieldCheck className="h-4 w-4" />
             <span className="hidden sm:inline">Eligibility</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="rent-estimate"
+            className="gap-2"
+            aria-label="Rent Estimate"
+          >
+            <MapPin className="h-4 w-4" />
+            <span className="hidden sm:inline">Rent Estimate</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -191,6 +201,10 @@ function CalculatorsPage() {
 
         <TabsContent value="eligibility" className="mt-6">
           <MortgageEligibilityGuide />
+        </TabsContent>
+
+        <TabsContent value="rent-estimate" className="mt-6">
+          <RentEstimate />
         </TabsContent>
       </Tabs>
     </div>
