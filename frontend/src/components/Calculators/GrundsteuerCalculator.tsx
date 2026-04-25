@@ -6,7 +6,7 @@
  */
 
 import { Home, Info, RefreshCw } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import {
   Bar,
   BarChart,
@@ -236,8 +236,10 @@ function parseNumber(v: string): number {
   return Number.parseFloat(v.replace(/[^\d.-]/g, "")) || 0
 }
 
+const BAVARIA = STATES.find((s) => s.key === "BY") ?? STATES[0]
+
 function getStateInfo(stateKey: string) {
-  return STATES.find((s) => s.key === stateKey) ?? STATES[1]
+  return STATES.find((s) => s.key === stateKey) ?? BAVARIA
 }
 
 /**
@@ -330,18 +332,15 @@ function modelLabel(model: StateModel): string {
 function buildCityComparison(
   stateKey: string,
   messbetrag: number,
-  model: StateModel,
 ): CalculationResults["cityComparison"] {
   const presets = CITY_PRESETS[stateKey] ?? []
-  // For Bavaria, messbetrag already encodes area inputs so we can reuse it.
-  // For BW/federal, messbetrag is also reusable.
+  // messbetrag is model-agnostic: it encodes all area/value inputs, so the
+  // same formula applies regardless of whether the state uses the federal,
+  // Bavaria, or BW model.
   return presets.map((p) => ({
     city: p.city,
     hebesatz: p.hebesatz,
-    annualTax:
-      model === "bavaria"
-        ? (messbetrag * p.hebesatz) / 100
-        : (messbetrag * p.hebesatz) / 100,
+    annualTax: (messbetrag * p.hebesatz) / 100,
   }))
 }
 
@@ -382,7 +381,6 @@ function calculateGrundsteuer(
   const cityComparison = buildCityComparison(
     inputs.state,
     core.grundsteuermessbetrag,
-    stateInfo.model,
   )
 
   return {
@@ -568,11 +566,14 @@ function GrundsteuerCalculator({ className }: Readonly<IProps>) {
   const stateInfo = useMemo(() => getStateInfo(inputs.state), [inputs.state])
   const results = useMemo(() => calculateGrundsteuer(inputs), [inputs])
 
-  const updateInput = (key: keyof CalculatorInputs, value: string) => {
-    setInputs((prev) => ({ ...prev, [key]: value }))
-  }
+  const updateInput = useCallback(
+    (key: keyof CalculatorInputs, value: string) => {
+      setInputs((prev) => ({ ...prev, [key]: value }))
+    },
+    [],
+  )
 
-  const handleStateChange = (value: string) => {
+  const handleStateChange = useCallback((value: string) => {
     const presets = CITY_PRESETS[value]
     const defaultHebesatz =
       presets && presets.length > 0 ? String(presets[0].hebesatz) : "500"
@@ -587,11 +588,11 @@ function GrundsteuerCalculator({ className }: Readonly<IProps>) {
       bwLandArea: "",
       bodenrichtwert: "",
     }))
-  }
+  }, [])
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setInputs(DEFAULT_INPUTS)
-  }
+  }, [])
 
   return (
     <div className={cn("space-y-6", className)}>
