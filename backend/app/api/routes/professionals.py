@@ -17,6 +17,8 @@ from app.schemas.professional import (
     ProfessionalUpdateRequest,
     ReviewCreateRequest,
     ReviewResponse,
+    SavedProfessionalListResponse,
+    SavedProfessionalResponse,
 )
 from app.services import professional_service
 
@@ -70,6 +72,17 @@ async def list_professionals(
         page=page,
         page_size=page_size,
     )
+
+
+@router.get("/saved")
+async def get_saved_professionals(
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> SavedProfessionalListResponse:
+    """Get all saved professionals for the current user."""
+    saved = professional_service.get_saved_professionals(session, current_user.id)
+    items = [SavedProfessionalResponse.model_validate(s) for s in saved]
+    return SavedProfessionalListResponse(items=items, total=len(items))
 
 
 @router.get("/{professional_id}")
@@ -166,6 +179,54 @@ async def create_inquiry(
             detail=f"Professional {professional_id} not found",
         )
     return ContactInquiryResponse.model_validate(inquiry)
+
+
+@router.post(
+    "/{professional_id}/save",
+    status_code=status.HTTP_201_CREATED,
+)
+async def save_professional(
+    professional_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> SavedProfessionalResponse:
+    """Save a professional to the current user's list."""
+    try:
+        saved = professional_service.save_professional(
+            session, professional_id, current_user.id
+        )
+    except professional_service.ProfessionalNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Professional {professional_id} not found",
+        )
+    except professional_service.ProfessionalAlreadySavedError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="You have already saved this professional",
+        )
+    return SavedProfessionalResponse.model_validate(saved)
+
+
+@router.delete(
+    "/{professional_id}/save",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def unsave_professional(
+    professional_id: uuid.UUID,
+    current_user: CurrentUser,
+    session: SessionDep,
+) -> None:
+    """Remove a professional from the current user's saved list."""
+    try:
+        professional_service.unsave_professional(
+            session, professional_id, current_user.id
+        )
+    except professional_service.SavedProfessionalNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Saved professional not found",
+        )
 
 
 @router.post("/{professional_id}/click", status_code=status.HTTP_200_OK)

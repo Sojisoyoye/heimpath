@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -94,6 +95,11 @@ class Professional(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="professional",
         cascade="all, delete-orphan",
     )
+    saved_by = relationship(
+        "SavedProfessional",
+        back_populates="professional",
+        cascade="all, delete-orphan",
+    )
 
 
 class ProfessionalReview(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -150,3 +156,35 @@ class ContactInquiry(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Relationships
     professional = relationship("Professional", back_populates="inquiries")
+
+
+class SavedProfessional(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """Saved professional record — allows users to bookmark professionals."""
+
+    __tablename__ = "saved_professional"
+
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    professional_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("professional.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    # Relationships
+    user = relationship("User", back_populates="saved_professionals")
+    professional = relationship("Professional", back_populates="saved_by")
+
+    __table_args__ = (
+        Index(
+            "ix_saved_professional_user_pro",
+            "user_id",
+            "professional_id",
+            unique=True,
+        ),
+    )

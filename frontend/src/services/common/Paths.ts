@@ -141,6 +141,8 @@ export const PATHS = {
     REVIEWS: (id: string) => `${API_V1}/professionals/${id}/reviews`,
     INQUIRIES: (id: string) => `${API_V1}/professionals/${id}/inquiries`,
     CLICK: (id: string) => `${API_V1}/professionals/${id}/click`,
+    SAVE: (id: string) => `${API_V1}/professionals/${id}/save`,
+    SAVED: `${API_V1}/professionals/saved`,
   },
 
   // Search

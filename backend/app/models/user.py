@@ -55,3 +55,8 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    saved_professionals = relationship(
+        "SavedProfessional",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

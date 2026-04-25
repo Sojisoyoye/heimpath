@@ -116,6 +116,26 @@ class ProfessionalDetailResponse(ProfessionalResponse):
     reviews: list[ReviewResponse] = []
 
 
+# --- Saved Professional ---
+
+
+class SavedProfessionalResponse(BaseModel):
+    """Response schema for a saved professional record."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    professional_id: uuid.UUID
+    created_at: datetime
+
+
+class SavedProfessionalListResponse(BaseModel):
+    """Response schema for a list of saved professionals."""
+
+    items: list[SavedProfessionalResponse]
+    total: int
+
+
 # --- Contact Inquiry ---
 
 

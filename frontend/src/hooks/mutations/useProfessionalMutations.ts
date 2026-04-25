@@ -65,3 +65,47 @@ export function useTrackClick() {
       ProfessionalService.trackClick(professionalId),
   })
 }
+
+/**
+ * Save a professional to the current user's list
+ */
+export function useSaveProfessional() {
+  const queryClient = useQueryClient()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+
+  return useMutation({
+    mutationFn: (professionalId: string) =>
+      ProfessionalService.saveProfessional(professionalId),
+    onSuccess: () => {
+      showSuccessToast("Saved")
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.professionals.saved(),
+      })
+    },
+    onError: () => {
+      showErrorToast("Could not save professional. Please try again.")
+    },
+  })
+}
+
+/**
+ * Remove a professional from the current user's saved list
+ */
+export function useUnsaveProfessional() {
+  const queryClient = useQueryClient()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+
+  return useMutation({
+    mutationFn: (professionalId: string) =>
+      ProfessionalService.unsaveProfessional(professionalId),
+    onSuccess: () => {
+      showSuccessToast("Removed")
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.professionals.saved(),
+      })
+    },
+    onError: () => {
+      showErrorToast("Could not remove professional. Please try again.")
+    },
+  })
+}

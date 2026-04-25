@@ -8618,6 +8618,50 @@ export const SavedDocumentSummarySchema = {
     description: 'Brief document info for dashboard lists.'
 } as const;
 
+export const SavedProfessionalListResponseSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/SavedProfessionalResponse'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        }
+    },
+    type: 'object',
+    required: ['items', 'total'],
+    title: 'SavedProfessionalListResponse',
+    description: 'Response schema for a list of saved professionals.'
+} as const;
+
+export const SavedProfessionalResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        professional_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Professional Id'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'professional_id', 'created_at'],
+    title: 'SavedProfessionalResponse',
+    description: 'Response schema for a saved professional record.'
+} as const;
+
 export const ScenarioResultSchema = {
     properties: {
         effective_tax_rate: {
