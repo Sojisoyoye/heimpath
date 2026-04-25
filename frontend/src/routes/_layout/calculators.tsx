@@ -17,9 +17,11 @@ import {
   MapPin,
   Scale,
   ShieldCheck,
+  TrendingDown,
   TrendingUp,
 } from "lucide-react"
 import {
+  AfaCalculator,
   CityComparison,
   CrossBorderTaxGuide,
   FinancingWizard,
@@ -186,6 +188,14 @@ function CalculatorsPage() {
             <Home className="h-4 w-4" />
             <span className="hidden sm:inline">Property Tax</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="afa"
+            className="gap-2"
+            aria-label="AfA Depreciation"
+          >
+            <TrendingDown className="h-4 w-4" />
+            <span className="hidden sm:inline">Depreciation</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -238,6 +248,10 @@ function CalculatorsPage() {
 
         <TabsContent value="grundsteuer" className="mt-6">
           <GrundsteuerCalculator />
+        </TabsContent>
+
+        <TabsContent value="afa" className="mt-6">
+          <AfaCalculator />
         </TabsContent>
       </Tabs>
     </div>
