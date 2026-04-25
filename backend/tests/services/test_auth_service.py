@@ -71,13 +71,13 @@ class TestCreateAccessToken:
         token = create_access_token(subject=str(uuid.uuid4()))
         assert isinstance(token, str) and len(token) > 0
 
-    def test_default_expiry_24h(self) -> None:
+    def test_default_expiry_1h(self) -> None:
         token = create_access_token(subject=str(uuid.uuid4()))
         payload = decode_token(token)
         assert payload is not None
         exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
         diff = exp - datetime.now(timezone.utc)
-        assert timedelta(hours=23) < diff < timedelta(hours=25)
+        assert timedelta(minutes=55) < diff < timedelta(minutes=65)
 
     def test_custom_expiry(self) -> None:
         token = create_access_token(

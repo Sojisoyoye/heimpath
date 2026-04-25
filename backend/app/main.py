@@ -31,8 +31,13 @@ if settings.all_cors_origins:
         allow_headers=["*"],
     )
 
-# Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For) from Azure Container Apps
+# Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For) from Azure Container Apps.
+# trusted_hosts is controlled by TRUSTED_PROXY_IPS in config; set it to the load
+# balancer CIDR in production rather than leaving it as "*".
 if settings.ENVIRONMENT != "local":
-    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
+    app.add_middleware(
+        ProxyHeadersMiddleware,
+        trusted_hosts=settings.TRUSTED_PROXY_IPS.split(","),
+    )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

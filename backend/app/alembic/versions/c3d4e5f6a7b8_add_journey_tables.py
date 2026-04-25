@@ -22,23 +22,34 @@ def upgrade() -> None:
     connection = op.get_bind()
 
     # Check and create each enum type
-    for enum_name, values in [
-        ('journeyphase', ['research', 'preparation', 'buying', 'closing']),
-        ('stepstatus', ['not_started', 'in_progress', 'completed', 'skipped']),
-        ('propertytype', ['apartment', 'house', 'land', 'commercial']),
-        ('financingtype', ['cash', 'mortgage', 'mixed']),
+    for enum_sql, check_name in [
+        (
+            "CREATE TYPE journeyphase AS ENUM "
+            "('research', 'preparation', 'buying', 'closing')",
+            "journeyphase",
+        ),
+        (
+            "CREATE TYPE stepstatus AS ENUM "
+            "('not_started', 'in_progress', 'completed', 'skipped')",
+            "stepstatus",
+        ),
+        (
+            "CREATE TYPE propertytype AS ENUM "
+            "('apartment', 'house', 'land', 'commercial')",
+            "propertytype",
+        ),
+        (
+            "CREATE TYPE financingtype AS ENUM ('cash', 'mortgage', 'mixed')",
+            "financingtype",
+        ),
     ]:
         # Check if type exists
         result = connection.execute(
             sa.text("SELECT 1 FROM pg_type WHERE typname = :name"),
-            {"name": enum_name}
+            {"name": check_name},
         )
         if not result.fetchone():
-            # Create the enum type
-            values_str = ", ".join(f"'{v}'" for v in values)
-            connection.execute(
-                sa.text(f"CREATE TYPE {enum_name} AS ENUM ({values_str})")
-            )
+            connection.execute(sa.text(enum_sql))
 
     # Define enum types that won't auto-create
     journeyphase = postgresql.ENUM(

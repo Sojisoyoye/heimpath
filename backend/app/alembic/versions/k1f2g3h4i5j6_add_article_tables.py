@@ -20,20 +20,28 @@ def upgrade() -> None:
     # Create enum types with existence check
     connection = op.get_bind()
 
-    for enum_name, values in [
-        ('articlecategory', ['buying_process', 'costs_and_taxes', 'regulations', 'common_pitfalls']),
-        ('articlestatus', ['draft', 'published', 'archived']),
-        ('difficultylevel', ['beginner', 'intermediate', 'advanced']),
+    for enum_sql, check_name in [
+        (
+            "CREATE TYPE articlecategory AS ENUM "
+            "('buying_process', 'costs_and_taxes', 'regulations', 'common_pitfalls')",
+            "articlecategory",
+        ),
+        (
+            "CREATE TYPE articlestatus AS ENUM ('draft', 'published', 'archived')",
+            "articlestatus",
+        ),
+        (
+            "CREATE TYPE difficultylevel AS ENUM "
+            "('beginner', 'intermediate', 'advanced')",
+            "difficultylevel",
+        ),
     ]:
         result = connection.execute(
             sa.text("SELECT 1 FROM pg_type WHERE typname = :name"),
-            {"name": enum_name}
+            {"name": check_name},
         )
         if not result.fetchone():
-            values_str = ", ".join(f"'{v}'" for v in values)
-            connection.execute(
-                sa.text(f"CREATE TYPE {enum_name} AS ENUM ({values_str})")
-            )
+            connection.execute(sa.text(enum_sql))
 
     # Define enums for table creation
     articlecategory = postgresql.ENUM(

@@ -62,9 +62,9 @@ def create_access_token(
     Args:
         subject: The user ID to embed as the ``sub`` claim.
         expires_delta: Custom lifetime. Overrides ``remember_me`` and the
-            default 24-hour window when provided.
+            default 1-hour window when provided.
         remember_me: When *True* the token lives for
-            ``settings.REMEMBER_ME_EXPIRE_DAYS`` days instead of 24 hours.
+            ``settings.REMEMBER_ME_EXPIRE_DAYS`` days instead of 1 hour.
 
     Returns:
         Encoded JWT string.
@@ -77,7 +77,7 @@ def create_access_token(
         )
     else:
         expire = datetime.now(timezone.utc) + timedelta(
-            hours=settings.ACCESS_TOKEN_EXPIRE_HOURS
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
     to_encode: dict[str, Any] = {
