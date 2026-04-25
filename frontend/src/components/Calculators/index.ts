@@ -2,6 +2,7 @@
  * Calculators components index
  */
 
+export { AfaCalculator } from "./AfaCalculator"
 export { CityComparison } from "./CityComparison"
 export { CrossBorderTaxGuide } from "./CrossBorderTaxGuide"
 export { FinancingWizard } from "./FinancingWizard"
