@@ -16,15 +16,18 @@ import {
   Landmark,
   MapPin,
   Scale,
+  ShieldAlert,
   ShieldCheck,
   TrendingDown,
   TrendingUp,
+  Zap,
 } from "lucide-react"
 import {
   AfaCalculator,
   CityComparison,
   CrossBorderTaxGuide,
   FinancingWizard,
+  GegRetrofitCalculator,
   GrundsteuerCalculator,
   HiddenCostsCalculator,
   MortgageAmortisation,
@@ -35,6 +38,7 @@ import {
   ROICalculator,
   SpeculationTaxCalculator,
   StateComparison,
+  TenantTrapCalculator,
 } from "@/components/Calculators"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -196,6 +200,22 @@ function CalculatorsPage() {
             <TrendingDown className="h-4 w-4" />
             <span className="hidden sm:inline">Depreciation</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="tenant-trap"
+            className="gap-2"
+            aria-label="Tenant Risk"
+          >
+            <ShieldAlert className="h-4 w-4" />
+            <span className="hidden sm:inline">Tenant Risk</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="geg-retrofit"
+            className="gap-2"
+            aria-label="Energy Retrofit"
+          >
+            <Zap className="h-4 w-4" />
+            <span className="hidden sm:inline">Energy Retrofit</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -252,6 +272,14 @@ function CalculatorsPage() {
 
         <TabsContent value="afa" className="mt-6">
           <AfaCalculator />
+        </TabsContent>
+
+        <TabsContent value="tenant-trap" className="mt-6">
+          <TenantTrapCalculator />
+        </TabsContent>
+
+        <TabsContent value="geg-retrofit" className="mt-6">
+          <GegRetrofitCalculator />
         </TabsContent>
       </Tabs>
     </div>
