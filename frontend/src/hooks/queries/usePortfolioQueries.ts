@@ -61,6 +61,17 @@ export function usePortfolioSummary() {
 }
 
 /**
+ * Get Anlage V rental income tax summary for a property and year
+ */
+export function usePortfolioTaxSummary(propertyId: string, year: number) {
+  return useQuery({
+    queryKey: queryKeys.portfolio.taxSummary(propertyId, year),
+    queryFn: () => PortfolioService.getTaxSummary(propertyId, year),
+    enabled: !!propertyId && year > 2000,
+  })
+}
+
+/**
  * Get monthly portfolio performance (trailing 12 months)
  */
 export function usePortfolioPerformance() {

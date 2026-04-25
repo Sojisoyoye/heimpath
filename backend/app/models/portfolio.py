@@ -114,6 +114,7 @@ class PortfolioProperty(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     lease_end_date = Column(Date, nullable=True)
 
     monthly_hausgeld = Column(Float, nullable=True)
+    land_share = Column(Float, nullable=True, default=20.0)
     is_vacant = Column(Boolean, default=False, nullable=False)
 
     notes = Column(Text, nullable=True)

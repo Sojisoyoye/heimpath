@@ -33,6 +33,37 @@ export type AnalyzedClause = {
 
 export type risk_level = 'low' | 'medium' | 'high';
 
+/**
+ * A single line in the Anlage V tax return.
+ */
+export type AnlageVLineItem = {
+    label: string;
+    anlage_v_zeile?: (string | null);
+    amount: number;
+};
+
+/**
+ * Annual rental income tax summary for Anlage V (§ 21 EStG).
+ */
+export type AnlageVSummaryResponse = {
+    year: number;
+    property_id: string;
+    gross_rent_income: number;
+    afa_rate_percent: number;
+    building_value: number;
+    land_share_percent: number;
+    afa_deduction: number;
+    mortgage_interest: number;
+    hausgeld: number;
+    insurance: number;
+    maintenance: number;
+    grundsteuer: number;
+    other_werbungskosten: number;
+    total_werbungskosten: number;
+    net_taxable_income: number;
+    line_items: Array<AnlageVLineItem>;
+};
+
 export type AnnualCashflowRowResponse = {
     year?: number;
     cold_rent?: number;
@@ -1603,6 +1634,7 @@ export type PortfolioPropertyCreate = {
     lease_start_date?: (string | null);
     lease_end_date?: (string | null);
     monthly_hausgeld?: (number | null);
+    land_share?: (number | null);
     is_vacant?: boolean;
     notes?: (string | null);
     journey_id?: (string | null);
@@ -1635,6 +1667,7 @@ export type PortfolioPropertyResponse = {
     lease_start_date?: (string | null);
     lease_end_date?: (string | null);
     monthly_hausgeld?: (number | null);
+    land_share?: (number | null);
     is_vacant: boolean;
     notes?: (string | null);
     journey_id?: (string | null);
@@ -1674,6 +1707,7 @@ export type PortfolioPropertyUpdate = {
     lease_start_date?: (string | null);
     lease_end_date?: (string | null);
     monthly_hausgeld?: (number | null);
+    land_share?: (number | null);
     is_vacant?: (boolean | null);
     notes?: (string | null);
 };
@@ -3355,6 +3389,13 @@ export type PortfolioGetCostSummaryData = {
 };
 
 export type PortfolioGetCostSummaryResponse = (CostSummaryResponse);
+
+export type PortfolioGetTaxSummaryData = {
+    propertyId: string;
+    year?: (number | null);
+};
+
+export type PortfolioGetTaxSummaryResponse = (AnlageVSummaryResponse);
 
 export type PortfolioGetPortfolioPerformanceResponse = (PortfolioPerformanceResponse);
 

@@ -38,6 +38,7 @@ import type {
   PortfolioTransactionInput,
 } from "@/models/portfolio"
 import { INCOME_TYPES } from "@/models/portfolio"
+import { AnlageVTab } from "./AnlageVTab"
 import { PropertyFormModal } from "./PropertyFormModal"
 import { RunningCostsTab } from "./RunningCostsTab"
 import { TransactionFormModal } from "./TransactionFormModal"
@@ -212,6 +213,7 @@ function PropertyDetailPage(props: Readonly<IProps>) {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="running-costs">Running Costs</TabsTrigger>
+          <TabsTrigger value="tax-summary">Tax Summary</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -344,6 +346,10 @@ function PropertyDetailPage(props: Readonly<IProps>) {
 
         <TabsContent value="running-costs">
           <RunningCostsTab propertyId={propertyId} />
+        </TabsContent>
+
+        <TabsContent value="tax-summary" className="mt-6">
+          <AnlageVTab propertyId={propertyId} />
         </TabsContent>
       </Tabs>
 
