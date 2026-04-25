@@ -56,6 +56,7 @@ import type {
 } from "@/models/calculator"
 import { handleError } from "@/utils"
 import { FormRow } from "./common/FormRow"
+import { MetricCard } from "./common/MetricCard"
 import { SaveShareSection } from "./common/SaveShareSection"
 
 interface IProps {
@@ -406,45 +407,6 @@ function GradeBadge(props: {
     >
       {grade.toFixed(1)}/10 {label}
     </span>
-  )
-}
-
-/** Metric card display. */
-function MetricCard(props: {
-  label: string
-  value: string
-  description?: string
-  variant?: "default" | "success" | "warning" | "danger"
-}) {
-  const { label, value, description, variant = "default" } = props
-
-  return (
-    <div
-      className={cn(
-        "rounded-lg border p-4",
-        variant === "success" &&
-          "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30",
-        variant === "warning" &&
-          "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30",
-        variant === "danger" &&
-          "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30",
-      )}
-    >
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p
-        className={cn(
-          "text-2xl font-bold",
-          variant === "success" && "text-green-600",
-          variant === "warning" && "text-amber-600",
-          variant === "danger" && "text-red-600",
-        )}
-      >
-        {value}
-      </p>
-      {description && (
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
-      )}
-    </div>
   )
 }
 

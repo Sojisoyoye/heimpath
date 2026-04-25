@@ -29,6 +29,7 @@ import {
   PropertyEvaluationCalculator,
   RentEstimate,
   ROICalculator,
+  SpeculationTaxCalculator,
   StateComparison,
 } from "@/components/Calculators"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -167,6 +168,14 @@ function CalculatorsPage() {
             <MapPin className="h-4 w-4" />
             <span className="hidden sm:inline">Rent Estimate</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="speculation-tax"
+            className="gap-2"
+            aria-label="Speculation Tax"
+          >
+            <Scale className="h-4 w-4" />
+            <span className="hidden sm:inline">Exit Tax</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -211,6 +220,10 @@ function CalculatorsPage() {
 
         <TabsContent value="rent-estimate" className="mt-6">
           <RentEstimate />
+        </TabsContent>
+
+        <TabsContent value="speculation-tax" className="mt-6">
+          <SpeculationTaxCalculator />
         </TabsContent>
       </Tabs>
     </div>
