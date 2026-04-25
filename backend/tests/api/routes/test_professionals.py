@@ -515,6 +515,141 @@ def test_language_filter_escapes_wildcards(client: TestClient, db: Session) -> N
 
 
 # ---------------------------------------------------------------------------
+# Saved Professionals
+# ---------------------------------------------------------------------------
+
+
+def test_get_saved_professionals_empty(client: TestClient, db: Session) -> None:
+    """Test that a new user has no saved professionals."""
+    headers, _ = get_auth_headers(client, db)
+
+    r = client.get(f"{settings.API_V1_STR}/professionals/saved", headers=headers)
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["items"] == []
+    assert data["total"] == 0
+
+
+def test_get_saved_professionals_requires_auth(client: TestClient) -> None:
+    """Test that GET /professionals/saved requires authentication."""
+    r = client.get(f"{settings.API_V1_STR}/professionals/saved")
+    assert r.status_code in (401, 403)
+
+
+def test_save_professional(client: TestClient, db: Session) -> None:
+    """Test saving a professional returns 201 and the saved record."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+        headers=headers,
+    )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["professional_id"] == str(professional.id)
+    assert "id" in data
+    assert "created_at" in data
+
+
+def test_save_professional_requires_auth(client: TestClient, db: Session) -> None:
+    """Test that saving a professional requires authentication."""
+    professional = create_sample_professional(db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+    )
+
+    assert r.status_code in (401, 403)
+
+
+def test_save_professional_duplicate_returns_409(
+    client: TestClient, db: Session
+) -> None:
+    """Test that saving an already-saved professional returns 409."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+        headers=headers,
+    )
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+        headers=headers,
+    )
+
+    assert r.status_code == 409
+
+
+def test_save_professional_not_found_returns_404(
+    client: TestClient, db: Session
+) -> None:
+    """Test that saving a non-existent professional returns 404."""
+    headers, _ = get_auth_headers(client, db)
+    fake_id = uuid.uuid4()
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{fake_id}/save",
+        headers=headers,
+    )
+
+    assert r.status_code == 404
+
+
+def test_unsave_professional(client: TestClient, db: Session) -> None:
+    """Test unsaving a professional returns 204."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+        headers=headers,
+    )
+    r = client.delete(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+        headers=headers,
+    )
+
+    assert r.status_code == 204
+
+
+def test_unsave_professional_not_saved_returns_404(
+    client: TestClient, db: Session
+) -> None:
+    """Test that unsaving a professional that was not saved returns 404."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    r = client.delete(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+        headers=headers,
+    )
+
+    assert r.status_code == 404
+
+
+def test_get_saved_professionals_returns_saved(client: TestClient, db: Session) -> None:
+    """Test that saved professionals appear in the saved list."""
+    headers, _ = get_auth_headers(client, db)
+    professional = create_sample_professional(db)
+
+    client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/save",
+        headers=headers,
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/professionals/saved", headers=headers)
+
+    assert r.status_code == 200
+    data = r.json()
+    assert data["total"] == 1
+    assert data["items"][0]["professional_id"] == str(professional.id)
+
+
+# ---------------------------------------------------------------------------
 # Admin endpoint tests
 # ---------------------------------------------------------------------------
 
