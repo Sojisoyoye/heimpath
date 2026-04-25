@@ -5513,7 +5513,9 @@ export const PortfolioPropertyCreateSchema = {
         building_year: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    maximum: 2100,
+                    minimum: 1000
                 },
                 {
                     type: 'null'
@@ -5991,7 +5993,9 @@ export const PortfolioPropertyUpdateSchema = {
         building_year: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    maximum: 2100,
+                    minimum: 1000
                 },
                 {
                     type: 'null'

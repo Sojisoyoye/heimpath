@@ -731,19 +731,19 @@ def test_anlage_v_summary_basic(_mock_select: MagicMock) -> None:
     result = calculate_anlage_v_summary(session, property_id, user_id, year)
 
     # AfA: 300_000 * 0.80 * 0.02 = 4_800
-    assert result.afa_rate_percent == 2.0
-    assert result.building_value == 240_000.0
-    assert result.afa_deduction == 4_800.0
-    assert result.gross_rent_income == 12_000.0
-    assert result.mortgage_interest == 6_000.0
-    assert result.hausgeld == 1_200.0
-    assert result.insurance == 400.0
-    assert result.maintenance == 500.0
-    assert result.grundsteuer == 300.0
-    assert result.other_werbungskosten == 0.0
+    assert result.afa_rate_percent == pytest.approx(2.0)
+    assert result.building_value == pytest.approx(240_000.0)
+    assert result.afa_deduction == pytest.approx(4_800.0)
+    assert result.gross_rent_income == pytest.approx(12_000.0)
+    assert result.mortgage_interest == pytest.approx(6_000.0)
+    assert result.hausgeld == pytest.approx(1_200.0)
+    assert result.insurance == pytest.approx(400.0)
+    assert result.maintenance == pytest.approx(500.0)
+    assert result.grundsteuer == pytest.approx(300.0)
+    assert result.other_werbungskosten == pytest.approx(0.0)
     expected_wk = 4_800 + 6_000 + 1_200 + 400 + 500 + 300
-    assert result.total_werbungskosten == expected_wk
-    assert result.net_taxable_income == round(12_000 - expected_wk, 2)
+    assert result.total_werbungskosten == pytest.approx(expected_wk)
+    assert result.net_taxable_income == pytest.approx(round(12_000 - expected_wk, 2))
     assert result.year == year
     assert len(result.line_items) == 9
 
@@ -938,7 +938,7 @@ def test_anlage_v_summary_default_land_share(_mock_select: MagicMock) -> None:
 
 @patch("app.services.portfolio_service.select")
 def test_anlage_v_summary_property_not_found(_mock_select: MagicMock) -> None:
-    """Raises 404 when property does not belong to user."""
+    """Raises 404 when property does not exist."""
     from app.services.portfolio_service import calculate_anlage_v_summary
 
     session = MagicMock()
@@ -946,5 +946,29 @@ def test_anlage_v_summary_property_not_found(_mock_select: MagicMock) -> None:
 
     with pytest.raises(HTTPException) as exc_info:
         calculate_anlage_v_summary(session, uuid.uuid4(), uuid.uuid4(), 2024)
+
+    assert exc_info.value.status_code == 404
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_summary_wrong_user_raises_404(_mock_select: MagicMock) -> None:
+    """Raises 404 when property exists but belongs to a different user."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    owner_id = uuid.uuid4()
+    caller_id = uuid.uuid4()  # different user
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=owner_id,  # property owned by owner_id, not caller_id
+        purchase_price=300_000.0,
+        building_year=2000,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+
+    with pytest.raises(HTTPException) as exc_info:
+        calculate_anlage_v_summary(session, property_id, caller_id, 2024)
 
     assert exc_info.value.status_code == 404

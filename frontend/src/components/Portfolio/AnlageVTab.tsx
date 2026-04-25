@@ -46,6 +46,8 @@ const AVAILABLE_YEARS = Array.from(
   (_, i) => CURRENT_YEAR - 1 - i,
 )
 
+// Intentionally rounds to whole euros (no cents) — used only in the chart axis
+// via formatEurShort. The KPI cards and table use formatEur from utils (with cents).
 const EUR_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
@@ -118,8 +120,11 @@ function AnlageVTab(props: Readonly<IProps>) {
     ? "text-emerald-600 dark:text-emerald-400"
     : "text-foreground"
 
+  // Use total income (gross rent + other income) so chartData aligns with
+  // net_taxable_income = total_income - total_werbungskosten.
+  const totalIncome = data.grossRentIncome + data.otherIncome
   const chartData = [
-    { name: "Gross Rent", amount: data.grossRentIncome },
+    { name: "Total Income", amount: totalIncome },
     { name: "Total Werbungskosten", amount: data.totalWerbungskosten },
   ]
 

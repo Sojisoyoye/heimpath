@@ -607,21 +607,22 @@ def calculate_anlage_v_summary(
     """
     prop = get_property(session, property_id, user_id)
 
-    year_start = date(year, 1, 1)
-    year_end = date(year, 12, 31)
-    stmt = (
-        select(PortfolioTransaction)
-        .where(PortfolioTransaction.property_id == property_id)
-        .where(PortfolioTransaction.date >= year_start)
-        .where(PortfolioTransaction.date <= year_end)
-    )
-    transactions = list(session.exec(stmt).all())
-
     if prop.purchase_price <= 0:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Purchase price must be greater than zero to compute AfA.",
         )
+
+    year_start = date(year, 1, 1)
+    year_end = date(year, 12, 31)
+    stmt = (
+        select(PortfolioTransaction)
+        .where(PortfolioTransaction.property_id == property_id)
+        .where(PortfolioTransaction.user_id == user_id)
+        .where(PortfolioTransaction.date >= year_start)
+        .where(PortfolioTransaction.date <= year_end)
+    )
+    transactions = list(session.exec(stmt).all())
 
     # --- Aggregate by transaction type ---
     # Only RENT_INCOME maps to Anlage V Zeile 9 (Mieteinnahmen).
@@ -637,23 +638,23 @@ def calculate_anlage_v_summary(
 
     for txn in transactions:
         txn_type = txn.type
-        if txn_type == TransactionType.RENT_INCOME.value:
+        if txn_type == TransactionType.RENT_INCOME:
             gross_rent += txn.amount
-        elif txn_type == TransactionType.OTHER_INCOME.value:
+        elif txn_type == TransactionType.OTHER_INCOME:
             other_income += txn.amount
-        elif txn_type == TransactionType.MORTGAGE_INTEREST.value:
+        elif txn_type == TransactionType.MORTGAGE_INTEREST:
             mortgage_interest += txn.amount
-        elif txn_type == TransactionType.HAUSGELD.value:
+        elif txn_type == TransactionType.HAUSGELD:
             hausgeld += txn.amount
-        elif txn_type == TransactionType.INSURANCE.value:
+        elif txn_type == TransactionType.INSURANCE:
             insurance += txn.amount
-        elif txn_type == TransactionType.MAINTENANCE.value:
+        elif txn_type == TransactionType.MAINTENANCE:
             maintenance += txn.amount
-        elif txn_type == TransactionType.TAX_PAYMENT.value:
+        elif txn_type == TransactionType.TAX_PAYMENT:
             grundsteuer += txn.amount
         elif txn_type in (
-            TransactionType.OPERATING_EXPENSE.value,
-            TransactionType.OTHER_EXPENSE.value,
+            TransactionType.OPERATING_EXPENSE,
+            TransactionType.OTHER_EXPENSE,
         ):
             other_wk += txn.amount
 

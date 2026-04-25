@@ -22,7 +22,7 @@ class PortfolioPropertyCreate(BaseModel):
     purchase_price: float = Field(..., gt=0)
     purchase_date: date | None = None
     square_meters: float = Field(..., gt=0)
-    building_year: int | None = None
+    building_year: int | None = Field(None, ge=1000, le=2100)
     current_value_estimate: float | None = Field(None, gt=0)
     monthly_rent_target: float | None = Field(None, ge=0)
     tenant_name: str | None = Field(None, max_length=255)
@@ -45,7 +45,7 @@ class PortfolioPropertyUpdate(BaseModel):
     purchase_price: float | None = Field(None, gt=0)
     purchase_date: date | None = None
     square_meters: float | None = Field(None, gt=0)
-    building_year: int | None = None
+    building_year: int | None = Field(None, ge=1000, le=2100)
     current_value_estimate: float | None = Field(None, gt=0)
     monthly_rent_target: float | None = Field(None, ge=0)
     tenant_name: str | None = Field(None, max_length=255)

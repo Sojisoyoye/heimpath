@@ -200,7 +200,8 @@ class PortfolioServiceClass {
     propertyId: string,
     year: number,
   ): Promise<AnlageVSummary> {
-    const url = `${PATHS.PORTFOLIO.TAX_SUMMARY(propertyId)}?year=${year}`
+    const params = new URLSearchParams({ year: String(year) })
+    const url = `${PATHS.PORTFOLIO.TAX_SUMMARY(propertyId)}?${params.toString()}`
     const response = await request<Record<string, unknown>>(OpenAPI, {
       method: "GET",
       url,

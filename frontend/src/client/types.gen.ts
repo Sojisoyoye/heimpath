@@ -3393,7 +3393,7 @@ export type PortfolioGetCostSummaryResponse = (CostSummaryResponse);
 
 export type PortfolioGetTaxSummaryData = {
     propertyId: string;
-    year?: number;
+    year?: (number | null);
 };
 
 export type PortfolioGetTaxSummaryResponse = (AnlageVSummaryResponse);
