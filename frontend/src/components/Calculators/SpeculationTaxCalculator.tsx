@@ -102,7 +102,7 @@ const DEFAULT_INPUTS: CalculatorInputs = {
 
 /** Parse a potentially formatted number string to a float. */
 function parseNumber(v: string): number {
-  return parseFloat(v.replace(/[^\d.-]/g, "")) || 0
+  return Number.parseFloat(v.replace(/[^\d.-]/g, "")) || 0
 }
 
 /** Map net profit value to a MetricCard variant. */
@@ -124,12 +124,19 @@ function getExemptionReason(
   return null
 }
 
+/** Format Y-axis tick values as compact labels (M / k). */
+function formatAxisTick(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+  if (v >= 1_000) return `${(v / 1_000).toFixed(0)}k`
+  return `${v}`
+}
+
 /** Calculate speculation tax results from inputs. Returns null when required fields missing. */
 function calculateSpeculationTax(
   inputs: CalculatorInputs,
 ): CalculationResults | null {
   const purchasePrice = parseNumber(inputs.purchasePrice)
-  const purchaseYear = parseInt(inputs.purchaseYear, 10)
+  const purchaseYear = Number.parseInt(inputs.purchaseYear, 10)
   const purchaseCosts = parseNumber(inputs.purchaseCosts)
   const renovationCosts = parseNumber(inputs.renovationCosts)
   const salePrice = parseNumber(inputs.salePrice)
@@ -204,12 +211,14 @@ function calculateSpeculationTax(
 ******************************************************************************/
 
 /** Metric card for displaying a single key figure. */
-function MetricCard(props: {
-  label: string
-  value: string
-  description?: string
-  variant?: "default" | "success" | "warning" | "danger"
-}) {
+function MetricCard(
+  props: Readonly<{
+    label: string
+    value: string
+    description?: string
+    variant?: "default" | "success" | "warning" | "danger"
+  }>,
+) {
   const { label, value, description, variant = "default" } = props
 
   return (
@@ -243,7 +252,7 @@ function MetricCard(props: {
 }
 
 /** Exemption badge — shown when sale is tax-free. */
-function ExemptionBadge(props: { reason: string }) {
+function ExemptionBadge(props: Readonly<{ reason: string }>) {
   const { reason } = props
   return (
     <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20 px-4 py-3">
@@ -258,12 +267,101 @@ function ExemptionBadge(props: { reason: string }) {
   )
 }
 
+/** Banner showing exemption status or taxable-sale warning. */
+function TaxStatusBanner(
+  props: Readonly<{
+    isExempt: boolean
+    exemptionReason: string | null
+    holdingYears: number
+    taxFreeYear: number
+  }>,
+) {
+  const { isExempt, exemptionReason, holdingYears, taxFreeYear } = props
+
+  if (isExempt && exemptionReason) {
+    return <ExemptionBadge reason={exemptionReason} />
+  }
+
+  const yearsLeft = 10 - holdingYears
+  return (
+    <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 px-4 py-3">
+      <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+      <div>
+        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+          Taxable Sale
+        </p>
+        <p className="text-xs text-amber-700 dark:text-amber-400">
+          Selling within {yearsLeft} more year{yearsLeft === 1 ? "" : "s"}{" "}
+          triggers speculation tax. Wait until {taxFreeYear} for a tax-free
+          exit.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/** Holding period summary — dates and optional tax-rate rows. */
+function HoldingPeriodInfo(
+  props: Readonly<{
+    holdingYears: number
+    taxFreeYear: number
+    yearsUntilTaxFree: number
+    isExempt: boolean
+    effectiveTaxRate: number
+    netTaxableGain: number
+  }>,
+) {
+  const {
+    holdingYears,
+    taxFreeYear,
+    yearsUntilTaxFree,
+    isExempt,
+    effectiveTaxRate,
+    netTaxableGain,
+  } = props
+
+  return (
+    <div className="rounded-lg border p-4 space-y-1 text-sm">
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">
+          Holding Period (estimated)
+        </span>
+        <span className="font-medium">
+          {holdingYears} year{holdingYears === 1 ? "" : "s"}
+        </span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Tax-Free From</span>
+        <span className="font-medium">{taxFreeYear}</span>
+      </div>
+      {isExempt ? null : (
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Years Until Tax-Free</span>
+          <span className="font-medium text-amber-600">
+            {yearsUntilTaxFree} year{yearsUntilTaxFree === 1 ? "" : "s"}
+          </span>
+        </div>
+      )}
+      {isExempt || netTaxableGain <= 0 ? null : (
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Effective Tax Rate</span>
+          <span className="font-medium">
+            {PERCENT_FORMATTER.format(effectiveTaxRate)}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** Stacked bar chart of net proceeds vs tax liability over 12 years. */
-function ProjectionChart(props: {
-  projection: CalculationResults["yearlyProjection"]
-  taxFreeYear: number
-  purchaseYear: number
-}) {
+function ProjectionChart(
+  props: Readonly<{
+    projection: CalculationResults["yearlyProjection"]
+    taxFreeYear: number
+    purchaseYear: number
+  }>,
+) {
   const { projection, taxFreeYear, purchaseYear } = props
 
   const chartData = useMemo(
@@ -285,23 +383,14 @@ function ProjectionChart(props: {
       >
         <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-        <YAxis
-          tick={{ fontSize: 12 }}
-          tickFormatter={(v: number) =>
-            v >= 1_000_000
-              ? `${(v / 1_000_000).toFixed(1)}M`
-              : v >= 1_000
-                ? `${(v / 1_000).toFixed(0)}k`
-                : `${v}`
-          }
-        />
+        <YAxis tick={{ fontSize: 12 }} tickFormatter={formatAxisTick} />
         <Tooltip
           formatter={(value, name) => {
             const label =
               name === "netProceeds" ? "Net Proceeds" : "Tax Liability"
             return [CURRENCY_FORMATTER.format(Number(value)), label]
           }}
-          labelFormatter={(label) => String(label)}
+          labelFormatter={String}
         />
         <ReferenceLine
           x={`Yr ${taxFreeYear - purchaseYear}`}
@@ -354,6 +443,10 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
     setInputs(DEFAULT_INPUTS)
   }
 
+  /** Format price input display value (localized, digits only). */
+  const priceDisplay = (raw: string) =>
+    raw ? Number.parseInt(raw, 10).toLocaleString("de-DE") : ""
+
   return (
     <div className={cn("space-y-6", className)}>
       <div className="grid gap-6 lg:grid-cols-2">
@@ -383,13 +476,7 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
                     type="text"
                     inputMode="numeric"
                     placeholder="400,000"
-                    value={
-                      inputs.purchasePrice
-                        ? parseInt(inputs.purchasePrice, 10).toLocaleString(
-                            "de-DE",
-                          )
-                        : ""
-                    }
+                    value={priceDisplay(inputs.purchasePrice)}
                     onChange={(e) => handlePriceInput("purchasePrice", e)}
                     className="pl-9"
                   />
@@ -419,13 +506,7 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
                     type="text"
                     inputMode="numeric"
                     placeholder="30,000"
-                    value={
-                      inputs.purchaseCosts
-                        ? parseInt(inputs.purchaseCosts, 10).toLocaleString(
-                            "de-DE",
-                          )
-                        : ""
-                    }
+                    value={priceDisplay(inputs.purchaseCosts)}
                     onChange={(e) => handlePriceInput("purchaseCosts", e)}
                     className="pl-9"
                   />
@@ -443,13 +524,7 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
                     type="text"
                     inputMode="numeric"
                     placeholder="20,000"
-                    value={
-                      inputs.renovationCosts
-                        ? parseInt(inputs.renovationCosts, 10).toLocaleString(
-                            "de-DE",
-                          )
-                        : ""
-                    }
+                    value={priceDisplay(inputs.renovationCosts)}
                     onChange={(e) => handlePriceInput("renovationCosts", e)}
                     className="pl-9"
                   />
@@ -472,11 +547,7 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
                     type="text"
                     inputMode="numeric"
                     placeholder="500,000"
-                    value={
-                      inputs.salePrice
-                        ? parseInt(inputs.salePrice, 10).toLocaleString("de-DE")
-                        : ""
-                    }
+                    value={priceDisplay(inputs.salePrice)}
                     onChange={(e) => handlePriceInput("salePrice", e)}
                     className="pl-9"
                   />
@@ -495,13 +566,7 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
                     type="text"
                     inputMode="numeric"
                     placeholder="15,000"
-                    value={
-                      inputs.sellingCosts
-                        ? parseInt(inputs.sellingCosts, 10).toLocaleString(
-                            "de-DE",
-                          )
-                        : ""
-                    }
+                    value={priceDisplay(inputs.sellingCosts)}
                     onChange={(e) => handlePriceInput("sellingCosts", e)}
                     className="pl-9"
                   />
@@ -574,28 +639,12 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
           <CardContent>
             {results ? (
               <div className="space-y-6">
-                {/* Exemption Badge */}
-                {results.isExempt && results.exemptionReason && (
-                  <ExemptionBadge reason={results.exemptionReason} />
-                )}
-
-                {/* Warning if taxable */}
-                {!results.isExempt && (
-                  <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 px-4 py-3">
-                    <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                        Taxable Sale
-                      </p>
-                      <p className="text-xs text-amber-700 dark:text-amber-400">
-                        Selling within {10 - results.holdingYears} more year
-                        {10 - results.holdingYears !== 1 ? "s" : ""} triggers
-                        speculation tax. Wait until {results.taxFreeYear} for a
-                        tax-free exit.
-                      </p>
-                    </div>
-                  </div>
-                )}
+                <TaxStatusBanner
+                  isExempt={results.isExempt}
+                  exemptionReason={results.exemptionReason}
+                  holdingYears={results.holdingYears}
+                  taxFreeYear={results.taxFreeYear}
+                />
 
                 {/* Key Metrics */}
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -714,42 +763,14 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
                 </div>
 
                 {/* Holding Period Info */}
-                <div className="rounded-lg border p-4 space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Holding Period (estimated)
-                    </span>
-                    <span className="font-medium">
-                      {results.holdingYears} year
-                      {results.holdingYears !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tax-Free From</span>
-                    <span className="font-medium">{results.taxFreeYear}</span>
-                  </div>
-                  {!results.isExempt && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Years Until Tax-Free
-                      </span>
-                      <span className="font-medium text-amber-600">
-                        {results.yearsUntilTaxFree} year
-                        {results.yearsUntilTaxFree !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  )}
-                  {!results.isExempt && results.netTaxableGain > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Effective Tax Rate
-                      </span>
-                      <span className="font-medium">
-                        {PERCENT_FORMATTER.format(results.effectiveTaxRate)}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <HoldingPeriodInfo
+                  holdingYears={results.holdingYears}
+                  taxFreeYear={results.taxFreeYear}
+                  yearsUntilTaxFree={results.yearsUntilTaxFree}
+                  isExempt={results.isExempt}
+                  effectiveTaxRate={results.effectiveTaxRate}
+                  netTaxableGain={results.netTaxableGain}
+                />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -793,22 +814,22 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
             <div className="flex flex-wrap items-center gap-4 text-xs">
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
-                Net Proceeds
+                <span>Net Proceeds</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
-                Tax Liability
+                <span>Tax Liability</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-2.5 w-2.5 border-2 border-dashed border-green-500" />
-                Tax-Free Threshold (Year 10)
+                <span>Tax-Free Threshold (Year 10)</span>
               </span>
             </div>
 
             <ProjectionChart
               projection={results.yearlyProjection}
               taxFreeYear={results.taxFreeYear}
-              purchaseYear={parseInt(inputs.purchaseYear, 10)}
+              purchaseYear={Number.parseInt(inputs.purchaseYear, 10)}
             />
 
             <Separator />
