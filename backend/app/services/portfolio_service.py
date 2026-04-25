@@ -19,8 +19,11 @@ from app.models.portfolio import (
     INCOME_TYPES,
     PortfolioProperty,
     PortfolioTransaction,
+    TransactionType,
 )
 from app.schemas.portfolio import (
+    AnlageVLineItem,
+    AnlageVSummaryResponse,
     PortfolioPropertyCreate,
     PortfolioPropertyUpdate,
     PortfolioTransactionCreate,
@@ -560,3 +563,190 @@ def calculate_cost_summary(
         "highest_category": highest_category,
         "alert_categories": alert_categories,
     }
+
+
+# ---------------------------------------------------------------------------
+# Anlage V tax summary
+# ---------------------------------------------------------------------------
+
+_DEFAULT_LAND_SHARE = 20.0  # % — typical German suburban default
+
+
+def _afa_rate_for_year(building_year: int) -> float:
+    """Return the AfA depreciation rate for a given construction year (§ 7 EStG)."""
+    if building_year < 1925:
+        return 2.5
+    if building_year >= 2023:
+        return 3.0
+    return 2.0
+
+
+def calculate_anlage_v_summary(
+    session: Session,
+    property_id: uuid.UUID,
+    user_id: uuid.UUID,
+    year: int,
+) -> AnlageVSummaryResponse:
+    """Build an Anlage V (§ 21 EStG) rental income tax summary for a calendar year.
+
+    Aggregates all transactions recorded for *property_id* in *year*, adds an
+    AfA deduction computed from the property's purchase price and building year,
+    and returns the full summary aligned to the official Anlage V line numbers.
+
+    Args:
+        session: Sync database session.
+        property_id: Property UUID.
+        user_id: Authenticated user's UUID.
+        year: Calendar year (e.g. 2025).
+
+    Returns:
+        AnlageVSummaryResponse with every Werbungskosten line item.
+
+    Raises:
+        HTTPException: If property not found or not owned by user.
+    """
+    prop = get_property(session, property_id, user_id)
+
+    if prop.purchase_price <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Purchase price must be greater than zero to compute AfA.",
+        )
+
+    year_start = date(year, 1, 1)
+    year_end = date(year, 12, 31)
+    stmt = (
+        select(PortfolioTransaction)
+        .where(PortfolioTransaction.property_id == property_id)
+        .where(PortfolioTransaction.user_id == user_id)
+        .where(PortfolioTransaction.date >= year_start)
+        .where(PortfolioTransaction.date <= year_end)
+    )
+    transactions = list(session.exec(stmt).all())
+
+    # --- Aggregate by transaction type ---
+    # Only RENT_INCOME maps to Anlage V Zeile 9 (Mieteinnahmen).
+    # OTHER_INCOME (e.g. utility reimbursements) is shown separately (Zeile 21).
+    gross_rent = 0.0
+    other_income = 0.0
+    mortgage_interest = 0.0
+    hausgeld = 0.0
+    insurance = 0.0
+    maintenance = 0.0
+    grundsteuer = 0.0
+    other_wk = 0.0
+
+    for txn in transactions:
+        txn_type = txn.type
+        if txn_type == TransactionType.RENT_INCOME:
+            gross_rent += txn.amount
+        elif txn_type == TransactionType.OTHER_INCOME:
+            other_income += txn.amount
+        elif txn_type == TransactionType.MORTGAGE_INTEREST:
+            mortgage_interest += txn.amount
+        elif txn_type == TransactionType.HAUSGELD:
+            hausgeld += txn.amount
+        elif txn_type == TransactionType.INSURANCE:
+            insurance += txn.amount
+        elif txn_type == TransactionType.MAINTENANCE:
+            maintenance += txn.amount
+        elif txn_type == TransactionType.TAX_PAYMENT:
+            grundsteuer += txn.amount
+        elif txn_type in (
+            TransactionType.OPERATING_EXPENSE,
+            TransactionType.OTHER_EXPENSE,
+        ):
+            other_wk += txn.amount
+
+    # --- AfA calculation (§ 7 EStG) ---
+    land_share_pct = (
+        prop.land_share if prop.land_share is not None else _DEFAULT_LAND_SHARE
+    )
+    building_year = prop.building_year
+    if building_year is not None:
+        afa_rate = _afa_rate_for_year(building_year)
+    else:
+        afa_rate = 2.0  # conservative default when building year is unknown
+
+    building_value = prop.purchase_price * (1.0 - land_share_pct / 100.0)
+    afa_deduction = building_value * (afa_rate / 100.0)
+
+    total_wk = (
+        afa_deduction
+        + mortgage_interest
+        + hausgeld
+        + insurance
+        + maintenance
+        + grundsteuer
+        + other_wk
+    )
+    total_income = gross_rent + other_income
+    net_taxable = total_income - total_wk
+
+    line_items = [
+        AnlageVLineItem(
+            label="Gross rental income (Mieteinnahmen)",
+            anlage_v_zeile="Zeile 9",
+            amount=round(gross_rent, 2),
+        ),
+        AnlageVLineItem(
+            label="Other income (sonstige Einnahmen)",
+            anlage_v_zeile="Zeile 21",
+            amount=round(other_income, 2),
+        ),
+        AnlageVLineItem(
+            label="AfA depreciation (§ 7 EStG)",
+            anlage_v_zeile="Zeile 33",
+            amount=round(afa_deduction, 2),
+        ),
+        AnlageVLineItem(
+            label="Mortgage interest (Schuldzinsen)",
+            anlage_v_zeile="Zeile 35",
+            amount=round(mortgage_interest, 2),
+        ),
+        AnlageVLineItem(
+            label="Hausgeld / Nebenkosten",
+            anlage_v_zeile="Zeile 50",
+            amount=round(hausgeld, 2),
+        ),
+        AnlageVLineItem(
+            label="Insurance (Versicherungen)",
+            anlage_v_zeile="Zeile 48",
+            amount=round(insurance, 2),
+        ),
+        AnlageVLineItem(
+            label="Maintenance (Erhaltungsaufwand)",
+            anlage_v_zeile="Zeile 40",
+            amount=round(maintenance, 2),
+        ),
+        AnlageVLineItem(
+            label="Grundsteuer",
+            anlage_v_zeile="Zeile 47",
+            amount=round(grundsteuer, 2),
+        ),
+        AnlageVLineItem(
+            label="Other Werbungskosten",
+            anlage_v_zeile="Zeile 53",
+            amount=round(other_wk, 2),
+        ),
+    ]
+
+    return AnlageVSummaryResponse(
+        year=year,
+        property_id=property_id,
+        gross_rent_income=round(gross_rent, 2),
+        other_income=round(other_income, 2),
+        afa_rate_percent=afa_rate,
+        building_value=round(building_value, 2),
+        land_share_percent=land_share_pct,
+        afa_deduction=round(afa_deduction, 2),
+        mortgage_interest=round(mortgage_interest, 2),
+        hausgeld=round(hausgeld, 2),
+        insurance=round(insurance, 2),
+        maintenance=round(maintenance, 2),
+        grundsteuer=round(grundsteuer, 2),
+        other_werbungskosten=round(other_wk, 2),
+        total_werbungskosten=round(total_wk, 2),
+        net_taxable_income=round(net_taxable, 2),
+        line_items=line_items,
+    )

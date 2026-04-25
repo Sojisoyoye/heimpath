@@ -2,6 +2,7 @@
  * Portfolio components index
  */
 
+export { AnlageVTab } from "./AnlageVTab"
 export { KpiSummaryBar } from "./KpiSummaryBar"
 export { PortfolioPage } from "./PortfolioPage"
 export { PropertyCard } from "./PropertyCard"

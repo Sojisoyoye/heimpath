@@ -6,6 +6,7 @@
 import { OpenAPI } from "@/client"
 import { request } from "@/client/core/request"
 import type {
+  AnlageVSummary,
   CostSummaryResponse,
   PortfolioPerformance,
   PortfolioProperty,
@@ -190,6 +191,22 @@ class PortfolioServiceClass {
       url: PATHS.PORTFOLIO.PERFORMANCE,
     })
     return transformKeys<PortfolioPerformance>(response)
+  }
+
+  /**
+   * Get Anlage V rental income tax summary for a property and year
+   */
+  async getTaxSummary(
+    propertyId: string,
+    year: number,
+  ): Promise<AnlageVSummary> {
+    const params = new URLSearchParams({ year: String(year) })
+    const url = `${PATHS.PORTFOLIO.TAX_SUMMARY(propertyId)}?${params.toString()}`
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url,
+    })
+    return transformKeys<AnlageVSummary>(response)
   }
 
   /**

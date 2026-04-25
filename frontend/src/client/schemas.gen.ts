@@ -94,6 +94,116 @@ export const AnalyzedClauseSchema = {
     description: 'AI-analyzed clause from a Kaufvertrag.'
 } as const;
 
+export const AnlageVLineItemSchema = {
+    properties: {
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        anlage_v_zeile: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Anlage V Zeile'
+        },
+        amount: {
+            type: 'number',
+            title: 'Amount'
+        }
+    },
+    type: 'object',
+    required: ['label', 'amount'],
+    title: 'AnlageVLineItem',
+    description: 'A single line in the Anlage V tax return.'
+} as const;
+
+export const AnlageVSummaryResponseSchema = {
+    properties: {
+        year: {
+            type: 'integer',
+            title: 'Year'
+        },
+        property_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Property Id'
+        },
+        gross_rent_income: {
+            type: 'number',
+            title: 'Gross Rent Income'
+        },
+        other_income: {
+            type: 'number',
+            title: 'Other Income',
+            default: 0
+        },
+        afa_rate_percent: {
+            type: 'number',
+            title: 'Afa Rate Percent'
+        },
+        building_value: {
+            type: 'number',
+            title: 'Building Value'
+        },
+        land_share_percent: {
+            type: 'number',
+            title: 'Land Share Percent'
+        },
+        afa_deduction: {
+            type: 'number',
+            title: 'Afa Deduction'
+        },
+        mortgage_interest: {
+            type: 'number',
+            title: 'Mortgage Interest'
+        },
+        hausgeld: {
+            type: 'number',
+            title: 'Hausgeld'
+        },
+        insurance: {
+            type: 'number',
+            title: 'Insurance'
+        },
+        maintenance: {
+            type: 'number',
+            title: 'Maintenance'
+        },
+        grundsteuer: {
+            type: 'number',
+            title: 'Grundsteuer'
+        },
+        other_werbungskosten: {
+            type: 'number',
+            title: 'Other Werbungskosten'
+        },
+        total_werbungskosten: {
+            type: 'number',
+            title: 'Total Werbungskosten'
+        },
+        net_taxable_income: {
+            type: 'number',
+            title: 'Net Taxable Income'
+        },
+        line_items: {
+            items: {
+                '$ref': '#/components/schemas/AnlageVLineItem'
+            },
+            type: 'array',
+            title: 'Line Items'
+        }
+    },
+    type: 'object',
+    required: ['year', 'property_id', 'gross_rent_income', 'afa_rate_percent', 'building_value', 'land_share_percent', 'afa_deduction', 'mortgage_interest', 'hausgeld', 'insurance', 'maintenance', 'grundsteuer', 'other_werbungskosten', 'total_werbungskosten', 'net_taxable_income', 'line_items'],
+    title: 'AnlageVSummaryResponse',
+    description: 'Annual rental income tax summary for Anlage V (§ 21 EStG).'
+} as const;
+
 export const AnnualCashflowRowResponseSchema = {
     properties: {
         year: {
@@ -5403,7 +5513,9 @@ export const PortfolioPropertyCreateSchema = {
         building_year: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    maximum: 2100,
+                    minimum: 1000
                 },
                 {
                     type: 'null'
@@ -5482,6 +5594,19 @@ export const PortfolioPropertyCreateSchema = {
                 }
             ],
             title: 'Monthly Hausgeld'
+        },
+        land_share: {
+            anyOf: [
+                {
+                    type: 'number',
+                    maximum: 100,
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Land Share'
         },
         is_vacant: {
             type: 'boolean',
@@ -5666,6 +5791,17 @@ export const PortfolioPropertyResponseSchema = {
                 }
             ],
             title: 'Monthly Hausgeld'
+        },
+        land_share: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Land Share'
         },
         is_vacant: {
             type: 'boolean',
@@ -5857,7 +5993,9 @@ export const PortfolioPropertyUpdateSchema = {
         building_year: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    maximum: 2100,
+                    minimum: 1000
                 },
                 {
                     type: 'null'
@@ -5936,6 +6074,19 @@ export const PortfolioPropertyUpdateSchema = {
                 }
             ],
             title: 'Monthly Hausgeld'
+        },
+        land_share: {
+            anyOf: [
+                {
+                    type: 'number',
+                    maximum: 100,
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Land Share'
         },
         is_vacant: {
             anyOf: [

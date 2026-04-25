@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from app.models.portfolio import (
     PortfolioProperty,
@@ -37,6 +37,7 @@ def _make_property(**overrides) -> MagicMock:
     prop.lease_start_date = overrides.get("lease_start_date", None)
     prop.lease_end_date = overrides.get("lease_end_date", None)
     prop.monthly_hausgeld = overrides.get("monthly_hausgeld", None)
+    prop.land_share = overrides.get("land_share", 20.0)
     prop.is_vacant = overrides.get("is_vacant", False)
     prop.notes = overrides.get("notes", None)
     prop.created_at = overrides.get("created_at", None)
@@ -667,3 +668,307 @@ def test_performance_net_cash_flow_negative(_mock_select: MagicMock) -> None:
     current_entry = next(m for m in result["months"] if m["month"] == current_key)
 
     assert current_entry["net_cash_flow"] == -1000.0
+
+
+# ---------------------------------------------------------------------------
+# Anlage V tax summary tests
+# ---------------------------------------------------------------------------
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_summary_basic(_mock_select: MagicMock) -> None:
+    """Basic Anlage V summary with all transaction types produces correct totals."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=300_000.0,
+        building_year=2000,
+        land_share=20.0,
+    )
+
+    year = 2024
+    txns = [
+        _make_transaction(
+            type=TransactionType.RENT_INCOME.value,
+            amount=12_000.0,
+            date=date(year, 6, 1),
+        ),
+        _make_transaction(
+            type=TransactionType.MORTGAGE_INTEREST.value,
+            amount=6_000.0,
+            date=date(year, 6, 1),
+        ),
+        _make_transaction(
+            type=TransactionType.HAUSGELD.value,
+            amount=1_200.0,
+            date=date(year, 6, 1),
+        ),
+        _make_transaction(
+            type=TransactionType.INSURANCE.value,
+            amount=400.0,
+            date=date(year, 6, 1),
+        ),
+        _make_transaction(
+            type=TransactionType.MAINTENANCE.value,
+            amount=500.0,
+            date=date(year, 6, 1),
+        ),
+        _make_transaction(
+            type=TransactionType.TAX_PAYMENT.value,
+            amount=300.0,
+            date=date(year, 6, 1),
+        ),
+    ]
+
+    session = MagicMock()
+    session.get.return_value = prop
+    session.exec.return_value.all.return_value = txns
+
+    result = calculate_anlage_v_summary(session, property_id, user_id, year)
+
+    # AfA: 300_000 * 0.80 * 0.02 = 4_800
+    assert result.afa_rate_percent == pytest.approx(2.0)
+    assert result.building_value == pytest.approx(240_000.0)
+    assert result.afa_deduction == pytest.approx(4_800.0)
+    assert result.gross_rent_income == pytest.approx(12_000.0)
+    assert result.mortgage_interest == pytest.approx(6_000.0)
+    assert result.hausgeld == pytest.approx(1_200.0)
+    assert result.insurance == pytest.approx(400.0)
+    assert result.maintenance == pytest.approx(500.0)
+    assert result.grundsteuer == pytest.approx(300.0)
+    assert result.other_werbungskosten == pytest.approx(0.0)
+    expected_wk = 4_800 + 6_000 + 1_200 + 400 + 500 + 300
+    assert result.total_werbungskosten == pytest.approx(expected_wk)
+    assert result.net_taxable_income == pytest.approx(round(12_000 - expected_wk, 2))
+    assert result.year == year
+    assert len(result.line_items) == 9
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_summary_pre_1925_afa_rate(_mock_select: MagicMock) -> None:
+    """Pre-1925 building year uses 2.5% AfA rate."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=200_000.0,
+        building_year=1910,
+        land_share=30.0,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+    session.exec.return_value.all.return_value = []
+
+    result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
+
+    assert result.afa_rate_percent == pytest.approx(2.5)
+    assert result.building_value == pytest.approx(140_000.0)  # 200_000 * 0.70
+    assert result.afa_deduction == pytest.approx(3_500.0)  # 140_000 * 0.025
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_summary_post_2023_afa_rate(_mock_select: MagicMock) -> None:
+    """Post-2022 building year uses 3.0% AfA rate."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=400_000.0,
+        building_year=2023,
+        land_share=25.0,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+    session.exec.return_value.all.return_value = []
+
+    result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
+
+    assert result.afa_rate_percent == pytest.approx(3.0)
+    assert result.building_value == pytest.approx(300_000.0)  # 400_000 * 0.75
+    assert result.afa_deduction == pytest.approx(9_000.0)  # 300_000 * 0.03
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_afa_rate_boundary_1925(_mock_select: MagicMock) -> None:
+    """Exact boundary year 1925 uses 2.0% AfA rate (not pre-1925 rate)."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=200_000.0,
+        building_year=1925,
+        land_share=20.0,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+    session.exec.return_value.all.return_value = []
+
+    result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
+
+    assert result.afa_rate_percent == pytest.approx(2.0)
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_afa_rate_boundary_2022(_mock_select: MagicMock) -> None:
+    """Exact boundary year 2022 uses 2.0% AfA rate (not post-2022 rate)."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=200_000.0,
+        building_year=2022,
+        land_share=20.0,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+    session.exec.return_value.all.return_value = []
+
+    result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
+
+    assert result.afa_rate_percent == pytest.approx(2.0)
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_other_income_separate(_mock_select: MagicMock) -> None:
+    """OTHER_INCOME is tracked separately from gross_rent (not on Zeile 9)."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=200_000.0,
+        building_year=2000,
+        land_share=20.0,
+    )
+    txns = [
+        _make_transaction(
+            type=TransactionType.RENT_INCOME.value,
+            amount=10_000.0,
+            date=date(2024, 6, 1),
+        ),
+        _make_transaction(
+            type=TransactionType.OTHER_INCOME.value,
+            amount=500.0,
+            date=date(2024, 6, 1),
+        ),
+    ]
+
+    session = MagicMock()
+    session.get.return_value = prop
+    session.exec.return_value.all.return_value = txns
+
+    result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
+
+    assert result.gross_rent_income == 10_000.0
+    assert result.other_income == 500.0
+    assert result.net_taxable_income == round(10_500.0 - result.total_werbungskosten, 2)
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_zero_purchase_price_raises(_mock_select: MagicMock) -> None:
+    """Zero purchase price raises HTTP 422 (cannot compute AfA)."""
+    from fastapi import HTTPException
+
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=0.0,
+        building_year=2000,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+
+    with pytest.raises(HTTPException) as exc_info:
+        calculate_anlage_v_summary(session, property_id, user_id, 2024)
+
+    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_summary_default_land_share(_mock_select: MagicMock) -> None:
+    """When land_share is None the default 20% is applied."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    user_id = uuid.uuid4()
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=user_id,
+        purchase_price=200_000.0,
+        building_year=1990,
+        land_share=None,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+    session.exec.return_value.all.return_value = []
+
+    result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
+
+    assert result.land_share_percent == pytest.approx(20.0)
+    assert result.building_value == pytest.approx(160_000.0)  # 200_000 * 0.80
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_summary_property_not_found(_mock_select: MagicMock) -> None:
+    """Raises 404 when property does not exist."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    session = MagicMock()
+    session.get.return_value = None  # property not found
+
+    with pytest.raises(HTTPException) as exc_info:
+        calculate_anlage_v_summary(session, uuid.uuid4(), uuid.uuid4(), 2024)
+
+    assert exc_info.value.status_code == 404
+
+
+@patch("app.services.portfolio_service.select")
+def test_anlage_v_summary_wrong_user_raises_404(_mock_select: MagicMock) -> None:
+    """Raises 404 when property exists but belongs to a different user."""
+    from app.services.portfolio_service import calculate_anlage_v_summary
+
+    owner_id = uuid.uuid4()
+    caller_id = uuid.uuid4()  # different user
+    property_id = uuid.uuid4()
+    prop = _make_property(
+        id=property_id,
+        user_id=owner_id,  # property owned by owner_id, not caller_id
+        purchase_price=300_000.0,
+        building_year=2000,
+    )
+
+    session = MagicMock()
+    session.get.return_value = prop
+
+    with pytest.raises(HTTPException) as exc_info:
+        calculate_anlage_v_summary(session, property_id, caller_id, 2024)
+
+    assert exc_info.value.status_code == 404

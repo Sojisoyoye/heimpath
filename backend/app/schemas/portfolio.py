@@ -22,13 +22,14 @@ class PortfolioPropertyCreate(BaseModel):
     purchase_price: float = Field(..., gt=0)
     purchase_date: date | None = None
     square_meters: float = Field(..., gt=0)
-    building_year: int | None = None
+    building_year: int | None = Field(None, ge=1000, le=2100)
     current_value_estimate: float | None = Field(None, gt=0)
     monthly_rent_target: float | None = Field(None, ge=0)
     tenant_name: str | None = Field(None, max_length=255)
     lease_start_date: date | None = None
     lease_end_date: date | None = None
     monthly_hausgeld: float | None = Field(None, ge=0)
+    land_share: float | None = Field(None, ge=0, le=100)
     is_vacant: bool = False
     notes: str | None = None
     journey_id: uuid.UUID | None = None
@@ -44,13 +45,14 @@ class PortfolioPropertyUpdate(BaseModel):
     purchase_price: float | None = Field(None, gt=0)
     purchase_date: date | None = None
     square_meters: float | None = Field(None, gt=0)
-    building_year: int | None = None
+    building_year: int | None = Field(None, ge=1000, le=2100)
     current_value_estimate: float | None = Field(None, gt=0)
     monthly_rent_target: float | None = Field(None, ge=0)
     tenant_name: str | None = Field(None, max_length=255)
     lease_start_date: date | None = None
     lease_end_date: date | None = None
     monthly_hausgeld: float | None = Field(None, ge=0)
+    land_share: float | None = Field(None, ge=0, le=100)
     is_vacant: bool | None = None
     notes: str | None = None
 
@@ -75,6 +77,7 @@ class PortfolioPropertyResponse(BaseModel):
     lease_start_date: date | None = None
     lease_end_date: date | None = None
     monthly_hausgeld: float | None = None
+    land_share: float | None = None
     is_vacant: bool
     notes: str | None = None
     journey_id: uuid.UUID | None = None
@@ -206,3 +209,47 @@ class CostSummaryResponse(BaseModel):
     total_variance: float | None
     highest_category: str | None
     alert_categories: list[str]
+
+
+# ---------------------------------------------------------------------------
+# Anlage V (annual rental tax summary) schemas
+# ---------------------------------------------------------------------------
+
+
+class AnlageVLineItem(BaseModel):
+    """A single line in the Anlage V tax return."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    label: str
+    anlage_v_zeile: str | None = None
+    amount: float
+
+
+class AnlageVSummaryResponse(BaseModel):
+    """Annual rental income tax summary for Anlage V (§ 21 EStG)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    year: int
+    property_id: uuid.UUID
+    # Income
+    gross_rent_income: float
+    other_income: float = 0.0
+    # AfA
+    afa_rate_percent: float
+    building_value: float
+    land_share_percent: float
+    afa_deduction: float
+    # Werbungskosten components
+    mortgage_interest: float
+    hausgeld: float
+    insurance: float
+    maintenance: float
+    grundsteuer: float
+    other_werbungskosten: float
+    # Totals
+    total_werbungskosten: float
+    net_taxable_income: float
+    # Line-item list for display
+    line_items: list[AnlageVLineItem]

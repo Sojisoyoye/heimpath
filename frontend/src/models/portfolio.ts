@@ -52,6 +52,7 @@ export interface PortfolioProperty {
   leaseStartDate: string | null
   leaseEndDate: string | null
   monthlyHausgeld: number | null
+  landShare: number | null
   isVacant: boolean
   notes: string | null
   journeyId: string | null
@@ -73,6 +74,7 @@ export interface PortfolioPropertyInput {
   leaseStartDate?: string | null
   leaseEndDate?: string | null
   monthlyHausgeld?: number | null
+  landShare?: number | null
   isVacant?: boolean
   notes?: string | null
 }
@@ -153,4 +155,30 @@ export interface CostSummaryResponse {
   totalVariance: number | null
   highestCategory: string | null
   alertCategories: string[]
+}
+
+export interface AnlageVLineItem {
+  label: string
+  anlageVZeile: string | null
+  amount: number
+}
+
+export interface AnlageVSummary {
+  year: number
+  propertyId: string
+  grossRentIncome: number
+  otherIncome: number
+  afaRatePercent: number
+  buildingValue: number
+  landSharePercent: number
+  afaDeduction: number
+  mortgageInterest: number
+  hausgeld: number
+  insurance: number
+  maintenance: number
+  grundsteuer: number
+  otherWerbungskosten: number
+  totalWerbungskosten: number
+  netTaxableIncome: number
+  lineItems: AnlageVLineItem[]
 }

@@ -174,6 +174,8 @@ export const PATHS = {
       `${API_V1}/portfolio/transactions/${id}`,
     COST_SUMMARY: (propertyId: string) =>
       `${API_V1}/portfolio/properties/${propertyId}/cost-summary`,
+    TAX_SUMMARY: (propertyId: string) =>
+      `${API_V1}/portfolio/properties/${propertyId}/tax-summary`,
     SUMMARY: `${API_V1}/portfolio/summary`,
     PERFORMANCE: `${API_V1}/portfolio/performance`,
     FROM_JOURNEY: (journeyId: string) =>
