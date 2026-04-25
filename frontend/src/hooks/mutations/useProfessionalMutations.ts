@@ -71,7 +71,7 @@ export function useTrackClick() {
  */
 export function useSaveProfessional() {
   const queryClient = useQueryClient()
-  const { showSuccessToast } = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
 
   return useMutation({
     mutationFn: (professionalId: string) =>
@@ -82,6 +82,9 @@ export function useSaveProfessional() {
         queryKey: queryKeys.professionals.saved(),
       })
     },
+    onError: () => {
+      showErrorToast("Could not save professional. Please try again.")
+    },
   })
 }
 
@@ -90,7 +93,7 @@ export function useSaveProfessional() {
  */
 export function useUnsaveProfessional() {
   const queryClient = useQueryClient()
-  const { showSuccessToast } = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
 
   return useMutation({
     mutationFn: (professionalId: string) =>
@@ -100,6 +103,9 @@ export function useUnsaveProfessional() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.professionals.saved(),
       })
+    },
+    onError: () => {
+      showErrorToast("Could not remove professional. Please try again.")
     },
   })
 }

@@ -132,8 +132,6 @@ class SavedProfessionalResponse(BaseModel):
 class SavedProfessionalListResponse(BaseModel):
     """Response schema for a list of saved professionals."""
 
-    model_config = ConfigDict(from_attributes=True)
-
     items: list[SavedProfessionalResponse]
     total: int
 

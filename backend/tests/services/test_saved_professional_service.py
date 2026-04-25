@@ -52,6 +52,14 @@ class TestSaveProfessional:
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
 
+    def test_save_professional_not_found(self) -> None:
+        """Test that ProfessionalNotFoundError is raised when professional does not exist."""
+        mock_session = MagicMock()
+        mock_session.execute.return_value.scalars.return_value.first.return_value = None
+
+        with pytest.raises(ProfessionalNotFoundError):
+            save_professional(mock_session, uuid.uuid4(), uuid.uuid4())
+
     def test_save_professional_already_saved(
         self, sample_professional: MagicMock
     ) -> None:
