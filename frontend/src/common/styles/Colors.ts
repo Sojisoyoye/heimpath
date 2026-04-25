@@ -131,6 +131,7 @@ const Colors = {
     Green: Base.Green.Default,
     Amber: Base.Amber.Default,
     Purple: Base.Purple.Default,
+    Red: Base.Red.Default,
   },
 } as const
 
