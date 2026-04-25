@@ -77,7 +77,7 @@ def create_access_token(
         )
     else:
         expire = datetime.now(timezone.utc) + timedelta(
-            hours=settings.ACCESS_TOKEN_EXPIRE_HOURS
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
     to_encode: dict[str, Any] = {

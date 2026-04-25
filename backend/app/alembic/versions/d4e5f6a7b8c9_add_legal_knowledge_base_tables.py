@@ -20,20 +20,25 @@ def upgrade() -> None:
     # Create enum types using raw SQL with existence check
     connection = op.get_bind()
 
-    for enum_name, values in [
-        ('lawcategory', ['buying_process', 'costs_and_taxes', 'rental_law', 'condominium', 'agent_regulations']),
-        ('propertyapplicability', ['all', 'apartment', 'house', 'land', 'commercial']),
+    for enum_sql, check_name in [
+        (
+            "CREATE TYPE lawcategory AS ENUM "
+            "('buying_process', 'costs_and_taxes', 'rental_law', 'condominium', 'agent_regulations')",
+            "lawcategory",
+        ),
+        (
+            "CREATE TYPE propertyapplicability AS ENUM "
+            "('all', 'apartment', 'house', 'land', 'commercial')",
+            "propertyapplicability",
+        ),
     ]:
         # Check if type exists
         result = connection.execute(
             sa.text("SELECT 1 FROM pg_type WHERE typname = :name"),
-            {"name": enum_name}
+            {"name": check_name},
         )
         if not result.fetchone():
-            values_str = ", ".join(f"'{v}'" for v in values)
-            connection.execute(
-                sa.text(f"CREATE TYPE {enum_name} AS ENUM ({values_str})")
-            )
+            connection.execute(sa.text(enum_sql))
 
     # Define enums for use in table creation
     lawcategory = postgresql.ENUM(

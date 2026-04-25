@@ -22,17 +22,14 @@ def upgrade() -> None:
 
     result = connection.execute(
         sa.text("SELECT 1 FROM pg_type WHERE typname = :name"),
-        {"name": "professionaltype"}
+        {"name": "professionaltype"},
     )
     if not result.fetchone():
-        values_str = ", ".join(
-            f"'{v}'" for v in [
-                'lawyer', 'notary', 'tax_advisor',
-                'mortgage_broker', 'real_estate_agent',
-            ]
-        )
         connection.execute(
-            sa.text(f"CREATE TYPE professionaltype AS ENUM ({values_str})")
+            sa.text(
+                "CREATE TYPE professionaltype AS ENUM "
+                "('lawyer', 'notary', 'tax_advisor', 'mortgage_broker', 'real_estate_agent')"
+            )
         )
 
     # Define enum for table creation
