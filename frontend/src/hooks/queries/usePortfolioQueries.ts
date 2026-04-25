@@ -71,6 +71,8 @@ export function usePortfolioTaxSummary(propertyId: string, year: number) {
     queryKey: queryKeys.portfolio.taxSummary(propertyId, year),
     queryFn: () => PortfolioService.getTaxSummary(propertyId, year),
     enabled: !!propertyId && year >= MIN_TAX_YEAR,
+    // Tax summary only changes when transactions are added/updated for this year.
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 

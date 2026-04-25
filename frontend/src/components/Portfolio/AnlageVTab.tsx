@@ -1,6 +1,6 @@
 /**
  * Anlage V Tax Summary Tab Component
- * Annual rental income tax summary for § 21 EStG (Anlage V)
+ * Annual rental income tax summary — Anlage V (§ 21 EStG)
  */
 
 import { AlertTriangle, Info } from "lucide-react"
@@ -39,6 +39,8 @@ interface IProps {
                               Constants
 ******************************************************************************/
 
+// Evaluated at module load time; acceptable because the component re-mounts
+// on navigation, which covers any year-boundary edge case without extra state.
 const CURRENT_YEAR = new Date().getFullYear()
 const DEFAULT_YEAR = CURRENT_YEAR - 1
 const AVAILABLE_YEARS = Array.from(

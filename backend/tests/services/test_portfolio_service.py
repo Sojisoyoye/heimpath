@@ -769,9 +769,9 @@ def test_anlage_v_summary_pre_1925_afa_rate(_mock_select: MagicMock) -> None:
 
     result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
 
-    assert result.afa_rate_percent == 2.5
-    assert result.building_value == 140_000.0  # 200_000 * 0.70
-    assert result.afa_deduction == 3_500.0  # 140_000 * 0.025
+    assert result.afa_rate_percent == pytest.approx(2.5)
+    assert result.building_value == pytest.approx(140_000.0)  # 200_000 * 0.70
+    assert result.afa_deduction == pytest.approx(3_500.0)  # 140_000 * 0.025
 
 
 @patch("app.services.portfolio_service.select")
@@ -795,9 +795,9 @@ def test_anlage_v_summary_post_2023_afa_rate(_mock_select: MagicMock) -> None:
 
     result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
 
-    assert result.afa_rate_percent == 3.0
-    assert result.building_value == 300_000.0  # 400_000 * 0.75
-    assert result.afa_deduction == 9_000.0  # 300_000 * 0.03
+    assert result.afa_rate_percent == pytest.approx(3.0)
+    assert result.building_value == pytest.approx(300_000.0)  # 400_000 * 0.75
+    assert result.afa_deduction == pytest.approx(9_000.0)  # 300_000 * 0.03
 
 
 @patch("app.services.portfolio_service.select")
@@ -821,7 +821,7 @@ def test_anlage_v_afa_rate_boundary_1925(_mock_select: MagicMock) -> None:
 
     result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
 
-    assert result.afa_rate_percent == 2.0
+    assert result.afa_rate_percent == pytest.approx(2.0)
 
 
 @patch("app.services.portfolio_service.select")
@@ -845,7 +845,7 @@ def test_anlage_v_afa_rate_boundary_2022(_mock_select: MagicMock) -> None:
 
     result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
 
-    assert result.afa_rate_percent == 2.0
+    assert result.afa_rate_percent == pytest.approx(2.0)
 
 
 @patch("app.services.portfolio_service.select")
@@ -932,8 +932,8 @@ def test_anlage_v_summary_default_land_share(_mock_select: MagicMock) -> None:
 
     result = calculate_anlage_v_summary(session, property_id, user_id, 2024)
 
-    assert result.land_share_percent == 20.0
-    assert result.building_value == 160_000.0  # 200_000 * 0.80
+    assert result.land_share_percent == pytest.approx(20.0)
+    assert result.building_value == pytest.approx(160_000.0)  # 200_000 * 0.80
 
 
 @patch("app.services.portfolio_service.select")
