@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { FormRow } from "./common/FormRow"
+import { MetricCard } from "./common/MetricCard"
 
 /******************************************************************************
                               Types
@@ -209,47 +210,6 @@ function calculateSpeculationTax(
 /******************************************************************************
                               Components
 ******************************************************************************/
-
-/** Metric card for displaying a single key figure. */
-function MetricCard(
-  props: Readonly<{
-    label: string
-    value: string
-    description?: string
-    variant?: "default" | "success" | "warning" | "danger"
-  }>,
-) {
-  const { label, value, description, variant = "default" } = props
-
-  return (
-    <div
-      className={cn(
-        "rounded-lg border p-4",
-        variant === "success" &&
-          "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30",
-        variant === "warning" &&
-          "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30",
-        variant === "danger" &&
-          "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30",
-      )}
-    >
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p
-        className={cn(
-          "text-2xl font-bold",
-          variant === "success" && "text-green-600",
-          variant === "warning" && "text-amber-600",
-          variant === "danger" && "text-red-600",
-        )}
-      >
-        {value}
-      </p>
-      {description && (
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
-      )}
-    </div>
-  )
-}
 
 /** Exemption badge — shown when sale is tax-free. */
 function ExemptionBadge(props: Readonly<{ reason: string }>) {
