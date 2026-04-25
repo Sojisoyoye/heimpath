@@ -645,6 +645,9 @@ function SavedROICalculations(props: {
 function ROICalculator(props: Readonly<IProps>) {
   const { className, initialMonthlyRent } = props
 
+  // initialMonthlyRent is intentionally a one-time seed: it pre-fills the
+  // field on first mount (e.g. from the Rent Estimate CTA) but subsequent
+  // prop changes do not update state — the user owns the field after that.
   const [inputs, setInputs] = useState<CalculatorInputs>({
     purchasePrice: "",
     downPayment: "",
