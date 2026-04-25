@@ -160,7 +160,7 @@ function calcProjection(
 function calculateAfa(inputs: CalculatorInputs): CalculationResults | null {
   const propertyValue = parseNumber(inputs.propertyValue)
   const landShare = parseNumber(inputs.landShare)
-  const constructionYear = parseInt(inputs.constructionYear, 10)
+  const constructionYear = Number.parseInt(inputs.constructionYear, 10)
   const annualRent = parseNumber(inputs.annualRent)
   const marginalTaxRate = parseNumber(inputs.marginalTaxRate)
 
@@ -258,7 +258,7 @@ function AfaCalculator({ className }: Readonly<IProps>) {
     setInputs(DEFAULT_INPUTS)
   }, [])
 
-  const constructionYear = parseInt(inputs.constructionYear, 10)
+  const constructionYear = Number.parseInt(inputs.constructionYear, 10)
   const afaRatePreview = Number.isNaN(constructionYear)
     ? 2.0
     : getAfaRate(constructionYear)
