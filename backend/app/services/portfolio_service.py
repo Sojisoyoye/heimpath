@@ -617,8 +617,17 @@ def calculate_anlage_v_summary(
     )
     transactions = list(session.exec(stmt).all())
 
+    if prop.purchase_price <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Purchase price must be greater than zero to compute AfA.",
+        )
+
     # --- Aggregate by transaction type ---
+    # Only RENT_INCOME maps to Anlage V Zeile 9 (Mieteinnahmen).
+    # OTHER_INCOME (e.g. utility reimbursements) is shown separately (Zeile 21).
     gross_rent = 0.0
+    other_income = 0.0
     mortgage_interest = 0.0
     hausgeld = 0.0
     insurance = 0.0
@@ -627,20 +636,22 @@ def calculate_anlage_v_summary(
     other_wk = 0.0
 
     for txn in transactions:
-        t = txn.type
-        if t in (TransactionType.RENT_INCOME.value, TransactionType.OTHER_INCOME.value):
+        txn_type = txn.type
+        if txn_type == TransactionType.RENT_INCOME.value:
             gross_rent += txn.amount
-        elif t == TransactionType.MORTGAGE_INTEREST.value:
+        elif txn_type == TransactionType.OTHER_INCOME.value:
+            other_income += txn.amount
+        elif txn_type == TransactionType.MORTGAGE_INTEREST.value:
             mortgage_interest += txn.amount
-        elif t == TransactionType.HAUSGELD.value:
+        elif txn_type == TransactionType.HAUSGELD.value:
             hausgeld += txn.amount
-        elif t == TransactionType.INSURANCE.value:
+        elif txn_type == TransactionType.INSURANCE.value:
             insurance += txn.amount
-        elif t == TransactionType.MAINTENANCE.value:
+        elif txn_type == TransactionType.MAINTENANCE.value:
             maintenance += txn.amount
-        elif t == TransactionType.TAX_PAYMENT.value:
+        elif txn_type == TransactionType.TAX_PAYMENT.value:
             grundsteuer += txn.amount
-        elif t in (
+        elif txn_type in (
             TransactionType.OPERATING_EXPENSE.value,
             TransactionType.OTHER_EXPENSE.value,
         ):
@@ -654,7 +665,7 @@ def calculate_anlage_v_summary(
     if building_year is not None:
         afa_rate = _afa_rate_for_year(building_year)
     else:
-        afa_rate = 2.0  # conservative default
+        afa_rate = 2.0  # conservative default when building year is unknown
 
     building_value = prop.purchase_price * (1.0 - land_share_pct / 100.0)
     afa_deduction = building_value * (afa_rate / 100.0)
@@ -668,13 +679,19 @@ def calculate_anlage_v_summary(
         + grundsteuer
         + other_wk
     )
-    net_taxable = gross_rent - total_wk
+    total_income = gross_rent + other_income
+    net_taxable = total_income - total_wk
 
     line_items = [
         AnlageVLineItem(
             label="Gross rental income (Mieteinnahmen)",
             anlage_v_zeile="Zeile 9",
             amount=round(gross_rent, 2),
+        ),
+        AnlageVLineItem(
+            label="Other income (sonstige Einnahmen)",
+            anlage_v_zeile="Zeile 21",
+            amount=round(other_income, 2),
         ),
         AnlageVLineItem(
             label="AfA depreciation (§ 7 EStG)",
@@ -717,6 +734,7 @@ def calculate_anlage_v_summary(
         year=year,
         property_id=property_id,
         gross_rent_income=round(gross_rent, 2),
+        other_income=round(other_income, 2),
         afa_rate_percent=afa_rate,
         building_value=round(building_value, 2),
         land_share_percent=land_share_pct,

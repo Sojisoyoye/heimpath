@@ -3,7 +3,7 @@
  * Annual rental income tax summary for § 21 EStG (Anlage V)
  */
 
-import { Info } from "lucide-react"
+import { AlertTriangle, Info } from "lucide-react"
 import { useState } from "react"
 import {
   Bar,
@@ -17,7 +17,7 @@ import {
 
 import Colors from "@/common/styles/Colors"
 import { formatEur } from "@/common/utils"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -52,6 +52,10 @@ const EUR_FORMATTER = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 0,
 })
 
+/******************************************************************************
+                              Functions
+******************************************************************************/
+
 function formatEurShort(v: number): string {
   if (Math.abs(v) >= 1000) {
     return `€${Math.round(v / 1000)}k`
@@ -67,7 +71,19 @@ function formatEurShort(v: number): string {
 function AnlageVTab(props: Readonly<IProps>) {
   const { propertyId } = props
   const [year, setYear] = useState(DEFAULT_YEAR)
-  const { data, isLoading } = usePortfolioTaxSummary(propertyId, year)
+  const { data, isLoading, isError } = usePortfolioTaxSummary(propertyId, year)
+
+  if (isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Failed to load tax summary</AlertTitle>
+        <AlertDescription>
+          There was an error loading the tax summary. Please try again.
+        </AlertDescription>
+      </Alert>
+    )
+  }
 
   if (isLoading) {
     return (

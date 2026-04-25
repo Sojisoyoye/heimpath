@@ -1,7 +1,7 @@
 """Portfolio API endpoints."""
 
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Query, status
@@ -194,12 +194,11 @@ async def get_tax_summary(
     property_id: uuid.UUID,
     current_user: CurrentUser,
     session: SessionDep,
-    year: Annotated[int | None, Query()] = None,
+    year: Annotated[int, Query(ge=1900, le=2100)] = datetime.now(timezone.utc).year - 1,
 ) -> AnlageVSummaryResponse:
     """Get Anlage V rental income tax summary for a property and calendar year."""
-    tax_year = year if year is not None else datetime.now().year - 1
     return portfolio_service.calculate_anlage_v_summary(
-        session, property_id, current_user.id, tax_year
+        session, property_id, current_user.id, year
     )
 
 

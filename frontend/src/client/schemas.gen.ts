@@ -137,6 +137,11 @@ export const AnlageVSummaryResponseSchema = {
             type: 'number',
             title: 'Gross Rent Income'
         },
+        other_income: {
+            type: 'number',
+            title: 'Other Income',
+            default: 0
+        },
         afa_rate_percent: {
             type: 'number',
             title: 'Afa Rate Percent'

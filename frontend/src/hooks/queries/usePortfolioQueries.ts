@@ -60,6 +60,9 @@ export function usePortfolioSummary() {
   })
 }
 
+/** Earliest year for which German digital tax records are typically available. */
+const MIN_TAX_YEAR = 1990
+
 /**
  * Get Anlage V rental income tax summary for a property and year
  */
@@ -67,7 +70,7 @@ export function usePortfolioTaxSummary(propertyId: string, year: number) {
   return useQuery({
     queryKey: queryKeys.portfolio.taxSummary(propertyId, year),
     queryFn: () => PortfolioService.getTaxSummary(propertyId, year),
-    enabled: !!propertyId && year > 2000,
+    enabled: !!propertyId && year >= MIN_TAX_YEAR,
   })
 }
 

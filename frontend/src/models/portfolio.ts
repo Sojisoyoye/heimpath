@@ -167,6 +167,7 @@ export interface AnlageVSummary {
   year: number
   propertyId: string
   grossRentIncome: number
+  otherIncome: number
   afaRatePercent: number
   buildingValue: number
   landSharePercent: number

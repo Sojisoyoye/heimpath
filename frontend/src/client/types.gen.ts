@@ -49,6 +49,7 @@ export type AnlageVSummaryResponse = {
     year: number;
     property_id: string;
     gross_rent_income: number;
+    other_income?: number;
     afa_rate_percent: number;
     building_value: number;
     land_share_percent: number;
@@ -3392,7 +3393,7 @@ export type PortfolioGetCostSummaryResponse = (CostSummaryResponse);
 
 export type PortfolioGetTaxSummaryData = {
     propertyId: string;
-    year?: (number | null);
+    year?: number;
 };
 
 export type PortfolioGetTaxSummaryResponse = (AnlageVSummaryResponse);

@@ -219,6 +219,8 @@ class CostSummaryResponse(BaseModel):
 class AnlageVLineItem(BaseModel):
     """A single line in the Anlage V tax return."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     label: str
     anlage_v_zeile: str | None = None
     amount: float
@@ -227,10 +229,13 @@ class AnlageVLineItem(BaseModel):
 class AnlageVSummaryResponse(BaseModel):
     """Annual rental income tax summary for Anlage V (§ 21 EStG)."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     year: int
     property_id: uuid.UUID
     # Income
     gross_rent_income: float
+    other_income: float = 0.0
     # AfA
     afa_rate_percent: float
     building_value: float
