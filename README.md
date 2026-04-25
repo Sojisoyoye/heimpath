@@ -18,42 +18,93 @@ HeimPath is a comprehensive platform helping foreign investors and immigrants na
 
 ## Features
 
-### Core Features
+### Guided Property Journeys
 
-- **Guided Property Journeys** - Personalized step-by-step guidance through the German property buying process
-  - 4 phases: Research, Preparation, Buying, Closing
-  - 15+ customizable steps based on user profile
-  - Task tracking and progress monitoring
-  - Personalization based on property type, financing, residency status
-  - Journey deletion with confirmation
+Personalised step-by-step guidance through the German property buying process.
 
-- **Legal Knowledge Base** - Comprehensive database of 50+ German real estate laws
-  - Laws translated and explained in plain English
-  - Full-text search across all law content
-  - Court rulings and precedents
-  - State-specific variations (e.g., land transfer tax rates)
-  - Bookmark functionality for quick reference
-  - Laws automatically surfaced at relevant journey steps
+- 4 phases: Research → Preparation → Buying → Closing
+- 15+ steps tailored by citizenship, property type, and financing method
+- Separate paths for **live-in buyers**, **rental investors**, and **renters**
+- Task checklists, document upload, and progress tracking per step
+- Market insights auto-generated when the research phase is completed
+- Calculator CTAs surfaced at relevant steps (financing, buying costs, etc.)
+- Post-purchase **Ownership Onboarding** phase (Grundbucheintrag, insurance, utilities)
+- Phase completion banners and portfolio CTA on journey completion
 
-- **Financial Calculators**
-  - Property Evaluation calculator with investment analysis
-  - Hidden costs calculator
-  - ROI calculator
-  - Financing eligibility checker
+### Financial Calculators (12 tabs)
 
-- **Document Translation** - AI-powered translation of German legal documents
-  - Risk warnings for legal/financial terms
-  - Confidence scores for translations
+All calculators are available without login at `/tools/*` for public access.
 
-- **Dashboard** - Overview of active journeys, recent activity, and recommendations
+| Calculator | Description |
+|------------|-------------|
+| **Hidden Costs** | Acquisition costs broken down by category (Grunderwerbsteuer, Notar, Makler) with state-specific rates. Branded PDF export. |
+| **ROI Calculator** | Rental yield and after-tax cash flow, 10-year projection chart, saved calculations, Mietspiegel CTA. |
+| **State Comparison** | Compare land transfer tax, notary fees, and market indicators across all 16 states. |
+| **Financing Wizard** | Mortgage pre-qualification tailored to non-residents: required documents, LTV limits, lender options. |
+| **Property Evaluation** | Spec-compliant valuation using income capitalisation and comparative methods; average rent/sqm by state; shareable links; PDF export. |
+| **GmbH vs. Private** | Side-by-side tax and exit comparison for holding property personally vs. through a GmbH. |
+| **Mortgage Amortisation** | Full amortisation schedule with total interest, early repayment comparison, and 10-year sale profit estimator. |
+| **City Comparison** | Price-per-sqm, rental yield, and market trend data across German cities and districts. |
+| **Cross-Border Tax Guide** | Double-taxation treaty implications for investors from 20+ countries. |
+| **Mortgage Eligibility** | Non-citizen eligibility guide covering bank criteria, required documents, and typical approval conditions. |
+| **Rent Estimate** | Mietspiegel-based monthly rent estimate by postcode, apartment size, and construction year. Pre-fills ROI Calculator. |
+| **Exit Tax (§ 23 EStG)** | Speculation tax calculator: shows capital-gains tax liability on sales within 10 years, exemption detection, and 12-year net proceeds chart. |
 
-- **Notification System** - In-app notifications with read/unread tracking and preferences
+### Professional Network
+
+- Directory of verified bilingual Makler, notaries, lawyers, and tax advisors
+- Structured reviews with star ratings and verified buyer badges
+- Contact inquiry form sent directly to professionals
+- Save/favourite professionals for quick access
+- Admin CRUD back-office for managing listings
+
+### Portfolio Management
+
+- Track owned properties with purchase price, current value, and equity
+- Log rental income, Hausgeld, and maintenance expenses (Nebenkosten tracker)
+- 12-month income vs. expenses performance chart
+- Budget gauge and days-to-target countdown on the dashboard
+
+### Contract & Document Intelligence
+
+- **AI Kaufvertrag Explainer** — Upload a German purchase contract for clause-by-clause analysis with plain-English explanations and risk annotations
+- **Purchase Price Extraction** — Automatically detects the purchase price and bridges it to the Property Evaluation calculator
+- **Document Translation** — Azure Translator-powered translation with risk warnings for legal/financial terms and confidence scores
+- **Document Management** — Upload, filter, share, and delete documents per journey step
+
+### Legal Knowledge Base
+
+50+ German real estate laws translated into plain English.
+
+- Full-text search and category filtering
+- Court rulings and state-specific variations
+- Bookmark functionality for quick reference
+- Laws automatically surfaced at relevant journey steps
+
+### Discovery & Content
+
+- **Global Search** — `Cmd+K` / `Ctrl+K` command palette searches laws, articles, professionals, and glossary terms
+- **Interactive Glossary** — 200+ German real estate terms with definitions, examples, and categories
+- **Content Library** — SEO-optimised articles linked to relevant journey steps
+- **SEO** — Meta tags, Open Graph, Twitter cards, and JSON-LD structured data on all public pages
+
+### Dashboard
+
+- Active journey progress (ring chart), recent activity timeline
+- Budget gauge and days-to-target countdown
+- Personalised recommendations
+- Portfolio performance summary
+
+### Notifications
+
+- In-app notifications with read/unread tracking
+- Per-category notification preferences
+- Email notifications and opt-in weekly digest
 
 ### Technical Features
 
 - **Authentication & Authorization**
-  - JWT-based authentication
-  - Email verification
+  - JWT-based authentication with email verification
   - Password recovery
   - GDPR-compliant data export and account deletion
 
@@ -199,12 +250,42 @@ See `.env.example` for the full list.
 ### Calculators
 - `POST /api/v1/calculators/hidden-costs` - Calculate hidden costs
 - `POST /api/v1/calculators/roi` - Calculate ROI
+- `GET /api/v1/calculators/roi` - List saved ROI calculations
+- `DELETE /api/v1/calculators/roi/{id}` - Delete saved ROI calculation
 - `POST /api/v1/calculators/property-evaluations` - Evaluate property
+- `GET /api/v1/calculators/property-evaluations` - List saved evaluations
+- `GET /api/v1/calculators/property-evaluations/{share_id}` - Load shared evaluation
+- `GET /api/v1/calculators/rent-estimate` - Estimate rent by postcode (Mietspiegel)
+
+### Professionals
+- `GET /api/v1/professionals/` - List professionals (with filters)
+- `GET /api/v1/professionals/{id}` - Get professional details
+- `POST /api/v1/professionals/{id}/contact` - Send contact inquiry
+- `POST /api/v1/professionals/{id}/saved` - Save/unsave a professional
+- `GET /api/v1/professionals/saved` - List saved professionals
+
+### Portfolio
+- `GET /api/v1/portfolio/properties` - List portfolio properties
+- `POST /api/v1/portfolio/properties` - Add property to portfolio
+- `GET /api/v1/portfolio/properties/{id}/income` - Rental income entries
+- `POST /api/v1/portfolio/properties/{id}/income` - Log rental income
+- `GET /api/v1/portfolio/properties/{id}/costs` - Running cost entries
+- `POST /api/v1/portfolio/properties/{id}/costs` - Log running cost
+
+### Contracts & Documents
+- `POST /api/v1/contracts/analyze` - Analyse Kaufvertrag clauses
+- `GET /api/v1/documents/` - List uploaded documents
+- `POST /api/v1/documents/` - Upload document
+- `DELETE /api/v1/documents/{id}` - Delete document
+
+### Glossary
+- `GET /api/v1/glossary/` - List glossary terms
+- `GET /api/v1/glossary/search?q={query}` - Search glossary
 
 ### Dashboard
 - `GET /api/v1/dashboard` - Dashboard overview
 - `GET /api/v1/dashboard/activity` - Recent activity
-- `GET /api/v1/dashboard/recommendations` - Personalized recommendations
+- `GET /api/v1/dashboard/recommendations` - Personalised recommendations
 
 ### Subscriptions
 - `GET /api/v1/subscriptions/current` - Get current subscription
