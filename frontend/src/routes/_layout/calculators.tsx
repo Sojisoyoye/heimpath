@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Euro,
   Globe,
+  Home,
   Landmark,
   MapPin,
   Scale,
@@ -22,6 +23,7 @@ import {
   CityComparison,
   CrossBorderTaxGuide,
   FinancingWizard,
+  GrundsteuerCalculator,
   HiddenCostsCalculator,
   MortgageAmortisation,
   MortgageEligibilityGuide,
@@ -176,6 +178,14 @@ function CalculatorsPage() {
             <Scale className="h-4 w-4" />
             <span className="hidden sm:inline">Exit Tax</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="grundsteuer"
+            className="gap-2"
+            aria-label="Property Tax"
+          >
+            <Home className="h-4 w-4" />
+            <span className="hidden sm:inline">Property Tax</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -224,6 +234,10 @@ function CalculatorsPage() {
 
         <TabsContent value="speculation-tax" className="mt-6">
           <SpeculationTaxCalculator />
+        </TabsContent>
+
+        <TabsContent value="grundsteuer" className="mt-6">
+          <GrundsteuerCalculator />
         </TabsContent>
       </Tabs>
     </div>

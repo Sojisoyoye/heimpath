@@ -5,6 +5,7 @@
 export { CityComparison } from "./CityComparison"
 export { CrossBorderTaxGuide } from "./CrossBorderTaxGuide"
 export { FinancingWizard } from "./FinancingWizard"
+export { GrundsteuerCalculator } from "./GrundsteuerCalculator"
 export { HiddenCostsCalculator } from "./HiddenCostsCalculator"
 export { MortgageAmortisation } from "./MortgageAmortisation"
 export { MortgageEligibilityGuide } from "./MortgageEligibilityGuide"
