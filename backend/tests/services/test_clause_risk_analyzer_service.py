@@ -245,8 +245,7 @@ class TestAnalyzeClauseRisks:
         ]
         # 20 items returned by AI, 5 remainder get empty reason
         ai_response = [
-            {"risk_level": "medium", "risk_reason": f"Reason {i}"}
-            for i in range(20)
+            {"risk_level": "medium", "risk_reason": f"Reason {i}"} for i in range(20)
         ]
         mock_client = MagicMock()
         mock_message = MagicMock()

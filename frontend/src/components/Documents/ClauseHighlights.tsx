@@ -59,8 +59,8 @@ function groupByType(
 }
 
 /** Build a stable key for a clause item within its type group. */
-function clauseKey(clause: DetectedClause, index: number): string {
-  return `${clause.clauseType}-${clause.pageNumber}-${index}`
+function clauseKey(clause: DetectedClause): string {
+  return `${clause.clauseType}-${clause.pageNumber}-${clause.originalText.slice(0, 20)}`
 }
 
 /******************************************************************************
@@ -74,8 +74,14 @@ interface IRiskSummaryProps {
 /** Banner summarising high and medium risk clause counts. */
 function RiskSummaryBanner(props: Readonly<IRiskSummaryProps>) {
   const { clauses } = props
-  const highCount = clauses.filter((c) => c.riskLevel === "high").length
-  const mediumCount = clauses.filter((c) => c.riskLevel === "medium").length
+  const { highCount, mediumCount } = clauses.reduce(
+    (acc, c) => {
+      if (c.riskLevel === "high") acc.highCount++
+      else if (c.riskLevel === "medium") acc.mediumCount++
+      return acc
+    },
+    { highCount: 0, mediumCount: 0 },
+  )
 
   if (highCount === 0 && mediumCount === 0) return null
 
@@ -104,7 +110,6 @@ function RiskSummaryBanner(props: Readonly<IRiskSummaryProps>) {
 
 interface IClauseItemProps {
   clause: DetectedClause
-  itemKey: string
 }
 
 /** Single clause card with coloured left border and expandable risk reason. */
@@ -197,12 +202,8 @@ function ClauseHighlights(props: Readonly<IProps>) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {items.map((clause, i) => (
-              <ClauseItem
-                key={clauseKey(clause, i)}
-                clause={clause}
-                itemKey={clauseKey(clause, i)}
-              />
+            {items.map((clause) => (
+              <ClauseItem key={clauseKey(clause)} clause={clause} />
             ))}
           </CardContent>
         </Card>
