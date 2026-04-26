@@ -151,6 +151,14 @@ export interface WohnungsgrundrissAnalysis {
   isAiGenerated: boolean
 }
 
+export interface GlossaryLink {
+  termDe: string
+  termEn: string
+  slug: string
+  definitionShort: string
+  pageNumbers: number[]
+}
+
 export interface DocumentTranslation {
   id: string
   documentId: string
@@ -161,6 +169,7 @@ export interface DocumentTranslation {
   riskWarnings: DocumentRiskWarning[]
   kaufvertragAnalysis: KaufvertragAnalysis | null
   typeAnalysis: Record<string, unknown> | null
+  glossaryLinks?: GlossaryLink[]
   processingStartedAt: string | null
   processingCompletedAt: string | null
 }

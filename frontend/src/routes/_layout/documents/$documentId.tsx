@@ -182,7 +182,10 @@ function DocumentDetailPage() {
           </TabsList>
 
           <TabsContent value="translation" className="mt-4">
-            <TranslationViewer pages={translation.translatedPages} />
+            <TranslationViewer
+              pages={translation.translatedPages}
+              glossaryLinks={translation.glossaryLinks}
+            />
           </TabsContent>
 
           <TabsContent value="clauses" className="mt-4">

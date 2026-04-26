@@ -105,6 +105,16 @@ class DocumentRiskWarning(BaseModel):
     page_number: int | None = None
 
 
+class GlossaryLink(BaseModel):
+    """A glossary term matched in the document, with page locations."""
+
+    term_de: str
+    term_en: str
+    slug: str
+    definition_short: str
+    page_numbers: list[int] = Field(default_factory=list)
+
+
 class AnalyzedClause(BaseModel):
     """AI-analyzed clause from a Kaufvertrag."""
 
@@ -152,6 +162,7 @@ class DocumentTranslationResponse(BaseModel):
     risk_warnings: list[DocumentRiskWarning]
     kaufvertrag_analysis: KaufvertragAnalysis | None = None
     type_analysis: dict | None = None
+    glossary_links: list[GlossaryLink] = Field(default_factory=list)
     processing_started_at: datetime | None = None
     processing_completed_at: datetime | None = None
 

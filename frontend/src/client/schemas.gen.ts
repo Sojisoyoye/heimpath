@@ -2370,6 +2370,13 @@ export const DocumentTranslationResponseSchema = {
             ],
             title: 'Type Analysis'
         },
+        glossary_links: {
+            items: {
+                '$ref': '#/components/schemas/GlossaryLink'
+            },
+            type: 'array',
+            title: 'Glossary Links'
+        },
         processing_started_at: {
             anyOf: [
                 {
@@ -2942,6 +2949,38 @@ export const GlossaryCategoryInfoSchema = {
     required: ['id', 'name', 'count'],
     title: 'GlossaryCategoryInfo',
     description: 'Category with term count.'
+} as const;
+
+export const GlossaryLinkSchema = {
+    properties: {
+        term_de: {
+            type: 'string',
+            title: 'Term De'
+        },
+        term_en: {
+            type: 'string',
+            title: 'Term En'
+        },
+        slug: {
+            type: 'string',
+            title: 'Slug'
+        },
+        definition_short: {
+            type: 'string',
+            title: 'Definition Short'
+        },
+        page_numbers: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Page Numbers'
+        }
+    },
+    type: 'object',
+    required: ['term_de', 'term_en', 'slug', 'definition_short'],
+    title: 'GlossaryLink',
+    description: 'A glossary term matched in the document, with page locations.'
 } as const;
 
 export const GlossaryListResponseSchema = {
