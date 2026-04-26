@@ -596,6 +596,14 @@ export type DetectedClause = {
      * Plain-English explanation of why this risk level was assigned
      */
     risk_reason?: string;
+    /**
+     * Translation confidence: high, medium, or low
+     */
+    confidence_level?: string;
+    /**
+     * Translation confidence score 0-100
+     */
+    confidence_score?: number;
 };
 
 /**

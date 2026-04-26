@@ -1,15 +1,22 @@
 /**
  * Clause Highlights Component
  * Detected clauses grouped by type with risk level badges, coloured
- * left-border indicators, expandable risk explanations, and a summary banner.
+ * left-border indicators, expandable risk explanations, confidence indicators,
+ * and a summary banner.
  */
 
-import { AlertTriangle, ChevronDown, ChevronUp } from "lucide-react"
+import { AlertTriangle, ChevronDown, ChevronUp, HelpCircle } from "lucide-react"
 import { useState } from "react"
 
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { DetectedClause } from "@/models/document"
 
 interface IProps {
@@ -71,40 +78,113 @@ interface IRiskSummaryProps {
   clauses: DetectedClause[]
 }
 
-/** Banner summarising high and medium risk clause counts. */
+/** Banner summarising high/medium risk counts and low-confidence clause count. */
 function RiskSummaryBanner(props: Readonly<IRiskSummaryProps>) {
   const { clauses } = props
-  const { highCount, mediumCount } = clauses.reduce(
+  const { highCount, mediumCount, lowConfidenceCount } = clauses.reduce(
     (acc, c) => {
       if (c.riskLevel === "high") acc.highCount++
       else if (c.riskLevel === "medium") acc.mediumCount++
+      if (c.confidenceLevel === "low") acc.lowConfidenceCount++
       return acc
     },
-    { highCount: 0, mediumCount: 0 },
+    { highCount: 0, mediumCount: 0, lowConfidenceCount: 0 },
   )
 
-  if (highCount === 0 && mediumCount === 0) return null
+  if (highCount === 0 && mediumCount === 0 && lowConfidenceCount === 0)
+    return null
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950/30">
-      <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
-      <p className="text-sm text-red-800 dark:text-red-300">
-        {highCount > 0 && (
-          <span className="font-semibold">
-            {highCount} high-risk clause{highCount === 1 ? "" : "s"} found
-            {" — "}review before signing
-          </span>
-        )}
-        {highCount > 0 && mediumCount > 0 && (
-          <span className="text-red-600 dark:text-red-400"> · </span>
-        )}
-        {mediumCount > 0 && (
-          <span>
-            {mediumCount} clause{mediumCount === 1 ? "" : "s"} need attention
-          </span>
-        )}
-      </p>
+    <div className="space-y-2">
+      {(highCount > 0 || mediumCount > 0) && (
+        <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950/30">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+          <p className="text-sm text-red-800 dark:text-red-300">
+            {highCount > 0 && (
+              <span className="font-semibold">
+                {highCount} high-risk clause{highCount === 1 ? "" : "s"} found
+                {" — "}review before signing
+              </span>
+            )}
+            {highCount > 0 && mediumCount > 0 && (
+              <span className="text-red-600 dark:text-red-400"> · </span>
+            )}
+            {mediumCount > 0 && (
+              <span>
+                {mediumCount} clause{mediumCount === 1 ? "" : "s"} need
+                attention
+              </span>
+            )}
+          </p>
+        </div>
+      )}
+      {lowConfidenceCount > 0 && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900 dark:bg-amber-950/30">
+          <HelpCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="text-sm text-amber-800 dark:text-amber-300">
+            <span className="font-semibold">
+              {lowConfidenceCount} clause
+              {lowConfidenceCount === 1 ? "" : "s"} contain complex legal
+              language
+            </span>
+            {" — "}consult a professional for accurate interpretation
+          </p>
+        </div>
+      )}
     </div>
+  )
+}
+
+interface IConfidenceBadgeProps {
+  confidenceLevel: string
+  confidenceScore: number
+}
+
+/** Inline confidence indicator shown beside the translation text. */
+function ConfidenceBadge(props: Readonly<IConfidenceBadgeProps>) {
+  const { confidenceLevel, confidenceScore } = props
+
+  if (confidenceLevel === "high") return null
+
+  if (confidenceLevel === "medium") {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center gap-0.5 text-xs italic text-muted-foreground cursor-help">
+            <HelpCircle className="h-3 w-3" />~
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-56 text-xs" side="top">
+          Translation may vary — verify with source text
+          {confidenceScore < 100 && (
+            <span className="block text-muted-foreground mt-0.5">
+              Confidence: {confidenceScore}%
+            </span>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
+  // low confidence
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 cursor-help">
+          <AlertTriangle className="h-3 w-3 shrink-0" />
+          Complex legal language
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-56 text-xs" side="top">
+        Archaic or jurisdiction-specific German — consult a professional for
+        this clause
+        {confidenceScore < 100 && (
+          <span className="block text-muted-foreground mt-0.5">
+            Confidence: {confidenceScore}%
+          </span>
+        )}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -157,7 +237,13 @@ function ClauseItem(props: Readonly<IClauseItemProps>) {
         </div>
         {clause.translatedText && (
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Translation</p>
+            <div className="flex items-center gap-1 mb-1">
+              <p className="text-xs text-muted-foreground">Translation</p>
+              <ConfidenceBadge
+                confidenceLevel={clause.confidenceLevel}
+                confidenceScore={clause.confidenceScore}
+              />
+            </div>
             <p className="text-sm">{clause.translatedText}</p>
           </div>
         )}
@@ -174,7 +260,7 @@ function ClauseItem(props: Readonly<IClauseItemProps>) {
   )
 }
 
-/** Default component. Grouped clause highlights with risk summary. */
+/** Default component. Grouped clause highlights with risk and confidence summary. */
 function ClauseHighlights(props: Readonly<IProps>) {
   const { clauses } = props
 
@@ -189,26 +275,28 @@ function ClauseHighlights(props: Readonly<IProps>) {
   const grouped = groupByType(clauses)
 
   return (
-    <div className="space-y-4">
-      <RiskSummaryBanner clauses={clauses} />
-      {Object.entries(grouped).map(([type, items]) => (
-        <Card key={type}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              {CLAUSE_TYPE_LABELS[type] ?? type}
-              <Badge variant="outline" className="ml-2 text-xs">
-                {items.length}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {items.map((clause) => (
-              <ClauseItem key={clauseKey(clause)} clause={clause} />
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <TooltipProvider>
+      <div className="space-y-4">
+        <RiskSummaryBanner clauses={clauses} />
+        {Object.entries(grouped).map(([type, items]) => (
+          <Card key={type}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">
+                {CLAUSE_TYPE_LABELS[type] ?? type}
+                <Badge variant="outline" className="ml-2 text-xs">
+                  {items.length}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {items.map((clause) => (
+                <ClauseItem key={clauseKey(clause)} clause={clause} />
+              ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </TooltipProvider>
   )
 }
 

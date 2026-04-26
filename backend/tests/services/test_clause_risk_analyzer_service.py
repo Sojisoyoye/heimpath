@@ -6,8 +6,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.services.clause_risk_analyzer_service import (
-    _add_empty_risk_reason,
+    _add_defaults,
     _build_clauses_text,
+    _estimate_confidence,
     _parse_risk_response,
     analyze_clause_risks,
 )
@@ -42,14 +43,20 @@ VALID_RISK_RESPONSE = [
     {
         "risk_level": "high",
         "risk_reason": "Full warranty exclusion is unusual; buyer accepts all defects.",
+        "confidence_level": "high",
+        "confidence_score": 92,
     },
     {
         "risk_level": "medium",
         "risk_reason": "Standard purchase price clause — verify amount matches offer.",
+        "confidence_level": "high",
+        "confidence_score": 95,
     },
     {
         "risk_level": "medium",
         "risk_reason": "Standard deadline; confirm timeline is achievable.",
+        "confidence_level": "medium",
+        "confidence_score": 75,
     },
 ]
 
@@ -105,6 +112,14 @@ class TestParseRiskResponse:
         assert result[0]["risk_level"] == "high"
         assert "warranty" in result[0]["risk_reason"]
 
+    def test_parses_confidence_fields(self) -> None:
+        raw = json.dumps(VALID_RISK_RESPONSE)
+        result = _parse_risk_response(raw, 3)
+        assert result is not None
+        assert result[0]["confidence_level"] == "high"
+        assert result[0]["confidence_score"] == 92
+        assert result[2]["confidence_level"] == "medium"
+
     def test_strips_markdown_json_fences(self) -> None:
         raw = f"```json\n{json.dumps(VALID_RISK_RESPONSE)}\n```"
         result = _parse_risk_response(raw, 3)
@@ -125,13 +140,45 @@ class TestParseRiskResponse:
         assert result is None
 
     def test_coerces_invalid_risk_level_to_medium(self) -> None:
-        data = [{"risk_level": "extreme", "risk_reason": "Very bad."}]
+        data = [
+            {
+                "risk_level": "extreme",
+                "risk_reason": "Very bad.",
+                "confidence_level": "high",
+                "confidence_score": 90,
+            }
+        ]
         result = _parse_risk_response(json.dumps(data), 1)
         assert result is not None
         assert result[0]["risk_level"] == "medium"
 
+    def test_coerces_invalid_confidence_level_to_high(self) -> None:
+        data = [
+            {
+                "risk_level": "low",
+                "risk_reason": "Fine.",
+                "confidence_level": "excellent",
+                "confidence_score": 90,
+            }
+        ]
+        result = _parse_risk_response(json.dumps(data), 1)
+        assert result is not None
+        assert result[0]["confidence_level"] == "high"
+
+    def test_defaults_out_of_range_confidence_score(self) -> None:
+        data = [
+            {
+                "risk_level": "low",
+                "risk_reason": "Fine.",
+                "confidence_level": "high",
+                "confidence_score": 150,
+            }
+        ]
+        result = _parse_risk_response(json.dumps(data), 1)
+        assert result is not None
+        assert result[0]["confidence_score"] == 92
+
     def test_tolerates_count_mismatch(self) -> None:
-        # Returns data even if count differs from expected
         data = [{"risk_level": "high", "risk_reason": "test"}]
         result = _parse_risk_response(json.dumps(data), 3)
         assert result is not None
@@ -144,6 +191,48 @@ class TestParseRiskResponse:
         assert result[0]["risk_reason"] == ""
 
 
+# --- _estimate_confidence ---
+
+
+class TestEstimateConfidence:
+    def test_short_simple_clause_is_high(self) -> None:
+        clause = {"original_text": "Der Kaufpreis beträgt EUR 350.000."}
+        level, score = _estimate_confidence(clause)
+        assert level == "high"
+        assert score >= 85
+
+    def test_clause_with_one_archaic_pattern_is_medium(self) -> None:
+        clause = {"original_text": "gemäß den Vereinbarungen gilt folgendes."}
+        level, score = _estimate_confidence(clause)
+        assert level == "medium"
+        assert 60 <= score < 85
+
+    def test_clause_with_multiple_archaic_patterns_is_low(self) -> None:
+        clause = {
+            "original_text": "Gemäß § 433 BGB vorbehaltlich der Regelungen des Abs. 2."
+        }
+        level, score = _estimate_confidence(clause)
+        assert level == "low"
+        assert score < 60
+
+    def test_long_clause_over_50_words_is_low(self) -> None:
+        long_text = " ".join(["Wort"] * 55)
+        clause = {"original_text": long_text}
+        level, score = _estimate_confidence(clause)
+        assert level == "low"
+
+    def test_medium_length_clause_is_medium(self) -> None:
+        medium_text = " ".join(["Wort"] * 30)
+        clause = {"original_text": medium_text}
+        level, score = _estimate_confidence(clause)
+        assert level == "medium"
+
+    def test_empty_text_returns_high(self) -> None:
+        clause = {"original_text": ""}
+        level, score = _estimate_confidence(clause)
+        assert level == "high"
+
+
 # --- analyze_clause_risks ---
 
 
@@ -154,7 +243,7 @@ class TestAnalyzeClauseRisks:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_returns_clauses_with_empty_reason_when_not_configured(
+    async def test_returns_clauses_with_defaults_when_not_configured(
         self,
     ) -> None:
         with patch(
@@ -164,7 +253,9 @@ class TestAnalyzeClauseRisks:
             result = await analyze_clause_risks(SAMPLE_CLAUSES)
         assert len(result) == 3
         assert all("risk_reason" in c for c in result)
-        assert all(c["risk_reason"] == "" for c in result)
+        assert all("confidence_level" in c for c in result)
+        assert all("confidence_score" in c for c in result)
+        assert all(c["confidence_level"] in {"high", "medium", "low"} for c in result)
 
     @pytest.mark.asyncio
     async def test_enriches_clauses_on_success(self) -> None:
@@ -183,6 +274,9 @@ class TestAnalyzeClauseRisks:
         assert result[0]["risk_level"] == "high"
         assert "warranty" in result[0]["risk_reason"]
         assert result[1]["risk_level"] == "medium"
+        assert result[0]["confidence_level"] == "high"
+        assert result[0]["confidence_score"] == 92
+        assert result[2]["confidence_level"] == "medium"
 
     @pytest.mark.asyncio
     async def test_preserves_original_fields(self) -> None:
@@ -213,7 +307,8 @@ class TestAnalyzeClauseRisks:
             result = await analyze_clause_risks(SAMPLE_CLAUSES)
 
         assert len(result) == 3
-        assert all(c["risk_reason"] == "" for c in result)
+        assert all("confidence_level" in c for c in result)
+        assert all("confidence_score" in c for c in result)
 
     @pytest.mark.asyncio
     async def test_falls_back_on_invalid_response(self) -> None:
@@ -229,7 +324,7 @@ class TestAnalyzeClauseRisks:
             result = await analyze_clause_risks(SAMPLE_CLAUSES)
 
         assert len(result) == 3
-        assert all(c["risk_reason"] == "" for c in result)
+        assert all("confidence_level" in c for c in result)
 
     @pytest.mark.asyncio
     async def test_caps_batch_at_max_clauses(self) -> None:
@@ -243,9 +338,14 @@ class TestAnalyzeClauseRisks:
             }
             for i in range(25)
         ]
-        # 20 items returned by AI, 5 remainder get empty reason
         ai_response = [
-            {"risk_level": "medium", "risk_reason": f"Reason {i}"} for i in range(20)
+            {
+                "risk_level": "medium",
+                "risk_reason": f"Reason {i}",
+                "confidence_level": "high",
+                "confidence_score": 90,
+            }
+            for i in range(20)
         ]
         mock_client = MagicMock()
         mock_message = MagicMock()
@@ -261,26 +361,46 @@ class TestAnalyzeClauseRisks:
         assert len(result) == 25
         assert result[0]["risk_reason"] == "Reason 0"
         assert result[24]["risk_reason"] == ""
+        # Remainder gets heuristic confidence
+        assert result[24]["confidence_level"] in {"high", "medium", "low"}
 
 
-# --- _add_empty_risk_reason ---
+# --- _add_defaults ---
 
 
-class TestAddEmptyRiskReason:
+class TestAddDefaults:
+    def test_adds_confidence_fields(self) -> None:
+        clauses = [
+            {"clause_type": "deadline", "risk_level": "high", "original_text": "Frist"}
+        ]
+        result = _add_defaults(clauses)
+        assert "confidence_level" in result[0]
+        assert "confidence_score" in result[0]
+
     def test_adds_risk_reason_field(self) -> None:
-        clauses = [{"clause_type": "deadline", "risk_level": "high"}]
-        result = _add_empty_risk_reason(clauses)
+        clauses = [
+            {"clause_type": "deadline", "risk_level": "high", "original_text": "Frist"}
+        ]
+        result = _add_defaults(clauses)
         assert result[0]["risk_reason"] == ""
 
     def test_preserves_existing_risk_reason(self) -> None:
         clauses = [
-            {"clause_type": "deadline", "risk_level": "high", "risk_reason": "Tight"}
+            {
+                "clause_type": "deadline",
+                "risk_level": "high",
+                "risk_reason": "Tight",
+                "original_text": "Frist",
+            }
         ]
-        result = _add_empty_risk_reason(clauses)
+        result = _add_defaults(clauses)
         assert result[0]["risk_reason"] == "Tight"
 
     def test_does_not_mutate_original(self) -> None:
-        clauses = [{"clause_type": "deadline", "risk_level": "high"}]
-        result = _add_empty_risk_reason(clauses)
+        clauses = [
+            {"clause_type": "deadline", "risk_level": "high", "original_text": "Frist"}
+        ]
+        result = _add_defaults(clauses)
         assert "risk_reason" not in clauses[0]
+        assert "confidence_level" not in clauses[0]
         assert result[0]["risk_reason"] == ""

@@ -2023,6 +2023,18 @@ export const DetectedClauseSchema = {
             title: 'Risk Reason',
             description: 'Plain-English explanation of why this risk level was assigned',
             default: ''
+        },
+        confidence_level: {
+            type: 'string',
+            title: 'Confidence Level',
+            description: 'Translation confidence: high, medium, or low',
+            default: 'high'
+        },
+        confidence_score: {
+            type: 'integer',
+            title: 'Confidence Score',
+            description: 'Translation confidence score 0-100',
+            default: 100
         }
     },
     type: 'object',

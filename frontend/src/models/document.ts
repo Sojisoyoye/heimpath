@@ -41,6 +41,8 @@ export interface DetectedClause {
   pageNumber: number
   riskLevel: string
   riskReason: string
+  confidenceLevel: string
+  confidenceScore: number
 }
 
 export interface DocumentRiskWarning {
