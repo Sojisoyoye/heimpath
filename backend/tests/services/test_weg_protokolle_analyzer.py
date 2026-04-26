@@ -96,7 +96,11 @@ class TestParseWegResponse:
     def test_missing_required_keys_returns_none(self) -> None:
         # Missing risk_flags key
         incomplete = {
-            "reserve_assessment": {"reserve_balance_eur": None, "assessment": "unknown", "details": ""},
+            "reserve_assessment": {
+                "reserve_balance_eur": None,
+                "assessment": "unknown",
+                "details": "",
+            },
             "low_confidence_warning": False,
         }
         required = {"risk_flags", "reserve_assessment", "low_confidence_warning"}
@@ -143,6 +147,8 @@ class TestAnalyzeWegProtokolle:
 
     @pytest.mark.asyncio
     async def test_sonderumlage_detected_as_high_risk(self) -> None:
+        # Verifies that risk_level="high" from Claude's JSON is preserved
+        # through the parsing layer and returned in the result.
         mock_client = MagicMock()
         mock_message = MagicMock()
         mock_message.content = [MagicMock(text=json.dumps(WEG_ANALYSIS))]
@@ -164,13 +170,18 @@ class TestAnalyzeWegProtokolle:
 
     @pytest.mark.asyncio
     async def test_clean_protokoll_has_no_risk_flags(self) -> None:
+        # Verifies that an empty risk_flags list from Claude's JSON is
+        # correctly propagated through the parsing layer.
         mock_client = MagicMock()
         mock_message = MagicMock()
         mock_message.content = [MagicMock(text=json.dumps(WEG_ANALYSIS_CLEAN))]
         mock_client.messages.create.return_value = mock_message
 
         clean_pages = [
-            {"page_number": 1, "original_text": "Protokoll ohne besondere Vorkommnisse."}
+            {
+                "page_number": 1,
+                "original_text": "Protokoll ohne besondere Vorkommnisse.",
+            }
         ]
 
         with patch(

@@ -15,6 +15,7 @@ import type {
   RiskFlag,
   TeilungserklaerungAnalysis,
   WegProtokolleAnalysis,
+  WegReserveAssessment,
   WegRiskFlag,
   WohnungsgrundrissAnalysis,
 } from "@/models/document"
@@ -33,6 +34,17 @@ const RISK_LEVEL_STYLES: Record<string, string> = {
   medium:
     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   low: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+}
+
+const RESERVE_ASSESSMENT_STYLES: Record<
+  WegReserveAssessment["assessment"],
+  string
+> = {
+  adequate:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  low: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  critical: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  unknown: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 }
 
 /******************************************************************************
@@ -344,14 +356,6 @@ function GrundrissView(props: Readonly<{ data: WohnungsgrundrissAnalysis }>) {
   )
 }
 
-const RESERVE_ASSESSMENT_STYLES: Record<string, string> = {
-  adequate:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  low: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  critical: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  unknown: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-}
-
 interface IWegRiskFlagProps {
   flag: WegRiskFlag
 }
@@ -465,8 +469,8 @@ function WegProtokolleView(props: Readonly<{ data: WegProtokolleAnalysis }>) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {data.upcomingCosts.map((cost) => (
-              <div key={cost.description} className="space-y-1">
+            {data.upcomingCosts.map((cost, i) => (
+              <div key={`${i}-${cost.description}`} className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium">{cost.description}</p>
                   <div className="text-right shrink-0">
@@ -503,8 +507,8 @@ function WegProtokolleView(props: Readonly<{ data: WegProtokolleAnalysis }>) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {data.disputes.map((dispute) => (
-              <div key={dispute.description} className="space-y-1">
+            {data.disputes.map((dispute, i) => (
+              <div key={`${i}-${dispute.description}`} className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium">{dispute.description}</p>
                   <Badge variant="outline" className="text-xs shrink-0">
