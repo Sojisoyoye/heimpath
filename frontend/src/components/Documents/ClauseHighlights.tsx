@@ -1,7 +1,11 @@
 /**
  * Clause Highlights Component
- * Detected clauses grouped by type with risk level badges
+ * Detected clauses grouped by type with risk level badges, coloured
+ * left-border indicators, expandable risk explanations, and a summary banner.
  */
+
+import { AlertTriangle, ChevronDown, ChevronUp } from "lucide-react"
+import { useState } from "react"
 
 import { cn } from "@/common/utils"
 import { Badge } from "@/components/ui/badge"
@@ -24,11 +28,17 @@ const CLAUSE_TYPE_LABELS: Record<string, string> = {
   financial_term: "Financial Term",
 }
 
-const RISK_LEVEL_STYLES: Record<string, string> = {
+const RISK_BADGE_STYLES: Record<string, string> = {
   high: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   medium:
     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   low: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+}
+
+const RISK_BORDER_STYLES: Record<string, string> = {
+  high: "border-l-4 border-l-red-500",
+  medium: "border-l-4 border-l-yellow-500",
+  low: "border-l-4 border-l-green-500",
 }
 
 /******************************************************************************
@@ -48,12 +58,124 @@ function groupByType(
   return groups
 }
 
+/** Build a stable key for a clause item within its type group. */
+function clauseKey(clause: DetectedClause): string {
+  return `${clause.clauseType}-${clause.pageNumber}-${clause.originalText.slice(0, 20)}`
+}
+
 /******************************************************************************
                               Components
 ******************************************************************************/
 
-/** Default component. Grouped clause highlights. */
-function ClauseHighlights(props: IProps) {
+interface IRiskSummaryProps {
+  clauses: DetectedClause[]
+}
+
+/** Banner summarising high and medium risk clause counts. */
+function RiskSummaryBanner(props: Readonly<IRiskSummaryProps>) {
+  const { clauses } = props
+  const { highCount, mediumCount } = clauses.reduce(
+    (acc, c) => {
+      if (c.riskLevel === "high") acc.highCount++
+      else if (c.riskLevel === "medium") acc.mediumCount++
+      return acc
+    },
+    { highCount: 0, mediumCount: 0 },
+  )
+
+  if (highCount === 0 && mediumCount === 0) return null
+
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950/30">
+      <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+      <p className="text-sm text-red-800 dark:text-red-300">
+        {highCount > 0 && (
+          <span className="font-semibold">
+            {highCount} high-risk clause{highCount === 1 ? "" : "s"} found
+            {" — "}review before signing
+          </span>
+        )}
+        {highCount > 0 && mediumCount > 0 && (
+          <span className="text-red-600 dark:text-red-400"> · </span>
+        )}
+        {mediumCount > 0 && (
+          <span>
+            {mediumCount} clause{mediumCount === 1 ? "" : "s"} need attention
+          </span>
+        )}
+      </p>
+    </div>
+  )
+}
+
+interface IClauseItemProps {
+  clause: DetectedClause
+}
+
+/** Single clause card with coloured left border and expandable risk reason. */
+function ClauseItem(props: Readonly<IClauseItemProps>) {
+  const { clause } = props
+  const [expanded, setExpanded] = useState(false)
+  const hasReason = clause.riskReason.trim().length > 0
+  const borderStyle =
+    RISK_BORDER_STYLES[clause.riskLevel] ?? RISK_BORDER_STYLES.low
+
+  return (
+    <div className={cn("rounded-md border p-3 space-y-2", borderStyle)}>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          Page {clause.pageNumber}
+        </p>
+        <div className="flex items-center gap-1 shrink-0">
+          <Badge
+            variant="outline"
+            className={cn("text-xs", RISK_BADGE_STYLES[clause.riskLevel])}
+          >
+            {clause.riskLevel} risk
+          </Badge>
+          {hasReason && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-expanded={expanded}
+              aria-label={expanded ? "Hide explanation" : "Show explanation"}
+            >
+              {expanded ? (
+                <ChevronUp className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" />
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+        <div>
+          <p className="text-xs text-muted-foreground mb-1">Original</p>
+          <p className="text-sm">{clause.originalText}</p>
+        </div>
+        {clause.translatedText && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Translation</p>
+            <p className="text-sm">{clause.translatedText}</p>
+          </div>
+        )}
+      </div>
+      {expanded && hasReason && (
+        <div className="rounded bg-muted/50 px-2 py-1.5">
+          <p className="text-xs font-medium text-muted-foreground mb-0.5">
+            Why this risk level?
+          </p>
+          <p className="text-xs">{clause.riskReason}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Default component. Grouped clause highlights with risk summary. */
+function ClauseHighlights(props: Readonly<IProps>) {
   const { clauses } = props
 
   if (!clauses.length) {
@@ -68,50 +190,20 @@ function ClauseHighlights(props: IProps) {
 
   return (
     <div className="space-y-4">
+      <RiskSummaryBanner clauses={clauses} />
       {Object.entries(grouped).map(([type, items]) => (
         <Card key={type}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
-              {CLAUSE_TYPE_LABELS[type] || type}
+              {CLAUSE_TYPE_LABELS[type] ?? type}
               <Badge variant="outline" className="ml-2 text-xs">
                 {items.length}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {items.map((clause, i) => (
-              <div key={i} className="border rounded-md p-3 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-xs text-muted-foreground">
-                    Page {clause.pageNumber}
-                  </p>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-xs",
-                      RISK_LEVEL_STYLES[clause.riskLevel],
-                    )}
-                  >
-                    {clause.riskLevel} risk
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">
-                      Original
-                    </p>
-                    <p className="text-sm">{clause.originalText}</p>
-                  </div>
-                  {clause.translatedText && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Translation
-                      </p>
-                      <p className="text-sm">{clause.translatedText}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+            {items.map((clause) => (
+              <ClauseItem key={clauseKey(clause)} clause={clause} />
             ))}
           </CardContent>
         </Card>

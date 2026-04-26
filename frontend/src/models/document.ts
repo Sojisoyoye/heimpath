@@ -40,6 +40,7 @@ export interface DetectedClause {
   translatedText: string
   pageNumber: number
   riskLevel: string
+  riskReason: string
 }
 
 export interface DocumentRiskWarning {
