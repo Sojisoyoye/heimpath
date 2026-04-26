@@ -1,7 +1,5 @@
 """GlossaryGap database model — tracks German legal terms not yet in glossary."""
 
-import uuid
-
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 

@@ -27,7 +27,9 @@ def _make_term(term_de: str, term_en: str, slug: str, definition: str) -> MagicM
 
 
 SAMPLE_TERMS = [
-    _make_term("Grundbuch", "Land Registry", "grundbuch", "Official property register."),
+    _make_term(
+        "Grundbuch", "Land Registry", "grundbuch", "Official property register."
+    ),
     _make_term(
         "Kaufvertrag",
         "Purchase Agreement",
