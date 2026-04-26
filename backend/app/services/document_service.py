@@ -135,6 +135,18 @@ DOCUMENT_TYPE_KEYWORDS: dict[DocumentType, list[str]] = {
         "skizze",
         "maßstab",
     ],
+    DocumentType.WEG_PROTOKOLL: [
+        "weg-protokoll",
+        "protokoll der eigentümerversammlung",
+        "eigentümerversammlung",
+        "wohnungseigentümer",
+        "sonderumlage",
+        "instandhaltungsrücklage",
+        "hausgeldabrechnung",
+        "verwalter",
+        "beschluss",
+        "tagesordnung",
+    ],
 }
 
 # Document types that receive structured AI analysis (excludes Kaufvertrag which
@@ -145,6 +157,7 @@ TYPED_ANALYSIS_TYPES: frozenset[str] = frozenset(
         DocumentType.TEILUNGSERKLAERUNG.value,
         DocumentType.MIETVERTRAG.value,
         DocumentType.WOHNUNGSGRUNDRISS.value,
+        DocumentType.WEG_PROTOKOLL.value,
     }
 )
 

@@ -12,6 +12,7 @@ export type DocumentType =
   | "teilungserklaerung"
   | "hausgeldabrechnung"
   | "wohnungsgrundriss"
+  | "weg_protokolle"
   | "unknown"
 
 export type DocumentStatus = "uploaded" | "processing" | "completed" | "failed"
@@ -150,6 +151,45 @@ export interface WohnungsgrundrissAnalysis {
   floor: string | null
   features: string[]
   notes: string[]
+  isAiGenerated: boolean
+}
+
+export interface WegRiskFlag {
+  flag: string
+  description: string
+  riskLevel: "low" | "medium" | "high"
+  sourceQuoteDe: string | null
+  sourceQuoteEn: string | null
+}
+
+export interface WegReserveAssessment {
+  reserveBalanceEur: number | null
+  assessment: "adequate" | "low" | "critical" | "unknown"
+  details: string
+}
+
+export interface WegUpcomingCost {
+  description: string
+  estimatedEur: number | null
+  timeline: string | null
+  sourceQuoteDe: string | null
+  sourceQuoteEn: string | null
+}
+
+export interface WegDispute {
+  description: string
+  status: string
+  sourceQuoteDe: string | null
+  sourceQuoteEn: string | null
+}
+
+export interface WegProtokolleAnalysis {
+  riskFlags: WegRiskFlag[]
+  reserveAssessment: WegReserveAssessment | null
+  upcomingCosts: WegUpcomingCost[]
+  disputes: WegDispute[]
+  meetingDates: string[]
+  lowConfidenceWarning: boolean
   isAiGenerated: boolean
 }
 

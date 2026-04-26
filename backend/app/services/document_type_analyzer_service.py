@@ -2,7 +2,7 @@
 
 Uses the Anthropic Claude API to analyse German real estate documents by type,
 producing structured JSON extractions for Grundbuchauszug, Teilungserklärung,
-Mietvertrag, and Wohnungsgrundriss documents.
+Mietvertrag, Wohnungsgrundriss, and WEG-Protokolle documents.
 """
 
 from __future__ import annotations
@@ -27,6 +27,7 @@ SUPPORTED_TYPES = {
     "teilungserklaerung",
     "mietvertrag",
     "wohnungsgrundriss",
+    "weg_protokolle",
 }
 
 _SYSTEM_PROMPTS: dict[str, str] = {
@@ -77,6 +78,30 @@ Return ONLY valid JSON. No markdown, no explanation outside the JSON.""",
 - "is_ai_generated": true
 
 Return ONLY valid JSON. No markdown, no explanation outside the JSON.""",
+    "weg_protokolle": """You are a German WEG (Wohnungseigentumsgesetz) expert helping foreign property investors audit WEG meeting minutes (Protokolle). Identify hidden financial risks, structural concerns, and legal disputes. Return a JSON object with:
+
+- "risk_flags": [ { "flag": str, "description": str, "risk_level": "low"|"medium"|"high", "source_quote_de": str|null, "source_quote_en": str|null } ]
+  Include ALL occurrences of:
+  * Sonderumlage votes (any amount, past or proposed) — always "high"
+  * Ongoing or threatened legal proceedings (Rechtsstreit, Klage) — "high"
+  * Structural work on Dach, Fassade, Aufzug, Fenster, Heizung — "medium"/"high" by cost
+  * Votes restricting rental (Vermietungsverbot) or renovation rights — "medium"
+  * Energy upgrade obligations (GEG, Sanierungspflicht) — "medium"/"high"
+
+- "reserve_assessment": { "reserve_balance_eur": number|null, "assessment": "adequate"|"low"|"critical"|"unknown", "details": str }
+  Extract Instandhaltungsrücklage balance. Flag "low" if below €10,000 per unit equivalent.
+
+- "upcoming_costs": [ { "description": str, "estimated_eur": number|null, "timeline": str|null, "source_quote_de": str|null, "source_quote_en": str|null } ]
+
+- "disputes": [ { "description": str, "status": str, "source_quote_de": str|null, "source_quote_en": str|null } ]
+
+- "meeting_dates": [ str ]  ISO date strings of all meeting dates found.
+
+- "low_confidence_warning": bool  true if text appears OCR-extracted from a scanned/handwritten document (garbled characters, very sparse pages, OCR artifacts like â€œ or Ã¤).
+
+- "is_ai_generated": true
+
+Return ONLY valid JSON. No markdown, no explanation outside the JSON.""",
 }
 
 _REQUIRED_KEYS: dict[str, set[str]] = {
@@ -93,6 +118,7 @@ _REQUIRED_KEYS: dict[str, set[str]] = {
     },
     "mietvertrag": {"monthly_rent_eur", "is_unlimited", "risk_flags"},
     "wohnungsgrundriss": {"rooms"},
+    "weg_protokolle": {"risk_flags", "reserve_assessment", "low_confidence_warning"},
 }
 
 

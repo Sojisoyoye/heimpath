@@ -2425,7 +2425,7 @@ export const DocumentTranslationResponseSchema = {
 
 export const DocumentTypeSchema = {
     type: 'string',
-    enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'wohnungsgrundriss', 'unknown'],
+    enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'wohnungsgrundriss', 'weg_protokolle', 'unknown'],
     title: 'DocumentType',
     description: 'Types of German real estate documents.'
 } as const;

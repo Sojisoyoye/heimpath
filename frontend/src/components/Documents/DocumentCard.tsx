@@ -44,6 +44,7 @@ const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   teilungserklaerung: "Division Declaration",
   hausgeldabrechnung: "Condo Fee Statement",
   wohnungsgrundriss: "Floor Plan",
+  weg_protokolle: "WEG Meeting Minutes",
   unknown: "Unknown",
 }
 

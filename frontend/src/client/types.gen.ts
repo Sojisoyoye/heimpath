@@ -720,7 +720,7 @@ export type DocumentTranslationResponse = {
 /**
  * Types of German real estate documents.
  */
-export type DocumentType = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'wohnungsgrundriss' | 'unknown';
+export type DocumentType = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'wohnungsgrundriss' | 'weg_protokolle' | 'unknown';
 
 /**
  * Document type choices.
