@@ -238,7 +238,7 @@ async def get_portfolio_summary(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/generate-recurring", status_code=status.HTTP_200_OK)
+@router.post("/generate-recurring", status_code=status.HTTP_201_CREATED)
 async def trigger_recurring_generation(
     current_user: CurrentUser,
     session: SessionDep,

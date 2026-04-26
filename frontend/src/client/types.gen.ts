@@ -1799,7 +1799,7 @@ export type PortfolioTransactionResponse = {
     is_recurring: boolean;
     cost_category?: (string | null);
     estimated_amount?: (number | null);
-    recurrence_interval?: (string | null);
+    recurrence_interval?: (RecurrenceInterval | null);
     last_generated_date?: (string | null);
     is_generated?: boolean;
     created_at: string;

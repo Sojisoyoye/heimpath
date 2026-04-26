@@ -379,6 +379,9 @@ def generate_recurring_transactions(
             ):
                 continue
 
+        # recurrence_interval is intentionally omitted: generated copies are
+        # one-time entries (is_recurring=False, is_generated=True) and must
+        # not be re-processed as templates on subsequent scheduler runs.
         copy = PortfolioTransaction(
             property_id=tmpl.property_id,
             user_id=tmpl.user_id,

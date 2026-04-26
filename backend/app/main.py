@@ -24,9 +24,12 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 async def _run_recurring_generation() -> None:
     """Scheduler job: open a DB session and generate recurring transactions."""
-    with Session(engine) as session:
-        count = generate_recurring_transactions(session)
-    logger.info("Recurring transactions generated: %d", count)
+    try:
+        with Session(engine) as session:
+            count = generate_recurring_transactions(session)
+        logger.info("Recurring transactions generated: %d", count)
+    except Exception:
+        logger.exception("Recurring transaction generation failed")
 
 
 @asynccontextmanager

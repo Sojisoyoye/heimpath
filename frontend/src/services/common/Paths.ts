@@ -180,6 +180,7 @@ export const PATHS = {
     PERFORMANCE: `${API_V1}/portfolio/performance`,
     FROM_JOURNEY: (journeyId: string) =>
       `${API_V1}/portfolio/properties/from-journey/${journeyId}`,
+    GENERATE_RECURRING: `${API_V1}/portfolio/generate-recurring`,
   },
 
   // Feedback

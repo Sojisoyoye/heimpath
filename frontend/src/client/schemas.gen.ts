@@ -6409,13 +6409,12 @@ export const PortfolioTransactionResponseSchema = {
         recurrence_interval: {
             anyOf: [
                 {
-                    type: 'string'
+                    '$ref': '#/components/schemas/RecurrenceInterval'
                 },
                 {
                     type: 'null'
                 }
-            ],
-            title: 'Recurrence Interval'
+            ]
         },
         last_generated_date: {
             anyOf: [

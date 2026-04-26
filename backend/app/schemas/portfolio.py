@@ -141,7 +141,7 @@ class PortfolioTransactionResponse(BaseModel):
     is_recurring: bool
     cost_category: str | None = None
     estimated_amount: float | None = None
-    recurrence_interval: str | None = None
+    recurrence_interval: RecurrenceInterval | None = None
     last_generated_date: date | None = None
     is_generated: bool = False
     created_at: datetime
