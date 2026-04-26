@@ -412,7 +412,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                 risk_warnings=unique_warnings,
                 kaufvertrag_analysis=kaufvertrag_analysis_data,
                 type_analysis=type_analysis_data,
-                glossary_links=glossary_links_data if glossary_links_data else None,
+                glossary_links=glossary_links_data or None,
                 processing_started_at=processing_started_at,
                 processing_completed_at=datetime.now(timezone.utc),
             )

@@ -8,6 +8,7 @@ import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import type { GlossaryLink, TranslatedPage } from "@/models/document"
 import { GlossaryTermTooltip } from "./GlossaryTermTooltip"
 
@@ -19,6 +20,9 @@ interface IProps {
 /******************************************************************************
                               Constants
 ******************************************************************************/
+
+/** Matches a single letter (including German umlauts) for whole-word boundary checks. */
+const _LETTER_RE = /[a-zA-ZäöüÄÖÜß]/
 
 /** Build a map of lower-cased term_de → GlossaryLink for fast lookup. */
 function buildTermMap(links: GlossaryLink[]): Map<string, GlossaryLink> {
@@ -75,8 +79,7 @@ function HighlightedText({
         idx + lower.length < remaining.length
           ? remaining[idx + lower.length]
           : " "
-      const letterRe = /[a-zA-ZäöüÄÖÜß]/
-      if (letterRe.test(before) || letterRe.test(after)) {
+      if (_LETTER_RE.test(before) || _LETTER_RE.test(after)) {
         continue
       }
       if (matchStart === -1 || idx < matchStart) {
@@ -131,71 +134,74 @@ function TranslationViewer(props: Readonly<IProps>) {
   const termMap = buildTermMap(glossaryLinks)
 
   return (
-    <div className="space-y-4">
-      {/* Page navigation */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">
-          Page {page.pageNumber} of {pages.length}
-        </h3>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-            disabled={currentPage <= 0}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setCurrentPage((p) => Math.min(pages.length - 1, p + 1))
-            }
-            disabled={currentPage >= pages.length - 1}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+    <TooltipProvider>
+      <div className="space-y-4">
+        {/* Page navigation */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium">
+            Page {page.pageNumber} of {pages.length}
+          </h3>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+              disabled={currentPage <= 0}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentPage((p) => Math.min(pages.length - 1, p + 1))
+              }
+              disabled={currentPage >= pages.length - 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Side-by-side panels */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Original (German)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm whitespace-pre-wrap leading-relaxed max-h-[600px] overflow-y-auto">
+                {page.originalText ? (
+                  <HighlightedText
+                    text={page.originalText}
+                    termMap={termMap}
+                    pageNumber={page.pageNumber}
+                  />
+                ) : (
+                  "No text extracted from this page"
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Translation (English)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm whitespace-pre-wrap leading-relaxed max-h-[600px] overflow-y-auto">
+                {page.translatedText ||
+                  "No translation available for this page"}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* Side-by-side panels */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Original (German)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm whitespace-pre-wrap leading-relaxed max-h-[600px] overflow-y-auto">
-              {page.originalText ? (
-                <HighlightedText
-                  text={page.originalText}
-                  termMap={termMap}
-                  pageNumber={page.pageNumber}
-                />
-              ) : (
-                "No text extracted from this page"
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Translation (English)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm whitespace-pre-wrap leading-relaxed max-h-[600px] overflow-y-auto">
-              {page.translatedText || "No translation available for this page"}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    </TooltipProvider>
   )
 }
 

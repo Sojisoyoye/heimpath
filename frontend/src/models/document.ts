@@ -169,7 +169,7 @@ export interface DocumentTranslation {
   riskWarnings: DocumentRiskWarning[]
   kaufvertragAnalysis: KaufvertragAnalysis | null
   typeAnalysis: Record<string, unknown> | null
-  glossaryLinks: GlossaryLink[]
+  glossaryLinks?: GlossaryLink[]
   processingStartedAt: string | null
   processingCompletedAt: string | null
 }
