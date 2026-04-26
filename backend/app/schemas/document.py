@@ -93,6 +93,16 @@ class DetectedClause(BaseModel):
         default="",
         description="Plain-English explanation of why this risk level was assigned",
     )
+    confidence_level: Literal["high", "medium", "low"] = Field(
+        default="high",
+        description="Translation confidence: high, medium, or low",
+    )
+    confidence_score: int = Field(
+        default=100,
+        ge=0,
+        le=100,
+        description="Translation confidence score 0-100",
+    )
 
 
 class DocumentRiskWarning(BaseModel):
