@@ -26,7 +26,13 @@ _client: anthropic.Anthropic | None = None
 # Maximum clauses to submit in a single AI call (cost/latency guard)
 _MAX_CLAUSES = 20
 
-# Archaic / jurisdiction-specific German patterns that lower translation confidence
+# Fallback confidence score used when AI returns an out-of-range or missing value.
+# Matches the "high" heuristic bucket in _estimate_confidence.
+_DEFAULT_CONFIDENCE_SCORE = 92
+
+# Archaic / jurisdiction-specific German patterns that lower translation confidence.
+# Abs and Nr are intentionally case-sensitive: both are capitalised abbreviations
+# in German legal text (Absatz, Nummer) and lowercase occurrences are not legal usage.
 _ARCHAIC_PATTERNS = [
     re.compile(r"§\s*\d+", re.IGNORECASE),
     re.compile(r"\bAbs\b"),
@@ -42,7 +48,7 @@ _ARCHAIC_PATTERNS = [
     re.compile(r"\bGrundschuld\b", re.IGNORECASE),
 ]
 
-SYSTEM_PROMPT = """You are a German real estate legal expert reviewing detected contract clauses.
+_SYSTEM_PROMPT = """You are a German real estate legal expert reviewing detected contract clauses.
 For each clause, assess the risk to a property buyer, explain it in plain English, and score
 translation confidence.
 
@@ -84,7 +90,9 @@ def _estimate_confidence(clause: dict) -> tuple[str, int]:
     """Rule-based confidence estimation used when the AI call is unavailable.
 
     Counts archaic/technical German patterns and sentence length as proxies
-    for translation difficulty.
+    for translation difficulty. Scores are coarse three-bucket values (92/72/50)
+    rather than a continuous scale — precision is not warranted given the
+    heuristic nature of the estimation.
 
     Returns:
         Tuple of (confidence_level, confidence_score).
@@ -97,7 +105,7 @@ def _estimate_confidence(clause: dict) -> tuple[str, int]:
         return "low", 50
     if archaic_count == 1 or word_count > 25:
         return "medium", 72
-    return "high", 92
+    return "high", _DEFAULT_CONFIDENCE_SCORE
 
 
 def _build_clauses_text(clauses: list[dict]) -> str:
@@ -120,7 +128,7 @@ def _call_claude(client: anthropic.Anthropic, clauses_text: str) -> str:
     message = client.messages.create(
         model=settings.ANTHROPIC_MODEL,
         max_tokens=settings.ANTHROPIC_MAX_TOKENS,
-        system=SYSTEM_PROMPT,
+        system=_SYSTEM_PROMPT,
         messages=[
             {
                 "role": "user",
@@ -167,7 +175,7 @@ def _parse_risk_response(text: str, expected_count: int) -> list[dict] | None:
             item["confidence_level"] = "high"
         raw_score = item.get("confidence_score")
         if not isinstance(raw_score, int) or not (0 <= raw_score <= 100):
-            item["confidence_score"] = 92
+            item["confidence_score"] = _DEFAULT_CONFIDENCE_SCORE
 
     return data
 
@@ -241,6 +249,8 @@ async def analyze_clause_risks(clauses: list[dict]) -> list[dict]:
                 }
             )
 
+    # Remainder clauses were not submitted to the AI; preserve any pre-existing
+    # risk_reason and apply heuristic confidence estimation.
     for clause in remainder:
         conf_level, conf_score = _estimate_confidence(clause)
         enriched.append(

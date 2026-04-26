@@ -309,6 +309,7 @@ class TestAnalyzeClauseRisks:
         assert len(result) == 3
         assert all("confidence_level" in c for c in result)
         assert all("confidence_score" in c for c in result)
+        assert all(c["risk_reason"] == "" for c in result)
 
     @pytest.mark.asyncio
     async def test_falls_back_on_invalid_response(self) -> None:
@@ -361,8 +362,10 @@ class TestAnalyzeClauseRisks:
         assert len(result) == 25
         assert result[0]["risk_reason"] == "Reason 0"
         assert result[24]["risk_reason"] == ""
-        # Remainder gets heuristic confidence
+        # Remainder clauses (indices 20-24) use heuristic confidence, not AI's score of 90
         assert result[24]["confidence_level"] in {"high", "medium", "low"}
+        # "Term 24" is short with no archaic patterns → heuristic returns "high"/92
+        assert result[24]["confidence_score"] == 92
 
 
 # --- _add_defaults ---

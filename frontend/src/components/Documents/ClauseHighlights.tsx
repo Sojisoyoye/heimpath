@@ -94,9 +94,12 @@ function RiskSummaryBanner(props: Readonly<IRiskSummaryProps>) {
   if (highCount === 0 && mediumCount === 0 && lowConfidenceCount === 0)
     return null
 
+  const showRisk = highCount > 0 || mediumCount > 0
+  const showConfidence = lowConfidenceCount > 0
+
   return (
-    <div className="space-y-2">
-      {(highCount > 0 || mediumCount > 0) && (
+    <div className={showRisk && showConfidence ? "space-y-2" : undefined}>
+      {showRisk && (
         <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950/30">
           <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
           <p className="text-sm text-red-800 dark:text-red-300">
@@ -118,7 +121,7 @@ function RiskSummaryBanner(props: Readonly<IRiskSummaryProps>) {
           </p>
         </div>
       )}
-      {lowConfidenceCount > 0 && (
+      {showConfidence && (
         <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900 dark:bg-amber-950/30">
           <HelpCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <p className="text-sm text-amber-800 dark:text-amber-300">
@@ -136,7 +139,7 @@ function RiskSummaryBanner(props: Readonly<IRiskSummaryProps>) {
 }
 
 interface IConfidenceBadgeProps {
-  confidenceLevel: string
+  confidenceLevel: "high" | "medium" | "low"
   confidenceScore: number
 }
 
@@ -151,16 +154,15 @@ function ConfidenceBadge(props: Readonly<IConfidenceBadgeProps>) {
       <Tooltip>
         <TooltipTrigger asChild>
           <span className="inline-flex items-center gap-0.5 text-xs italic text-muted-foreground cursor-help">
-            <HelpCircle className="h-3 w-3" />~
+            <HelpCircle className="h-3 w-3" />
+            <span aria-hidden="true">~</span>
           </span>
         </TooltipTrigger>
         <TooltipContent className="max-w-56 text-xs" side="top">
           Translation may vary — verify with source text
-          {confidenceScore < 100 && (
-            <span className="block text-muted-foreground mt-0.5">
-              Confidence: {confidenceScore}%
-            </span>
-          )}
+          <span className="block text-muted-foreground mt-0.5">
+            Confidence: {confidenceScore}%
+          </span>
         </TooltipContent>
       </Tooltip>
     )
@@ -178,11 +180,9 @@ function ConfidenceBadge(props: Readonly<IConfidenceBadgeProps>) {
       <TooltipContent className="max-w-56 text-xs" side="top">
         Archaic or jurisdiction-specific German — consult a professional for
         this clause
-        {confidenceScore < 100 && (
-          <span className="block text-muted-foreground mt-0.5">
-            Confidence: {confidenceScore}%
-          </span>
-        )}
+        <span className="block text-muted-foreground mt-0.5">
+          Confidence: {confidenceScore}%
+        </span>
       </TooltipContent>
     </Tooltip>
   )

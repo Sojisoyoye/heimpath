@@ -599,12 +599,17 @@ export type DetectedClause = {
     /**
      * Translation confidence: high, medium, or low
      */
-    confidence_level?: string;
+    confidence_level?: 'high' | 'medium' | 'low';
     /**
      * Translation confidence score 0-100
      */
     confidence_score?: number;
 };
+
+/**
+ * Translation confidence: high, medium, or low
+ */
+export type confidence_level = 'high' | 'medium' | 'low';
 
 /**
  * Difficulty level for articles.
