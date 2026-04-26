@@ -197,12 +197,12 @@ function DocumentDetailPage() {
             <TabsContent value="analysis" className="mt-4">
               {translation.kaufvertragAnalysis ? (
                 <ClauseAnalysis analysis={translation.kaufvertragAnalysis} />
-              ) : translation.typeAnalysis ? (
+              ) : (
                 <TypeAnalysis
                   documentType={doc.documentType}
-                  typeAnalysis={translation.typeAnalysis}
+                  typeAnalysis={translation.typeAnalysis!}
                 />
-              ) : null}
+              )}
             </TabsContent>
           )}
         </Tabs>

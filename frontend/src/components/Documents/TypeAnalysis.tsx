@@ -233,25 +233,25 @@ function MietvertragView(props: Readonly<{ data: MietvertragAnalysis }>) {
           <div>
             <p className="text-xs text-muted-foreground">Monthly Rent</p>
             <p className="text-sm font-medium">
-              {data.monthlyRentEur !== null
-                ? `€${data.monthlyRentEur.toLocaleString()}`
-                : "—"}
+              {data.monthlyRentEur === null
+                ? "—"
+                : `€${data.monthlyRentEur.toLocaleString()}`}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Deposit</p>
             <p className="text-sm font-medium">
-              {data.depositEur !== null
-                ? `€${data.depositEur.toLocaleString()}`
-                : "—"}
+              {data.depositEur === null
+                ? "—"
+                : `€${data.depositEur.toLocaleString()}`}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Notice Period</p>
             <p className="text-sm font-medium">
-              {data.noticePeriodMonths !== null
-                ? `${data.noticePeriodMonths} months`
-                : "—"}
+              {data.noticePeriodMonths === null
+                ? "—"
+                : `${data.noticePeriodMonths} months`}
             </p>
           </div>
           <div>
