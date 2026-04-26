@@ -3,7 +3,8 @@
  * Main page with KPI bar, property grid, and add property button
  */
 
-import { Building2, Plus } from "lucide-react"
+import { Building2, Plus, X } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCreateProperty } from "@/hooks/mutations/usePortfolioMutations"
@@ -20,6 +21,15 @@ import { PropertyCard } from "./PropertyCard"
 import { PropertyFormModal } from "./PropertyFormModal"
 
 /******************************************************************************
+                              Constants
+******************************************************************************/
+
+const RENTFLOW_DISMISSED_KEY = "rentflow_prompt_dismissed"
+const RENTFLOW_THRESHOLD = 6
+// Replace with affiliate URL once partnership is established (Task #148)
+const RENTFLOW_URL = "https://rentflow.de"
+
+/******************************************************************************
                               Components
 ******************************************************************************/
 
@@ -32,6 +42,21 @@ function PortfolioPage() {
   const { data: performance, isLoading: isLoadingPerformance } =
     usePortfolioPerformance()
   const createProperty = useCreateProperty()
+
+  const [rentflowDismissed, setRentflowDismissed] = useState(
+    () => localStorage.getItem(RENTFLOW_DISMISSED_KEY) === "true",
+  )
+
+  const propertyCount = propertiesData?.data?.length ?? 0
+  const showRentflowPrompt =
+    !isLoadingProperties &&
+    propertyCount >= RENTFLOW_THRESHOLD &&
+    !rentflowDismissed
+
+  const handleDismissRentflow = () => {
+    localStorage.setItem(RENTFLOW_DISMISSED_KEY, "true")
+    setRentflowDismissed(true)
+  }
 
   const handleCreateProperty = (input: PortfolioPropertyInput) => {
     createProperty.mutate(input, {
@@ -80,6 +105,34 @@ function PortfolioPage() {
       {isLoadingPerformance && <Skeleton className="h-[380px]" />}
       {!isLoadingPerformance && performance && (
         <PerformanceChart performance={performance} />
+      )}
+
+      {/* Rentflow hand-off prompt — shown when portfolio reaches 6+ properties */}
+      {showRentflowPrompt && (
+        <div className="flex items-start justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              Managing 6+ properties? Rentflow connects to 1,100+ German banks
+              for automatic rent tracking and DATEV-ready accounting.
+            </p>
+            <a
+              href={RENTFLOW_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center text-sm font-medium text-blue-700 hover:underline dark:text-blue-300"
+            >
+              Learn about Rentflow →
+            </a>
+          </div>
+          <button
+            type="button"
+            onClick={handleDismissRentflow}
+            aria-label="Dismiss Rentflow prompt"
+            className="rounded p-1 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/40"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       )}
 
       {/* Property Grid */}
