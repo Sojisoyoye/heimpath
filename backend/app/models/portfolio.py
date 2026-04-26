@@ -46,6 +46,13 @@ class CostCategory(str, PyEnum):
     MISC = "misc"
 
 
+class RecurrenceInterval(str, PyEnum):
+    """Recurrence interval for recurring transactions."""
+
+    MONTHLY = "monthly"
+    ANNUALLY = "annually"
+
+
 INCOME_TYPES = {TransactionType.RENT_INCOME, TransactionType.OTHER_INCOME}
 EXPENSE_TYPES = {
     TransactionType.OPERATING_EXPENSE,
@@ -81,6 +88,13 @@ _cost_category_enum = PgEnum(
     "maintenance",
     "misc",
     name="costcategory",
+    create_type=False,
+)
+
+_recurrence_interval_enum = PgEnum(
+    "monthly",
+    "annually",
+    name="recurrenceinterval",
     create_type=False,
 )
 
@@ -155,3 +169,8 @@ class PortfolioTransaction(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     is_recurring = Column(Boolean, default=False, nullable=False)
     cost_category = Column(_cost_category_enum, nullable=True)
     estimated_amount = Column(Float, nullable=True)
+    recurrence_interval = Column(_recurrence_interval_enum, nullable=True)
+    last_generated_date = Column(Date, nullable=True)
+    is_generated = Column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )

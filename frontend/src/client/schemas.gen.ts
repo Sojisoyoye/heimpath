@@ -6295,6 +6295,16 @@ export const PortfolioTransactionCreateSchema = {
                 }
             ],
             title: 'Estimated Amount'
+        },
+        recurrence_interval: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/RecurrenceInterval'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',
@@ -6395,6 +6405,33 @@ export const PortfolioTransactionResponseSchema = {
                 }
             ],
             title: 'Estimated Amount'
+        },
+        recurrence_interval: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/RecurrenceInterval'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        last_generated_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Generated Date'
+        },
+        is_generated: {
+            type: 'boolean',
+            title: 'Is Generated',
+            default: false
         },
         created_at: {
             type: 'string',
@@ -8345,6 +8382,13 @@ export const ROICompareResultItemSchema = {
     required: ['purchase_price', 'down_payment', 'monthly_rent', 'gross_rental_income', 'net_operating_income', 'annual_cash_flow', 'monthly_mortgage_payment', 'gross_yield', 'net_yield', 'cap_rate', 'cash_on_cash_return', 'investment_grade', 'investment_grade_label', 'projections'],
     title: 'ROICompareResultItem',
     description: 'Single scenario result in a comparison.'
+} as const;
+
+export const RecurrenceIntervalSchema = {
+    type: 'string',
+    enum: ['monthly', 'annually'],
+    title: 'RecurrenceInterval',
+    description: 'Recurrence interval for recurring transactions.'
 } as const;
 
 export const RefreshTokenRequestSchema = {

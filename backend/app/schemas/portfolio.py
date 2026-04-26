@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.portfolio import CostCategory, TransactionType
+from app.models.portfolio import CostCategory, RecurrenceInterval, TransactionType
 
 # ---------------------------------------------------------------------------
 # Property schemas
@@ -123,6 +123,7 @@ class PortfolioTransactionCreate(BaseModel):
     is_recurring: bool = False
     cost_category: CostCategory | None = None
     estimated_amount: float | None = Field(None, ge=0)
+    recurrence_interval: RecurrenceInterval | None = None
 
 
 class PortfolioTransactionResponse(BaseModel):
@@ -140,6 +141,9 @@ class PortfolioTransactionResponse(BaseModel):
     is_recurring: bool
     cost_category: str | None = None
     estimated_amount: float | None = None
+    recurrence_interval: RecurrenceInterval | None = None
+    last_generated_date: date | None = None
+    is_generated: bool = False
     created_at: datetime
 
 

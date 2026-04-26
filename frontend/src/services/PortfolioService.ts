@@ -219,6 +219,19 @@ class PortfolioServiceClass {
     })
     return transformKeys<PortfolioSummary>(response)
   }
+
+  /**
+   * Manually trigger recurring transaction generation for the current period.
+   * Scoped to the authenticated user. Idempotent — safe to call multiple times.
+   * Returns the count of newly generated entries.
+   */
+  async triggerRecurringGeneration(): Promise<{ generated: number }> {
+    const response = await request<{ generated: number }>(OpenAPI, {
+      method: "POST",
+      url: PATHS.PORTFOLIO.GENERATE_RECURRING,
+    })
+    return response
+  }
 }
 
 export const PortfolioService = new PortfolioServiceClass()

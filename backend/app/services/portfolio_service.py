@@ -19,6 +19,7 @@ from app.models.portfolio import (
     INCOME_TYPES,
     PortfolioProperty,
     PortfolioTransaction,
+    RecurrenceInterval,
     TransactionType,
 )
 from app.schemas.portfolio import (
@@ -258,6 +259,7 @@ def create_transaction(
         is_recurring=data.is_recurring,
         cost_category=data.cost_category,
         estimated_amount=data.estimated_amount,
+        recurrence_interval=data.recurrence_interval,
     )
     session.add(txn)
     session.commit()
@@ -325,6 +327,81 @@ def delete_transaction(
         )
     session.delete(txn)
     session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Recurring transaction generation
+# ---------------------------------------------------------------------------
+
+
+def generate_recurring_transactions(
+    session: Session,
+    user_id: uuid.UUID | None = None,
+) -> int:
+    """Generate missing recurring transaction copies for the current period.
+
+    Idempotent — safe to run multiple times in the same period.
+    Template transactions are those with is_recurring=True and a
+    recurrence_interval set. Generated copies have is_generated=True and
+    is_recurring=False so they are not re-processed on the next run.
+
+    Args:
+        session: Sync database session.
+        user_id: Optional UUID to scope generation to a single user.
+                 When None (scheduler job), all users' templates are processed.
+
+    Returns:
+        Count of new transaction entries created.
+    """
+    today = date.today()
+    statement = (
+        select(PortfolioTransaction)
+        .where(PortfolioTransaction.is_recurring == True)  # noqa: E712
+        .where(PortfolioTransaction.recurrence_interval != None)  # noqa: E711
+        .where(PortfolioTransaction.is_generated == False)  # noqa: E712
+    )
+    if user_id is not None:
+        statement = statement.where(PortfolioTransaction.user_id == user_id)
+    templates = list(session.exec(statement).all())
+
+    created = 0
+    for tmpl in templates:
+        if tmpl.recurrence_interval == RecurrenceInterval.MONTHLY:
+            if (
+                tmpl.last_generated_date is not None
+                and tmpl.last_generated_date.replace(day=1) == today.replace(day=1)
+            ):
+                continue
+        elif tmpl.recurrence_interval == RecurrenceInterval.ANNUALLY:
+            if (
+                tmpl.last_generated_date is not None
+                and tmpl.last_generated_date.year == today.year
+            ):
+                continue
+
+        # recurrence_interval is intentionally omitted: generated copies are
+        # one-time entries (is_recurring=False, is_generated=True) and must
+        # not be re-processed as templates on subsequent scheduler runs.
+        copy = PortfolioTransaction(
+            property_id=tmpl.property_id,
+            user_id=tmpl.user_id,
+            type=tmpl.type,
+            amount=tmpl.amount,
+            date=today,
+            category=tmpl.category,
+            description=tmpl.description,
+            is_recurring=False,
+            is_generated=True,
+            cost_category=tmpl.cost_category,
+            estimated_amount=tmpl.estimated_amount,
+        )
+        session.add(copy)
+        tmpl.last_generated_date = today
+        created += 1
+
+    if created > 0:
+        session.commit()
+    return created
 
 
 # ---------------------------------------------------------------------------

@@ -40,6 +40,7 @@ import {
 import type {
   CostCategory,
   PortfolioTransactionInput,
+  RecurrenceInterval,
   TransactionType,
 } from "@/models/portfolio"
 import { COST_CATEGORY_LABELS, INCOME_TYPES } from "@/models/portfolio"
@@ -70,16 +71,35 @@ const COST_CATEGORY_OPTIONS = Object.entries(COST_CATEGORY_LABELS).map(
   ([value, label]) => ({ value, label }),
 )
 
-const formSchema = z.object({
-  type: z.string().min(1, "Type is required"),
-  amount: z.string().min(1, "Amount is required"),
-  date: z.string().min(1, "Date is required"),
-  category: z.string().max(100).optional(),
-  description: z.string().max(500).optional(),
-  isRecurring: z.boolean(),
-  costCategory: z.string().optional(),
-  estimatedAmount: z.string().optional(),
-})
+const RECURRENCE_INTERVAL_OPTIONS: {
+  value: RecurrenceInterval
+  label: string
+}[] = [
+  { value: "monthly", label: "Monthly" },
+  { value: "annually", label: "Annually" },
+]
+
+const formSchema = z
+  .object({
+    type: z.string().min(1, "Type is required"),
+    amount: z.string().min(1, "Amount is required"),
+    date: z.string().min(1, "Date is required"),
+    category: z.string().max(100).optional(),
+    description: z.string().max(500).optional(),
+    isRecurring: z.boolean(),
+    recurrenceInterval: z.enum(["monthly", "annually"]).nullable().optional(),
+    costCategory: z.string().optional(),
+    estimatedAmount: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.isRecurring && !data.recurrenceInterval) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Recurrence interval is required for recurring transactions",
+        path: ["recurrenceInterval"],
+      })
+    }
+  })
 
 type FormData = z.infer<typeof formSchema>
 
@@ -102,6 +122,7 @@ function TransactionFormModal(props: Readonly<IProps>) {
       category: "",
       description: "",
       isRecurring: false,
+      recurrenceInterval: null,
       costCategory: "",
       estimatedAmount: "",
     },
@@ -109,6 +130,7 @@ function TransactionFormModal(props: Readonly<IProps>) {
 
   const selectedType = form.watch("type") as TransactionType
   const isExpenseType = !!selectedType && !INCOME_TYPES.includes(selectedType)
+  const isRecurring = form.watch("isRecurring")
   const selectedCostCategory = form.watch("costCategory")
 
   const handleSubmit = async (data: FormData) => {
@@ -120,6 +142,9 @@ function TransactionFormModal(props: Readonly<IProps>) {
       category: data.category || null,
       description: data.description || null,
       isRecurring: data.isRecurring,
+      recurrenceInterval: data.isRecurring
+        ? ((data.recurrenceInterval as RecurrenceInterval) ?? null)
+        : null,
       costCategory:
         isExpense && data.costCategory
           ? (data.costCategory as CostCategory)
@@ -317,6 +342,39 @@ function TransactionFormModal(props: Readonly<IProps>) {
                   </FormItem>
                 )}
               />
+
+              {isRecurring && (
+                <FormField
+                  control={form.control}
+                  name="recurrenceInterval"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Recurrence Interval{" "}
+                        <span className="text-destructive">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ?? ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select interval" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {RECURRENCE_INTERVAL_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             <DialogFooter>
