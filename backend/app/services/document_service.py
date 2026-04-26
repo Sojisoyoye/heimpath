@@ -28,6 +28,7 @@ from app.schemas.translation import SupportedLanguage
 from app.services.clause_analyzer_service import analyze_kaufvertrag
 from app.services.clause_risk_analyzer_service import analyze_clause_risks
 from app.services.document_type_analyzer_service import analyze_document_type
+from app.services.glossary_linker_service import link_glossary_terms
 from app.services.translation_service import get_translation_service
 
 logger = logging.getLogger(__name__)
@@ -398,6 +399,9 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                     pages, document.document_type
                 )
 
+            # Link glossary terms found in the original German text
+            glossary_links_data = await link_glossary_terms(session, document_id, pages)
+
             # Save translation record
             translation = DocumentTranslation(
                 document_id=document_id,
@@ -408,6 +412,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                 risk_warnings=unique_warnings,
                 kaufvertrag_analysis=kaufvertrag_analysis_data,
                 type_analysis=type_analysis_data,
+                glossary_links=glossary_links_data if glossary_links_data else None,
                 processing_started_at=processing_started_at,
                 processing_completed_at=datetime.now(timezone.utc),
             )

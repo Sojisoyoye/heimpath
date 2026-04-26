@@ -699,6 +699,7 @@ export type DocumentTranslationResponse = {
     type_analysis?: ({
     [key: string]: unknown;
 } | null);
+    glossary_links?: Array<GlossaryLink>;
     processing_started_at?: (string | null);
     processing_completed_at?: (string | null);
 };
@@ -915,6 +916,17 @@ export type GlossaryCategoryInfo = {
     id: string;
     name: string;
     count: number;
+};
+
+/**
+ * A glossary term matched in the document, with page locations.
+ */
+export type GlossaryLink = {
+    term_de: string;
+    term_en: string;
+    slug: string;
+    definition_short: string;
+    page_numbers?: Array<(number)>;
 };
 
 /**

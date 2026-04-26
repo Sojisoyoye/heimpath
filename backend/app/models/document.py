@@ -158,6 +158,9 @@ class DocumentTranslation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # AI analysis for other document types
     type_analysis = Column(JSONB, nullable=True, default=None)
 
+    # Linked glossary terms (populated at processing time)
+    glossary_links = Column(MutableList.as_mutable(JSONB), nullable=True, default=None)
+
     # Timing
     processing_started_at = Column(DateTime(timezone=True), nullable=True)
     processing_completed_at = Column(DateTime(timezone=True), nullable=True)
