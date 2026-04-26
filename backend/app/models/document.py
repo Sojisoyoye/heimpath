@@ -29,6 +29,7 @@ class DocumentType(str, PyEnum):
     TEILUNGSERKLAERUNG = "teilungserklaerung"
     HAUSGELDABRECHNUNG = "hausgeldabrechnung"
     WOHNUNGSGRUNDRISS = "wohnungsgrundriss"
+    WEG_PROTOKOLL = "weg_protokolle"
     UNKNOWN = "unknown"
 
 
@@ -51,6 +52,7 @@ _document_type_enum = PgEnum(
     "teilungserklaerung",
     "hausgeldabrechnung",
     "wohnungsgrundriss",
+    "weg_protokolle",
     "unknown",
     name="documenttype",
     create_type=False,
