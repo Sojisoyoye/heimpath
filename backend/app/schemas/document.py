@@ -89,6 +89,10 @@ class DetectedClause(BaseModel):
     translated_text: str
     page_number: int
     risk_level: str = Field(..., description="Risk level: low, medium, high")
+    risk_reason: str = Field(
+        default="",
+        description="Plain-English explanation of why this risk level was assigned",
+    )
 
 
 class DocumentRiskWarning(BaseModel):

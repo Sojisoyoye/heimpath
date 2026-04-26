@@ -2017,6 +2017,12 @@ export const DetectedClauseSchema = {
             type: 'string',
             title: 'Risk Level',
             description: 'Risk level: low, medium, high'
+        },
+        risk_reason: {
+            type: 'string',
+            title: 'Risk Reason',
+            description: 'Plain-English explanation of why this risk level was assigned',
+            default: ''
         }
     },
     type: 'object',

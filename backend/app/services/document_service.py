@@ -26,6 +26,7 @@ from app.models.document import (
 )
 from app.schemas.translation import SupportedLanguage
 from app.services.clause_analyzer_service import analyze_kaufvertrag
+from app.services.clause_risk_analyzer_service import analyze_clause_risks
 from app.services.document_type_analyzer_service import analyze_document_type
 from app.services.translation_service import get_translation_service
 
@@ -379,6 +380,9 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                 if w["original_term"] not in seen_terms:
                     seen_terms.add(w["original_term"])
                     unique_warnings.append(w)
+
+            # AI-powered clause risk annotation (all document types)
+            all_clauses = await analyze_clause_risks(all_clauses)
 
             # AI analysis for Kaufvertrag documents
             kaufvertrag_analysis_data = None

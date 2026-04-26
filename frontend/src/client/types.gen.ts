@@ -592,6 +592,10 @@ export type DetectedClause = {
      * Risk level: low, medium, high
      */
     risk_level: string;
+    /**
+     * Plain-English explanation of why this risk level was assigned
+     */
+    risk_reason?: string;
 };
 
 /**
