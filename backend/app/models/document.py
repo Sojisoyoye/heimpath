@@ -28,6 +28,7 @@ class DocumentType(str, PyEnum):
     GRUNDBUCHAUSZUG = "grundbuchauszug"
     TEILUNGSERKLAERUNG = "teilungserklaerung"
     HAUSGELDABRECHNUNG = "hausgeldabrechnung"
+    WOHNUNGSGRUNDRISS = "wohnungsgrundriss"
     UNKNOWN = "unknown"
 
 
@@ -49,6 +50,7 @@ _document_type_enum = PgEnum(
     "grundbuchauszug",
     "teilungserklaerung",
     "hausgeldabrechnung",
+    "wohnungsgrundriss",
     "unknown",
     name="documenttype",
     create_type=False,
@@ -152,6 +154,9 @@ class DocumentTranslation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # AI analysis (Kaufvertrag only)
     kaufvertrag_analysis = Column(JSONB, nullable=True, default=None)
+
+    # AI analysis for other document types
+    type_analysis = Column(JSONB, nullable=True, default=None)
 
     # Timing
     processing_started_at = Column(DateTime(timezone=True), nullable=True)

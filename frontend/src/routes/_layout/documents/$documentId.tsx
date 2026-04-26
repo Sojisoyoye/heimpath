@@ -12,6 +12,7 @@ import {
   ProcessingStatus,
   RiskWarnings,
   TranslationViewer,
+  TypeAnalysis,
 } from "@/components/Documents"
 import { DOCUMENT_TYPE_LABELS } from "@/components/Documents/DocumentCard"
 import { Badge } from "@/components/ui/badge"
@@ -175,10 +176,9 @@ function DocumentDetailPage() {
             <TabsTrigger value="warnings">
               Warnings ({translation.riskWarnings.length})
             </TabsTrigger>
-            {doc.documentType === "kaufvertrag" &&
-              translation.kaufvertragAnalysis && (
-                <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
-              )}
+            {(translation.kaufvertragAnalysis || translation.typeAnalysis) && (
+              <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="translation" className="mt-4">
@@ -193,12 +193,20 @@ function DocumentDetailPage() {
             <RiskWarnings warnings={translation.riskWarnings} />
           </TabsContent>
 
-          {doc.documentType === "kaufvertrag" &&
-            translation.kaufvertragAnalysis && (
-              <TabsContent value="analysis" className="mt-4">
+          {(translation.kaufvertragAnalysis || translation.typeAnalysis) && (
+            <TabsContent value="analysis" className="mt-4">
+              {translation.kaufvertragAnalysis ? (
                 <ClauseAnalysis analysis={translation.kaufvertragAnalysis} />
-              </TabsContent>
-            )}
+              ) : (
+                translation.typeAnalysis && (
+                  <TypeAnalysis
+                    documentType={doc.documentType}
+                    typeAnalysis={translation.typeAnalysis}
+                  />
+                )
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       )}
     </div>

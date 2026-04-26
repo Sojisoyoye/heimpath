@@ -18,6 +18,7 @@ class DocumentTypeEnum(str, Enum):
     GRUNDBUCHAUSZUG = "grundbuchauszug"
     TEILUNGSERKLAERUNG = "teilungserklaerung"
     HAUSGELDABRECHNUNG = "hausgeldabrechnung"
+    WOHNUNGSGRUNDRISS = "wohnungsgrundriss"
     UNKNOWN = "unknown"
 
 
@@ -146,6 +147,7 @@ class DocumentTranslationResponse(BaseModel):
     clauses_detected: list[DetectedClause]
     risk_warnings: list[DocumentRiskWarning]
     kaufvertrag_analysis: KaufvertragAnalysis | None = None
+    type_analysis: dict | None = None
     processing_started_at: datetime | None = None
     processing_completed_at: datetime | None = None
 

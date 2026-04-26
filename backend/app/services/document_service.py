@@ -26,6 +26,7 @@ from app.models.document import (
 )
 from app.schemas.translation import SupportedLanguage
 from app.services.clause_analyzer_service import analyze_kaufvertrag
+from app.services.document_type_analyzer_service import analyze_document_type
 from app.services.translation_service import get_translation_service
 
 logger = logging.getLogger(__name__)
@@ -122,7 +123,28 @@ DOCUMENT_TYPE_KEYWORDS: dict[DocumentType, list[str]] = {
         "verwaltergebühr",
         "rücklage",
     ],
+    DocumentType.WOHNUNGSGRUNDRISS: [
+        "grundriss",
+        "wohnungsgrundriss",
+        "raumaufteilung",
+        "zimmer",
+        "fläche",
+        "wohnfläche",
+        "skizze",
+        "maßstab",
+    ],
 }
+
+# Document types that receive structured AI analysis (excludes Kaufvertrag which
+# uses the dedicated clause_analyzer_service instead)
+TYPED_ANALYSIS_TYPES: frozenset[str] = frozenset(
+    {
+        DocumentType.GRUNDBUCHAUSZUG.value,
+        DocumentType.TEILUNGSERKLAERUNG.value,
+        DocumentType.MIETVERTRAG.value,
+        DocumentType.WOHNUNGSGRUNDRISS.value,
+    }
+)
 
 
 def _detect_document_type(text: str) -> DocumentType:
@@ -365,6 +387,13 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                     pages, document.document_type
                 )
 
+            # AI analysis for other typed document types
+            type_analysis_data = None
+            if document.document_type in TYPED_ANALYSIS_TYPES:
+                type_analysis_data = await analyze_document_type(
+                    pages, document.document_type
+                )
+
             # Save translation record
             translation = DocumentTranslation(
                 document_id=document_id,
@@ -374,6 +403,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                 clauses_detected=all_clauses,
                 risk_warnings=unique_warnings,
                 kaufvertrag_analysis=kaufvertrag_analysis_data,
+                type_analysis=type_analysis_data,
                 processing_started_at=processing_started_at,
                 processing_completed_at=datetime.now(timezone.utc),
             )

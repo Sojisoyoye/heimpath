@@ -43,6 +43,7 @@ const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   grundbuchauszug: "Land Register",
   teilungserklaerung: "Division Declaration",
   hausgeldabrechnung: "Condo Fee Statement",
+  wohnungsgrundriss: "Floor Plan",
   unknown: "Unknown",
 }
 
