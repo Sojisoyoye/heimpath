@@ -323,7 +323,7 @@ const AGE_MULTIPLIER: Record<BuildingYearBracket, number> = {
   pre1950: 1.4,
   "1950-1978": 1.25,
   "1979-1994": 1.1,
-  "1995-2009": 1.0,
+  "1995-2009": 1,
   "2010plus": 0.85,
 }
 
@@ -331,7 +331,7 @@ const AGE_MULTIPLIER: Record<BuildingYearBracket, number> = {
 const TYPE_MULTIPLIER: Record<BuildingType, number> = {
   einfamilienhaus: 1.1,
   mehrfamilienhaus: 0.85,
-  eigentumswohnung: 1.0,
+  eigentumswohnung: 1,
 }
 
 const BUILDING_TYPE_LABELS: Record<BuildingType, string> = {
@@ -451,6 +451,148 @@ function GegRetrofitCalculator(props: Readonly<IProps>) {
   }
 
   const hasUpgrades = results !== null && results.upgrades.length > 0
+
+  function renderResults() {
+    if (results === null) {
+      return (
+        <Card className="flex min-h-[200px] items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            Enter property size to see retrofit estimates
+          </p>
+        </Card>
+      )
+    }
+    if (!hasUpgrades) {
+      return (
+        <MetricCard
+          label={`Energy class ${inputs.energyClass} — no mandatory upgrades`}
+          value="€0"
+          description="This property meets current GEG standards. No immediate retrofit costs expected."
+          variant="success"
+        />
+      )
+    }
+    return (
+      <>
+        {/* Summary KPIs */}
+        <div className="grid grid-cols-2 gap-3">
+          <MetricCard
+            label="Total gross cost (est.)"
+            value={`${EUR.format(results.totalGrossMin)}–${EUR.format(results.totalGrossMax)}`}
+            description="Before BEG subsidies"
+            variant={energyClassVariant(inputs.energyClass)}
+          />
+          <MetricCard
+            label="BEG subsidy (est.)"
+            value={EUR.format(results.totalSubsidy)}
+            description="Federal BEG programme (BAFA/KfW)"
+            variant="success"
+          />
+          <MetricCard
+            label="Net cost after subsidy"
+            value={`${EUR.format(results.totalNetMin)}–${EUR.format(results.totalNetMax)}`}
+            description="Your estimated out-of-pocket cost"
+            variant={energyClassVariant(inputs.energyClass)}
+          />
+          <MetricCard
+            label={`Monthly cost (${AMORT_YEARS}yr amort.)`}
+            value={`${EUR.format(results.monthlyAmortMin)}–${EUR.format(results.monthlyAmortMax)}`}
+            description="Impact on monthly yield"
+            variant="default"
+          />
+        </div>
+
+        {/* Upgrade list */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Required Upgrades</CardTitle>
+          </CardHeader>
+          <CardContent className="divide-y">
+            {results.upgrades.map((u) => (
+              <div
+                key={u.name}
+                className="flex items-start justify-between gap-2 py-3 text-sm"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{u.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {u.mandatoryByYear
+                      ? `Mandatory by ${u.mandatoryByYear} · `
+                      : "Recommended · "}
+                    {Math.round(u.subsidyRate * 100)}% BEG subsidy · {u.source}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-medium">
+                    {EUR.format(u.grossMin)}–{EUR.format(u.grossMax)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    net: {EUR.format(u.netMin)}–{EUR.format(u.netMax)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Chart */}
+        {results.chartData.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">
+                Gross vs. Net Cost per Upgrade
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart
+                  data={results.chartData}
+                  margin={{ top: 4, right: 8, bottom: 24, left: 8 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 9 }}
+                    angle={-30}
+                    textAnchor="end"
+                  />
+                  <YAxis
+                    tickFormatter={(v: number) =>
+                      v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)
+                    }
+                    tick={{ fontSize: 11 }}
+                  />
+                  <Tooltip
+                    formatter={(value, name) => [
+                      EUR.format(Number(value)),
+                      name === "gross" ? "Gross cost" : "Net (after subsidy)",
+                    ]}
+                  />
+                  <Legend
+                    formatter={(value) =>
+                      value === "gross" ? "Gross cost" : "Net (after subsidy)"
+                    }
+                  />
+                  <Bar
+                    dataKey="gross"
+                    fill={Colors.Chart.Amber}
+                    radius={[4, 4, 0, 0]}
+                    name="gross"
+                  />
+                  <Bar
+                    dataKey="net"
+                    fill={Colors.Chart.Blue}
+                    radius={[4, 4, 0, 0]}
+                    name="net"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+      </>
+    )
+  }
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -616,146 +758,7 @@ function GegRetrofitCalculator(props: Readonly<IProps>) {
         </Card>
 
         {/* Results */}
-        <div className="space-y-4">
-          {!results ? (
-            <Card className="flex min-h-[200px] items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                Enter property size to see retrofit estimates
-              </p>
-            </Card>
-          ) : !hasUpgrades ? (
-            <MetricCard
-              label={`Energy class ${inputs.energyClass} — no mandatory upgrades`}
-              value="€0"
-              description="This property meets current GEG standards. No immediate retrofit costs expected."
-              variant="success"
-            />
-          ) : (
-            <>
-              {/* Summary KPIs */}
-              <div className="grid grid-cols-2 gap-3">
-                <MetricCard
-                  label="Total gross cost (est.)"
-                  value={`${EUR.format(results.totalGrossMin)}–${EUR.format(results.totalGrossMax)}`}
-                  description="Before BEG subsidies"
-                  variant={energyClassVariant(inputs.energyClass)}
-                />
-                <MetricCard
-                  label="BEG subsidy (est.)"
-                  value={EUR.format(results.totalSubsidy)}
-                  description="Federal BEG programme (BAFA/KfW)"
-                  variant="success"
-                />
-                <MetricCard
-                  label="Net cost after subsidy"
-                  value={`${EUR.format(results.totalNetMin)}–${EUR.format(results.totalNetMax)}`}
-                  description="Your estimated out-of-pocket cost"
-                  variant={energyClassVariant(inputs.energyClass)}
-                />
-                <MetricCard
-                  label={`Monthly cost (${AMORT_YEARS}yr amort.)`}
-                  value={`${EUR.format(results.monthlyAmortMin)}–${EUR.format(results.monthlyAmortMax)}`}
-                  description="Impact on monthly yield"
-                  variant="default"
-                />
-              </div>
-
-              {/* Upgrade list */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Required Upgrades</CardTitle>
-                </CardHeader>
-                <CardContent className="divide-y">
-                  {results.upgrades.map((u) => (
-                    <div
-                      key={u.name}
-                      className="flex items-start justify-between gap-2 py-3 text-sm"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium">{u.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {u.mandatoryByYear
-                            ? `Mandatory by ${u.mandatoryByYear} · `
-                            : "Recommended · "}
-                          {Math.round(u.subsidyRate * 100)}% BEG subsidy ·{" "}
-                          {u.source}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="font-medium">
-                          {EUR.format(u.grossMin)}–{EUR.format(u.grossMax)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          net: {EUR.format(u.netMin)}–{EUR.format(u.netMax)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Chart */}
-              {results.chartData.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">
-                      Gross vs. Net Cost per Upgrade
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <BarChart
-                        data={results.chartData}
-                        margin={{ top: 4, right: 8, bottom: 24, left: 8 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="name"
-                          tick={{ fontSize: 9 }}
-                          angle={-30}
-                          textAnchor="end"
-                        />
-                        <YAxis
-                          tickFormatter={(v: number) =>
-                            v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)
-                          }
-                          tick={{ fontSize: 11 }}
-                        />
-                        <Tooltip
-                          formatter={(value, name) => [
-                            EUR.format(Number(value)),
-                            name === "gross"
-                              ? "Gross cost"
-                              : "Net (after subsidy)",
-                          ]}
-                        />
-                        <Legend
-                          formatter={(value) =>
-                            value === "gross"
-                              ? "Gross cost"
-                              : "Net (after subsidy)"
-                          }
-                        />
-                        <Bar
-                          dataKey="gross"
-                          fill={Colors.Chart.Amber}
-                          radius={[4, 4, 0, 0]}
-                          name="gross"
-                        />
-                        <Bar
-                          dataKey="net"
-                          fill={Colors.Chart.Blue}
-                          radius={[4, 4, 0, 0]}
-                          name="net"
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-        </div>
+        <div className="space-y-4">{renderResults()}</div>
       </div>
 
       {/* Educational section */}
