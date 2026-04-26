@@ -153,8 +153,8 @@ function PropertyDetailPage(props: Readonly<IProps>) {
 
   return (
     <div className="space-y-6">
-      {/* Back + Header */}
-      <div className="flex items-start justify-between">
+      {/* Back + Header — hidden on print */}
+      <div className="flex items-start justify-between print:hidden">
         <div>
           <Link
             to="/portfolio"
@@ -210,7 +210,7 @@ function PropertyDetailPage(props: Readonly<IProps>) {
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="print:hidden">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="running-costs">Running Costs</TabsTrigger>
           <TabsTrigger value="tax-summary">Tax Summary</TabsTrigger>
@@ -349,7 +349,10 @@ function PropertyDetailPage(props: Readonly<IProps>) {
         </TabsContent>
 
         <TabsContent value="tax-summary" className="mt-6">
-          <AnlageVTab propertyId={propertyId} />
+          <AnlageVTab
+            propertyId={propertyId}
+            propertyAddress={`${property.address}, ${property.postcode} ${property.city}`}
+          />
         </TabsContent>
       </Tabs>
 
