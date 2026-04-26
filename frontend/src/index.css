@@ -152,3 +152,28 @@
 @utility animate-checkbox-bounce {
   animation: checkbox-bounce 250ms ease-out;
 }
+
+/* ── Print styles ────────────────────────────────────────────────────────── */
+/* Applied when the user triggers window.print() from the Anlage V export    */
+
+@page {
+  size: A4;
+  margin: 15mm 20mm;
+}
+
+@media print {
+  /* Hide app sidebar */
+  aside[data-sidebar="sidebar"] {
+    display: none;
+  }
+
+  /* Hide sticky top header (SidebarTrigger + nav icons) */
+  header.sticky {
+    display: none;
+  }
+
+  /* Remove main padding so the content fills the page */
+  main {
+    padding: 0;
+  }
+}
