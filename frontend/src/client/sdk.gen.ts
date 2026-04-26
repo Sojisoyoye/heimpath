@@ -2552,7 +2552,8 @@ export class PortfolioService {
      * Trigger Recurring Generation
      * Manually trigger recurring transaction generation for the current period.
      *
-     * Idempotent — safe to call multiple times. Only authenticated users can trigger.
+     * Scoped to the authenticated user's transactions. Idempotent — safe to call
+     * multiple times per period.
      * @returns number Successful Response
      * @throws ApiError
      */

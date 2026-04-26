@@ -334,7 +334,10 @@ def delete_transaction(
 # ---------------------------------------------------------------------------
 
 
-def generate_recurring_transactions(session: Session) -> int:
+def generate_recurring_transactions(
+    session: Session,
+    user_id: uuid.UUID | None = None,
+) -> int:
     """Generate missing recurring transaction copies for the current period.
 
     Idempotent — safe to run multiple times in the same period.
@@ -344,6 +347,8 @@ def generate_recurring_transactions(session: Session) -> int:
 
     Args:
         session: Sync database session.
+        user_id: Optional UUID to scope generation to a single user.
+                 When None (scheduler job), all users' templates are processed.
 
     Returns:
         Count of new transaction entries created.
@@ -355,6 +360,8 @@ def generate_recurring_transactions(session: Session) -> int:
         .where(PortfolioTransaction.recurrence_interval != None)  # noqa: E711
         .where(PortfolioTransaction.is_generated == False)  # noqa: E712
     )
+    if user_id is not None:
+        statement = statement.where(PortfolioTransaction.user_id == user_id)
     templates = list(session.exec(statement).all())
 
     created = 0
@@ -389,7 +396,8 @@ def generate_recurring_transactions(session: Session) -> int:
         tmpl.last_generated_date = today
         created += 1
 
-    session.commit()
+    if created > 0:
+        session.commit()
     return created
 
 

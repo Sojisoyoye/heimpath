@@ -2,14 +2,13 @@
 
 import uuid
 from datetime import date
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 from app.models.portfolio import (
     PortfolioTransaction,
     RecurrenceInterval,
     TransactionType,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -47,7 +46,7 @@ def _make_template(
 
 
 @patch("app.services.portfolio_service.select")
-def test_generates_monthly_entry_on_first_run(mock_select: MagicMock) -> None:
+def test_generates_monthly_entry_on_first_run(_mock_select: MagicMock) -> None:
     """No prior generation → creates one entry and returns count=1."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -67,7 +66,7 @@ def test_generates_monthly_entry_on_first_run(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_skips_if_already_generated_this_month(mock_select: MagicMock) -> None:
+def test_skips_if_already_generated_this_month(_mock_select: MagicMock) -> None:
     """last_generated_date is in the current month → skip, return 0."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -86,7 +85,7 @@ def test_skips_if_already_generated_this_month(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_generates_annual_entry_on_first_run(mock_select: MagicMock) -> None:
+def test_generates_annual_entry_on_first_run(_mock_select: MagicMock) -> None:
     """No prior generation for annual → creates one entry."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -104,7 +103,7 @@ def test_generates_annual_entry_on_first_run(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_skips_if_already_generated_this_year(mock_select: MagicMock) -> None:
+def test_skips_if_already_generated_this_year(_mock_select: MagicMock) -> None:
     """last_generated_date.year == today.year → skip annual entry."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -123,7 +122,7 @@ def test_skips_if_already_generated_this_year(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_is_idempotent(mock_select: MagicMock) -> None:
+def test_is_idempotent(_mock_select: MagicMock) -> None:
     """Calling generate twice in the same period creates exactly 1 entry total."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -149,7 +148,7 @@ def test_is_idempotent(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_skips_non_recurring_templates(mock_select: MagicMock) -> None:
+def test_skips_non_recurring_templates(_mock_select: MagicMock) -> None:
     """Templates with recurrence_interval=None are not queried (filtered by DB)."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -164,7 +163,7 @@ def test_skips_non_recurring_templates(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_copy_preserves_template_fields(mock_select: MagicMock) -> None:
+def test_copy_preserves_template_fields(_mock_select: MagicMock) -> None:
     """Generated copy matches template's amount, type, category, description."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -191,7 +190,7 @@ def test_copy_preserves_template_fields(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_copy_has_is_generated_true(mock_select: MagicMock) -> None:
+def test_copy_has_is_generated_true(_mock_select: MagicMock) -> None:
     """Generated copy has is_generated=True and is_recurring=False."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -210,7 +209,7 @@ def test_copy_has_is_generated_true(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_returns_count_of_created_entries(mock_select: MagicMock) -> None:
+def test_returns_count_of_created_entries(_mock_select: MagicMock) -> None:
     """Returns the correct count when multiple templates are processed."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -231,7 +230,7 @@ def test_returns_count_of_created_entries(mock_select: MagicMock) -> None:
 
 
 @patch("app.services.portfolio_service.select")
-def test_generates_entry_for_previous_month_template(mock_select: MagicMock) -> None:
+def test_generates_entry_for_previous_month_template(_mock_select: MagicMock) -> None:
     """Template last generated in a previous month triggers new monthly entry."""
     from app.services.portfolio_service import generate_recurring_transactions
 
@@ -255,7 +254,7 @@ def test_generates_entry_for_previous_month_template(mock_select: MagicMock) -> 
 
 
 @patch("app.services.portfolio_service.select")
-def test_generates_entry_for_previous_year_template(mock_select: MagicMock) -> None:
+def test_generates_entry_for_previous_year_template(_mock_select: MagicMock) -> None:
     """Template last generated in a previous year triggers new annual entry."""
     from app.services.portfolio_service import generate_recurring_transactions
 

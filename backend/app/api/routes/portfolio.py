@@ -240,12 +240,15 @@ async def get_portfolio_summary(
 
 @router.post("/generate-recurring", status_code=status.HTTP_200_OK)
 async def trigger_recurring_generation(
-    _current_user: CurrentUser,
+    current_user: CurrentUser,
     session: SessionDep,
 ) -> dict[str, int]:
     """Manually trigger recurring transaction generation for the current period.
 
-    Idempotent — safe to call multiple times. Only authenticated users can trigger.
+    Scoped to the authenticated user's transactions. Idempotent — safe to call
+    multiple times per period.
     """
-    count = portfolio_service.generate_recurring_transactions(session)
+    count = portfolio_service.generate_recurring_transactions(
+        session, user_id=current_user.id
+    )
     return {"generated": count}
