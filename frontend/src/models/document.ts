@@ -11,6 +11,7 @@ export type DocumentType =
   | "grundbuchauszug"
   | "teilungserklaerung"
   | "hausgeldabrechnung"
+  | "wohnungsgrundriss"
   | "unknown"
 
 export type DocumentStatus = "uploaded" | "processing" | "completed" | "failed"
@@ -76,6 +77,79 @@ export interface KaufvertragAnalysis {
   isAiGenerated: boolean
 }
 
+export interface RiskFlag {
+  flag: string
+  description: string
+  riskLevel: string
+}
+
+export interface GrundbuchOwner {
+  name: string
+  share: string
+  acquisitionDate: string | null
+}
+
+export interface GrundbuchEncumbrance {
+  type: string
+  beneficiary: string
+  description: string
+}
+
+export interface GrundbuchCharge {
+  type: string
+  creditor: string
+  amountEur: number | null
+}
+
+export interface GrundbuchAnalysis {
+  propertyDescription: string
+  abteilung1: { owners: GrundbuchOwner[] }
+  abteilung2: { encumbrances: GrundbuchEncumbrance[] }
+  abteilung3: { charges: GrundbuchCharge[] }
+  riskFlags: RiskFlag[]
+  isAiGenerated: boolean
+}
+
+export interface TeilungserklaerungAnalysis {
+  unitDescription: string
+  miteigentumsanteil: string
+  sondereigentum: Array<{ area: string; description: string }>
+  sondernutzungsrechte: Array<{ description: string; conditions: string }>
+  gemeinschaftseigentum: string[]
+  wegRules: Array<{ rule: string; impact: string }>
+  riskFlags: RiskFlag[]
+  isAiGenerated: boolean
+}
+
+export interface MietvertragAnalysis {
+  monthlyRentEur: number | null
+  depositEur: number | null
+  noticePeriodMonths: number | null
+  leaseStart: string | null
+  leaseEnd: string | null
+  isUnlimited: boolean
+  maintenanceObligations: Array<{ party: string; obligation: string }>
+  renewalClauses: Array<{ clause: string; conditions: string }>
+  specialAgreements: string[]
+  riskFlags: RiskFlag[]
+  isAiGenerated: boolean
+}
+
+export interface WohnungsgrundrissRoom {
+  nameDe: string
+  nameEn: string
+  areaSqm: number | null
+}
+
+export interface WohnungsgrundrissAnalysis {
+  rooms: WohnungsgrundrissRoom[]
+  totalAreaSqm: number | null
+  floor: string | null
+  features: string[]
+  notes: string[]
+  isAiGenerated: boolean
+}
+
 export interface DocumentTranslation {
   id: string
   documentId: string
@@ -85,6 +159,7 @@ export interface DocumentTranslation {
   clausesDetected: DetectedClause[]
   riskWarnings: DocumentRiskWarning[]
   kaufvertragAnalysis: KaufvertragAnalysis | null
+  typeAnalysis: Record<string, unknown> | null
   processingStartedAt: string | null
   processingCompletedAt: string | null
 }

@@ -692,6 +692,9 @@ export type DocumentTranslationResponse = {
     clauses_detected: Array<DetectedClause>;
     risk_warnings: Array<DocumentRiskWarning>;
     kaufvertrag_analysis?: (KaufvertragAnalysis | null);
+    type_analysis?: ({
+    [key: string]: unknown;
+} | null);
     processing_started_at?: (string | null);
     processing_completed_at?: (string | null);
 };
@@ -699,12 +702,12 @@ export type DocumentTranslationResponse = {
 /**
  * Types of German real estate documents.
  */
-export type DocumentType = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'unknown';
+export type DocumentType = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'wohnungsgrundriss' | 'unknown';
 
 /**
  * Document type choices.
  */
-export type DocumentTypeEnum = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'unknown';
+export type DocumentTypeEnum = 'kaufvertrag' | 'mietvertrag' | 'expose' | 'nebenkostenabrechnung' | 'grundbuchauszug' | 'teilungserklaerung' | 'hausgeldabrechnung' | 'wohnungsgrundriss' | 'unknown';
 
 /**
  * Response after uploading a document.

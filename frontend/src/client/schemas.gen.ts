@@ -2352,6 +2352,18 @@ export const DocumentTranslationResponseSchema = {
                 }
             ]
         },
+        type_analysis: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Type Analysis'
+        },
         processing_started_at: {
             anyOf: [
                 {
@@ -2385,14 +2397,14 @@ export const DocumentTranslationResponseSchema = {
 
 export const DocumentTypeSchema = {
     type: 'string',
-    enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'unknown'],
+    enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'wohnungsgrundriss', 'unknown'],
     title: 'DocumentType',
     description: 'Types of German real estate documents.'
 } as const;
 
 export const DocumentTypeEnumSchema = {
     type: 'string',
-    enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'unknown'],
+    enum: ['kaufvertrag', 'mietvertrag', 'expose', 'nebenkostenabrechnung', 'grundbuchauszug', 'teilungserklaerung', 'hausgeldabrechnung', 'wohnungsgrundriss', 'unknown'],
     title: 'DocumentTypeEnum',
     description: 'Document type choices.'
 } as const;
