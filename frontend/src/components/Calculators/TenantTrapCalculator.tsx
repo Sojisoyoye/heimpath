@@ -79,6 +79,12 @@ const VERDICT_LABEL: Record<StressResults["verdict"], string> = {
   danger: "Critical — portfolio may not survive default scenario",
 }
 
+const VERDICT_BAR_COLOR: Record<StressResults["verdict"], string> = {
+  safe: Colors.Chart.Green,
+  warning: Colors.Chart.Amber,
+  danger: Colors.Chart.Red,
+}
+
 const DEFAULT_INPUTS: CalculatorInputs = {
   numUnits: "",
   avgMonthlyRent: "",
@@ -111,8 +117,8 @@ function formatMonths(months: number): string {
   if (months >= 120) return "10+ years"
   const y = Math.floor(months / 12)
   const m = Math.round(months % 12)
-  if (y === 0) return `${m} month${m !== 1 ? "s" : ""}`
-  if (m === 0) return `${y} year${y !== 1 ? "s" : ""}`
+  if (y === 0) return `${m} month${m === 1 ? "" : "s"}`
+  if (m === 0) return `${y} year${y === 1 ? "" : "s"}`
   return `${y}y ${m}m`
 }
 
@@ -173,12 +179,14 @@ function calculateTenantStress(inputs: CalculatorInputs): StressResults | null {
   const bufferCoverageRatio =
     recommendedBuffer > 0 ? cashReserves / recommendedBuffer : Infinity
 
-  const verdict: StressResults["verdict"] =
-    bufferCoverageRatio >= 1
-      ? "safe"
-      : bufferCoverageRatio >= 0.5
-        ? "warning"
-        : "danger"
+  let verdict: StressResults["verdict"]
+  if (bufferCoverageRatio >= 1) {
+    verdict = "safe"
+  } else if (bufferCoverageRatio >= 0.5) {
+    verdict = "warning"
+  } else {
+    verdict = "danger"
+  }
 
   const chartData = [
     { name: "Cash Reserves", value: Math.round(cashReserves) },
@@ -385,13 +393,7 @@ function TenantTrapCalculator(props: Readonly<IProps>) {
 
         {/* Results */}
         <div className="space-y-4">
-          {!results ? (
-            <Card className="flex min-h-[200px] items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                Enter portfolio details to run the stress test
-              </p>
-            </Card>
-          ) : (
+          {results ? (
             <>
               {/* Verdict */}
               <Alert
@@ -411,7 +413,7 @@ function TenantTrapCalculator(props: Readonly<IProps>) {
                   {results.nonPayingUnits > 0 && (
                     <span className="ml-1 font-normal">
                       — {results.nonPayingUnits} unit
-                      {results.nonPayingUnits !== 1 ? "s" : ""} non-paying at{" "}
+                      {results.nonPayingUnits === 1 ? "" : "s"} non-paying at{" "}
                       {inputs.nonPayingPct}%
                     </span>
                   )}
@@ -486,13 +488,7 @@ function TenantTrapCalculator(props: Readonly<IProps>) {
                       />
                       <Bar
                         dataKey="value"
-                        fill={
-                          results.verdict === "safe"
-                            ? Colors.Chart.Green
-                            : results.verdict === "warning"
-                              ? Colors.Chart.Amber
-                              : Colors.Chart.Red
-                        }
+                        fill={VERDICT_BAR_COLOR[results.verdict]}
                         radius={[4, 4, 0, 0]}
                       />
                       {results.recommendedBuffer > 0 && (
@@ -512,6 +508,12 @@ function TenantTrapCalculator(props: Readonly<IProps>) {
                 </CardContent>
               </Card>
             </>
+          ) : (
+            <Card className="flex min-h-[200px] items-center justify-center">
+              <p className="text-sm text-muted-foreground">
+                Enter portfolio details to run the stress test
+              </p>
+            </Card>
           )}
         </div>
       </div>
