@@ -5,6 +5,7 @@
 
 import { Trash2 } from "lucide-react"
 import { formatEur2 } from "@/common/utils/formatters"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -77,7 +78,29 @@ function TransactionList(props: Readonly<IProps>) {
               <TableCell className="whitespace-nowrap">
                 {formatDate(txn.date)}
               </TableCell>
-              <TableCell>{TYPE_LABELS[txn.type] ?? txn.type}</TableCell>
+              <TableCell>
+                <div className="flex flex-wrap items-center gap-1">
+                  <span>{TYPE_LABELS[txn.type] ?? txn.type}</span>
+                  {txn.isRecurring && txn.recurrenceInterval && (
+                    <Badge
+                      variant="outline"
+                      className="border-amber-400 bg-amber-50 text-amber-700 text-xs dark:bg-amber-950 dark:text-amber-300"
+                    >
+                      {txn.recurrenceInterval === "monthly"
+                        ? "Monthly"
+                        : "Annual"}
+                    </Badge>
+                  )}
+                  {txn.isGenerated && (
+                    <Badge
+                      variant="outline"
+                      className="border-gray-300 bg-gray-50 text-gray-500 text-xs dark:bg-gray-800 dark:text-gray-400"
+                    >
+                      Auto
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="text-muted-foreground">
                 {txn.category ?? "-"}
               </TableCell>

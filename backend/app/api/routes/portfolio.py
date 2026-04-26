@@ -231,3 +231,21 @@ async def get_portfolio_summary(
     """Get aggregated KPIs across the entire portfolio."""
     summary = portfolio_service.calculate_portfolio_summary(session, current_user.id)
     return PortfolioSummaryResponse(**summary)
+
+
+# ---------------------------------------------------------------------------
+# Recurring generation trigger endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.post("/generate-recurring", status_code=status.HTTP_200_OK)
+async def trigger_recurring_generation(
+    _current_user: CurrentUser,
+    session: SessionDep,
+) -> dict[str, int]:
+    """Manually trigger recurring transaction generation for the current period.
+
+    Idempotent — safe to call multiple times. Only authenticated users can trigger.
+    """
+    count = portfolio_service.generate_recurring_transactions(session)
+    return {"generated": count}

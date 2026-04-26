@@ -1774,6 +1774,7 @@ export type PortfolioTransactionCreate = {
     is_recurring?: boolean;
     cost_category?: (CostCategory | null);
     estimated_amount?: (number | null);
+    recurrence_interval?: (RecurrenceInterval | null);
 };
 
 /**
@@ -1798,6 +1799,9 @@ export type PortfolioTransactionResponse = {
     is_recurring: boolean;
     cost_category?: (string | null);
     estimated_amount?: (number | null);
+    recurrence_interval?: (string | null);
+    last_generated_date?: (string | null);
+    is_generated?: boolean;
     created_at: string;
 };
 
@@ -2110,6 +2114,11 @@ export type QuestionnaireAnswers = {
     target_purchase_date?: (string | null);
     property_use?: ('live_in' | 'rent_out' | null);
 };
+
+/**
+ * Recurrence interval for recurring transactions.
+ */
+export type RecurrenceInterval = 'monthly' | 'annually';
 
 /**
  * Schema for token refresh request.
@@ -3433,6 +3442,10 @@ export type PortfolioGetTaxSummaryResponse = (AnlageVSummaryResponse);
 export type PortfolioGetPortfolioPerformanceResponse = (PortfolioPerformanceResponse);
 
 export type PortfolioGetPortfolioSummaryResponse = (PortfolioSummaryResponse);
+
+export type PortfolioTriggerRecurringGenerationResponse = ({
+    [key: string]: (number);
+});
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;

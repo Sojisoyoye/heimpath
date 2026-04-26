@@ -91,6 +91,8 @@ export interface PortfolioPropertySummary {
   createdAt: string
 }
 
+export type RecurrenceInterval = "monthly" | "annually"
+
 export interface PortfolioTransaction {
   id: string
   propertyId: string
@@ -102,6 +104,9 @@ export interface PortfolioTransaction {
   isRecurring: boolean
   costCategory: CostCategory | null
   estimatedAmount: number | null
+  recurrenceInterval: RecurrenceInterval | null
+  lastGeneratedDate: string | null
+  isGenerated: boolean
   createdAt: string
 }
 
@@ -114,6 +119,7 @@ export interface PortfolioTransactionInput {
   isRecurring?: boolean
   costCategory?: CostCategory | null
   estimatedAmount?: number | null
+  recurrenceInterval?: RecurrenceInterval | null
 }
 
 export interface PortfolioSummary {
