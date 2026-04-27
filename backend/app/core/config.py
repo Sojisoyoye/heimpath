@@ -173,9 +173,9 @@ class Settings(BaseSettings):
     MAX_PAGES_PREMIUM: int = 20
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
-        if not value:
+        if not value and self.ENVIRONMENT != "local":
             raise ValueError(
-                f"{var_name} must not be empty. "
+                f"{var_name} must not be empty in {self.ENVIRONMENT}. "
                 "Generate a secure value with: openssl rand -hex 32"
             )
         if value == "changethis":
