@@ -246,3 +246,38 @@ export interface FinancingAssessmentSummary {
   maxLoanEstimate: number
   createdAt: string
 }
+
+// ---------------------------------------------------------------------------
+// Mietpreisbremse Rent Ceiling Check
+// ---------------------------------------------------------------------------
+
+export type RentCeilingCity = "berlin" | "hamburg" | "munich" | "frankfurt"
+
+export type RentCeilingStatus =
+  | "OVER_LIMIT"
+  | "AT_RISK"
+  | "WITHIN_LIMIT"
+  | "ROOM_TO_INCREASE"
+
+export interface RentCeilingCheckInput {
+  city: RentCeilingCity
+  postcode: string
+  sizeSqm: number
+  buildingYear?: number
+  currentRent: number
+}
+
+export interface RentCeilingCheckResult {
+  city: string
+  postcode: string
+  sizeSqm: number
+  currentRent: number
+  referenceRentPerSqm: number
+  ceilingRent: number
+  status: RentCeilingStatus
+  overpaymentEur: number
+  maximumLegalRent: number
+  roomToIncreaseEur: number
+  dataSource: string
+  disclaimer: string
+}

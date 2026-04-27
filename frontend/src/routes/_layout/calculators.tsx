@@ -34,6 +34,7 @@ import {
   MortgageEligibilityGuide,
   OwnershipComparison,
   PropertyEvaluationCalculator,
+  RentCeilingCalculator,
   RentEstimate,
   ROICalculator,
   SpeculationTaxCalculator,
@@ -216,6 +217,14 @@ function CalculatorsPage() {
             <Zap className="h-4 w-4" />
             <span className="hidden sm:inline">Energy Retrofit</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="rent-ceiling"
+            className="gap-2"
+            aria-label="Rent Ceiling Check"
+          >
+            <Scale className="h-4 w-4" />
+            <span className="hidden sm:inline">Rent Ceiling</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="costs" className="mt-6">
@@ -280,6 +289,10 @@ function CalculatorsPage() {
 
         <TabsContent value="geg-retrofit" className="mt-6">
           <GegRetrofitCalculator />
+        </TabsContent>
+
+        <TabsContent value="rent-ceiling" className="mt-6">
+          <RentCeilingCalculator />
         </TabsContent>
       </Tabs>
     </div>

@@ -2155,6 +2155,26 @@ export type RegisterResponse = {
 };
 
 /**
+ * Result of a Mietpreisbremse rent ceiling check.
+ */
+export type RentCeilingCheckResponse = {
+    city: string;
+    postcode: string;
+    size_sqm: number;
+    current_rent: number;
+    reference_rent_per_sqm: number;
+    ceiling_rent: number;
+    status: 'OVER_LIMIT' | 'AT_RISK' | 'WITHIN_LIMIT' | 'ROOM_TO_INCREASE';
+    overpayment_eur: number;
+    maximum_legal_rent: number;
+    room_to_increase_eur: number;
+    data_source: string;
+    disclaimer: string;
+};
+
+export type status = 'OVER_LIMIT' | 'AT_RISK' | 'WITHIN_LIMIT' | 'ROOM_TO_INCREASE';
+
+/**
  * Response for a rent estimate query.
  */
 export type RentEstimateResponse = {
@@ -3000,6 +3020,31 @@ export type CalculatorsDeleteOwnershipComparisonData = {
 };
 
 export type CalculatorsDeleteOwnershipComparisonResponse = (void);
+
+export type CalculatorsCheckRentCeilingData = {
+    /**
+     * Building construction year (optional)
+     */
+    buildingYear?: (number | null);
+    /**
+     * City covered by Mietpreisbremse
+     */
+    city: 'berlin' | 'hamburg' | 'munich' | 'frankfurt';
+    /**
+     * Current monthly rent in EUR
+     */
+    currentRent: number;
+    /**
+     * 5-digit German postcode
+     */
+    postcode: string;
+    /**
+     * Apartment size in sqm
+     */
+    sizeSqm: number;
+};
+
+export type CalculatorsCheckRentCeilingResponse = (RentCeilingCheckResponse);
 
 export type ContractsGetSharedAnalysisData = {
     shareId: string;

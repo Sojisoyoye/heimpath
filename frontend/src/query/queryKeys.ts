@@ -98,6 +98,20 @@ export const queryKeys = {
         "ownershipComparisonShare",
         shareId,
       ] as const,
+    rentCeilingCheck: (
+      city: string,
+      postcode: string,
+      sizeSqm: number,
+      currentRent: number,
+    ) =>
+      [
+        ...queryKeys.calculators.all,
+        "rentCeilingCheck",
+        city,
+        postcode,
+        sizeSqm,
+        currentRent,
+      ] as const,
   },
 
   // Market data queries

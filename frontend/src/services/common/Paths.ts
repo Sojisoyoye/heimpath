@@ -91,6 +91,7 @@ export const PATHS = {
       `${API_V1}/calculators/ownership-comparison/${id}`,
     OWNERSHIP_COMPARISON_SHARE: (shareId: string) =>
       `${API_V1}/calculators/ownership-comparison/share/${shareId}`,
+    RENT_CEILING_CHECK: `${API_V1}/calculators/rent-ceiling/check`,
   },
 
   // Financing
