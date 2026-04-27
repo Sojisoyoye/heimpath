@@ -4813,14 +4813,23 @@ export const LoginRequestSchema = {
 export const LogoutRequestSchema = {
     properties: {
         refresh_token: {
-            type: 'string',
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Refresh Token'
         }
     },
     type: 'object',
-    required: ['refresh_token'],
     title: 'LogoutRequest',
-    description: 'Schema for logout request.'
+    description: `Schema for logout request.
+
+\`\`refresh_token\`\` may be omitted when the client sends it as an HttpOnly
+cookie instead of a JSON body field.`
 } as const;
 
 export const MarketInsightsDataSchema = {
@@ -8369,14 +8378,23 @@ export const RecurrenceIntervalSchema = {
 export const RefreshTokenRequestSchema = {
     properties: {
         refresh_token: {
-            type: 'string',
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Refresh Token'
         }
     },
     type: 'object',
-    required: ['refresh_token'],
     title: 'RefreshTokenRequest',
-    description: 'Schema for token refresh request.'
+    description: `Schema for token refresh request.
+
+\`\`refresh_token\`\` may be omitted when the client sends it as an HttpOnly
+cookie instead of a JSON body field.`
 } as const;
 
 export const RegisterRequestSchema = {

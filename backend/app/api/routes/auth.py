@@ -9,7 +9,7 @@ Provides registration and login endpoints with:
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlmodel import Session, select
 
 from app.api.deps import get_db
@@ -147,6 +147,7 @@ async def register(
 @router.post("/login", response_model=AuthToken)
 async def login(
     request: LoginRequest,
+    response: Response,
     session: Session = Depends(get_db),
 ) -> AuthToken:
     """
@@ -155,6 +156,8 @@ async def login(
     Rate limiting: After 5 failed attempts, the account is locked for 15 minutes.
 
     Returns access token (24h or 30d with remember_me) and refresh token (7d).
+    Also sets HttpOnly cookies: ``access_token``, ``refresh_token``, and a
+    JS-readable ``logged_in`` indicator cookie.
     """
     # Check if account is locked due to rate limiting
     if rate_limit_service.is_locked(request.email):
@@ -218,43 +221,133 @@ async def login(
         subject=str(user.id),
         remember_me=request.remember_me,
     )
-    refresh_token = auth_service.create_refresh_token(subject=str(user.id))
+    refresh_token_value = auth_service.create_refresh_token(subject=str(user.id))
+
+    # Set HttpOnly cookies so the browser never exposes tokens to JS
+    secure = settings.ENVIRONMENT != "local"
+    access_max_age = (
+        settings.REMEMBER_ME_EXPIRE_DAYS * 24 * 60 * 60
+        if request.remember_me
+        else settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+    refresh_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        max_age=access_max_age,
+        path="/",
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token_value,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        max_age=refresh_max_age,
+        path="/",
+    )
+    # JS-readable indicator so the frontend can check login state synchronously
+    response.set_cookie(
+        key="logged_in",
+        value="1",
+        httponly=False,
+        secure=secure,
+        samesite="lax",
+        max_age=access_max_age,
+        path="/",
+    )
 
     return AuthToken(
         access_token=access_token,
-        refresh_token=refresh_token,
+        refresh_token=refresh_token_value,
     )
 
 
 @router.post("/refresh", response_model=AuthToken)
-async def refresh_token(request: RefreshTokenRequest) -> AuthToken:
+async def refresh_token(
+    body: RefreshTokenRequest,
+    http_request: Request,
+    response: Response,
+) -> AuthToken:
     """
     Get new access token using refresh token.
 
     The refresh token is validated and a new access token is issued.
     The same refresh token remains valid until expiration.
+
+    The refresh token may be supplied in the JSON body **or** via the HttpOnly
+    ``refresh_token`` cookie set during login.
     """
-    new_access_token = auth_service.refresh_access_token(request.refresh_token)
+    token = body.refresh_token or http_request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    new_access_token = auth_service.refresh_access_token(token)
     if new_access_token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
         )
 
+    # Rotate the access_token cookie
+    secure = settings.ENVIRONMENT != "local"
+    response.set_cookie(
+        key="access_token",
+        value=new_access_token,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+    # logged_in follows the refresh token lifetime so the indicator stays valid
+    # as long as silent refresh is possible (not just the current access token window)
+    response.set_cookie(
+        key="logged_in",
+        value="1",
+        httponly=False,
+        secure=secure,
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        path="/",
+    )
+
     return AuthToken(
         access_token=new_access_token,
-        refresh_token=request.refresh_token,  # Return same refresh token
+        refresh_token=token,  # Return same refresh token
     )
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(request: LogoutRequest) -> None:
+async def logout(
+    body: LogoutRequest,
+    http_request: Request,
+    response: Response,
+) -> None:
     """
-    Logout by invalidating the refresh token.
+    Logout by invalidating the refresh token and clearing auth cookies.
 
-    The refresh token is blacklisted and cannot be used again.
+    The refresh token (from body or cookie) is blacklisted and cannot be used
+    again.  All auth cookies (``access_token``, ``refresh_token``, ``logged_in``)
+    are deleted from the browser.
     """
-    auth_service.logout(request.refresh_token)
+    token = body.refresh_token or http_request.cookies.get("refresh_token")
+    if token:
+        auth_service.logout(token)
+    # Always clear cookies regardless of token validity.
+    # secure + samesite must match the attributes used when setting the cookies
+    # so that browsers (especially Safari) actually remove them.
+    secure = settings.ENVIRONMENT != "local"
+    response.delete_cookie(key="access_token", path="/", secure=secure, samesite="lax")
+    response.delete_cookie(key="refresh_token", path="/", secure=secure, samesite="lax")
+    response.delete_cookie(key="logged_in", path="/", secure=secure, samesite="lax")
     # Always return success even if token was invalid (security best practice)
 
 

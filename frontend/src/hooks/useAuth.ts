@@ -13,8 +13,14 @@ import { queryClient } from "@/query/client"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
+/**
+ * Returns true when the JS-readable `logged_in` cookie is present.
+ * This cookie is set by the server on login alongside the HttpOnly
+ * `access_token` cookie.  It lets us check auth state synchronously
+ * (e.g. in TanStack Router `beforeLoad`) without touching localStorage.
+ */
 const isLoggedIn = () => {
-  return localStorage.getItem("access_token") !== null
+  return document.cookie.split(";").some((c) => c.trim() === "logged_in=1")
 }
 
 const useAuth = (redirectTo?: string) => {
@@ -37,11 +43,10 @@ const useAuth = (redirectTo?: string) => {
   })
 
   const login = async (data: AccessToken) => {
-    const response = await LoginService.loginAccessToken({
-      formData: data,
-    })
+    await LoginService.loginAccessToken({ formData: data })
     queryClient.clear()
-    localStorage.setItem("access_token", response.access_token)
+    // Auth tokens are stored in HttpOnly cookies by the server.
+    // No localStorage write needed.
   }
 
   const loginMutation = useMutation({
@@ -56,9 +61,16 @@ const useAuth = (redirectTo?: string) => {
     onError: handleError.bind(showErrorToast),
   })
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // Ask the server to blacklist the refresh token (from cookie) and delete
+      // auth cookies.  The server accepts an empty body and falls back to the
+      // HttpOnly refresh_token cookie automatically.
+      await AuthService.logout({ requestBody: {} })
+    } catch {
+      // Ignore errors — proceed with client-side cleanup regardless
+    }
     queryClient.clear()
-    localStorage.removeItem("access_token")
     localStorage.removeItem("heimpath-wizard-state")
     localStorage.removeItem("heimpath-wizard-step")
     localStorage.removeItem("heimpath-email-banner-dismissed-at")

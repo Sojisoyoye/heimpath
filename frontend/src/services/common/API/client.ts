@@ -1,45 +1,25 @@
 /**
  * API Client wrapper
- * Provides a consistent interface for API calls with auth token handling
+ * Provides a consistent interface for API calls with auth state handling
  */
 
 import { OpenAPI } from "@/client"
 
 /**
- * Initialize the API client with the base URL and token handler
- * Called once at app startup
+ * Initialize the API client with the base URL.
+ * Auth is handled via HttpOnly cookies — no token is stored in JS memory.
+ * withCredentials is enabled so the browser sends cookies on every request.
  */
 export function initializeApiClient() {
   OpenAPI.BASE = import.meta.env.VITE_API_URL
-  OpenAPI.TOKEN = async () => {
-    return localStorage.getItem("access_token") || ""
-  }
+  OpenAPI.WITH_CREDENTIALS = true
 }
 
 /**
- * Get the current auth token
- */
-export function getAuthToken(): string | null {
-  return localStorage.getItem("access_token")
-}
-
-/**
- * Set the auth token
- */
-export function setAuthToken(token: string): void {
-  localStorage.setItem("access_token", token)
-}
-
-/**
- * Clear the auth token (logout)
- */
-export function clearAuthToken(): void {
-  localStorage.removeItem("access_token")
-}
-
-/**
- * Check if user is authenticated
+ * Check if user is authenticated using the JS-readable `logged_in` indicator
+ * cookie set by the server on login.  This is intentionally synchronous so it
+ * can be called from TanStack Router's `beforeLoad`.
  */
 export function isAuthenticated(): boolean {
-  return getAuthToken() !== null
+  return document.cookie.split(";").some((c) => c.trim() === "logged_in=1")
 }

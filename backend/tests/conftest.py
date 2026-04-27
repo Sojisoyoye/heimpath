@@ -36,6 +36,22 @@ def client() -> Generator[TestClient, None, None]:
         yield c
 
 
+@pytest.fixture(autouse=True)
+def clear_client_cookies(request: pytest.FixtureRequest) -> None:
+    """Clear the module-scoped client's cookie jar before each test.
+
+    Login endpoints now set HttpOnly cookies.  Without this fixture, cookies
+    from one test would leak into the next, causing "unauthenticated" tests to
+    accidentally pass because the cookie jar still holds a valid access_token.
+
+    Only active when the ``client`` fixture is already used by the current test
+    so that unit/seed test modules without an HTTP client are not affected.
+    """
+    if "client" in request.fixturenames:
+        http_client: TestClient = request.getfixturevalue("client")
+        http_client.cookies.clear()
+
+
 @pytest.fixture(scope="module")
 def superuser_token_headers(client: TestClient) -> dict[str, str]:
     return get_superuser_token_headers(client)
