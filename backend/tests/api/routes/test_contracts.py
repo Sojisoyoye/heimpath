@@ -341,3 +341,47 @@ def test_get_shared_analysis_not_found(client: TestClient) -> None:
     """Test retrieving a non-existent shared analysis returns 404."""
     r = client.get(f"{settings.API_V1_STR}/contracts/shared/nonexistent12")
     assert r.status_code == 404
+
+
+# ── M5: PDF magic-bytes validation ───────────────────────────────────────────
+
+
+def test_analyze_contract_rejects_non_pdf_magic_bytes(
+    client: TestClient, db: Session
+) -> None:
+    """HTML file renamed to .pdf must be rejected — magic bytes check."""
+    headers, _ = _get_auth_headers(client, db)
+    html_bytes = b"<html><body>not a pdf</body></html>"
+    r = client.post(
+        f"{settings.API_V1_STR}/contracts/analyze",
+        files={"file": ("evil.pdf", io.BytesIO(html_bytes), "application/pdf")},
+        headers=headers,
+    )
+    assert r.status_code == 400
+    assert "valid PDF" in r.json()["detail"]
+
+
+def test_analyze_contract_accepts_valid_pdf_regardless_of_content_type(
+    client: TestClient, db: Session
+) -> None:
+    """Valid PDF bytes must be accepted even if Content-Type is not application/pdf."""
+    headers, _ = _get_auth_headers(client, db)
+    with (
+        patch(
+            "app.services.contract_service.analyze_kaufvertrag",
+            new=AsyncMock(return_value=_MOCK_ANALYSIS),
+        ),
+        patch(
+            "app.services.contract_service._extract_pages_from_bytes",
+            return_value=[
+                {"page_number": 1, "original_text": "Test", "translated_text": ""}
+            ],
+        ),
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze",
+            # content_type set to text/plain but extension is .pdf → should still pass
+            files={"file": ("document.pdf", io.BytesIO(_MINIMAL_PDF), "text/plain")},
+            headers=headers,
+        )
+    assert r.status_code == 201

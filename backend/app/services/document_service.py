@@ -11,6 +11,7 @@ import re
 import secrets
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
@@ -162,6 +163,19 @@ TYPED_ANALYSIS_TYPES: frozenset[str] = frozenset(
 )
 
 
+PDF_MAGIC = b"%PDF"
+
+
+def _validate_pdf_bytes(content: bytes) -> None:
+    """Raise ValueError if content does not begin with the PDF magic bytes.
+
+    Checking magic bytes prevents disguised files (HTML, JS polyglots, etc.)
+    from being accepted regardless of what Content-Type the client sends.
+    """
+    if not content.startswith(PDF_MAGIC):
+        raise ValueError("File does not appear to be a valid PDF")
+
+
 def _detect_document_type(text: str) -> DocumentType:
     """Detect document type based on keyword frequency in extracted text."""
     text_lower = text.lower()
@@ -246,12 +260,16 @@ async def save_upload(
     if len(file_content) > max_bytes:
         raise ValueError(f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB} MB")
 
-    # Write file to disk
-    upload_dir = settings.UPLOAD_DIR
+    # Validate magic bytes — reject disguised non-PDF files regardless of Content-Type
+    _validate_pdf_bytes(file_content)
+
+    # Write file to disk using a UUID-only name so the original filename can never
+    # introduce path traversal components (M6: sanitize stored file paths).
+    upload_dir = Path(settings.UPLOAD_DIR).resolve()
     os.makedirs(upload_dir, exist_ok=True)
 
-    stored_filename = f"{uuid.uuid4().hex}_{filename}"
-    file_path = os.path.join(upload_dir, stored_filename)
+    stored_filename = f"{uuid.uuid4().hex}.pdf"
+    file_path = str(upload_dir / stored_filename)
 
     with open(file_path, "wb") as f:
         f.write(file_content)

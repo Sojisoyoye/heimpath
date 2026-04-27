@@ -10,6 +10,7 @@ from app.models.document import Document, DocumentStatus, DocumentType
 from app.services.document_service import (
     _detect_clauses,
     _detect_document_type,
+    _validate_pdf_bytes,
     get_documents_by_step_id,
 )
 
@@ -198,3 +199,85 @@ class TestGetDocumentsByStepId:
         assert "document.journey_step_id" in compiled
         assert "document.user_id" in compiled
         assert "ORDER BY document.created_at DESC" in compiled
+
+
+# ── M5: PDF magic-bytes validation ───────────────────────────────────────────
+
+
+class TestValidatePdfBytes:
+    def test_valid_pdf_passes(self) -> None:
+        valid_pdf = b"%PDF-1.4 minimal content"
+        # Should not raise
+        _validate_pdf_bytes(valid_pdf)
+
+    def test_html_disguised_as_pdf_raises(self) -> None:
+        html_bytes = b"<html><body>not a pdf</body></html>"
+        with pytest.raises(ValueError, match="does not appear to be a valid PDF"):
+            _validate_pdf_bytes(html_bytes)
+
+    def test_empty_bytes_raises(self) -> None:
+        with pytest.raises(ValueError, match="does not appear to be a valid PDF"):
+            _validate_pdf_bytes(b"")
+
+    def test_js_polyglot_raises(self) -> None:
+        js_bytes = b"alert('xss');"
+        with pytest.raises(ValueError, match="does not appear to be a valid PDF"):
+            _validate_pdf_bytes(js_bytes)
+
+
+# ── M6: Stored filename path sanitization ────────────────────────────────────
+
+
+class TestSaveUploadPathSanitization:
+    @pytest.mark.asyncio
+    async def test_stored_filename_is_uuid_only(
+        self, tmp_path: pytest.TempPathFactory
+    ) -> None:
+        """Stored filename must be <uuid>.pdf — no original filename embedded."""
+        import os
+        from unittest.mock import AsyncMock, patch
+
+        from app.services import document_service
+
+        minimal_pdf = (
+            b"%PDF-1.4\n"
+            b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+            b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+            b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]>>\nendobj\n"
+            b"xref\n0 4\n0000000000 65535 f\n"
+            b"0000000009 00000 n\n0000000068 00000 n\n0000000125 00000 n\n"
+            b"trailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n197\n%%EOF"
+        )
+        mock_session = AsyncMock()
+        mock_session.refresh = AsyncMock()
+
+        with (
+            patch.object(document_service.settings, "UPLOAD_DIR", str(tmp_path)),
+            patch("app.services.document_service._count_pages_sync", return_value=1),
+            patch(
+                "app.services.document_service._extract_pages_sync",
+                return_value=[
+                    {"page_number": 1, "original_text": "", "translated_text": ""}
+                ],
+            ),
+        ):
+            doc = await document_service.save_upload(
+                session=mock_session,
+                user_id=uuid.uuid4(),
+                file_content=minimal_pdf,
+                filename="../../../etc/cron.d/evil",
+                is_premium=False,
+            )
+
+        # Stored filename must be <hex>.pdf — no path components from original name
+        assert doc.stored_filename.endswith(".pdf")
+        assert ".." not in doc.stored_filename
+        assert "/" not in doc.stored_filename
+        assert doc.stored_filename == doc.stored_filename.split("/")[-1]
+        # Original name is preserved in the DB field
+        assert doc.original_filename == "../../../etc/cron.d/evil"
+        # File must be inside tmp_path — no path traversal
+        written_files = list(tmp_path.iterdir())
+        assert len(written_files) == 1
+        assert written_files[0].name == doc.stored_filename
+        os.remove(written_files[0])
