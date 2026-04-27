@@ -242,3 +242,37 @@ def test_legacy_login_rate_limit_cleared_on_success(
     for _ in range(5):
         r = client.post(f"{settings.API_V1_STR}/login/access-token", data=bad_data)
         assert r.status_code == 400
+
+
+# ── L3: password-recovery-html-content enumeration fix ───────────────────────
+
+
+def test_password_recovery_html_unknown_email_returns_200(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """L3: unknown email must not leak existence via 404 — must return 200."""
+    r = client.post(
+        f"{settings.API_V1_STR}/password-recovery-html-content",
+        headers=superuser_token_headers,
+        json={"email": "nonexistent-l3@example.com"},
+    )
+    assert r.status_code == 200
+    assert "No account is registered" in r.text
+
+
+def test_password_recovery_html_known_email_returns_html(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    """Known email returns 200 with the rendered password reset email HTML."""
+    email = random_email()
+    password = random_lower_string()
+    create_user(session=db, user_create=UserCreate(email=email, password=password))
+
+    r = client.post(
+        f"{settings.API_V1_STR}/password-recovery-html-content",
+        headers=superuser_token_headers,
+        json={"email": email},
+    )
+    assert r.status_code == 200
+    # Response must contain email template HTML, not the generic fallback
+    assert "reset" in r.text.lower() or email in r.text
