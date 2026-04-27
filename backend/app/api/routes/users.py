@@ -4,7 +4,15 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
 from PIL import Image
 from sqlmodel import func, select
 
@@ -28,6 +36,7 @@ from app.models import (
     UserUpdateMe,
 )
 from app.schemas.user import UserDataExport
+from app.services import auth_service
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -167,7 +176,12 @@ async def export_user_data(current_user: CurrentUser) -> Any:
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> None:
+async def delete_user_me(
+    session: SessionDep,
+    current_user: CurrentUser,
+    http_request: Request,
+    response: Response,
+) -> None:
     """
     Delete own user.
     """
@@ -175,8 +189,18 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> None
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
+    # Invalidate the refresh token stored in the browser cookie so it cannot be
+    # used to obtain new access tokens after the account no longer exists.
+    refresh_token = http_request.cookies.get("refresh_token")
+    if refresh_token:
+        auth_service.logout(refresh_token)
     session.delete(current_user)
     session.commit()
+    # Clear all auth cookies so the browser stops sending them.
+    secure = settings.ENVIRONMENT != "local"
+    response.delete_cookie(key="access_token", path="/", secure=secure, samesite="lax")
+    response.delete_cookie(key="refresh_token", path="/", secure=secure, samesite="lax")
+    response.delete_cookie(key="logged_in", path="/", secure=secure, samesite="lax")
 
 
 @router.put(

@@ -2,6 +2,8 @@
 
 import uuid
 
+import fakeredis
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
@@ -929,6 +931,31 @@ def test_track_click_professional_not_found(client: TestClient) -> None:
     )
 
     assert r.status_code == 404
+
+
+def test_track_click_rate_limited(
+    client: TestClient,
+    db: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """After CLICK_MAX_ATTEMPTS clicks from one IP the endpoint returns 429."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    monkeypatch.setattr("app.services.rate_limit_service._redis_client", fake)
+
+    professional = create_sample_professional(db)
+    from app.services.rate_limit_service import CLICK_MAX_ATTEMPTS
+
+    for _ in range(CLICK_MAX_ATTEMPTS):
+        r = client.post(
+            f"{settings.API_V1_STR}/professionals/{professional.id}/click",
+        )
+        assert r.status_code == 200
+
+    r = client.post(
+        f"{settings.API_V1_STR}/professionals/{professional.id}/click",
+    )
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
 
 
 def test_professional_response_includes_click_count(

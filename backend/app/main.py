@@ -41,6 +41,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         trigger="cron",
         day_of_week="mon",
         hour=2,
+        timezone="UTC",
     )
     scheduler.start()
     yield
@@ -50,9 +51,12 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
+_is_local = settings.ENVIRONMENT == "local"
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if _is_local else None,
+    docs_url="/docs" if _is_local else None,
+    redoc_url="/redoc" if _is_local else None,
     generate_unique_id_function=custom_generate_unique_id,
     lifespan=lifespan,
 )
@@ -63,8 +67,8 @@ if settings.all_cors_origins:
         CORSMiddleware,
         allow_origins=settings.all_cors_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"],
+        allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
     )
 
 # Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For) from Azure Container Apps.

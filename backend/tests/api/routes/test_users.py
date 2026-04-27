@@ -554,6 +554,30 @@ def test_delete_user_me(client: TestClient, db: Session) -> None:
     assert user_db is None
 
 
+def test_delete_user_me_blacklists_refresh_token(
+    client: TestClient, db: Session
+) -> None:
+    """Account deletion blacklists the refresh token cookie so it can't be reused."""
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    crud.create_user(session=db, user_create=user_in)
+
+    login_data = {"username": username, "password": password}
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    a_token = r.json()["access_token"]
+    headers = {"Authorization": f"Bearer {a_token}"}
+
+    # Simulate a session that also has a refresh token cookie
+    fake_refresh_token = "fake.refresh.token"
+    client.cookies.set("refresh_token", fake_refresh_token)
+
+    with patch("app.api.routes.users.auth_service.logout") as mock_logout:
+        r = client.delete(f"{settings.API_V1_STR}/users/me", headers=headers)
+        assert r.status_code == 204
+        mock_logout.assert_called_once_with(fake_refresh_token)
+
+
 def test_delete_user_me_as_superuser(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
