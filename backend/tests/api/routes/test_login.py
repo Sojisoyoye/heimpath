@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.crud import create_user
 from app.models import User, UserCreate
+from app.services.rate_limit_service import IP_FAILED_LOCKOUT_SECONDS, IP_FAILED_MAX
 from app.utils import generate_password_reset_token
 from tests.utils.user import user_authentication_headers
 from tests.utils.utils import random_email, random_lower_string
@@ -242,6 +243,29 @@ def test_legacy_login_rate_limit_cleared_on_success(
     for _ in range(5):
         r = client.post(f"{settings.API_V1_STR}/login/access-token", data=bad_data)
         assert r.status_code == 400
+
+
+def test_legacy_login_ip_rate_limit_blocks_after_max_failures(
+    client: TestClient,
+    isolated_rate_limiter: fakeredis.FakeRedis,  # noqa: ARG001
+) -> None:
+    """After IP_FAILED_MAX failures from one IP the legacy endpoint returns 429."""
+    # Use non-existent emails so each attempt hits auth and increments IP counter.
+    # The lock is set on the IP_FAILED_MAX-th attempt but that request still returns
+    # 400; the *next* request after the lock is set returns 429.
+    for _ in range(IP_FAILED_MAX):
+        r = client.post(
+            f"{settings.API_V1_STR}/login/access-token",
+            data={"username": random_email(), "password": "wrong"},
+        )
+        assert r.status_code == 400
+
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": random_email(), "password": "wrong"},
+    )
+    assert r.status_code == 429
+    assert r.headers["Retry-After"] == str(IP_FAILED_LOCKOUT_SECONDS)
 
 
 # ── L3: password-recovery-html-content enumeration fix ───────────────────────

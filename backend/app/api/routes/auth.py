@@ -148,6 +148,7 @@ async def register(
 async def login(
     request: LoginRequest,
     response: Response,
+    http_request: Request,
     session: Session = Depends(get_db),
 ) -> AuthToken:
     """
@@ -159,6 +160,15 @@ async def login(
     Also sets HttpOnly cookies: ``access_token``, ``refresh_token``, and a
     JS-readable ``logged_in`` indicator cookie.
     """
+    # Check if source IP is blocked (too many failed attempts across any email)
+    client_ip = http_request.client.host if http_request.client else None
+    if client_ip and rate_limit_service.is_ip_blocked(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Please try again later.",
+            headers={"Retry-After": str(rate_limit_service.IP_FAILED_LOCKOUT_SECONDS)},
+        )
+
     # Check if account is locked due to rate limiting
     if rate_limit_service.is_locked(request.email):
         status_info = rate_limit_service.get_status(request.email)
@@ -184,6 +194,8 @@ async def login(
         # Still run password verification to prevent timing attacks
         verify_password(request.password, DUMMY_HASH)
         rate_limit_service.record_failed_attempt(request.email)
+        if client_ip:
+            rate_limit_service.record_ip_failed(client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -192,6 +204,8 @@ async def login(
     verified, updated_hash = verify_password(request.password, user.hashed_password)
     if not verified:
         rate_info = rate_limit_service.record_failed_attempt(request.email)
+        if client_ip:
+            rate_limit_service.record_ip_failed(client_ip)
         detail = "Incorrect email or password"
         if rate_info.is_locked:
             detail = "Too many failed login attempts. Account locked for 15 minutes."
