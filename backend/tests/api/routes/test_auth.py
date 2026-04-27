@@ -542,17 +542,24 @@ def test_ip_rate_limit_not_cleared_on_success(client: TestClient) -> None:
     email = random_email()
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
 
-    # Hit the IP limit using non-existent emails (30 failures → lock set on 30th)
-    for _ in range(IP_FAILED_MAX):
+    # Accumulate IP_FAILED_MAX - 1 failures — not enough to trigger lockout yet.
+    for _ in range(IP_FAILED_MAX - 1):
         client.post(
             f"{AUTH}/login",
             json={"email": random_email(), "password": "WrongPass1"},
         )
 
-    # A successful login does NOT clear the IP counter (by design)
-    client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
+    # A successful login must not reset the IP failure counter.
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
+    assert r.status_code == 200
 
-    # IP is still blocked — next attempt must return 429
+    # One more failure pushes the counter to IP_FAILED_MAX, setting the lockout.
+    client.post(
+        f"{AUTH}/login",
+        json={"email": random_email(), "password": "WrongPass1"},
+    )
+
+    # IP is now locked — next attempt must return 429.
     r = client.post(
         f"{AUTH}/login", json={"email": random_email(), "password": "WrongPass1"}
     )
