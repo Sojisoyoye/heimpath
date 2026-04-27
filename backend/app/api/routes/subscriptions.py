@@ -7,6 +7,7 @@ Provides Stripe-based subscription management including:
 """
 
 import logging
+import uuid as _uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, HttpUrl
@@ -224,6 +225,16 @@ async def handle_webhook(
         session_id = event["data"]["object"]["id"]
 
         if user_id:
+            try:
+                user_uuid = _uuid.UUID(user_id)
+            except ValueError:
+                logger.warning(
+                    "checkout.session.completed: invalid user_id %s in session %s",
+                    user_id,
+                    session_id,
+                )
+                return WebhookResponse(received=True)
+
             price_id = payment_service.get_checkout_price_id(session_id)
             if price_id is None:
                 logger.warning(
@@ -241,7 +252,7 @@ async def handle_webhook(
                 )
                 return WebhookResponse(received=True)
 
-            statement = select(User).where(User.id == user_id)
+            statement = select(User).where(User.id == user_uuid)
             user = session.exec(statement).first()
             if user:
                 user.subscription_tier = tier
@@ -303,8 +314,7 @@ async def cancel_subscription(
             detail="No active subscription to cancel",
         )
 
-    stripe_subscription_id = getattr(current_user, "stripe_subscription_id", None)
-    if not stripe_subscription_id:
+    if not current_user.stripe_subscription_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No Stripe subscription found — contact support",
@@ -312,7 +322,7 @@ async def cancel_subscription(
 
     try:
         await payment_service.cancel_subscription(
-            stripe_subscription_id, at_period_end=True
+            current_user.stripe_subscription_id, at_period_end=True
         )
     except SubscriptionError as e:
         raise HTTPException(
@@ -322,6 +332,6 @@ async def cancel_subscription(
 
     return SubscriptionResponse(
         tier=current_user.subscription_tier,
-        stripe_customer_id=getattr(current_user, "stripe_customer_id", None),
+        stripe_customer_id=current_user.stripe_customer_id,
         status="cancellation_scheduled",
     )

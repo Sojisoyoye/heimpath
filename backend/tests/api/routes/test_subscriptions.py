@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.models import SubscriptionTier, UserCreate
 from app.services.payment_service import (
     CheckoutSessionResult,
+    WebhookEvent,
     WebhookEventType,
     WebhookVerificationError,
 )
@@ -326,10 +327,8 @@ def test_checkout_already_subscribed_to_same_tier(
 
 def _make_webhook_event(
     event_type: str, data_object: dict, metadata: dict
-) -> MagicMock:
+) -> tuple[MagicMock, WebhookEvent]:
     """Build a MagicMock that quacks like a stripe.Event for webhook tests."""
-    from app.services.payment_service import WebhookEvent
-
     raw_event: MagicMock = MagicMock()
     raw_event.__getitem__ = MagicMock(
         side_effect=lambda k: {"data": {"object": data_object}}.get(k, MagicMock())
@@ -442,8 +441,6 @@ def test_webhook_subscription_deleted_downgrades_user(
     """M10: customer.subscription.deleted sets tier=FREE via stripe_customer_id."""
     user, _username, _password = _create_premium_user_with_stripe(db)
 
-    from app.services.payment_service import WebhookEvent
-
     parsed_event = WebhookEvent(
         event_type=WebhookEventType.SUBSCRIPTION_DELETED.value,
         customer_id=user.stripe_customer_id,
@@ -481,8 +478,6 @@ def test_webhook_subscription_updated_changes_tier(
 ) -> None:
     """customer.subscription.updated updates tier via stripe_customer_id."""
     user, _username, _password = _create_premium_user_with_stripe(db)
-
-    from app.services.payment_service import WebhookEvent
 
     parsed_event = WebhookEvent(
         event_type=WebhookEventType.SUBSCRIPTION_UPDATED.value,

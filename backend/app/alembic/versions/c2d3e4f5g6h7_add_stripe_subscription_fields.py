@@ -23,20 +23,18 @@ def upgrade() -> None:
         "user",
         sa.Column("stripe_subscription_id", sa.String(255), nullable=True),
     )
-    op.create_unique_constraint(
-        "uq_user_stripe_customer_id", "user", ["stripe_customer_id"]
-    )
-    op.create_unique_constraint(
-        "uq_user_stripe_subscription_id", "user", ["stripe_subscription_id"]
-    )
+    # Unique index on stripe_customer_id (used for webhook lookups)
     op.create_index(
         "ix_user_stripe_customer_id", "user", ["stripe_customer_id"], unique=True
+    )
+    # Unique constraint on stripe_subscription_id (no index needed — not a lookup key)
+    op.create_unique_constraint(
+        "uq_user_stripe_subscription_id", "user", ["stripe_subscription_id"]
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_user_stripe_customer_id", table_name="user")
     op.drop_constraint("uq_user_stripe_subscription_id", "user", type_="unique")
-    op.drop_constraint("uq_user_stripe_customer_id", "user", type_="unique")
+    op.drop_index("ix_user_stripe_customer_id", table_name="user")
     op.drop_column("user", "stripe_subscription_id")
     op.drop_column("user", "stripe_customer_id")
