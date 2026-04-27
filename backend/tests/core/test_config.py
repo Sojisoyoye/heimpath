@@ -61,3 +61,44 @@ def test_trusted_proxy_ips_cidr_allowed_in_production() -> None:
         _env_file=None,
     )
     assert s.TRUSTED_PROXY_IPS == "10.0.0.0/8"
+
+
+# ── SECRET_KEY validation ──────────────────────────────────────────────────
+
+
+def test_secret_key_changethis_raises_in_production() -> None:
+    """SECRET_KEY='changethis' must raise ValueError in production."""
+    kwargs = {**_base_settings_kwargs(), "SECRET_KEY": "changethis"}
+    with pytest.raises(ValueError, match="changethis"):
+        Settings(
+            **kwargs,
+            ENVIRONMENT="production",
+            TRUSTED_PROXY_IPS="10.0.0.0/8",
+            _env_file=None,
+        )
+
+
+def test_secret_key_changethis_warns_in_local(recwarn: pytest.WarningsRecorder) -> None:
+    """SECRET_KEY='changethis' emits a warning in local environment."""
+    kwargs = {**_base_settings_kwargs(), "SECRET_KEY": "changethis"}
+    Settings(**kwargs, ENVIRONMENT="local", _env_file=None)
+    assert any("changethis" in str(w.message) for w in recwarn.list)
+
+
+def test_postgres_password_empty_raises_in_production() -> None:
+    """POSTGRES_PASSWORD='' must raise ValueError in production."""
+    kwargs = {**_base_settings_kwargs(), "POSTGRES_PASSWORD": ""}
+    with pytest.raises(ValueError, match="must not be empty"):
+        Settings(
+            **kwargs,
+            ENVIRONMENT="production",
+            TRUSTED_PROXY_IPS="10.0.0.0/8",
+            _env_file=None,
+        )
+
+
+def test_postgres_password_empty_allowed_in_local() -> None:
+    """POSTGRES_PASSWORD='' is permitted in local (passwordless Docker DB)."""
+    kwargs = {**_base_settings_kwargs(), "POSTGRES_PASSWORD": ""}
+    s = Settings(**kwargs, ENVIRONMENT="local", _env_file=None)
+    assert s.POSTGRES_PASSWORD == ""
