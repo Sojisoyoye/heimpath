@@ -240,9 +240,14 @@ def refresh_access_token(refresh_token: str) -> tuple[str, str] | None:
         return None
     if token_data.type != TokenType.REFRESH:
         return None
-    assert token_data.jti is not None  # refresh tokens always carry jti
+    if token_data.jti is None:
+        # Refresh tokens always carry a jti; reject if somehow missing
+        return None
     _rotate_refresh_token(token_data.jti, token_data.exp)
     new_access = create_access_token(subject=token_data.sub)
+    # New refresh token uses the default lifetime. The remember_me extended
+    # lifetime applies only to the initial login token; subsequent rotations
+    # issue standard 7-day tokens (users remain active via silent refresh).
     new_refresh = create_refresh_token(subject=token_data.sub)
     return new_access, new_refresh
 
