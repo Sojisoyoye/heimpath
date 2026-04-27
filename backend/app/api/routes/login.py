@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
@@ -11,6 +11,7 @@ from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.core import security
 from app.core.config import settings
 from app.models import Message, NewPassword, Token, UserPublic, UserUpdate
+from app.services import rate_limit_service
 from app.utils import (
     generate_password_reset_token,
     generate_reset_password_email,
@@ -40,13 +41,21 @@ def login_access_token(
         auto-generated Swagger UI "Authorize" button) and will be removed in a
         future release.
     """
+    if rate_limit_service.is_locked(form_data.username):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Please try again later.",
+            headers={"Retry-After": "900"},
+        )
     user = crud.authenticate(
         session=session, email=form_data.username, password=form_data.password
     )
     if not user:
+        rate_limit_service.record_failed_attempt(form_data.username)
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    rate_limit_service.record_successful_login(form_data.username)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
         access_token=security.create_access_token(
