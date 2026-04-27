@@ -259,15 +259,16 @@ def _register_and_login(client: TestClient) -> dict:
     return r.json()
 
 
-def test_refresh_issues_new_access_token(client: TestClient) -> None:
+def test_refresh_issues_new_access_and_refresh_tokens(client: TestClient) -> None:
     tokens = _register_and_login(client)
     r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["refresh_token"]})
     assert r.status_code == 200
     body = r.json()
     assert "access_token" in body
     assert body["token_type"] == "bearer"
-    # Refresh token is echoed back unchanged
-    assert body["refresh_token"] == tokens["refresh_token"]
+    # Refresh token rotation: response contains a NEW refresh token
+    assert "refresh_token" in body
+    assert body["refresh_token"] != tokens["refresh_token"]
 
 
 def test_refresh_with_invalid_token_returns_401(client: TestClient) -> None:

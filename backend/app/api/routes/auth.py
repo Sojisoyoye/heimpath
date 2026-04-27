@@ -230,21 +230,21 @@ async def login(
     # Clear failed attempts on successful login
     rate_limit_service.record_successful_login(request.email)
 
-    # Generate tokens
-    access_token = auth_service.create_access_token(
-        subject=str(user.id),
-        remember_me=request.remember_me,
+    # Generate tokens — access token is always short-lived (15 min).
+    # "Remember me" extends the refresh token, not the access token.
+    access_token = auth_service.create_access_token(subject=str(user.id))
+    refresh_token_value = auth_service.create_refresh_token(
+        subject=str(user.id), remember_me=request.remember_me
     )
-    refresh_token_value = auth_service.create_refresh_token(subject=str(user.id))
 
     # Set HttpOnly cookies so the browser never exposes tokens to JS
     secure = settings.ENVIRONMENT != "local"
-    access_max_age = (
+    access_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60  # always 15 min
+    refresh_max_age = (
         settings.REMEMBER_ME_EXPIRE_DAYS * 24 * 60 * 60
         if request.remember_me
-        else settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        else settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     )
-    refresh_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
 
     response.set_cookie(
         key="access_token",
@@ -267,13 +267,15 @@ async def login(
     # JS-readable indicator so the frontend can check login state synchronously.
     # httponly=False is intentional: this cookie contains no secret, only the
     # boolean "1" to signal to isLoggedIn() that an HttpOnly access token exists.
+    # Lifetime follows refresh_max_age so the indicator stays valid as long as
+    # silent refresh is possible.
     response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
         key="logged_in",
         value="1",
         httponly=False,
         secure=secure,
         samesite="lax",
-        max_age=access_max_age,
+        max_age=refresh_max_age,
         path="/",
     )
 
@@ -305,15 +307,18 @@ async def refresh_token(
             detail="Invalid or expired refresh token",
         )
 
-    new_access_token = auth_service.refresh_access_token(token)
-    if new_access_token is None:
+    result = auth_service.refresh_access_token(token)
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
         )
 
-    # Rotate the access_token cookie
+    new_access_token, new_refresh_token = result
+
+    # Rotate both cookies — new access token + new refresh token
     secure = settings.ENVIRONMENT != "local"
+    refresh_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     response.set_cookie(
         key="access_token",
         value=new_access_token,
@@ -323,8 +328,15 @@ async def refresh_token(
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
     )
-    # logged_in follows the refresh token lifetime so the indicator stays valid
-    # as long as silent refresh is possible (not just the current access token window).
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        max_age=refresh_max_age,
+        path="/",
+    )
     # httponly=False is intentional: see the login endpoint comment.
     response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
         key="logged_in",
@@ -332,13 +344,13 @@ async def refresh_token(
         httponly=False,
         secure=secure,
         samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        max_age=refresh_max_age,
         path="/",
     )
 
     return AuthToken(
         access_token=new_access_token,
-        refresh_token=token,  # Return same refresh token
+        refresh_token=new_refresh_token,
     )
 
 

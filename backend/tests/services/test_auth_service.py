@@ -16,6 +16,7 @@ from app.services.auth_service import (
     create_refresh_token,
     decode_token,
     is_token_blacklisted,
+    is_token_in_grace_period,
     logout,
     refresh_access_token,
     verify_token,
@@ -71,13 +72,13 @@ class TestCreateAccessToken:
         token = create_access_token(subject=str(uuid.uuid4()))
         assert isinstance(token, str) and len(token) > 0
 
-    def test_default_expiry_1h(self) -> None:
+    def test_default_expiry_15m(self) -> None:
         token = create_access_token(subject=str(uuid.uuid4()))
         payload = decode_token(token)
         assert payload is not None
         exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
         diff = exp - datetime.now(timezone.utc)
-        assert timedelta(minutes=55) < diff < timedelta(minutes=65)
+        assert timedelta(minutes=14) < diff < timedelta(minutes=16)
 
     def test_custom_expiry(self) -> None:
         token = create_access_token(
@@ -88,14 +89,6 @@ class TestCreateAccessToken:
         exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
         diff = exp - datetime.now(timezone.utc)
         assert timedelta(hours=1, minutes=59) < diff < timedelta(hours=2, minutes=1)
-
-    def test_remember_me_30d(self) -> None:
-        token = create_access_token(subject=str(uuid.uuid4()), remember_me=True)
-        payload = decode_token(token)
-        assert payload is not None
-        exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
-        diff = exp - datetime.now(timezone.utc)
-        assert timedelta(days=29) < diff < timedelta(days=31)
 
     def test_type_claim_is_access(self) -> None:
         payload = decode_token(create_access_token(subject=str(uuid.uuid4())))
@@ -123,6 +116,15 @@ class TestCreateRefreshToken:
         payload = decode_token(create_refresh_token(subject=str(uuid.uuid4())))
         assert payload is not None
         assert "jti" in payload and payload["jti"]
+
+    def test_remember_me_30d(self) -> None:
+        payload = decode_token(
+            create_refresh_token(subject=str(uuid.uuid4()), remember_me=True)
+        )
+        assert payload is not None
+        exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+        diff = exp - datetime.now(timezone.utc)
+        assert timedelta(days=29) < diff < timedelta(days=31)
 
 
 # ── decode_token ──────────────────────────────────────────────────────────────
@@ -205,15 +207,57 @@ class TestBlacklist:
 
 
 class TestRefreshAccessToken:
-    def test_issues_new_access_token(self) -> None:
+    def test_returns_new_access_and_refresh_tokens(self) -> None:
         user_id = str(uuid.uuid4())
-        refresh = create_refresh_token(subject=user_id)
-        new_access = refresh_access_token(refresh)
-        assert new_access is not None
-        payload = decode_token(new_access)
+        old_refresh = create_refresh_token(subject=user_id)
+        result = refresh_access_token(old_refresh)
+        assert result is not None
+        new_access, new_refresh = result
+        access_payload = decode_token(new_access)
+        assert access_payload is not None
+        assert access_payload["sub"] == user_id
+        assert access_payload["type"] == TokenType.ACCESS.value
+        assert new_refresh != old_refresh
+
+    def test_new_refresh_token_is_valid(self) -> None:
+        user_id = str(uuid.uuid4())
+        old_refresh = create_refresh_token(subject=user_id)
+        result = refresh_access_token(old_refresh)
+        assert result is not None
+        _, new_refresh = result
+        payload = decode_token(new_refresh)
         assert payload is not None
         assert payload["sub"] == user_id
-        assert payload["type"] == TokenType.ACCESS.value
+        assert payload["type"] == TokenType.REFRESH.value
+
+    def test_old_refresh_blacklisted_but_in_grace_period(self) -> None:
+        old_refresh = create_refresh_token(subject=str(uuid.uuid4()))
+        old_payload = decode_token(old_refresh)
+        assert old_payload is not None
+        result = refresh_access_token(old_refresh)
+        assert result is not None
+        assert is_token_blacklisted(old_payload["jti"])
+        assert is_token_in_grace_period(old_payload["jti"])
+
+    def test_grace_period_allows_concurrent_refresh(self) -> None:
+        """Two near-simultaneous refreshes with the same old token both succeed."""
+        old_refresh = create_refresh_token(subject=str(uuid.uuid4()))
+        result1 = refresh_access_token(old_refresh)
+        result2 = refresh_access_token(old_refresh)  # within grace window
+        assert result1 is not None
+        assert result2 is not None
+
+    def test_expired_grace_period_rejects_old_token(
+        self, fake_redis_client: fakeredis.FakeRedis
+    ) -> None:
+        """After the grace key expires the old token is definitively rejected."""
+        old_refresh = create_refresh_token(subject=str(uuid.uuid4()))
+        old_payload = decode_token(old_refresh)
+        assert old_payload is not None
+        refresh_access_token(old_refresh)
+        # Simulate grace period expiry by removing the grace key
+        fake_redis_client.delete(f"auth:refresh_grace:{old_payload['jti']}")
+        assert refresh_access_token(old_refresh) is None
 
     def test_invalid_refresh_returns_none(self) -> None:
         assert refresh_access_token("invalid.refresh.token") is None
@@ -222,7 +266,7 @@ class TestRefreshAccessToken:
         access = create_access_token(subject=str(uuid.uuid4()))
         assert refresh_access_token(access) is None
 
-    def test_blacklisted_refresh_returns_none(self) -> None:
+    def test_hard_blacklisted_refresh_returns_none(self) -> None:
         refresh = create_refresh_token(subject=str(uuid.uuid4()))
         payload = decode_token(refresh)
         assert payload is not None
@@ -230,6 +274,7 @@ class TestRefreshAccessToken:
             payload["jti"],
             datetime.fromtimestamp(payload["exp"], tz=timezone.utc),
         )
+        # No grace key → rejected
         assert refresh_access_token(refresh) is None
 
 
@@ -251,7 +296,8 @@ class TestLogout:
     def test_invalid_token_returns_false(self) -> None:
         assert logout("invalid.token") is False
 
-    def test_second_refresh_after_logout_fails(self) -> None:
+    def test_refresh_after_logout_fails(self) -> None:
         refresh = create_refresh_token(subject=str(uuid.uuid4()))
         logout(refresh)
+        # logout uses blacklist_token (no grace key) so refresh is immediately rejected
         assert refresh_access_token(refresh) is None
