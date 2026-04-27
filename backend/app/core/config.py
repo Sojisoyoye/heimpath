@@ -1,4 +1,3 @@
-import secrets
 import warnings
 from typing import Annotated, Any, Literal
 
@@ -31,7 +30,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = secrets.token_urlsafe(32)
+    # Must be set explicitly — no default. Generate with: openssl rand -hex 32
+    SECRET_KEY: str
     # Token expiration settings
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     REMEMBER_ME_EXPIRE_DAYS: int = 30
@@ -173,6 +173,11 @@ class Settings(BaseSettings):
     MAX_PAGES_PREMIUM: int = 20
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
+        if not value:
+            raise ValueError(
+                f"{var_name} must not be empty. "
+                "Generate a secure value with: openssl rand -hex 32"
+            )
         if value == "changethis":
             message = (
                 f'The value of {var_name} is "changethis", '
