@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type {
   FinancingAssessmentInput,
   HiddenCostCalculationInput,
+  RentCeilingCheckInput,
   ROICalculationInput,
 } from "@/models/calculator"
 import type { OwnershipComparisonInput } from "@/models/ownershipComparison"
@@ -211,5 +212,17 @@ export function useDeleteOwnershipComparison() {
         queryKey: queryKeys.calculators.ownershipComparisonList(),
       })
     },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Mietpreisbremse Rent Ceiling Check
+// ---------------------------------------------------------------------------
+
+/** Check whether current rent exceeds the Mietpreisbremse cap */
+export function useCheckRentCeiling() {
+  return useMutation({
+    mutationFn: (input: RentCeilingCheckInput) =>
+      CalculatorService.checkRentCeiling(input),
   })
 }

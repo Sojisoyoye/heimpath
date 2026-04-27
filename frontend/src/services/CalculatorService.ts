@@ -12,6 +12,8 @@ import type {
   HiddenCostCalculation,
   HiddenCostCalculationInput,
   HiddenCostCalculationSummary,
+  RentCeilingCheckInput,
+  RentCeilingCheckResult,
   RentEstimate,
   ROICalculation,
   ROICalculationInput,
@@ -530,6 +532,32 @@ class CalculatorServiceClass {
       method: "DELETE",
       url: PATHS.CALCULATORS.OWNERSHIP_COMPARISON_DETAIL(id),
     })
+  }
+
+  // -------------------------------------------------------------------------
+  // Mietpreisbremse Rent Ceiling Check
+  // -------------------------------------------------------------------------
+
+  /**
+   * Check whether current rent exceeds the Mietpreisbremse cap (no auth required)
+   */
+  async checkRentCeiling(
+    input: RentCeilingCheckInput,
+  ): Promise<RentCeilingCheckResult> {
+    const params = new URLSearchParams({
+      city: input.city,
+      postcode: input.postcode,
+      size_sqm: String(input.sizeSqm),
+      current_rent: String(input.currentRent),
+    })
+    if (input.buildingYear != null) {
+      params.set("building_year", String(input.buildingYear))
+    }
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "GET",
+      url: `${PATHS.CALCULATORS.RENT_CEILING_CHECK}?${params.toString()}`,
+    })
+    return transformKeys<RentCeilingCheckResult>(response)
   }
 }
 

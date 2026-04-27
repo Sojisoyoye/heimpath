@@ -69,6 +69,7 @@ from app.models.legal import (
     RelatedLaw,
     StateVariation,
 )
+from app.models.mietpreisbremse import MietspiegelEntry
 from app.models.notification import (
     Notification,
     NotificationPreference,
@@ -120,6 +121,7 @@ __all__ = [
     "GlossaryCategory",
     "GlossaryTerm",
     "HiddenCostCalculation",
+    "MietspiegelEntry",
     "Notification",
     "NotificationPreference",
     "NotificationType",

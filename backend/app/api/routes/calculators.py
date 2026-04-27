@@ -5,6 +5,7 @@ including saving, sharing, and comparing scenarios.
 """
 
 import uuid
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
 
@@ -18,6 +19,7 @@ from app.schemas.calculator import (
     StateComparisonResponse,
     StateRatesResponse,
 )
+from app.schemas.mietpreisbremse import RentCeilingCheckResponse
 from app.schemas.ownership_comparison import (
     OwnershipComparisonListResponse,
     OwnershipComparisonRequest,
@@ -44,6 +46,7 @@ from app.schemas.roi import (
 )
 from app.services import (
     calculator_service,
+    mietpreisbremse_service,
     notification_service,
     ownership_comparison_service,
     property_evaluation_service,
@@ -576,3 +579,56 @@ async def delete_ownership_comparison(
     Requires authentication and ownership.
     """
     ownership_comparison_service.delete_comparison(session, calc_id, current_user.id)
+
+
+# ---------------------------------------------------------------------------
+# Mietpreisbremse rent ceiling check
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/rent-ceiling/check",
+    summary="Check if current rent exceeds the Mietpreisbremse cap",
+)
+async def check_rent_ceiling(
+    city: Annotated[
+        Literal["berlin", "hamburg", "munich", "frankfurt"],
+        Query(description="City covered by Mietpreisbremse"),
+    ],
+    postcode: Annotated[
+        str,
+        Query(min_length=5, max_length=5, description="5-digit German postcode"),
+    ],
+    size_sqm: Annotated[float, Query(gt=0, description="Apartment size in sqm")],
+    current_rent: Annotated[
+        float, Query(gt=0, description="Current monthly rent in EUR")
+    ],
+    session: SessionDep,
+    building_year: Annotated[
+        int | None,
+        Query(ge=1800, le=2030, description="Building construction year (optional)"),
+    ] = None,
+) -> RentCeilingCheckResponse:
+    """
+    Check whether the current rent exceeds the Mietpreisbremse legal cap.
+
+    The cap is Mietspiegel base rent × apartment size × 1.10.
+    Returns a traffic-light status and overpayment/headroom amounts.
+
+    No authentication required. Stateless lookup — no data is stored.
+    """
+    result = mietpreisbremse_service.check_rent_ceiling(
+        session=session,
+        city=city,
+        postcode=postcode,
+        size_sqm=size_sqm,
+        current_rent=current_rent,
+        building_year=building_year,
+    )
+    return RentCeilingCheckResponse(
+        city=city,
+        postcode=postcode,
+        size_sqm=size_sqm,
+        current_rent=current_rent,
+        **result,
+    )

@@ -8505,6 +8505,64 @@ export const RegisterResponseSchema = {
     description: 'Schema for registration response.'
 } as const;
 
+export const RentCeilingCheckResponseSchema = {
+    properties: {
+        city: {
+            type: 'string',
+            title: 'City'
+        },
+        postcode: {
+            type: 'string',
+            title: 'Postcode'
+        },
+        size_sqm: {
+            type: 'number',
+            title: 'Size Sqm'
+        },
+        current_rent: {
+            type: 'number',
+            title: 'Current Rent'
+        },
+        reference_rent_per_sqm: {
+            type: 'number',
+            title: 'Reference Rent Per Sqm'
+        },
+        ceiling_rent: {
+            type: 'number',
+            title: 'Ceiling Rent'
+        },
+        status: {
+            type: 'string',
+            enum: ['OVER_LIMIT', 'AT_RISK', 'WITHIN_LIMIT', 'ROOM_TO_INCREASE'],
+            title: 'Status'
+        },
+        overpayment_eur: {
+            type: 'number',
+            title: 'Overpayment Eur'
+        },
+        maximum_legal_rent: {
+            type: 'number',
+            title: 'Maximum Legal Rent'
+        },
+        room_to_increase_eur: {
+            type: 'number',
+            title: 'Room To Increase Eur'
+        },
+        data_source: {
+            type: 'string',
+            title: 'Data Source'
+        },
+        disclaimer: {
+            type: 'string',
+            title: 'Disclaimer'
+        }
+    },
+    type: 'object',
+    required: ['city', 'postcode', 'size_sqm', 'current_rent', 'reference_rent_per_sqm', 'ceiling_rent', 'status', 'overpayment_eur', 'maximum_legal_rent', 'room_to_increase_eur', 'data_source', 'disclaimer'],
+    title: 'RentCeilingCheckResponse',
+    description: 'Result of a Mietpreisbremse rent ceiling check.'
+} as const;
+
 export const RentEstimateResponseSchema = {
     properties: {
         estimated_rent_per_sqm: {
