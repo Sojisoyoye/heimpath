@@ -18,6 +18,7 @@ from app.core.security import verify_password
 from app.crud import get_user_by_email
 from app.services.email_verification_service import get_email_verification_service
 from app.services.password_reset_service import get_password_reset_service
+from app.services.rate_limit_service import IP_FAILED_LOCKOUT_SECONDS, IP_FAILED_MAX
 from tests.utils.utils import random_email
 
 AUTH = f"{settings.API_V1_STR}/auth"
@@ -517,3 +518,42 @@ def test_rate_limit_cleared_on_success(client: TestClient) -> None:
         client.post(f"{AUTH}/login", json={"email": email, "password": "WrongPass1"})
     r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 200
+
+
+# ── IP-based rate limiting ────────────────────────────────────────────────────
+
+
+def test_ip_rate_limit_blocks_after_max_failures(client: TestClient) -> None:
+    """30 failed logins from one IP (across different emails) trigger IP block."""
+    for _ in range(IP_FAILED_MAX):
+        email = random_email()
+        client.post(f"{AUTH}/login", json={"email": email, "password": "WrongPass1"})
+
+    # Next attempt from same IP (TestClient uses "testclient" as host) must be 429
+    r = client.post(
+        f"{AUTH}/login", json={"email": random_email(), "password": "WrongPass1"}
+    )
+    assert r.status_code == 429
+    assert r.headers["Retry-After"] == str(IP_FAILED_LOCKOUT_SECONDS)
+
+
+def test_ip_rate_limit_not_cleared_on_success(client: TestClient) -> None:
+    """A successful login from an IP does not reset the IP failure counter."""
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+
+    # Hit the IP limit using non-existent emails (30 failures → lock set on 30th)
+    for _ in range(IP_FAILED_MAX):
+        client.post(
+            f"{AUTH}/login",
+            json={"email": random_email(), "password": "WrongPass1"},
+        )
+
+    # A successful login does NOT clear the IP counter (by design)
+    client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
+
+    # IP is still blocked — next attempt must return 429
+    r = client.post(
+        f"{AUTH}/login", json={"email": random_email(), "password": "WrongPass1"}
+    )
+    assert r.status_code == 429

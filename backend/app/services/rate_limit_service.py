@@ -46,6 +46,17 @@ _PASSWORD_RESET_LOCKOUT_PREFIX = "auth:ratelimit:password_reset:lockout:"
 _RESEND_VERIFICATION_ATTEMPTS_PREFIX = "auth:ratelimit:resend_verification:attempts:"
 _RESEND_VERIFICATION_LOCKOUT_PREFIX = "auth:ratelimit:resend_verification:lockout:"
 
+# IP-based login rate limit constants
+# Keyed by client IP address — caps total failed attempts regardless of email.
+# Prevents account enumeration / lockout spraying from a single source.
+IP_FAILED_MAX: int = 30
+IP_FAILED_WINDOW_SECONDS: int = 3600  # 1 hour sliding window
+# Lockout equals the window so an IP is cooled off for a full hour.
+IP_FAILED_LOCKOUT_SECONDS: int = 3600  # 1 hour
+
+_IP_FAILED_ATTEMPTS_PREFIX = "auth:ratelimit:ip:attempts:"
+_IP_FAILED_LOCKOUT_PREFIX = "auth:ratelimit:ip:lockout:"
+
 # ── Professional click rate limiting ─────────────────────────────────────────
 # Professional click rate limit constants
 CLICK_MAX_ATTEMPTS: int = 20
@@ -268,4 +279,24 @@ def record_click_attempt(identifier: str) -> RateLimitInfo:
         CLICK_MAX_ATTEMPTS,
         CLICK_WINDOW_SECONDS,
         CLICK_LOCKOUT_SECONDS,
+    )
+
+
+# ── IP-based login rate limiting ──────────────────────────────────────────────
+
+
+def is_ip_blocked(ip: str) -> bool:
+    """Return *True* if the IP is currently locked due to too many failed logins."""
+    return _redis().ttl(f"{_IP_FAILED_LOCKOUT_PREFIX}{ip}") > 0
+
+
+def record_ip_failed(ip: str) -> RateLimitInfo:
+    """Record a failed login attempt from an IP and return the updated status."""
+    return _record_attempt(
+        ip,
+        _IP_FAILED_ATTEMPTS_PREFIX,
+        _IP_FAILED_LOCKOUT_PREFIX,
+        IP_FAILED_MAX,
+        IP_FAILED_WINDOW_SECONDS,
+        IP_FAILED_LOCKOUT_SECONDS,
     )

@@ -244,6 +244,31 @@ def test_legacy_login_rate_limit_cleared_on_success(
         assert r.status_code == 400
 
 
+def test_legacy_login_ip_rate_limit_blocks_after_max_failures(
+    client: TestClient,
+    isolated_rate_limiter: fakeredis.FakeRedis,  # noqa: ARG001
+) -> None:
+    """After IP_FAILED_MAX failures from one IP the legacy endpoint returns 429."""
+    from app.services.rate_limit_service import IP_FAILED_LOCKOUT_SECONDS, IP_FAILED_MAX
+
+    # Use non-existent emails so each attempt hits auth and increments IP counter.
+    # The lock is set on the IP_FAILED_MAX-th attempt but that request still returns
+    # 400; the *next* request after the lock is set returns 429.
+    for _ in range(IP_FAILED_MAX):
+        r = client.post(
+            f"{settings.API_V1_STR}/login/access-token",
+            data={"username": random_email(), "password": "wrong"},
+        )
+        assert r.status_code == 400
+
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": random_email(), "password": "wrong"},
+    )
+    assert r.status_code == 429
+    assert r.headers["Retry-After"] == str(IP_FAILED_LOCKOUT_SECONDS)
+
+
 # ── L3: password-recovery-html-content enumeration fix ───────────────────────
 
 

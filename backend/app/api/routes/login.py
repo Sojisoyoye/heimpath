@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
@@ -31,6 +31,7 @@ def login_access_token(
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     response: Response,
+    http_request: Request,
 ) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests.
@@ -43,6 +44,13 @@ def login_access_token(
         auto-generated Swagger UI "Authorize" button) and will be removed in a
         future release.
     """
+    client_ip = http_request.client.host if http_request.client else None
+    if client_ip and rate_limit_service.is_ip_blocked(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Please try again later.",
+            headers={"Retry-After": str(rate_limit_service.IP_FAILED_LOCKOUT_SECONDS)},
+        )
     if rate_limit_service.is_locked(form_data.username):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -54,6 +62,8 @@ def login_access_token(
     )
     if not user:
         rate_limit_service.record_failed_attempt(form_data.username)
+        if client_ip:
+            rate_limit_service.record_ip_failed(client_ip)
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
