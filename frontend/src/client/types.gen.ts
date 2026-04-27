@@ -502,6 +502,26 @@ export type ContractAnalysisResponse = {
 };
 
 /**
+ * Limited response for unauthenticated shared contract previews.
+ *
+ * Exposes at most 3 clauses and the overall risk level to encourage
+ * sign-up, without giving away the full premium analysis.
+ */
+export type ContractSharedPreviewResponse = {
+    id: string;
+    filename: string;
+    share_id: (string | null);
+    summary: (string | null);
+    analyzed_clauses: Array<ClauseExplanation>;
+    overall_risk_assessment: (string | null);
+    clause_count: number;
+    is_truncated: boolean;
+    requires_subscription: boolean;
+    upgrade_cta: string;
+    created_at: string;
+};
+
+/**
  * Fine-grained Nebenkosten (running cost) categories.
  */
 export type CostCategory = 'hausgeld' | 'grundsteuer' | 'insurance' | 'heating' | 'water' | 'electricity' | 'maintenance' | 'misc';
@@ -631,6 +651,8 @@ export type DocumentDetailResponse = {
     journey_step_id?: (string | null);
     created_at: string;
     translation?: (DocumentTranslationResponse | null);
+    requires_subscription?: boolean;
+    upgrade_cta?: (string | null);
 };
 
 /**
@@ -3050,7 +3072,7 @@ export type ContractsGetSharedAnalysisData = {
     shareId: string;
 };
 
-export type ContractsGetSharedAnalysisResponse = (ContractAnalysisResponse);
+export type ContractsGetSharedAnalysisResponse = (ContractSharedPreviewResponse);
 
 export type ContractsAnalyzeContractData = {
     formData: Body_contracts_analyze_contract;

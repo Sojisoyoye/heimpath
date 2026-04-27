@@ -1,4 +1,3 @@
-import base64
 import io
 import uuid
 from unittest.mock import patch
@@ -735,7 +734,7 @@ def _create_test_image(
 def test_upload_avatar(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
-    """Upload a valid PNG avatar and verify the response."""
+    """Upload a valid PNG avatar and verify the response returns a URL."""
     buf = _create_test_image("PNG")
     r = client.put(
         f"{settings.API_V1_STR}/users/me/avatar",
@@ -744,7 +743,8 @@ def test_upload_avatar(
     )
     assert r.status_code == 200
     data = r.json()
-    assert data["avatar_url"].startswith("data:image/webp;base64,")
+    assert data["avatar_url"] is not None
+    assert "/users/avatars/" in data["avatar_url"]
 
 
 def test_upload_avatar_jpeg(
@@ -758,7 +758,7 @@ def test_upload_avatar_jpeg(
         files={"file": ("avatar.jpg", buf, "image/jpeg")},
     )
     assert r.status_code == 200
-    assert r.json()["avatar_url"].startswith("data:image/webp;base64,")
+    assert "/users/avatars/" in r.json()["avatar_url"]
 
 
 def test_upload_avatar_webp(
@@ -772,7 +772,7 @@ def test_upload_avatar_webp(
         files={"file": ("avatar.webp", buf, "image/webp")},
     )
     assert r.status_code == 200
-    assert r.json()["avatar_url"].startswith("data:image/webp;base64,")
+    assert "/users/avatars/" in r.json()["avatar_url"]
 
 
 def test_upload_avatar_invalid_content_type(
@@ -846,10 +846,14 @@ def test_upload_avatar_resizes_large_image(
     )
     assert r.status_code == 200
     avatar_url = r.json()["avatar_url"]
-    # Decode and verify dimensions
-    b64_data = avatar_url.split(",", 1)[1]
-    decoded = base64.b64decode(b64_data)
-    result_img = Image.open(io.BytesIO(decoded))
+    assert "/users/avatars/" in avatar_url
+
+    # Fetch the served file and verify dimensions
+    # Extract path portion from absolute URL for TestClient
+    path = avatar_url.split("/api/v1", 1)[1]
+    file_r = client.get(f"{settings.API_V1_STR}{path}")
+    assert file_r.status_code == 200
+    result_img = Image.open(io.BytesIO(file_r.content))
     assert result_img.width <= 256
     assert result_img.height <= 256
 
@@ -911,6 +915,78 @@ def test_delete_avatar_unauthenticated(client: TestClient) -> None:
     assert r.status_code == 401
 
 
+def test_serve_avatar_not_found(client: TestClient) -> None:
+    """GET /users/avatars/{user_id} returns 404 when no avatar file exists."""
+    r = client.get(f"{settings.API_V1_STR}/users/avatars/{uuid.uuid4()}")
+    assert r.status_code == 404
+    assert r.json()["detail"] == "Avatar not found"
+
+
+def test_serve_avatar_returns_webp(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """After upload, the serving endpoint returns the WebP file."""
+    buf = _create_test_image("PNG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.png", buf, "image/png")},
+    )
+    assert r.status_code == 200
+    avatar_url = r.json()["avatar_url"]
+
+    # Derive the path for TestClient
+    path = avatar_url.split("/api/v1", 1)[1]
+    file_r = client.get(f"{settings.API_V1_STR}{path}")
+    assert file_r.status_code == 200
+    assert file_r.headers["content-type"] == "image/webp"
+
+
+def test_upload_avatar_returns_absolute_url(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Avatar URL stored in the DB is an absolute URL (protocol + host)."""
+    buf = _create_test_image("PNG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=normal_user_token_headers,
+        files={"file": ("avatar.png", buf, "image/png")},
+    )
+    assert r.status_code == 200
+    assert r.json()["avatar_url"].startswith("http")
+
+
+def test_delete_user_me_removes_avatar_file(client: TestClient, db: Session) -> None:
+    """Account deletion removes the avatar file from the filesystem (GDPR)."""
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    crud.create_user(session=db, user_create=user_in)
+
+    login_data = {"username": username, "password": password}
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    # Upload an avatar
+    buf = _create_test_image("PNG")
+    r = client.put(
+        f"{settings.API_V1_STR}/users/me/avatar",
+        headers=headers,
+        files={"file": ("avatar.png", buf, "image/png")},
+    )
+    assert r.status_code == 200
+    avatar_url = r.json()["avatar_url"]
+
+    # Delete the account
+    r = client.delete(f"{settings.API_V1_STR}/users/me", headers=headers)
+    assert r.status_code == 204
+
+    # The avatar file should no longer be served
+    path = avatar_url.split("/api/v1", 1)[1]
+    file_r = client.get(f"{settings.API_V1_STR}{path}")
+    assert file_r.status_code == 404
+
+
 def test_export_includes_avatar_url(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
@@ -928,4 +1004,4 @@ def test_export_includes_avatar_url(
         headers=normal_user_token_headers,
     )
     assert r.status_code == 200
-    assert r.json()["avatar_url"].startswith("data:image/webp;base64,")
+    assert "/users/avatars/" in r.json()["avatar_url"]

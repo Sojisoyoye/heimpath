@@ -193,6 +193,9 @@ class DocumentDetailResponse(BaseModel):
     journey_step_id: uuid.UUID | None = None
     created_at: datetime
     translation: DocumentTranslationResponse | None = None
+    # Shared preview fields — only set on unauthenticated shared responses
+    requires_subscription: bool = False
+    upgrade_cta: str | None = None
 
 
 class DocumentShareResponse(BaseModel):

@@ -13,6 +13,7 @@ from app.schemas.contract import (
     ContractAnalysisListItem,
     ContractAnalysisListResponse,
     ContractAnalysisResponse,
+    ContractSharedPreviewResponse,
     NotaryQuestion,
 )
 from app.services import contract_service
@@ -82,12 +83,16 @@ def _build_response(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/shared/{share_id}", response_model=ContractAnalysisResponse)
+@router.get("/shared/{share_id}", response_model=ContractSharedPreviewResponse)
 async def get_shared_analysis(
     share_id: str,
     session: SessionDep,
-) -> ContractAnalysisResponse:
-    """Retrieve a shared contract analysis by share_id (no auth required)."""
+) -> ContractSharedPreviewResponse:
+    """Retrieve a shared contract analysis by share_id (no auth required).
+
+    Returns a limited preview with at most 3 clauses and an upgrade CTA.
+    Full analysis requires an authenticated premium subscription.
+    """
     try:
         record = contract_service.get_analysis_by_share_id(session, share_id)
     except contract_service.ContractAnalysisNotFoundError:
@@ -95,7 +100,8 @@ async def get_shared_analysis(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Shared analysis not found",
         )
-    return _build_response(record, is_premium=True)
+    full = _build_response(record, is_premium=True)
+    return ContractSharedPreviewResponse.from_full_response(full)
 
 
 # ---------------------------------------------------------------------------

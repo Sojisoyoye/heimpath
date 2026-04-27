@@ -172,6 +172,17 @@ class Settings(BaseSettings):
     MAX_PAGES_FREE: int = 10
     MAX_PAGES_PREMIUM: int = 20
 
+    # Domain used to construct absolute backend URLs (e.g. avatar serving)
+    DOMAIN: str = "localhost"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def backend_url(self) -> str:
+        """Absolute base URL for the backend API."""
+        if self.ENVIRONMENT == "local":
+            return "http://localhost:8000"
+        return f"https://api.{self.DOMAIN}"
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if not value and self.ENVIRONMENT != "local":
             raise ValueError(

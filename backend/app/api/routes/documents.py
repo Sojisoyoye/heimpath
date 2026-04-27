@@ -37,6 +37,9 @@ from app.services import document_service
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
+_DOCUMENT_UPGRADE_CTA = "Sign up to see the full translation — all pages, detected clauses, and risk warnings."
+
+
 def _build_detail_response(document: Document) -> DocumentDetailResponse:
     """Build DocumentDetailResponse from a Document model instance."""
     translation_response = None
@@ -184,13 +187,28 @@ async def get_shared_document(
     share_id: str,
     session: AsyncSessionDep,
 ) -> DocumentDetailResponse:
-    """
-    Get a shared document by share_id.
+    """Get a shared document by share_id (no authentication required).
 
-    No authentication required.
+    Returns document metadata and the first translated page only.
+    Full translation requires an authenticated subscription.
     """
     document = await document_service.get_by_share_id(session, share_id)
-    return _build_detail_response(document)
+    response = _build_detail_response(document)
+    # Restrict shared preview: keep only the first translated page and
+    # explicitly zero all premium-only fields so any future additions to
+    # _build_detail_response cannot accidentally leak premium content.
+    if response.translation:
+        response.translation.translated_pages = response.translation.translated_pages[
+            :1
+        ]
+        response.translation.clauses_detected = []
+        response.translation.risk_warnings = []
+        response.translation.kaufvertrag_analysis = None
+        response.translation.type_analysis = None
+        response.translation.glossary_links = []
+    response.requires_subscription = True
+    response.upgrade_cta = _DOCUMENT_UPGRADE_CTA
+    return response
 
 
 @router.get("/by-step/{step_id}", response_model=list[DocumentSummary])

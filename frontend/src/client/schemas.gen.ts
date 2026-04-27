@@ -1706,6 +1706,88 @@ export const ContractAnalysisResponseSchema = {
     description: 'Full response for a contract analysis.'
 } as const;
 
+export const ContractSharedPreviewResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        filename: {
+            type: 'string',
+            title: 'Filename'
+        },
+        share_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Share Id'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        analyzed_clauses: {
+            items: {
+                '$ref': '#/components/schemas/ClauseExplanation'
+            },
+            type: 'array',
+            title: 'Analyzed Clauses'
+        },
+        overall_risk_assessment: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Overall Risk Assessment'
+        },
+        clause_count: {
+            type: 'integer',
+            title: 'Clause Count'
+        },
+        is_truncated: {
+            type: 'boolean',
+            title: 'Is Truncated'
+        },
+        requires_subscription: {
+            type: 'boolean',
+            title: 'Requires Subscription'
+        },
+        upgrade_cta: {
+            type: 'string',
+            title: 'Upgrade Cta'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'filename', 'share_id', 'summary', 'analyzed_clauses', 'overall_risk_assessment', 'clause_count', 'is_truncated', 'requires_subscription', 'upgrade_cta', 'created_at'],
+    title: 'ContractSharedPreviewResponse',
+    description: `Limited response for unauthenticated shared contract previews.
+
+Exposes at most 3 clauses and the overall risk level to encourage
+sign-up, without giving away the full premium analysis.`
+} as const;
+
 export const CostCategorySchema = {
     type: 'string',
     enum: ['hausgeld', 'grundsteuer', 'insurance', 'heating', 'water', 'electricity', 'maintenance', 'misc'],
@@ -2126,6 +2208,22 @@ export const DocumentDetailResponseSchema = {
                     type: 'null'
                 }
             ]
+        },
+        requires_subscription: {
+            type: 'boolean',
+            title: 'Requires Subscription',
+            default: false
+        },
+        upgrade_cta: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Upgrade Cta'
         }
     },
     type: 'object',

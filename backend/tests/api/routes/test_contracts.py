@@ -328,13 +328,17 @@ def test_share_and_retrieve_analysis(client: TestClient, db: Session) -> None:
     share_id = r.json()["share_id"]
     assert share_id is not None
 
-    # Retrieve via public endpoint (no auth) — shared view shows all clauses
+    # Retrieve via public endpoint (no auth) — shared view is limited preview
     r = client.get(f"{settings.API_V1_STR}/contracts/shared/{share_id}")
     assert r.status_code == 200
     data = r.json()
+    # Full clause count is preserved for display
     assert data["clause_count"] == 4
-    assert len(data["analyzed_clauses"]) == 4
-    assert data["is_truncated"] is False
+    # Preview shows at most 3 clauses (M4: shared content paywall)
+    assert len(data["analyzed_clauses"]) <= 3
+    assert data["is_truncated"] is True
+    assert data["requires_subscription"] is True
+    assert data["upgrade_cta"] is not None
 
 
 def test_get_shared_analysis_not_found(client: TestClient) -> None:
