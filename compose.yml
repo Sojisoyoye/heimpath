@@ -164,7 +164,7 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
 
       # Security headers middleware
-      - "traefik.http.middlewares.security-headers.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.${DOMAIN} https://sentry.io; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+      - "traefik.http.middlewares.security-headers.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.${DOMAIN?Variable not set} https://sentry.io; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
       - traefik.http.middlewares.security-headers.headers.xFrameOptions=DENY
       - traefik.http.middlewares.security-headers.headers.xContentTypeOptions=nosniff
       - traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin

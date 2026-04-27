@@ -107,9 +107,8 @@ services:
       - ./frontend:/app/frontend
     command: sh -c "bun install && bun run dev --host"
     labels:
-      - traefik.enable=true
       # Security headers middleware (local: connect-src covers HTTP API on localhost)
-      - "traefik.http.middlewares.security-headers.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' http://api.${DOMAIN:-localhost.tiangolo.com} http://localhost:8000 https://sentry.io; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+      - "traefik.http.middlewares.security-headers.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' http://api.${DOMAIN:-localhost.tiangolo.com} http://localhost:8000 https://sentry.io; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
       - traefik.http.middlewares.security-headers.headers.xFrameOptions=DENY
       - traefik.http.middlewares.security-headers.headers.xContentTypeOptions=nosniff
       - traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin
