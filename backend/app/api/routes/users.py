@@ -189,18 +189,24 @@ async def delete_user_me(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    # Invalidate the refresh token stored in the browser cookie so it cannot be
-    # used to obtain new access tokens after the account no longer exists.
     refresh_token = http_request.cookies.get("refresh_token")
-    if refresh_token:
-        auth_service.logout(refresh_token)
     session.delete(current_user)
     session.commit()
+    # Invalidate the refresh token after the account is confirmed deleted so that
+    # a failed DB commit does not lock the user out of a still-live account.
+    if refresh_token:
+        auth_service.logout(refresh_token)
     # Clear all auth cookies so the browser stops sending them.
     secure = settings.ENVIRONMENT != "local"
-    response.delete_cookie(key="access_token", path="/", secure=secure, samesite="lax")
-    response.delete_cookie(key="refresh_token", path="/", secure=secure, samesite="lax")
-    response.delete_cookie(key="logged_in", path="/", secure=secure, samesite="lax")
+    response.delete_cookie(
+        key="access_token", path="/", secure=secure, httponly=True, samesite="lax"
+    )
+    response.delete_cookie(
+        key="refresh_token", path="/", secure=secure, httponly=True, samesite="lax"
+    )
+    response.delete_cookie(
+        key="logged_in", path="/", secure=secure, httponly=False, samesite="lax"
+    )
 
 
 @router.put(

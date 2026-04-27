@@ -577,6 +577,11 @@ def test_delete_user_me_blacklists_refresh_token(
         assert r.status_code == 204
         mock_logout.assert_called_once_with(fake_refresh_token)
 
+    # Verify auth cookies are cleared in the response
+    set_cookie = r.headers.get("set-cookie", "")
+    assert "access_token" in set_cookie
+    assert "Max-Age=0" in set_cookie
+
 
 def test_delete_user_me_as_superuser(
     client: TestClient, superuser_token_headers: dict[str, str]

@@ -2844,7 +2844,7 @@ export class ProfessionalsService {
     
     /**
      * Track Professional Click
-     * Track a referral click for a professional (no auth required).
+     * Track a referral click for a professional (no auth required; IP rate-limited).
      * @param data The data for the request.
      * @param data.professionalId
      * @returns unknown Successful Response

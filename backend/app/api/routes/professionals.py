@@ -235,15 +235,20 @@ async def track_professional_click(
     session: SessionDep,
     request: Request,
 ) -> dict:
-    """Track a referral click for a professional (no auth required)."""
-    ip = request.client.host if request.client else "unknown"
-    if rate_limit_service.is_click_locked(ip):
+    """Track a referral click for a professional (no auth required; IP rate-limited)."""
+    if not request.client:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many requests. Please try again later.",
-            headers={"Retry-After": "60"},
+            headers={"Retry-After": str(rate_limit_service.CLICK_LOCKOUT_SECONDS)},
         )
-    rate_limit_service.record_click_attempt(ip)
+    info = rate_limit_service.record_click_attempt(request.client.host)
+    if info.is_locked:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many requests. Please try again later.",
+            headers={"Retry-After": str(rate_limit_service.CLICK_LOCKOUT_SECONDS)},
+        )
     try:
         professional_service.track_click(session, professional_id)
     except professional_service.ProfessionalNotFoundError:

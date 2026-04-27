@@ -11,6 +11,7 @@ from app import crud
 from app.core.config import settings
 from app.models import UserCreate
 from app.models.professional import Professional, ProfessionalType
+from app.services.rate_limit_service import CLICK_LOCKOUT_SECONDS, CLICK_MAX_ATTEMPTS
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -943,19 +944,20 @@ def test_track_click_rate_limited(
     monkeypatch.setattr("app.services.rate_limit_service._redis_client", fake)
 
     professional = create_sample_professional(db)
-    from app.services.rate_limit_service import CLICK_MAX_ATTEMPTS
 
-    for _ in range(CLICK_MAX_ATTEMPTS):
+    # The Nth attempt locks (single-call pattern: record then check)
+    for _ in range(CLICK_MAX_ATTEMPTS - 1):
         r = client.post(
             f"{settings.API_V1_STR}/professionals/{professional.id}/click",
         )
         assert r.status_code == 200
 
+    # The CLICK_MAX_ATTEMPTS-th attempt triggers the lockout
     r = client.post(
         f"{settings.API_V1_STR}/professionals/{professional.id}/click",
     )
     assert r.status_code == 429
-    assert "Retry-After" in r.headers
+    assert r.headers["Retry-After"] == str(CLICK_LOCKOUT_SECONDS)
 
 
 def test_professional_response_includes_click_count(
