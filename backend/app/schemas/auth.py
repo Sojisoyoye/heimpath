@@ -62,15 +62,23 @@ class AuthToken(BaseModel):
 
 
 class RefreshTokenRequest(BaseModel):
-    """Schema for token refresh request."""
+    """Schema for token refresh request.
 
-    refresh_token: str
+    ``refresh_token`` may be omitted when the client sends it as an HttpOnly
+    cookie instead of a JSON body field.
+    """
+
+    refresh_token: str | None = None
 
 
 class LogoutRequest(BaseModel):
-    """Schema for logout request."""
+    """Schema for logout request.
 
-    refresh_token: str
+    ``refresh_token`` may be omitted when the client sends it as an HttpOnly
+    cookie instead of a JSON body field.
+    """
+
+    refresh_token: str | None = None
 
 
 class VerifyEmailRequest(BaseModel):

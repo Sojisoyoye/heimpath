@@ -187,6 +187,67 @@ def test_login_remember_me_issues_longer_token(client: TestClient) -> None:
     # A longer token is returned — the exact payload is validated in unit tests
 
 
+def test_login_sets_httponly_cookies(client: TestClient) -> None:
+    """Successful login must set access_token and refresh_token as HttpOnly cookies."""
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
+    assert r.status_code == 200
+    assert "access_token" in r.cookies
+    assert "refresh_token" in r.cookies
+    assert "logged_in" in r.cookies
+    assert r.cookies["logged_in"] == "1"
+
+
+def test_cookie_auth_allows_protected_endpoint(client: TestClient) -> None:
+    """access_token cookie must be accepted by the auth dependency (no Bearer header)."""
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
+    # TestClient persists cookies from previous responses automatically
+    r = client.post(f"{settings.API_V1_STR}/login/test-token")
+    assert r.status_code == 200
+    assert r.json()["email"] == email
+
+
+def test_logout_clears_cookies(client: TestClient) -> None:
+    """logout must delete access_token, refresh_token, and logged_in cookies."""
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    login_r = client.post(
+        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
+    )
+    assert login_r.status_code == 200
+
+    r = client.post(f"{AUTH}/logout", json={})
+    assert r.status_code == 204
+    # Cookies deleted: the jar should no longer have them
+    assert "access_token" not in client.cookies
+    assert "refresh_token" not in client.cookies
+    assert "logged_in" not in client.cookies
+
+
+def test_logout_via_cookie_token(client: TestClient) -> None:
+    """logout without body must use the refresh_token cookie to blacklist the token."""
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    login_r = client.post(
+        f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
+    )
+    assert login_r.status_code == 200
+    refresh_cookie = client.cookies.get("refresh_token")
+    assert refresh_cookie is not None
+
+    # Logout without body — should use the cookie
+    r = client.post(f"{AUTH}/logout", json={})
+    assert r.status_code == 204
+
+    # The refresh token from the cookie must now be blacklisted
+    r2 = client.post(f"{AUTH}/refresh", json={"refresh_token": refresh_cookie})
+    assert r2.status_code == 401
+
+
 # ── refresh ───────────────────────────────────────────────────────────────────
 
 
@@ -218,6 +279,20 @@ def test_refresh_with_access_token_returns_401(client: TestClient) -> None:
     # Pass the access token where a refresh token is expected
     r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["access_token"]})
     assert r.status_code == 401
+
+
+def test_refresh_via_cookie_token(client: TestClient) -> None:
+    """Calling /auth/refresh with no body must use the refresh_token cookie."""
+    _register_and_login(client)
+    # At this point client.cookies holds the refresh_token cookie from login
+    assert client.cookies.get("refresh_token") is not None
+
+    r = client.post(f"{AUTH}/refresh", json={})
+    assert r.status_code == 200
+    body = r.json()
+    assert "access_token" in body
+    # access_token cookie must be rotated in the response
+    assert "access_token" in r.cookies
 
 
 # ── logout ────────────────────────────────────────────────────────────────────

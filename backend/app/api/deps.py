@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator, Generator
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
@@ -41,10 +41,32 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
 
 SessionDep = Annotated[Session, Depends(get_db)]
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_db)]
+# Kept for Swagger UI compatibility (Bearer token via OAuth2 flow)
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+def _resolve_token(
+    request: Request,
+    bearer: Annotated[str | None, Depends(reusable_oauth2_optional)] = None,
+) -> str | None:
+    """Return the best available access token: Bearer header first, then cookie.
+
+    Reading the cookie via ``request.cookies`` (not via FastAPI's ``Cookie()``
+    parameter type) prevents the cookie from being documented in the OpenAPI
+    schema, which would pollute every endpoint's generated SDK input type.
+    """
+    return bearer or request.cookies.get("access_token")
+
+
+def get_current_user(
+    session: SessionDep,
+    token: Annotated[str | None, Depends(_resolve_token)] = None,
+) -> User:
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
@@ -74,7 +96,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 def get_optional_current_user(
     session: SessionDep,
-    token: Annotated[str | None, Depends(reusable_oauth2_optional)] = None,
+    token: Annotated[str | None, Depends(_resolve_token)] = None,
 ) -> User | None:
     """Return the current user if a valid token is provided, otherwise None."""
     if not token:

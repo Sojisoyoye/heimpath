@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
@@ -28,7 +28,9 @@ class PasswordRecoveryRequest(BaseModel):
 
 @router.post("/login/access-token")
 def login_access_token(
-    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    session: SessionDep,
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    response: Response,
 ) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests.
@@ -57,11 +59,32 @@ def login_access_token(
         raise HTTPException(status_code=400, detail="Inactive user")
     rate_limit_service.record_successful_login(form_data.username)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return Token(
-        access_token=security.create_access_token(
-            user.id, expires_delta=access_token_expires
-        )
+    access_token = security.create_access_token(
+        user.id, expires_delta=access_token_expires
     )
+    # Set HttpOnly cookie so the browser never exposes the token to JS
+    secure = settings.ENVIRONMENT != "local"
+    access_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        max_age=access_max_age,
+        path="/",
+    )
+    # httponly=False is intentional: non-secret indicator for isLoggedIn() in JS.
+    response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
+        key="logged_in",
+        value="1",
+        httponly=False,
+        secure=secure,
+        samesite="lax",
+        max_age=access_max_age,
+        path="/",
+    )
+    return Token(access_token=access_token)
 
 
 @router.post("/login/test-token", response_model=UserPublic)

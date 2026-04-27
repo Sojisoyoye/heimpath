@@ -217,6 +217,8 @@ export class AuthService {
      * Rate limiting: After 5 failed attempts, the account is locked for 15 minutes.
      *
      * Returns access token (24h or 30d with remember_me) and refresh token (7d).
+     * Also sets HttpOnly cookies: ``access_token``, ``refresh_token``, and a
+     * JS-readable ``logged_in`` indicator cookie.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns AuthToken Successful Response
@@ -240,6 +242,9 @@ export class AuthService {
      *
      * The refresh token is validated and a new access token is issued.
      * The same refresh token remains valid until expiration.
+     *
+     * The refresh token may be supplied in the JSON body **or** via the HttpOnly
+     * ``refresh_token`` cookie set during login.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns AuthToken Successful Response
@@ -259,9 +264,11 @@ export class AuthService {
     
     /**
      * Logout
-     * Logout by invalidating the refresh token.
+     * Logout by invalidating the refresh token and clearing auth cookies.
      *
-     * The refresh token is blacklisted and cannot be used again.
+     * The refresh token (from body or cookie) is blacklisted and cannot be used
+     * again.  All auth cookies (``access_token``, ``refresh_token``, ``logged_in``)
+     * are deleted from the browser.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns void Successful Response

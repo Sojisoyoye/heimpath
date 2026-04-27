@@ -1432,9 +1432,12 @@ export type LoginRequest = {
 
 /**
  * Schema for logout request.
+ *
+ * ``refresh_token`` may be omitted when the client sends it as an HttpOnly
+ * cookie instead of a JSON body field.
  */
 export type LogoutRequest = {
-    refresh_token: string;
+    refresh_token?: (string | null);
 };
 
 /**
@@ -2115,9 +2118,12 @@ export type RecurrenceInterval = 'monthly' | 'annually';
 
 /**
  * Schema for token refresh request.
+ *
+ * ``refresh_token`` may be omitted when the client sends it as an HttpOnly
+ * cookie instead of a JSON body field.
  */
 export type RefreshTokenRequest = {
-    refresh_token: string;
+    refresh_token?: (string | null);
 };
 
 /**
