@@ -1,7 +1,7 @@
 """add mietspiegel entry table
 
 Revision ID: b1m2n3p4q5r6
-Revises: z2v3w4x5y6a7
+Revises: g2h3i4j5k6l7
 Create Date: 2026-04-27 00:00:00.000000
 """
 
@@ -10,7 +10,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "b1m2n3p4q5r6"
-down_revision = "z2v3w4x5y6a7"
+down_revision = "g2h3i4j5k6l7"
 branch_labels = None
 depends_on = None
 
