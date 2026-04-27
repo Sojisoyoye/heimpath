@@ -1805,13 +1805,6 @@ export type PortfolioTransactionResponse = {
     created_at: string;
 };
 
-export type PrivateUserCreate = {
-    email: string;
-    password: string;
-    full_name: string;
-    is_verified?: boolean;
-};
-
 /**
  * Request schema for creating a professional (admin only).
  */
@@ -2665,6 +2658,7 @@ export type UserCreate = {
     full_name?: (string | null);
     citizenship?: (string | null);
     password: string;
+    email_verified?: boolean;
 };
 
 /**
@@ -3491,12 +3485,6 @@ export type PortfolioGetPortfolioSummaryResponse = (PortfolioSummaryResponse);
 export type PortfolioTriggerRecurringGenerationResponse = ({
     [key: string]: (number);
 });
-
-export type PrivateCreateUserData = {
-    requestBody: PrivateUserCreate;
-};
-
-export type PrivateCreateUserResponse = (UserPublic);
 
 export type ProfessionalsGetFilterOptionsResponse = ({
     [key: string]: unknown;

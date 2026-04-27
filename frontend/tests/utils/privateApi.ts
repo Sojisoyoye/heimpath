@@ -1,6 +1,5 @@
-// Note: the `PrivateService` is only available when generating the client
-// for local environments
-import { OpenAPI, PrivateService } from "../../src/client"
+import { AuthService, OpenAPI, UsersService } from "../../src/client"
+import { firstSuperuser, firstSuperuserPassword } from "../config"
 
 OpenAPI.BASE = `${process.env.VITE_API_URL}`
 
@@ -11,12 +10,25 @@ export const createUser = async ({
   email: string
   password: string
 }) => {
-  return await PrivateService.createUser({
+  const tokenResponse = await AuthService.login({
     requestBody: {
-      email,
-      password,
-      is_verified: true,
-      full_name: "Test User",
+      email: firstSuperuser,
+      password: firstSuperuserPassword,
     },
   })
+
+  const previousToken = OpenAPI.TOKEN
+  OpenAPI.TOKEN = tokenResponse.access_token
+  try {
+    return await UsersService.createUser({
+      requestBody: {
+        email,
+        password,
+        email_verified: true,
+        full_name: "Test User",
+      },
+    })
+  } finally {
+    OpenAPI.TOKEN = previousToken
+  }
 }
