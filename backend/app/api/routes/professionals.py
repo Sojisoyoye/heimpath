@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.models import User
@@ -20,7 +20,7 @@ from app.schemas.professional import (
     SavedProfessionalListResponse,
     SavedProfessionalResponse,
 )
-from app.services import professional_service
+from app.services import professional_service, rate_limit_service
 
 SuperUser = Annotated[User, Depends(get_current_active_superuser)]
 
@@ -233,8 +233,22 @@ async def unsave_professional(
 async def track_professional_click(
     professional_id: uuid.UUID,
     session: SessionDep,
+    request: Request,
 ) -> dict:
-    """Track a referral click for a professional (no auth required)."""
+    """Track a referral click for a professional (no auth required; IP rate-limited)."""
+    if not request.client:
+        # Cannot resolve client IP — fail closed rather than skip rate limiting.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service temporarily unavailable.",
+        )
+    info = rate_limit_service.record_click_attempt(request.client.host)
+    if info.is_locked:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many requests. Please try again later.",
+            headers={"Retry-After": str(rate_limit_service.CLICK_LOCKOUT_SECONDS)},
+        )
     try:
         professional_service.track_click(session, professional_id)
     except professional_service.ProfessionalNotFoundError:

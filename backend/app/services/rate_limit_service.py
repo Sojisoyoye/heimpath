@@ -46,6 +46,17 @@ _PASSWORD_RESET_LOCKOUT_PREFIX = "auth:ratelimit:password_reset:lockout:"
 _RESEND_VERIFICATION_ATTEMPTS_PREFIX = "auth:ratelimit:resend_verification:attempts:"
 _RESEND_VERIFICATION_LOCKOUT_PREFIX = "auth:ratelimit:resend_verification:lockout:"
 
+# ── Professional click rate limiting ─────────────────────────────────────────
+# Professional click rate limit constants
+CLICK_MAX_ATTEMPTS: int = 20
+CLICK_WINDOW_SECONDS: int = 60  # 1 minute sliding window
+# Lockout equals the sliding window so a burst is fully cooled off before the
+# next window opens — preventing immediate re-entry after the lockout expires.
+CLICK_LOCKOUT_SECONDS: int = 60  # 1 minute
+
+_CLICK_ATTEMPTS_PREFIX = "api:ratelimit:click:attempts:"
+_CLICK_LOCKOUT_PREFIX = "api:ratelimit:click:lockout:"
+
 # Module-level Redis client (connection pool, lazily initialised)
 _redis_client: redis_lib.Redis | None = None
 
@@ -242,4 +253,19 @@ def record_resend_verification_attempt(identifier: str) -> RateLimitInfo:
         RESEND_VERIFICATION_MAX_ATTEMPTS,
         RESEND_VERIFICATION_WINDOW_SECONDS,
         RESEND_VERIFICATION_LOCKOUT_SECONDS,
+    )
+
+
+# ── Professional click rate limiting ─────────────────────────────────────────
+
+
+def record_click_attempt(identifier: str) -> RateLimitInfo:
+    """Record a professional click attempt and return the updated status."""
+    return _record_attempt(
+        identifier,
+        _CLICK_ATTEMPTS_PREFIX,
+        _CLICK_LOCKOUT_PREFIX,
+        CLICK_MAX_ATTEMPTS,
+        CLICK_WINDOW_SECONDS,
+        CLICK_LOCKOUT_SECONDS,
     )
