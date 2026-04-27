@@ -9,7 +9,10 @@ from app import crud
 from app.core.config import settings
 from app.models import SubscriptionTier, UserCreate
 from app.services.payment_service import (
+    CheckoutSessionError,
     CheckoutSessionResult,
+    CustomerNotFoundError,
+    SubscriptionError,
     WebhookEvent,
     WebhookEventType,
     WebhookVerificationError,
@@ -509,3 +512,193 @@ def test_webhook_subscription_updated_changes_tier(
 
     db.refresh(user)
     assert user.subscription_tier == SubscriptionTier.ENTERPRISE
+
+
+# ── Additional coverage: error paths ─────────────────────────────────────────
+
+
+def test_create_checkout_session_stripe_error(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Checkout returns 500 when Stripe raises CheckoutSessionError."""
+    mock_service = MagicMock()
+    mock_service.create_checkout_session = AsyncMock(
+        side_effect=CheckoutSessionError("Stripe API error")
+    )
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/checkout",
+            headers=normal_user_token_headers,
+            json={
+                "tier": "premium",
+                "success_url": "https://example.com/success",
+                "cancel_url": "https://example.com/cancel",
+            },
+        )
+        assert r.status_code == 500
+        assert "Stripe API error" in r.json()["detail"]
+
+
+def test_create_portal_session_stripe_not_configured(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Portal session returns 503 when Stripe is not configured."""
+    with patch("app.api.routes.subscriptions.get_payment_service", return_value=None):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/portal",
+            headers=normal_user_token_headers,
+            json={"return_url": "https://example.com/account"},
+        )
+        assert r.status_code == 503
+
+
+def test_create_portal_session_customer_not_found(
+    client: TestClient, db: Session
+) -> None:
+    """Portal session returns 404 when customer not found in Stripe."""
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    user = crud.create_user(session=db, user_create=user_in)
+    user.stripe_customer_id = f"cus_{random_lower_string()[:8]}"
+    db.add(user)
+    db.commit()
+    headers = _login_headers(client, username, password)
+
+    mock_service = MagicMock()
+    mock_service.create_portal_session = AsyncMock(
+        side_effect=CustomerNotFoundError("Customer not found")
+    )
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/portal",
+            headers=headers,
+            json={"return_url": "https://example.com/account"},
+        )
+        assert r.status_code == 404
+        assert "not found" in r.json()["detail"]
+
+
+def test_webhook_checkout_no_user_id_in_metadata(client: TestClient) -> None:
+    """checkout.session.completed with no user_id skips DB update."""
+    session_obj = {"id": "cs_noid", "customer": "cus_333", "subscription": "sub_333"}
+    raw_event, parsed_event = _make_webhook_event(
+        WebhookEventType.CHECKOUT_COMPLETED.value,
+        session_obj,
+        {},  # no user_id
+    )
+    mock_service = MagicMock()
+    mock_service.verify_webhook_signature.return_value = raw_event
+    mock_service.parse_webhook_event.return_value = parsed_event
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/webhook",
+            content=b"{}",
+            headers={"Stripe-Signature": "sig"},
+        )
+        assert r.status_code == 200
+        assert r.json()["received"] is True
+    mock_service.get_checkout_price_id.assert_not_called()
+
+
+def test_webhook_checkout_invalid_uuid_user_id(client: TestClient) -> None:
+    """checkout.session.completed with invalid UUID user_id logs warning, returns received."""
+    session_obj = {"id": "cs_baduuid", "customer": "cus_444", "subscription": "sub_444"}
+    raw_event, parsed_event = _make_webhook_event(
+        WebhookEventType.CHECKOUT_COMPLETED.value,
+        session_obj,
+        {"user_id": "not-a-valid-uuid"},
+    )
+    mock_service = MagicMock()
+    mock_service.verify_webhook_signature.return_value = raw_event
+    mock_service.parse_webhook_event.return_value = parsed_event
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/webhook",
+            content=b"{}",
+            headers={"Stripe-Signature": "sig"},
+        )
+        assert r.status_code == 200
+        assert r.json()["received"] is True
+    mock_service.get_checkout_price_id.assert_not_called()
+
+
+def test_webhook_checkout_no_line_items(client: TestClient, db: Session) -> None:
+    """checkout.session.completed with no line items logs warning, returns received."""
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    user = crud.create_user(session=db, user_create=user_in)
+    db.commit()
+
+    session_obj = {"id": "cs_noitems", "customer": "cus_555", "subscription": "sub_555"}
+    raw_event, parsed_event = _make_webhook_event(
+        WebhookEventType.CHECKOUT_COMPLETED.value,
+        session_obj,
+        {"user_id": str(user.id)},
+    )
+    mock_service = MagicMock()
+    mock_service.verify_webhook_signature.return_value = raw_event
+    mock_service.parse_webhook_event.return_value = parsed_event
+    mock_service.get_checkout_price_id.return_value = None
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/webhook",
+            content=b"{}",
+            headers={"Stripe-Signature": "sig"},
+        )
+        assert r.status_code == 200
+
+    db.refresh(user)
+    assert user.subscription_tier == SubscriptionTier.FREE
+
+
+def test_cancel_subscription_stripe_not_configured(
+    client: TestClient, db: Session
+) -> None:
+    """Cancel returns 503 when Stripe is not configured."""
+    user, username, password = _create_premium_user_with_stripe(db)
+    headers = _login_headers(client, username, password)
+
+    with patch("app.api.routes.subscriptions.get_payment_service", return_value=None):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/cancel",
+            headers=headers,
+        )
+        assert r.status_code == 503
+
+
+def test_cancel_subscription_stripe_error(client: TestClient, db: Session) -> None:
+    """Cancel returns 502 when Stripe raises SubscriptionError."""
+    user, username, password = _create_premium_user_with_stripe(db)
+    headers = _login_headers(client, username, password)
+
+    mock_service = MagicMock()
+    mock_service.cancel_subscription = AsyncMock(
+        side_effect=SubscriptionError("Stripe API unavailable")
+    )
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/cancel",
+            headers=headers,
+        )
+        assert r.status_code == 502
+        assert "Stripe API unavailable" in r.json()["detail"]
