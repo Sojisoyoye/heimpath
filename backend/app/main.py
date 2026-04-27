@@ -34,6 +34,7 @@ async def _run_recurring_generation() -> None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    logger.info("SECRET_KEY loaded, length=%d", len(settings.SECRET_KEY))
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         _run_recurring_generation,

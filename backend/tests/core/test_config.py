@@ -1,6 +1,7 @@
 """Tests for Settings validation in app.core.config."""
 
 import pytest
+from pydantic import ValidationError
 
 from app.core.config import Settings
 
@@ -102,3 +103,16 @@ def test_postgres_password_empty_allowed_in_local() -> None:
     kwargs = {**_base_settings_kwargs(), "POSTGRES_PASSWORD": ""}
     s = Settings(**kwargs, ENVIRONMENT="local", _env_file=None)
     assert s.POSTGRES_PASSWORD == ""
+
+
+# ── SECRET_KEY missing ─────────────────────────────────────────────────────
+
+
+def test_secret_key_missing_raises_validation_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Omitting SECRET_KEY entirely must raise ValidationError at startup."""
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+    kwargs = {k: v for k, v in _base_settings_kwargs().items() if k != "SECRET_KEY"}
+    with pytest.raises(ValidationError):
+        Settings(**kwargs, ENVIRONMENT="local", _env_file=None)
