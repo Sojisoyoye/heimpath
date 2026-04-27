@@ -157,6 +157,26 @@ class PaymentService:
         """
         return self._price_to_tier.get(price_id, SubscriptionTier.FREE)
 
+    def get_checkout_price_id(self, session_id: str) -> str | None:
+        """Get the price ID from a completed checkout session's line items.
+
+        Used to derive the subscription tier from the verified Stripe price
+        rather than from attacker-controllable metadata.
+
+        Args:
+            session_id: Stripe checkout session ID.
+
+        Returns:
+            Price ID of the first line item, or None if unavailable.
+        """
+        try:
+            line_items = stripe.checkout.Session.list_line_items(session_id, limit=1)
+            if line_items.data:
+                return line_items.data[0].price.id
+            return None
+        except stripe.StripeError:
+            return None
+
     async def create_customer(
         self,
         user_id: uuid.UUID,
@@ -258,7 +278,9 @@ class PaymentService:
                 line_items=[{"price": price_id, "quantity": 1}],
                 success_url=success_url,
                 cancel_url=cancel_url,
-                metadata={"user_id": str(user_id), "tier": tier.value},
+                # Only store user_id — tier is derived from price_id on receipt
+                # to prevent metadata tampering.
+                metadata={"user_id": str(user_id)},
             )
 
             return CheckoutSessionResult(

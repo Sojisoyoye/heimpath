@@ -3008,8 +3008,9 @@ export class SubscriptionsService {
      * Cancel Subscription
      * Cancel the current subscription.
      *
-     * The subscription will be cancelled at the end of the current billing period.
-     * The user will retain access until then.
+     * Calls Stripe to schedule cancellation at end of billing period.
+     * The user retains access until the period ends; the DB tier is
+     * only downgraded when the customer.subscription.deleted webhook fires.
      * @returns SubscriptionResponse Successful Response
      * @throws ApiError
      */

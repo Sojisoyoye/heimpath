@@ -38,6 +38,8 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=SubscriptionTier.FREE,
         nullable=False,
     )
+    stripe_customer_id = Column(String(255), nullable=True, unique=True, index=True)
+    stripe_subscription_id = Column(String(255), nullable=True, unique=True)
     avatar_url = Column(Text, nullable=True)
 
     journeys = relationship(
