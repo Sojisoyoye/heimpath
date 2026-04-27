@@ -193,5 +193,14 @@ class Settings(BaseSettings):
 
         return self
 
+    @model_validator(mode="after")
+    def _enforce_trusted_proxy_ips(self) -> Self:
+        if self.ENVIRONMENT != "local" and self.TRUSTED_PROXY_IPS == "*":
+            raise ValueError(
+                "TRUSTED_PROXY_IPS must not be '*' in staging or production. "
+                "Set it to the Azure load balancer CIDR (e.g. '10.0.0.0/8')."
+            )
+        return self
+
 
 settings = Settings()  # type: ignore

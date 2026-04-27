@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import fakeredis
+import pytest
 from fastapi.testclient import TestClient
 from pwdlib.hashers.bcrypt import BcryptHasher
 from sqlmodel import Session
@@ -11,6 +13,14 @@ from app.models import User, UserCreate
 from app.utils import generate_password_reset_token
 from tests.utils.user import user_authentication_headers
 from tests.utils.utils import random_email, random_lower_string
+
+
+@pytest.fixture()
+def isolated_rate_limiter(monkeypatch: pytest.MonkeyPatch) -> fakeredis.FakeRedis:
+    """Provide isolated fakeredis for rate-limit tests in this module."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    monkeypatch.setattr("app.services.rate_limit_service._redis_client", fake)
+    return fake
 
 
 def test_get_access_token(client: TestClient) -> None:
@@ -189,3 +199,46 @@ def test_login_with_argon2_password_keeps_hash(client: TestClient, db: Session) 
 
     assert user.hashed_password == original_hash
     assert user.hashed_password.startswith("$argon2")
+
+
+def test_legacy_login_rate_limit_locks_after_5_failures(
+    client: TestClient,
+    isolated_rate_limiter: fakeredis.FakeRedis,  # noqa: ARG001
+) -> None:
+    """After 5 failed attempts the legacy endpoint returns 429."""
+    bad_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": "wrong-password-1",
+    }
+    for _ in range(5):
+        r = client.post(f"{settings.API_V1_STR}/login/access-token", data=bad_data)
+        assert r.status_code == 400
+
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=bad_data)
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
+
+
+def test_legacy_login_rate_limit_cleared_on_success(
+    client: TestClient,
+    isolated_rate_limiter: fakeredis.FakeRedis,  # noqa: ARG001
+) -> None:
+    """A successful login clears the failure counter."""
+    bad_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": "wrong-password-1",
+    }
+    for _ in range(3):
+        client.post(f"{settings.API_V1_STR}/login/access-token", data=bad_data)
+
+    good_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=good_data)
+    assert r.status_code == 200
+
+    # Counter cleared — 5 more failures should be allowed before lock
+    for _ in range(5):
+        r = client.post(f"{settings.API_V1_STR}/login/access-token", data=bad_data)
+        assert r.status_code == 400
