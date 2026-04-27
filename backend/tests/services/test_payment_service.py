@@ -346,3 +346,49 @@ class TestGetSubscription:
         ):
             result = await payment_service.get_subscription("sub_invalid")
             assert result is None
+
+
+class TestGetCheckoutPriceId:
+    """Tests for get_checkout_price_id method."""
+
+    def test_returns_price_id_from_line_items(
+        self, payment_service: PaymentService
+    ) -> None:
+        """Test price ID returned from checkout session line items."""
+        mock_price = MagicMock()
+        mock_price.id = "price_premium_123"
+        mock_item = MagicMock()
+        mock_item.price = mock_price
+        mock_line_items = MagicMock()
+        mock_line_items.data = [mock_item]
+
+        with patch.object(
+            stripe.checkout.Session, "list_line_items", return_value=mock_line_items
+        ):
+            result = payment_service.get_checkout_price_id("cs_test_123")
+        assert result == "price_premium_123"
+
+    def test_returns_none_when_no_line_items(
+        self, payment_service: PaymentService
+    ) -> None:
+        """Test None returned when session has no line items."""
+        mock_line_items = MagicMock()
+        mock_line_items.data = []
+
+        with patch.object(
+            stripe.checkout.Session, "list_line_items", return_value=mock_line_items
+        ):
+            result = payment_service.get_checkout_price_id("cs_empty")
+        assert result is None
+
+    def test_returns_none_on_stripe_error(
+        self, payment_service: PaymentService
+    ) -> None:
+        """Test None returned when Stripe API raises an error."""
+        with patch.object(
+            stripe.checkout.Session,
+            "list_line_items",
+            side_effect=stripe.StripeError("API error"),
+        ):
+            result = payment_service.get_checkout_price_id("cs_error")
+        assert result is None

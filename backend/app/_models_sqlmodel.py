@@ -74,6 +74,12 @@ class User(UserBase, table=True):
             nullable=False,
         ),
     )
+    stripe_customer_id: str | None = Field(
+        default=None, max_length=255, unique=True, index=True
+    )
+    stripe_subscription_id: str | None = Field(
+        default=None, max_length=255, unique=True
+    )
     avatar_url: str | None = Field(default=None)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,

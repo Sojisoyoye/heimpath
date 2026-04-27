@@ -6,6 +6,9 @@ Provides Stripe-based subscription management including:
 - Processing Stripe webhooks
 """
 
+import logging
+import uuid as _uuid
+
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, HttpUrl
 from sqlmodel import Session, select
@@ -15,10 +18,13 @@ from app.models import SubscriptionTier, User
 from app.services.payment_service import (
     CheckoutSessionError,
     CustomerNotFoundError,
+    SubscriptionError,
     WebhookEventType,
     WebhookVerificationError,
     get_payment_service,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
@@ -81,7 +87,7 @@ def get_current_subscription(
     """
     return SubscriptionResponse(
         tier=current_user.subscription_tier,
-        stripe_customer_id=getattr(current_user, "stripe_customer_id", None),
+        stripe_customer_id=current_user.stripe_customer_id,
         status="active"
         if current_user.subscription_tier != SubscriptionTier.FREE
         else None,
@@ -125,7 +131,7 @@ async def create_checkout_session(
             tier=request.tier,
             success_url=str(request.success_url),
             cancel_url=str(request.cancel_url),
-            stripe_customer_id=getattr(current_user, "stripe_customer_id", None),
+            stripe_customer_id=current_user.stripe_customer_id,
         )
         return CheckoutResponse(session_id=result.session_id, url=result.url)
     except CheckoutSessionError as e:
@@ -153,7 +159,7 @@ async def create_portal_session(
             detail="Payment service is not configured",
         )
 
-    stripe_customer_id = getattr(current_user, "stripe_customer_id", None)
+    stripe_customer_id = current_user.stripe_customer_id
     if not stripe_customer_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -213,34 +219,75 @@ async def handle_webhook(
 
     # Handle different event types
     if webhook_event.event_type == WebhookEventType.CHECKOUT_COMPLETED.value:
-        # Subscription purchased - update user tier
+        # Subscription purchased — derive tier from price_id, not metadata,
+        # to prevent tier elevation via attacker-controlled metadata values.
         user_id = webhook_event.metadata.get("user_id")
-        tier_value = webhook_event.metadata.get("tier")
+        session_id = event["data"]["object"]["id"]
 
-        if user_id and tier_value:
-            statement = select(User).where(User.id == user_id)
+        if user_id:
+            try:
+                user_uuid = _uuid.UUID(user_id)
+            except ValueError:
+                logger.warning(
+                    "checkout.session.completed: invalid user_id %s in session %s",
+                    user_id,
+                    session_id,
+                )
+                return WebhookResponse(received=True)
+
+            price_id = payment_service.get_checkout_price_id(session_id)
+            if price_id is None:
+                logger.warning(
+                    "checkout.session.completed: no line items for session %s",
+                    session_id,
+                )
+                return WebhookResponse(received=True)
+
+            tier = payment_service.get_tier_for_price(price_id)
+            if tier == SubscriptionTier.FREE:
+                logger.warning(
+                    "checkout.session.completed: unknown price_id %s for session %s",
+                    price_id,
+                    session_id,
+                )
+                return WebhookResponse(received=True)
+
+            statement = select(User).where(User.id == user_uuid)
             user = session.exec(statement).first()
             if user:
-                try:
-                    user.subscription_tier = SubscriptionTier(tier_value)
-                    session.add(user)
-                    session.commit()
-                except ValueError:
-                    pass  # Invalid tier value, ignore
+                user.subscription_tier = tier
+                user.stripe_customer_id = webhook_event.customer_id
+                user.stripe_subscription_id = webhook_event.subscription_id
+                session.add(user)
+                session.commit()
 
     elif webhook_event.event_type == WebhookEventType.SUBSCRIPTION_UPDATED.value:
-        # Subscription changed - update tier based on price
+        # Subscription plan changed — update tier and subscription ID from the new price_id.
         if webhook_event.customer_id and webhook_event.price_id:
-            _new_tier = payment_service.get_tier_for_price(webhook_event.price_id)
-            statement = select(User)  # Would need stripe_customer_id on User model
-            # For now, we rely on checkout metadata
-            # In production, store stripe_customer_id on User
+            statement = select(User).where(
+                User.stripe_customer_id == webhook_event.customer_id
+            )
+            user = session.exec(statement).first()
+            if user:
+                new_tier = payment_service.get_tier_for_price(webhook_event.price_id)
+                user.subscription_tier = new_tier
+                if webhook_event.subscription_id:
+                    user.stripe_subscription_id = webhook_event.subscription_id
+                session.add(user)
+                session.commit()
 
     elif webhook_event.event_type == WebhookEventType.SUBSCRIPTION_DELETED.value:
-        # Subscription cancelled - downgrade to free
-        # Would need stripe_customer_id on User model to find user
-        # For now, subscription cancellation is handled via portal
-        pass
+        # Subscription ended — downgrade to FREE.
+        if webhook_event.customer_id:
+            statement = select(User).where(
+                User.stripe_customer_id == webhook_event.customer_id
+            )
+            user = session.exec(statement).first()
+            if user:
+                user.subscription_tier = SubscriptionTier.FREE
+                user.stripe_subscription_id = None
+                session.add(user)
+                session.commit()
 
     return WebhookResponse(received=True)
 
@@ -248,15 +295,16 @@ async def handle_webhook(
 @router.post("/cancel", response_model=SubscriptionResponse)
 async def cancel_subscription(
     current_user: CurrentUser,
-    session: Session = Depends(get_db),
 ) -> SubscriptionResponse:
     """
     Cancel the current subscription.
 
-    The subscription will be cancelled at the end of the current billing period.
-    The user will retain access until then.
+    Calls Stripe to schedule cancellation at end of billing period.
+    The user retains access until the period ends; the DB tier is
+    only downgraded when the customer.subscription.deleted webhook fires.
     """
-    if get_payment_service() is None:
+    payment_service = get_payment_service()
+    if payment_service is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Payment service is not configured",
@@ -268,14 +316,33 @@ async def cancel_subscription(
             detail="No active subscription to cancel",
         )
 
-    # For MVP, just update the tier directly
-    # In production, this would cancel via Stripe and let webhook update the tier
-    current_user.subscription_tier = SubscriptionTier.FREE
-    session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
+    if not current_user.stripe_subscription_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No Stripe subscription found — contact support",
+        )
+
+    try:
+        await payment_service.cancel_subscription(
+            current_user.stripe_subscription_id, at_period_end=True
+        )
+        logger.info(
+            "cancellation scheduled at period end for sub_id=%s",
+            current_user.stripe_subscription_id,
+        )
+    except SubscriptionError as e:
+        logger.warning(
+            "cancel_subscription failed for sub_id=%s: %s",
+            current_user.stripe_subscription_id,
+            e,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to cancel subscription. Please try again or contact support.",
+        )
 
     return SubscriptionResponse(
         tier=current_user.subscription_tier,
-        status="cancelled",
+        stripe_customer_id=current_user.stripe_customer_id,
+        status="cancellation_scheduled",
     )
