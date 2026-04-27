@@ -87,7 +87,7 @@ def get_current_subscription(
     """
     return SubscriptionResponse(
         tier=current_user.subscription_tier,
-        stripe_customer_id=getattr(current_user, "stripe_customer_id", None),
+        stripe_customer_id=current_user.stripe_customer_id,
         status="active"
         if current_user.subscription_tier != SubscriptionTier.FREE
         else None,
@@ -131,7 +131,7 @@ async def create_checkout_session(
             tier=request.tier,
             success_url=str(request.success_url),
             cancel_url=str(request.cancel_url),
-            stripe_customer_id=getattr(current_user, "stripe_customer_id", None),
+            stripe_customer_id=current_user.stripe_customer_id,
         )
         return CheckoutResponse(session_id=result.session_id, url=result.url)
     except CheckoutSessionError as e:
@@ -159,7 +159,7 @@ async def create_portal_session(
             detail="Payment service is not configured",
         )
 
-    stripe_customer_id = getattr(current_user, "stripe_customer_id", None)
+    stripe_customer_id = current_user.stripe_customer_id
     if not stripe_customer_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -262,7 +262,7 @@ async def handle_webhook(
                 session.commit()
 
     elif webhook_event.event_type == WebhookEventType.SUBSCRIPTION_UPDATED.value:
-        # Subscription plan changed — update tier from the new price_id.
+        # Subscription plan changed — update tier and subscription ID from the new price_id.
         if webhook_event.customer_id and webhook_event.price_id:
             statement = select(User).where(
                 User.stripe_customer_id == webhook_event.customer_id
@@ -271,6 +271,8 @@ async def handle_webhook(
             if user:
                 new_tier = payment_service.get_tier_for_price(webhook_event.price_id)
                 user.subscription_tier = new_tier
+                if webhook_event.subscription_id:
+                    user.stripe_subscription_id = webhook_event.subscription_id
                 session.add(user)
                 session.commit()
 
@@ -324,10 +326,19 @@ async def cancel_subscription(
         await payment_service.cancel_subscription(
             current_user.stripe_subscription_id, at_period_end=True
         )
+        logger.info(
+            "cancellation scheduled at period end for sub_id=%s",
+            current_user.stripe_subscription_id,
+        )
     except SubscriptionError as e:
+        logger.warning(
+            "cancel_subscription failed for sub_id=%s: %s",
+            current_user.stripe_subscription_id,
+            e,
+        )
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=str(e),
+            detail="Failed to cancel subscription. Please try again or contact support.",
         )
 
     return SubscriptionResponse(

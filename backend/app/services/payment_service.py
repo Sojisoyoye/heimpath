@@ -4,10 +4,10 @@ Provides subscription management via Stripe including checkout sessions,
 customer portal, and webhook processing.
 """
 
+import logging
 import uuid
 from dataclasses import dataclass
 from enum import Enum
-from functools import lru_cache
 from typing import Any
 
 import stripe
@@ -15,6 +15,8 @@ from stripe import InvalidRequestError, SignatureVerificationError
 
 from app.core.config import settings
 from app.models import SubscriptionTier
+
+logger = logging.getLogger(__name__)
 
 
 class PaymentError(Exception):
@@ -174,7 +176,10 @@ class PaymentService:
             if line_items.data:
                 return line_items.data[0].price.id
             return None
-        except stripe.StripeError:
+        except stripe.StripeError as e:
+            logger.warning(
+                "get_checkout_price_id failed for session %s: %s", session_id, e
+            )
             return None
 
     async def create_customer(
@@ -466,7 +471,6 @@ class PaymentService:
 _payment_service: PaymentService | None = None
 
 
-@lru_cache
 def get_payment_service() -> PaymentService | None:
     """Get the payment service singleton.
 

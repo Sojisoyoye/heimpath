@@ -7,7 +7,7 @@ from sqlmodel import Session
 
 from app import crud
 from app.core.config import settings
-from app.models import SubscriptionTier, UserCreate
+from app.models import SubscriptionTier, User, UserCreate
 from app.services.payment_service import (
     CheckoutSessionError,
     CheckoutSessionResult,
@@ -26,7 +26,7 @@ def _create_premium_user_with_stripe(
     db: Session,
     customer_id: str = "",
     subscription_id: str = "",
-) -> tuple:
+) -> tuple[User, str, str]:
     """Create a PREMIUM user with Stripe IDs; return (user, username, password)."""
     username = random_email()
     password = random_lower_string()
@@ -41,7 +41,7 @@ def _create_premium_user_with_stripe(
     return user, username, password
 
 
-def _login_headers(client: TestClient, username: str, password: str) -> dict:
+def _login_headers(client: TestClient, username: str, password: str) -> dict[str, str]:
     r = client.post(
         f"{settings.API_V1_STR}/login/access-token",
         data={"username": username, "password": password},
@@ -420,8 +420,12 @@ def test_webhook_checkout_unknown_price_logs_warning(
     # Unknown price → FREE tier (default)
     mock_service.get_tier_for_price.return_value = SubscriptionTier.FREE
 
-    with patch(
-        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    with (
+        patch("app.api.routes.subscriptions.logger") as mock_logger,
+        patch(
+            "app.api.routes.subscriptions.get_payment_service",
+            return_value=mock_service,
+        ),
     ):
         r = client.post(
             f"{settings.API_V1_STR}/subscriptions/webhook",
@@ -429,6 +433,8 @@ def test_webhook_checkout_unknown_price_logs_warning(
             headers={"Stripe-Signature": "sig"},
         )
         assert r.status_code == 200
+        mock_logger.warning.assert_called()
+        assert "unknown price_id" in mock_logger.warning.call_args[0][0]
 
     db.refresh(user)
     # Tier must NOT be changed when price resolves to FREE (unknown)
@@ -479,13 +485,14 @@ def test_webhook_subscription_deleted_downgrades_user(
 def test_webhook_subscription_updated_changes_tier(
     client: TestClient, db: Session
 ) -> None:
-    """customer.subscription.updated updates tier via stripe_customer_id."""
+    """customer.subscription.updated updates tier and subscription_id via stripe_customer_id."""
     user, _username, _password = _create_premium_user_with_stripe(db)
+    new_subscription_id = f"sub_{random_lower_string()[:8]}_enterprise"
 
     parsed_event = WebhookEvent(
         event_type=WebhookEventType.SUBSCRIPTION_UPDATED.value,
         customer_id=user.stripe_customer_id,
-        subscription_id=user.stripe_subscription_id,
+        subscription_id=new_subscription_id,
         price_id="price_enterprise",
         status="active",
         metadata={},
@@ -512,6 +519,7 @@ def test_webhook_subscription_updated_changes_tier(
 
     db.refresh(user)
     assert user.subscription_tier == SubscriptionTier.ENTERPRISE
+    assert user.stripe_subscription_id == new_subscription_id
 
 
 # ── Additional coverage: error paths ─────────────────────────────────────────
@@ -701,4 +709,4 @@ def test_cancel_subscription_stripe_error(client: TestClient, db: Session) -> No
             headers=headers,
         )
         assert r.status_code == 502
-        assert "Stripe API unavailable" in r.json()["detail"]
+        assert "Failed to cancel subscription" in r.json()["detail"]
