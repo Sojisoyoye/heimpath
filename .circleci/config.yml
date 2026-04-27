@@ -32,6 +32,7 @@ jobs:
               "SMTP_PASSWORD=" \
               "EMAILS_FROM_EMAIL=info@example.com" \
               "SENTRY_DSN=" \
+              "REDIS_PASSWORD=$(openssl rand -hex 16)" \
               > .env
 
       - run:

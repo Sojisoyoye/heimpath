@@ -3,6 +3,10 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD?Variable not set}
+    environment:
+      # Used by redis-cli in healthcheck to authenticate without passing -a flag
+      - REDISCLI_AUTH=${REDIS_PASSWORD?Variable not set}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -88,7 +92,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD?Variable not set}@redis:6379
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
@@ -123,7 +127,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD?Variable not set}@redis:6379
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
