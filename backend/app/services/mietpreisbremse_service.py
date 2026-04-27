@@ -49,6 +49,9 @@ def lookup_reference_rent(
     Raises HTTP 404 when no entry is found for the city at all.
     """
     today = date.today()
+    # Tier 1: exact 5-digit prefix (reserved for future fine-grained data)
+    # Tier 2: first 2 digits of postcode (current seed data level)
+    # Tier 3: city-wide default (NULL prefix)
     for prefix in (postcode, postcode[:2], None):
         stmt = select(MietspiegelEntry).where(
             MietspiegelEntry.city == city,
@@ -103,13 +106,14 @@ def check_rent_ceiling(
     postcode: str,
     size_sqm: float,
     current_rent: float,
-    building_year: int | None = None,  # accepted; reserved for future Mietspiegel age adjustments
+    building_year: int
+    | None = None,  # accepted; reserved for future Mietspiegel age adjustments
 ) -> dict:
     """Full rent ceiling check: DB lookup + calculation.
 
     building_year is accepted for API compatibility but not used in MVP —
     real Mietspiegel age-bracket adjustments are a future data-ops task.
     """
-    del building_year  # intentionally unused in MVP
+    _ = building_year  # intentionally unused in MVP; hook for future age-bracket adjustments
     entry = lookup_reference_rent(session, city, postcode)
     return calculate(entry, size_sqm, current_rent)

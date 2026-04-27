@@ -2,17 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
-
-
-class RentCeilingCheckRequest(BaseModel):
-    """Input parameters for a Mietpreisbremse rent ceiling check."""
-
-    city: Literal["berlin", "hamburg", "munich", "frankfurt"]
-    postcode: str = Field(..., min_length=5, max_length=5, pattern=r"^\d{5}$")
-    size_sqm: float = Field(..., gt=0, le=1000)
-    building_year: int | None = Field(None, ge=1800, le=2030)
-    current_rent: float = Field(..., gt=0)
+from pydantic import BaseModel
 
 
 class RentCeilingCheckResponse(BaseModel):

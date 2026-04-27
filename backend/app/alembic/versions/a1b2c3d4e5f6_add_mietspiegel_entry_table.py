@@ -14,7 +14,9 @@ down_revision = "z2v3w4x5y6a7"
 branch_labels = None
 depends_on = None
 
-# Representative seed data: 5 cities × postcode-prefix rows + 1 NULL city default each
+# Representative seed data: 4 cities (Berlin, Hamburg, Munich, Frankfurt) ×
+# postcode-prefix rows + 1 NULL city-wide default each = 20 rows.
+# 5-digit prefix rows are reserved for future fine-grained Mietspiegel data.
 _SEED_SQL = """
 INSERT INTO mietspiegel_entry (id, city, postcode_prefix, base_rent_per_sqm, valid_from, source)
 VALUES
@@ -44,14 +46,7 @@ VALUES
     (gen_random_uuid(), 'frankfurt', '61', 14.90, '2024-01-01', 'Frankfurt Mietspiegel 2024'),
     (gen_random_uuid(), 'frankfurt', '63', 14.20, '2024-01-01', 'Frankfurt Mietspiegel 2024'),
     (gen_random_uuid(), 'frankfurt', '65', 13.60, '2024-01-01', 'Frankfurt Mietspiegel 2024'),
-    (gen_random_uuid(), 'frankfurt', NULL,  14.80, '2024-01-01', 'Frankfurt Mietspiegel 2024'),
-
-    -- Stuttgart (extra city with prefix + default)
-    (gen_random_uuid(), 'stuttgart', '70', 14.50, '2023-01-01', 'Stuttgart Mietspiegel 2023'),
-    (gen_random_uuid(), 'stuttgart', '71', 13.80, '2023-01-01', 'Stuttgart Mietspiegel 2023'),
-    (gen_random_uuid(), 'stuttgart', '72', 13.20, '2023-01-01', 'Stuttgart Mietspiegel 2023'),
-    (gen_random_uuid(), 'stuttgart', '73', 12.90, '2023-01-01', 'Stuttgart Mietspiegel 2023'),
-    (gen_random_uuid(), 'stuttgart', NULL,  13.60, '2023-01-01', 'Stuttgart Mietspiegel 2023')
+    (gen_random_uuid(), 'frankfurt', NULL,  14.80, '2024-01-01', 'Frankfurt Mietspiegel 2024')
 ;
 """
 
