@@ -16,6 +16,7 @@ from app.schemas.contract import (
     NotaryQuestion,
 )
 from app.services import contract_service
+from app.services.document_service import validate_pdf_bytes
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
 
@@ -128,6 +129,11 @@ async def analyze_contract(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="File size must not exceed 20 MB",
         )
+
+    try:
+        validate_pdf_bytes(file_bytes)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     record = await contract_service.analyze_contract_pdf(
         session=session,
