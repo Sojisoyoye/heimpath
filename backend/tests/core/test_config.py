@@ -78,7 +78,7 @@ def test_secret_key_changethis_raises_in_production() -> None:
         )
 
 
-def test_secret_key_changethis_warns_in_local(recwarn: pytest.WarningsChecker) -> None:
+def test_secret_key_changethis_warns_in_local(recwarn: pytest.WarningsRecorder) -> None:
     """SECRET_KEY='changethis' emits a warning in local environment."""
     kwargs = {**_base_settings_kwargs(), "SECRET_KEY": "changethis"}
     Settings(**kwargs, ENVIRONMENT="local", _env_file=None)
