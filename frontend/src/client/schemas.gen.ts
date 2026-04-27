@@ -6445,31 +6445,6 @@ export const PortfolioTransactionResponseSchema = {
     description: 'Full response for a portfolio transaction.'
 } as const;
 
-export const PrivateUserCreateSchema = {
-    properties: {
-        email: {
-            type: 'string',
-            title: 'Email'
-        },
-        password: {
-            type: 'string',
-            title: 'Password'
-        },
-        full_name: {
-            type: 'string',
-            title: 'Full Name'
-        },
-        is_verified: {
-            type: 'boolean',
-            title: 'Is Verified',
-            default: false
-        }
-    },
-    type: 'object',
-    required: ['email', 'password', 'full_name'],
-    title: 'PrivateUserCreate'
-} as const;
-
 export const ProfessionalCreateRequestSchema = {
     properties: {
         name: {
@@ -9598,6 +9573,11 @@ export const UserCreateSchema = {
             maxLength: 128,
             minLength: 8,
             title: 'Password'
+        },
+        email_verified: {
+            type: 'boolean',
+            title: 'Email Verified',
+            default: true
         }
     },
     type: 'object',

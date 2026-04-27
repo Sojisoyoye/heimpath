@@ -16,7 +16,6 @@ from app.api.routes import (
     market,
     notifications,
     portfolio,
-    private,
     professionals,
     search,
     subscriptions,
@@ -24,7 +23,6 @@ from app.api.routes import (
     users,
     utils,
 )
-from app.core.config import settings
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -48,7 +46,3 @@ api_router.include_router(contracts.router)
 api_router.include_router(portfolio.router)
 api_router.include_router(glossary.router)
 api_router.include_router(feedback.router)
-
-
-if settings.ENVIRONMENT == "local":
-    api_router.include_router(private.router)
