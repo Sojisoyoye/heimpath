@@ -252,11 +252,11 @@ async def login(
     )
     # JS-readable indicator so the frontend can check login state synchronously.
     # httponly=False is intentional: this cookie contains no secret, only the
-    # boolean "1" to signal to isLoggedIn() that an HttpOnly access token exists.  # NOSONAR - S3330 false positive: non-httponly is intentional for this indicator cookie
-    response.set_cookie(
+    # boolean "1" to signal to isLoggedIn() that an HttpOnly access token exists.
+    response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
         key="logged_in",
         value="1",
-        httponly=False,  # NOSONAR
+        httponly=False,
         secure=secure,
         samesite="lax",
         max_age=access_max_age,
@@ -312,11 +312,10 @@ async def refresh_token(
     # logged_in follows the refresh token lifetime so the indicator stays valid
     # as long as silent refresh is possible (not just the current access token window).
     # httponly=False is intentional: see the login endpoint comment.
-    # NOSONAR - S3330 false positive: non-httponly is intentional for this indicator cookie
-    response.set_cookie(
+    response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
         key="logged_in",
         value="1",
-        httponly=False,  # NOSONAR
+        httponly=False,
         secure=secure,
         samesite="lax",
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,

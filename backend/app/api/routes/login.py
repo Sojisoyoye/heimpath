@@ -75,11 +75,10 @@ def login_access_token(
         path="/",
     )
     # httponly=False is intentional: non-secret indicator for isLoggedIn() in JS.
-    # NOSONAR - S3330 false positive: non-httponly is intentional for this indicator cookie
-    response.set_cookie(
+    response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
         key="logged_in",
         value="1",
-        httponly=False,  # NOSONAR
+        httponly=False,
         secure=secure,
         samesite="lax",
         max_age=access_max_age,
