@@ -170,7 +170,7 @@ def recover_password_html_content(
     if not user:
         # Return generic response — do not reveal whether email is registered.
         return HTMLResponse(
-            content="<p>If the email is registered, a password reset link has been sent.</p>",
+            content="<p>No account is registered for this email address.</p>",
         )
     password_reset_token = generate_password_reset_token(email=email)
     email_data = generate_reset_password_email(
