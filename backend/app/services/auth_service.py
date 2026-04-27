@@ -20,6 +20,8 @@ from app.services.redis_client import get_redis
 
 ALGORITHM = "HS256"
 _BLACKLIST_PREFIX = "auth:blacklist:"
+_GRACE_PREFIX = "auth:refresh_grace:"
+REFRESH_ROTATION_GRACE_SECONDS = 30
 
 # Module-level Redis client (connection pool, created lazily)
 _redis_client: redis_lib.Redis | None = None
@@ -55,16 +57,50 @@ def _redis() -> redis_lib.Redis:
 def create_access_token(
     subject: str,
     expires_delta: timedelta | None = None,
-    remember_me: bool = False,
 ) -> str:
     """Create a signed JWT access token.
 
+    Access tokens are always short-lived (``ACCESS_TOKEN_EXPIRE_MINUTES``).
+    "Remember me" UX is handled by extending the refresh token lifetime, not
+    the access token.
+
     Args:
         subject: The user ID to embed as the ``sub`` claim.
-        expires_delta: Custom lifetime. Overrides ``remember_me`` and the
-            default 1-hour window when provided.
+        expires_delta: Custom lifetime override (used in tests).
+
+    Returns:
+        Encoded JWT string.
+    """
+    expire = (
+        datetime.now(timezone.utc) + expires_delta
+        if expires_delta is not None
+        else datetime.now(timezone.utc)
+        + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    to_encode: dict[str, Any] = {
+        "sub": subject,
+        "type": TokenType.ACCESS.value,
+        "exp": expire,
+    }
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(
+    subject: str,
+    expires_delta: timedelta | None = None,
+    remember_me: bool = False,
+) -> str:
+    """Create a signed JWT refresh token.
+
+    Refresh tokens carry a unique ``jti`` claim so they can be individually
+    blacklisted on logout or rotation.
+
+    Args:
+        subject: The user ID to embed as the ``sub`` claim.
+        expires_delta: Custom lifetime override (used in tests).
         remember_me: When *True* the token lives for
-            ``settings.REMEMBER_ME_EXPIRE_DAYS`` days instead of 1 hour.
+            ``settings.REMEMBER_ME_EXPIRE_DAYS`` days instead of the
+            default ``REFRESH_TOKEN_EXPIRE_DAYS``.
 
     Returns:
         Encoded JWT string.
@@ -77,40 +113,8 @@ def create_access_token(
         )
     else:
         expire = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
         )
-
-    to_encode: dict[str, Any] = {
-        "sub": subject,
-        "type": TokenType.ACCESS.value,
-        "exp": expire,
-    }
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
-
-
-def create_refresh_token(
-    subject: str,
-    expires_delta: timedelta | None = None,
-) -> str:
-    """Create a signed JWT refresh token.
-
-    Refresh tokens carry a unique ``jti`` claim so they can be individually
-    blacklisted on logout.
-
-    Args:
-        subject: The user ID to embed as the ``sub`` claim.
-        expires_delta: Custom lifetime. Defaults to
-            ``settings.REFRESH_TOKEN_EXPIRE_DAYS`` days.
-
-    Returns:
-        Encoded JWT string.
-    """
-    expire = (
-        datetime.now(timezone.utc) + expires_delta
-        if expires_delta is not None
-        else datetime.now(timezone.utc)
-        + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    )
     jti = str(uuid.uuid4())
     to_encode: dict[str, Any] = {
         "sub": subject,
@@ -139,6 +143,10 @@ def decode_token(token: str) -> dict[str, Any] | None:
 def verify_token(token: str) -> TokenData | None:
     """Fully validate a token: signature, expiry, and blacklist.
 
+    Blacklisted refresh tokens in their rotation grace window are still
+    accepted to handle concurrent refresh requests (see
+    :func:`_rotate_refresh_token`).
+
     Args:
         token: Encoded JWT string.
 
@@ -152,7 +160,9 @@ def verify_token(token: str) -> TokenData | None:
 
     jti = payload.get("jti")
     if jti and is_token_blacklisted(jti):
-        return None
+        # Allow the token if it is within the post-rotation grace window
+        if not is_token_in_grace_period(jti):
+            return None
 
     try:
         return TokenData(
@@ -187,26 +197,59 @@ def is_token_blacklisted(jti: str) -> bool:
     return bool(_redis().exists(f"{_BLACKLIST_PREFIX}{jti}"))
 
 
+def is_token_in_grace_period(jti: str) -> bool:
+    """Return *True* if a rotation grace window is active for this JTI.
+
+    After refresh token rotation the old JTI is blacklisted but a short
+    grace key is set so concurrent in-flight refresh requests still succeed.
+    """
+    return bool(_redis().exists(f"{_GRACE_PREFIX}{jti}"))
+
+
+def _rotate_refresh_token(jti: str, expires_at: datetime) -> None:
+    """Blacklist *jti* and set a short grace window for concurrent requests.
+
+    Called during refresh token rotation so that two near-simultaneous
+    refresh requests with the same old token both succeed within the
+    :data:`REFRESH_ROTATION_GRACE_SECONDS` window.
+    """
+    blacklist_token(jti, expires_at)
+    _redis().setex(f"{_GRACE_PREFIX}{jti}", REFRESH_ROTATION_GRACE_SECONDS, "1")
+
+
 # ── higher-level operations ───────────────────────────────────────────────────
 
 
-def refresh_access_token(refresh_token: str) -> str | None:
-    """Issue a new access token from a valid, non-blacklisted refresh token.
+def refresh_access_token(refresh_token: str) -> tuple[str, str] | None:
+    """Issue new access and refresh tokens from a valid refresh token.
+
+    The old refresh token is blacklisted immediately and a
+    :data:`REFRESH_ROTATION_GRACE_SECONDS` grace window is set to handle
+    concurrent requests that arrive with the same old token.
 
     Args:
         refresh_token: A refresh token previously issued by
             :func:`create_refresh_token`.
 
     Returns:
-        New access token string, or *None* if the refresh token is invalid,
-        expired, or blacklisted.
+        ``(new_access_token, new_refresh_token)`` tuple, or *None* if the
+        refresh token is invalid, expired, or past its grace window.
     """
     token_data = verify_token(refresh_token)
     if token_data is None:
         return None
     if token_data.type != TokenType.REFRESH:
         return None
-    return create_access_token(subject=token_data.sub)
+    if token_data.jti is None:
+        # Refresh tokens always carry a jti; reject if somehow missing
+        return None
+    _rotate_refresh_token(token_data.jti, token_data.exp)
+    new_access = create_access_token(subject=token_data.sub)
+    # New refresh token uses the default lifetime. The remember_me extended
+    # lifetime applies only to the initial login token; subsequent rotations
+    # issue standard 7-day tokens (users remain active via silent refresh).
+    new_refresh = create_refresh_token(subject=token_data.sub)
+    return new_access, new_refresh
 
 
 def logout(refresh_token: str) -> bool:

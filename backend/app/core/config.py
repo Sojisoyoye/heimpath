@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # Token expiration settings
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     REMEMBER_ME_EXPIRE_DAYS: int = 30
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     # Redis (token blacklist + rate limiting)
     REDIS_URL: str = "redis://localhost:6379"
     # Comma-separated list of trusted proxy IPs for X-Forwarded-* headers.
