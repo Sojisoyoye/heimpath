@@ -132,18 +132,19 @@ def test_get_existing_user_permissions_error(
     assert r.json() == {"detail": "The user doesn't have enough privileges"}
 
 
-def test_get_non_existing_user_permissions_error(
+def test_get_non_existing_user_returns_not_found(
     client: TestClient,
     normal_user_token_headers: dict[str, str],
 ) -> None:
+    # M7: existence check must happen before permission check to prevent enumeration
     user_id = uuid.uuid4()
 
     r = client.get(
         f"{settings.API_V1_STR}/users/{user_id}",
         headers=normal_user_token_headers,
     )
-    assert r.status_code == 403
-    assert r.json() == {"detail": "The user doesn't have enough privileges"}
+    assert r.status_code == 404
+    assert r.json() == {"detail": "User not found"}
 
 
 def test_create_user_existing_username(

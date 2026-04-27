@@ -168,9 +168,9 @@ def recover_password_html_content(
     user = crud.get_user_by_email(session=session, email=email)
 
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system.",
+        # Return generic response — do not reveal whether email is registered.
+        return HTMLResponse(
+            content="<p>If the email is registered, a password reset link has been sent.</p>",
         )
     password_reset_token = generate_password_reset_token(email=email)
     email_data = generate_reset_password_email(
