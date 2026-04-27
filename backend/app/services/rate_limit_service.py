@@ -49,7 +49,9 @@ _RESEND_VERIFICATION_LOCKOUT_PREFIX = "auth:ratelimit:resend_verification:lockou
 # ── Professional click rate limiting ─────────────────────────────────────────
 # Professional click rate limit constants
 CLICK_MAX_ATTEMPTS: int = 20
-CLICK_WINDOW_SECONDS: int = 60  # 1 minute
+CLICK_WINDOW_SECONDS: int = 60  # 1 minute sliding window
+# Lockout equals the sliding window so a burst is fully cooled off before the
+# next window opens — preventing immediate re-entry after the lockout expires.
 CLICK_LOCKOUT_SECONDS: int = 60  # 1 minute
 
 _CLICK_ATTEMPTS_PREFIX = "api:ratelimit:click:attempts:"

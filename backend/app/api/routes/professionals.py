@@ -237,10 +237,10 @@ async def track_professional_click(
 ) -> dict:
     """Track a referral click for a professional (no auth required; IP rate-limited)."""
     if not request.client:
+        # Cannot resolve client IP — fail closed rather than skip rate limiting.
         raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many requests. Please try again later.",
-            headers={"Retry-After": str(rate_limit_service.CLICK_LOCKOUT_SECONDS)},
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service temporarily unavailable.",
         )
     info = rate_limit_service.record_click_attempt(request.client.host)
     if info.is_locked:
