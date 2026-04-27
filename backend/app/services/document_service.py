@@ -166,7 +166,7 @@ TYPED_ANALYSIS_TYPES: frozenset[str] = frozenset(
 PDF_MAGIC = b"%PDF"
 
 
-def _validate_pdf_bytes(content: bytes) -> None:
+def validate_pdf_bytes(content: bytes) -> None:
     """Raise ValueError if content does not begin with the PDF magic bytes.
 
     Checking magic bytes prevents disguised files (HTML, JS polyglots, etc.)
@@ -261,7 +261,7 @@ async def save_upload(
         raise ValueError(f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB} MB")
 
     # Validate magic bytes — reject disguised non-PDF files regardless of Content-Type
-    _validate_pdf_bytes(file_content)
+    validate_pdf_bytes(file_content)
 
     # Write file to disk using a UUID-only name so the original filename can never
     # introduce path traversal components (M6: sanitize stored file paths).

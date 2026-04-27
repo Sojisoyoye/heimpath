@@ -16,7 +16,7 @@ from app.schemas.contract import (
     NotaryQuestion,
 )
 from app.services import contract_service
-from app.services.document_service import _validate_pdf_bytes
+from app.services.document_service import validate_pdf_bytes
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
 
@@ -131,7 +131,7 @@ async def analyze_contract(
         )
 
     try:
-        _validate_pdf_bytes(file_bytes)
+        validate_pdf_bytes(file_bytes)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

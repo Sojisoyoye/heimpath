@@ -1,17 +1,20 @@
 """Tests for document upload and translation service."""
 
+import os
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.models.document import Document, DocumentStatus, DocumentType
+from app.services import document_service
 from app.services.document_service import (
     _detect_clauses,
     _detect_document_type,
-    _validate_pdf_bytes,
     get_documents_by_step_id,
+    validate_pdf_bytes,
 )
 
 # --- Document type detection tests ---
@@ -208,21 +211,21 @@ class TestValidatePdfBytes:
     def test_valid_pdf_passes(self) -> None:
         valid_pdf = b"%PDF-1.4 minimal content"
         # Should not raise
-        _validate_pdf_bytes(valid_pdf)
+        validate_pdf_bytes(valid_pdf)
 
     def test_html_disguised_as_pdf_raises(self) -> None:
         html_bytes = b"<html><body>not a pdf</body></html>"
         with pytest.raises(ValueError, match="does not appear to be a valid PDF"):
-            _validate_pdf_bytes(html_bytes)
+            validate_pdf_bytes(html_bytes)
 
     def test_empty_bytes_raises(self) -> None:
         with pytest.raises(ValueError, match="does not appear to be a valid PDF"):
-            _validate_pdf_bytes(b"")
+            validate_pdf_bytes(b"")
 
     def test_js_polyglot_raises(self) -> None:
         js_bytes = b"alert('xss');"
         with pytest.raises(ValueError, match="does not appear to be a valid PDF"):
-            _validate_pdf_bytes(js_bytes)
+            validate_pdf_bytes(js_bytes)
 
 
 # ── M6: Stored filename path sanitization ────────────────────────────────────
@@ -230,15 +233,8 @@ class TestValidatePdfBytes:
 
 class TestSaveUploadPathSanitization:
     @pytest.mark.asyncio
-    async def test_stored_filename_is_uuid_only(
-        self, tmp_path: pytest.TempPathFactory
-    ) -> None:
+    async def test_stored_filename_is_uuid_only(self, tmp_path: Path) -> None:
         """Stored filename must be <uuid>.pdf — no original filename embedded."""
-        import os
-        from unittest.mock import AsyncMock, patch
-
-        from app.services import document_service
-
         minimal_pdf = (
             b"%PDF-1.4\n"
             b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
