@@ -103,23 +103,17 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
 })
 
 test("Redirects to /login when token is wrong", async ({ page, context }) => {
+  // Navigate to any public page first so page.url() returns a real URL
+  // (not "about:blank") and we can derive the correct hostname for cookies.
+  await page.goto("/login")
+  const domain = new URL(page.url()).hostname
+
   // Set a stale `logged_in` indicator cookie so isLoggedIn() returns true,
   // but the access_token cookie contains an invalid JWT — the backend will
-  // reject it and the app should redirect to /login.
-  const url = new URL(page.url() || "http://localhost:5173")
+  // reject it and the global 401/403 handler should redirect to /login.
   await context.addCookies([
-    {
-      name: "logged_in",
-      value: "1",
-      domain: url.hostname,
-      path: "/",
-    },
-    {
-      name: "access_token",
-      value: "invalid_token",
-      domain: url.hostname,
-      path: "/",
-    },
+    { name: "logged_in", value: "1", domain, path: "/" },
+    { name: "access_token", value: "invalid_token", domain, path: "/" },
   ])
   await page.goto("/settings")
   await page.waitForURL("/login")
