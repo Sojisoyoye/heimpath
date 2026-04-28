@@ -366,14 +366,14 @@ function CalculatorsPage() {
   const navigate = useNavigate()
 
   const handleSelect = (value: string) => {
-    void navigate({
+    navigate({
       to: "/calculators",
       search: (prev) => ({ ...prev, tab: value }),
     })
   }
 
   const handleBack = () => {
-    void navigate({
+    navigate({
       to: "/calculators",
       search: (prev) => ({ ...prev, tab: undefined }),
     })

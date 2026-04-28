@@ -350,9 +350,7 @@ async def read_user_by_id(
     user = session.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    if user == current_user:
-        return user
-    if not current_user.is_superuser:
+    if user != current_user and not current_user.is_superuser:
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",

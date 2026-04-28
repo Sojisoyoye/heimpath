@@ -48,6 +48,7 @@ from app.services.password_reset_service import (
 from app.services.password_reset_service import (
     generate_token as generate_reset_token,
 )
+from app.services.rate_limit_service import RateLimitInfo
 from app.utils import (
     generate_email_verification_email,
     generate_reset_password_email,
@@ -144,6 +145,14 @@ async def register(
     return user
 
 
+def _record_failed_login(email: str, client_ip: str | None) -> RateLimitInfo:
+    """Record a failed login attempt and optional IP failure for rate limiting."""
+    rate_info = rate_limit_service.record_failed_attempt(email)
+    if client_ip:
+        rate_limit_service.record_ip_failed(client_ip)
+    return rate_info
+
+
 @router.post("/login", response_model=AuthToken)
 async def login(
     request: LoginRequest,
@@ -193,9 +202,7 @@ async def login(
     if not user:
         # Still run password verification to prevent timing attacks
         verify_password(request.password, DUMMY_HASH)
-        rate_limit_service.record_failed_attempt(request.email)
-        if client_ip:
-            rate_limit_service.record_ip_failed(client_ip)
+        _record_failed_login(request.email, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -203,9 +210,7 @@ async def login(
 
     verified, updated_hash = verify_password(request.password, user.hashed_password)
     if not verified:
-        rate_info = rate_limit_service.record_failed_attempt(request.email)
-        if client_ip:
-            rate_limit_service.record_ip_failed(client_ip)
+        rate_info = _record_failed_login(request.email, client_ip)
         detail = "Incorrect email or password"
         if rate_info.is_locked:
             detail = "Too many failed login attempts. Account locked for 15 minutes."
