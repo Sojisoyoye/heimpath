@@ -136,10 +136,20 @@ def test_verify_email_token_consumed_on_use(client: TestClient, db: Session) -> 
 # ── login ─────────────────────────────────────────────────────────────────────
 
 
-def test_login_returns_tokens(client: TestClient) -> None:
+def _make_verified_user(client: TestClient, db: Session) -> str:
+    """Register a user, mark their email as verified in the DB, and return their email."""
     email = random_email()
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    user = get_user_by_email(session=db, email=email)
+    assert user is not None
+    user.email_verified = True
+    db.add(user)
+    db.commit()
+    return email
 
+
+def test_login_returns_tokens(client: TestClient, db: Session) -> None:
+    email = _make_verified_user(client, db)
     r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 200
     body = r.json()
@@ -163,6 +173,15 @@ def test_login_unknown_email_returns_401(client: TestClient) -> None:
     assert r.status_code == 401
 
 
+def test_login_unverified_email_returns_403(client: TestClient) -> None:
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    # Attempt to log in without verifying email
+    r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
+    assert r.status_code == 403
+    assert "verify your email" in r.json()["detail"].lower()
+
+
 def test_login_inactive_user_returns_403(client: TestClient, db: Session) -> None:
     email = random_email()
     client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
@@ -176,10 +195,8 @@ def test_login_inactive_user_returns_403(client: TestClient, db: Session) -> Non
     assert r.status_code == 403
 
 
-def test_login_remember_me_issues_longer_token(client: TestClient) -> None:
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
-
+def test_login_remember_me_issues_longer_token(client: TestClient, db: Session) -> None:
+    email = _make_verified_user(client, db)
     r = client.post(
         f"{AUTH}/login",
         json={"email": email, "password": _VALID_PASSWORD, "remember_me": True},
@@ -188,11 +205,9 @@ def test_login_remember_me_issues_longer_token(client: TestClient) -> None:
     # A longer token is returned — the exact payload is validated in unit tests
 
 
-def test_login_sets_httponly_cookies(client: TestClient) -> None:
+def test_login_sets_httponly_cookies(client: TestClient, db: Session) -> None:
     """Successful login must set access_token and refresh_token as HttpOnly cookies."""
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
-
+    email = _make_verified_user(client, db)
     r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     assert r.status_code == 200
     assert "access_token" in r.cookies
@@ -201,10 +216,9 @@ def test_login_sets_httponly_cookies(client: TestClient) -> None:
     assert r.cookies["logged_in"] == "1"
 
 
-def test_cookie_auth_allows_protected_endpoint(client: TestClient) -> None:
+def test_cookie_auth_allows_protected_endpoint(client: TestClient, db: Session) -> None:
     """access_token cookie must be accepted by the auth dependency (no Bearer header)."""
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    email = _make_verified_user(client, db)
     client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     # TestClient persists cookies from previous responses automatically
     r = client.post(f"{settings.API_V1_STR}/login/test-token")
@@ -212,10 +226,9 @@ def test_cookie_auth_allows_protected_endpoint(client: TestClient) -> None:
     assert r.json()["email"] == email
 
 
-def test_logout_clears_cookies(client: TestClient) -> None:
+def test_logout_clears_cookies(client: TestClient, db: Session) -> None:
     """logout must delete access_token, refresh_token, and logged_in cookies."""
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    email = _make_verified_user(client, db)
     login_r = client.post(
         f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
     )
@@ -229,10 +242,9 @@ def test_logout_clears_cookies(client: TestClient) -> None:
     assert "logged_in" not in client.cookies
 
 
-def test_logout_via_cookie_token(client: TestClient) -> None:
+def test_logout_via_cookie_token(client: TestClient, db: Session) -> None:
     """logout without body must use the refresh_token cookie to blacklist the token."""
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    email = _make_verified_user(client, db)
     login_r = client.post(
         f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD}
     )
@@ -252,15 +264,16 @@ def test_logout_via_cookie_token(client: TestClient) -> None:
 # ── refresh ───────────────────────────────────────────────────────────────────
 
 
-def _register_and_login(client: TestClient) -> dict:
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+def _register_and_login(client: TestClient, db: Session) -> dict:
+    email = _make_verified_user(client, db)
     r = client.post(f"{AUTH}/login", json={"email": email, "password": _VALID_PASSWORD})
     return r.json()
 
 
-def test_refresh_issues_new_access_and_refresh_tokens(client: TestClient) -> None:
-    tokens = _register_and_login(client)
+def test_refresh_issues_new_access_and_refresh_tokens(
+    client: TestClient, db: Session
+) -> None:
+    tokens = _register_and_login(client, db)
     r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["refresh_token"]})
     assert r.status_code == 200
     body = r.json()
@@ -276,16 +289,16 @@ def test_refresh_with_invalid_token_returns_401(client: TestClient) -> None:
     assert r.status_code == 401
 
 
-def test_refresh_with_access_token_returns_401(client: TestClient) -> None:
-    tokens = _register_and_login(client)
+def test_refresh_with_access_token_returns_401(client: TestClient, db: Session) -> None:
+    tokens = _register_and_login(client, db)
     # Pass the access token where a refresh token is expected
     r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["access_token"]})
     assert r.status_code == 401
 
 
-def test_refresh_via_cookie_token(client: TestClient) -> None:
+def test_refresh_via_cookie_token(client: TestClient, db: Session) -> None:
     """Calling /auth/refresh with no body must use the refresh_token cookie."""
-    _register_and_login(client)
+    _register_and_login(client, db)
     # At this point client.cookies holds the refresh_token cookie from login
     assert client.cookies.get("refresh_token") is not None
 
@@ -300,14 +313,14 @@ def test_refresh_via_cookie_token(client: TestClient) -> None:
 # ── logout ────────────────────────────────────────────────────────────────────
 
 
-def test_logout_returns_204(client: TestClient) -> None:
-    tokens = _register_and_login(client)
+def test_logout_returns_204(client: TestClient, db: Session) -> None:
+    tokens = _register_and_login(client, db)
     r = client.post(f"{AUTH}/logout", json={"refresh_token": tokens["refresh_token"]})
     assert r.status_code == 204
 
 
-def test_logout_blacklists_refresh_token(client: TestClient) -> None:
-    tokens = _register_and_login(client)
+def test_logout_blacklists_refresh_token(client: TestClient, db: Session) -> None:
+    tokens = _register_and_login(client, db)
     client.post(f"{AUTH}/logout", json={"refresh_token": tokens["refresh_token"]})
     # Refresh should now be rejected
     r = client.post(f"{AUTH}/refresh", json={"refresh_token": tokens["refresh_token"]})
@@ -324,9 +337,9 @@ def test_logout_with_invalid_token_still_returns_204(client: TestClient) -> None
 
 
 def test_access_token_rejected_by_current_user_dependency(
-    client: TestClient,
+    client: TestClient, db: Session
 ) -> None:
-    tokens = _register_and_login(client)
+    tokens = _register_and_login(client, db)
     # Attempt to use the refresh token as a bearer token on a protected endpoint
     r = client.post(
         f"{settings.API_V1_STR}/login/test-token",
@@ -502,9 +515,8 @@ def test_forgot_password_rate_limit(client: TestClient) -> None:
     assert "Retry-After" in r.headers
 
 
-def test_rate_limit_cleared_on_success(client: TestClient) -> None:
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+def test_rate_limit_cleared_on_success(client: TestClient, db: Session) -> None:
+    email = _make_verified_user(client, db)
 
     # Build up some failures but not enough to lock
     for _ in range(3):
@@ -538,10 +550,9 @@ def test_ip_rate_limit_blocks_after_max_failures(client: TestClient) -> None:
     assert r.headers["Retry-After"] == str(IP_FAILED_LOCKOUT_SECONDS)
 
 
-def test_ip_rate_limit_not_cleared_on_success(client: TestClient) -> None:
+def test_ip_rate_limit_not_cleared_on_success(client: TestClient, db: Session) -> None:
     """A successful login from an IP does not reset the IP failure counter."""
-    email = random_email()
-    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+    email = _make_verified_user(client, db)
 
     # Accumulate IP_FAILED_MAX - 1 failures — not enough to trigger lockout yet.
     for _ in range(IP_FAILED_MAX - 1):

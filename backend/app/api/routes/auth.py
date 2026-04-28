@@ -221,6 +221,13 @@ async def login(
             detail="User account is inactive",
         )
 
+    # Check if user has verified their email address
+    if not user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email before logging in.",
+        )
+
     # Update password hash if needed (for hash algorithm upgrades)
     if updated_hash:
         user.hashed_password = updated_hash
