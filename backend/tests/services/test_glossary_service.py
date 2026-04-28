@@ -181,7 +181,7 @@ class TestCreateTerm:
         from app.services.glossary_service import create_term
 
         mock_session = MagicMock()
-        mock_session.exec.return_value.first.return_value = None
+        mock_session.exec.return_value.scalars.return_value.first.return_value = None
 
         data = {
             "term_de": "Notar",
@@ -201,7 +201,9 @@ class TestCreateTerm:
         from app.services.glossary_service import GlossarySlugExistsError, create_term
 
         mock_session = MagicMock()
-        mock_session.exec.return_value.first.return_value = sample_term
+        mock_session.exec.return_value.scalars.return_value.first.return_value = (
+            sample_term
+        )
 
         with pytest.raises(GlossarySlugExistsError):
             create_term(mock_session, {"slug": "grunderwerbsteuer"})
@@ -215,7 +217,9 @@ class TestUpdateTerm:
         from app.services.glossary_service import update_term
 
         mock_session = MagicMock()
-        mock_session.exec.return_value.first.return_value = sample_term
+        mock_session.exec.return_value.scalars.return_value.first.return_value = (
+            sample_term
+        )
 
         result = update_term(
             mock_session, "grunderwerbsteuer", {"term_en": "Land Transfer Tax"}
@@ -230,7 +234,7 @@ class TestUpdateTerm:
         from app.services.glossary_service import GlossaryTermNotFoundError, update_term
 
         mock_session = MagicMock()
-        mock_session.exec.return_value.first.return_value = None
+        mock_session.exec.return_value.scalars.return_value.first.return_value = None
 
         with pytest.raises(GlossaryTermNotFoundError):
             update_term(mock_session, "nonexistent", {"term_en": "X"})
@@ -242,7 +246,7 @@ class TestUpdateTerm:
         from app.services.glossary_service import GlossarySlugExistsError, update_term
 
         mock_session = MagicMock()
-        mock_session.exec.return_value.first.side_effect = [
+        mock_session.exec.return_value.scalars.return_value.first.side_effect = [
             sample_term,
             sample_term_2,
         ]
@@ -259,7 +263,9 @@ class TestDeleteTerm:
         from app.services.glossary_service import delete_term
 
         mock_session = MagicMock()
-        mock_session.exec.return_value.first.return_value = sample_term
+        mock_session.exec.return_value.scalars.return_value.first.return_value = (
+            sample_term
+        )
 
         delete_term(mock_session, "grunderwerbsteuer")
 
@@ -271,7 +277,7 @@ class TestDeleteTerm:
         from app.services.glossary_service import GlossaryTermNotFoundError, delete_term
 
         mock_session = MagicMock()
-        mock_session.exec.return_value.first.return_value = None
+        mock_session.exec.return_value.scalars.return_value.first.return_value = None
 
         with pytest.raises(GlossaryTermNotFoundError):
             delete_term(mock_session, "nonexistent")
