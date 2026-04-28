@@ -239,6 +239,11 @@ resource "azurerm_container_app" "prod_frontend" {
       image  = var.prod_frontend_image
       cpu    = 0.25
       memory = "0.5Gi"
+
+      env {
+        name  = "BACKEND_HOST"
+        value = "https://${azurerm_container_app.prod_backend.ingress[0].fqdn}"
+      }
     }
   }
 
