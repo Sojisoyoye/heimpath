@@ -48,6 +48,9 @@ export const PATHS = {
     BOOKMARKS: `${API_V1}/laws/bookmarks`,
     BY_JOURNEY_STEP: (stepKey: string) =>
       `${API_V1}/laws/by-journey-step/${stepKey}`,
+    CREATE: `${API_V1}/laws/`,
+    UPDATE: (id: string) => `${API_V1}/laws/${id}`,
+    DELETE: (id: string) => `${API_V1}/laws/${id}`,
   },
 
   // Glossary
@@ -56,6 +59,9 @@ export const PATHS = {
     SEARCH: `${API_V1}/glossary/search`,
     CATEGORIES: `${API_V1}/glossary/categories`,
     DETAIL: (slug: string) => `${API_V1}/glossary/${slug}`,
+    CREATE: `${API_V1}/glossary/`,
+    UPDATE: (slug: string) => `${API_V1}/glossary/${slug}`,
+    DELETE: (slug: string) => `${API_V1}/glossary/${slug}`,
   },
 
   // Subscriptions
@@ -133,6 +139,9 @@ export const PATHS = {
     DETAIL: (slug: string) => `${API_V1}/articles/${slug}`,
     CATEGORIES: `${API_V1}/articles/categories`,
     RATE: (slug: string) => `${API_V1}/articles/${slug}/rate`,
+    CREATE: `${API_V1}/articles/`,
+    UPDATE: (id: string) => `${API_V1}/articles/${id}`,
+    DELETE: (id: string) => `${API_V1}/articles/${id}`,
   },
 
   // Professionals
@@ -144,6 +153,10 @@ export const PATHS = {
     CLICK: (id: string) => `${API_V1}/professionals/${id}/click`,
     SAVE: (id: string) => `${API_V1}/professionals/${id}/save`,
     SAVED: `${API_V1}/professionals/saved`,
+    CREATE: `${API_V1}/professionals/`,
+    UPDATE: (id: string) => `${API_V1}/professionals/${id}`,
+    DELETE: (id: string) => `${API_V1}/professionals/${id}`,
+    VERIFY: (id: string) => `${API_V1}/professionals/${id}/verify`,
   },
 
   // Search

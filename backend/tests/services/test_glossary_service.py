@@ -171,3 +171,107 @@ class TestGetRelatedTerms:
 
         assert len(result) == 0
         mock_session.exec.assert_not_called()
+
+
+class TestCreateTerm:
+    """Tests for creating glossary terms (admin)."""
+
+    def test_creates_term_successfully(self, sample_term: MagicMock) -> None:
+        """Test that create_term creates and returns a new term."""
+        from app.services.glossary_service import create_term
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = None
+
+        data = {
+            "term_de": "Notar",
+            "term_en": "Notary",
+            "slug": "notar",
+            "definition_short": "A public official.",
+            "definition_long": "A notary is required for property transactions.",
+            "category": GlossaryCategory.LEGAL.value,
+        }
+        create_term(mock_session, data)
+
+        mock_session.add.assert_called_once()
+        mock_session.commit.assert_called_once()
+
+    def test_raises_on_duplicate_slug(self, sample_term: MagicMock) -> None:
+        """Test that create_term raises when slug already exists."""
+        from app.services.glossary_service import GlossarySlugExistsError, create_term
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = sample_term
+
+        with pytest.raises(GlossarySlugExistsError):
+            create_term(mock_session, {"slug": "grunderwerbsteuer"})
+
+
+class TestUpdateTerm:
+    """Tests for updating glossary terms (admin)."""
+
+    def test_updates_term_fields(self, sample_term: MagicMock) -> None:
+        """Test that update_term updates fields and returns the term."""
+        from app.services.glossary_service import update_term
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = sample_term
+
+        result = update_term(
+            mock_session, "grunderwerbsteuer", {"term_en": "Land Transfer Tax"}
+        )
+
+        assert sample_term.term_en == "Land Transfer Tax"
+        mock_session.commit.assert_called_once()
+        assert result == sample_term
+
+    def test_raises_when_not_found(self) -> None:
+        """Test that update_term raises when term does not exist."""
+        from app.services.glossary_service import GlossaryTermNotFoundError, update_term
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = None
+
+        with pytest.raises(GlossaryTermNotFoundError):
+            update_term(mock_session, "nonexistent", {"term_en": "X"})
+
+    def test_raises_on_slug_conflict(
+        self, sample_term: MagicMock, sample_term_2: MagicMock
+    ) -> None:
+        """Test that update_term raises when new slug conflicts."""
+        from app.services.glossary_service import GlossarySlugExistsError, update_term
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.side_effect = [
+            sample_term,
+            sample_term_2,
+        ]
+
+        with pytest.raises(GlossarySlugExistsError):
+            update_term(mock_session, "grunderwerbsteuer", {"slug": "kaufvertrag"})
+
+
+class TestDeleteTerm:
+    """Tests for deleting glossary terms (admin)."""
+
+    def test_deletes_term(self, sample_term: MagicMock) -> None:
+        """Test that delete_term removes the term."""
+        from app.services.glossary_service import delete_term
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = sample_term
+
+        delete_term(mock_session, "grunderwerbsteuer")
+
+        mock_session.delete.assert_called_once_with(sample_term)
+        mock_session.commit.assert_called_once()
+
+    def test_raises_when_not_found(self) -> None:
+        """Test that delete_term raises when term does not exist."""
+        from app.services.glossary_service import GlossaryTermNotFoundError, delete_term
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = None
+
+        with pytest.raises(GlossaryTermNotFoundError):
+            delete_term(mock_session, "nonexistent")

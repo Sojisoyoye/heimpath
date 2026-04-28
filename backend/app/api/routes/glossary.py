@@ -6,28 +6,36 @@ German real estate glossary terms.
 
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.api.deps import SessionDep
+from app.api.deps import SessionDep, get_current_active_superuser
 from app.models.glossary import GlossaryCategory, GlossaryTerm
 from app.schemas.glossary import (
     GlossaryCategoriesResponse,
     GlossaryCategoryInfo,
     GlossaryListResponse,
     GlossarySearchResponse,
+    GlossaryTermCreate,
     GlossaryTermDetail,
     GlossaryTermSummary,
+    GlossaryTermUpdate,
 )
 from app.services.glossary_service import (
+    GlossarySlugExistsError,
     GlossaryTermNotFoundError,
+    create_term,
+    delete_term,
     get_categories,
     get_related_terms,
     get_term_by_slug,
     get_terms,
     search_terms,
+    update_term,
 )
 
 router = APIRouter(prefix="/glossary", tags=["glossary"])
+
+_SuperUserDep = Annotated[GlossaryTerm, Depends(get_current_active_superuser)]
 
 # Category display names
 _CATEGORY_NAMES = {
@@ -144,3 +152,89 @@ async def get_term(
         example_usage=term.example_usage,
         related_terms=[_term_to_summary(r) for r in related],
     )
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoints (superuser only)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/",
+    response_model=GlossaryTermDetail,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_glossary_term(
+    request: GlossaryTermCreate,
+    session: SessionDep,
+    _current_user: _SuperUserDep,
+) -> GlossaryTermDetail:
+    """Create a new glossary term (admin only)."""
+    try:
+        term = create_term(session, request.model_dump())
+    except GlossarySlugExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    return GlossaryTermDetail(
+        id=term.id,
+        term_de=term.term_de,
+        term_en=term.term_en,
+        slug=term.slug,
+        definition_short=term.definition_short,
+        definition_long=term.definition_long,
+        category=GlossaryCategory(term.category),
+        example_usage=term.example_usage,
+        related_terms=[],
+    )
+
+
+@router.put("/{slug}", response_model=GlossaryTermDetail)
+async def update_glossary_term(
+    slug: str,
+    request: GlossaryTermUpdate,
+    session: SessionDep,
+    _current_user: _SuperUserDep,
+) -> GlossaryTermDetail:
+    """Update a glossary term (admin only)."""
+    try:
+        term = update_term(session, slug, request.model_dump(exclude_unset=True))
+    except GlossaryTermNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Glossary term '{slug}' not found",
+        )
+    except GlossarySlugExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    related = get_related_terms(session, term.related_terms or [])
+    return GlossaryTermDetail(
+        id=term.id,
+        term_de=term.term_de,
+        term_en=term.term_en,
+        slug=term.slug,
+        definition_short=term.definition_short,
+        definition_long=term.definition_long,
+        category=GlossaryCategory(term.category),
+        example_usage=term.example_usage,
+        related_terms=[_term_to_summary(r) for r in related],
+    )
+
+
+@router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_glossary_term(
+    slug: str,
+    session: SessionDep,
+    _current_user: _SuperUserDep,
+) -> None:
+    """Delete a glossary term (admin only)."""
+    try:
+        delete_term(session, slug)
+    except GlossaryTermNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Glossary term '{slug}' not found",
+        )

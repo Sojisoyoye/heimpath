@@ -97,3 +97,23 @@ export interface LawFilter {
   page?: number
   pageSize?: number
 }
+
+// Admin create/update
+export interface LawCreate {
+  citation: string
+  titleDe: string
+  titleEn: string
+  category: LawCategoryType
+  propertyType: PropertyTypeApplicability
+  oneLineSummary: string
+  shortSummary: string
+  detailedExplanation: string
+  realWorldExample?: string
+  buyerImplications?: string
+  sellerImplications?: string
+  landlordImplications?: string
+  tenantImplications?: string
+  originalTextDe?: string
+}
+
+export type LawUpdate = Partial<LawCreate>

@@ -101,3 +101,18 @@ export const PROFESSIONAL_TYPE_LABELS: Record<ProfessionalType, string> = {
   mortgage_broker: "Mortgage Broker",
   real_estate_agent: "Real Estate Agent",
 }
+
+// Admin create/update
+export interface ProfessionalCreate {
+  name: string
+  type: ProfessionalType
+  city: string
+  languages: string
+  description?: string
+  email?: string
+  phone?: string
+  website?: string
+  isVerified?: boolean
+}
+
+export type ProfessionalUpdate = Partial<ProfessionalCreate>

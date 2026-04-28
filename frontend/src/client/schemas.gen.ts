@@ -3148,6 +3148,62 @@ export const GlossarySearchResponseSchema = {
     description: 'Search results response.'
 } as const;
 
+export const GlossaryTermCreateSchema = {
+    properties: {
+        term_de: {
+            type: 'string',
+            maxLength: 200,
+            title: 'Term De'
+        },
+        term_en: {
+            type: 'string',
+            maxLength: 200,
+            title: 'Term En'
+        },
+        slug: {
+            type: 'string',
+            maxLength: 200,
+            pattern: '^[a-z0-9-]+$',
+            title: 'Slug'
+        },
+        definition_short: {
+            type: 'string',
+            maxLength: 300,
+            title: 'Definition Short'
+        },
+        definition_long: {
+            type: 'string',
+            title: 'Definition Long'
+        },
+        category: {
+            '$ref': '#/components/schemas/GlossaryCategory'
+        },
+        example_usage: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Example Usage'
+        },
+        related_terms: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Related Terms',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['term_de', 'term_en', 'slug', 'definition_short', 'definition_long', 'category'],
+    title: 'GlossaryTermCreate',
+    description: 'Request schema for creating a glossary term.'
+} as const;
+
 export const GlossaryTermDetailSchema = {
     properties: {
         id: {
@@ -3235,6 +3291,109 @@ export const GlossaryTermSummarySchema = {
     required: ['id', 'term_de', 'term_en', 'slug', 'definition_short', 'category'],
     title: 'GlossaryTermSummary',
     description: 'Summary view of a glossary term for list responses.'
+} as const;
+
+export const GlossaryTermUpdateSchema = {
+    properties: {
+        term_de: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 200
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Term De'
+        },
+        term_en: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 200
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Term En'
+        },
+        slug: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 200,
+                    pattern: '^[a-z0-9-]+$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Slug'
+        },
+        definition_short: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 300
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Definition Short'
+        },
+        definition_long: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Definition Long'
+        },
+        category: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/GlossaryCategory'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        example_usage: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Example Usage'
+        },
+        related_terms: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Related Terms'
+        }
+    },
+    type: 'object',
+    title: 'GlossaryTermUpdate',
+    description: 'Request schema for updating a glossary term. All fields optional.'
 } as const;
 
 export const HTTPValidationErrorSchema = {
@@ -4531,6 +4690,139 @@ export const LawCategorySchema = {
     description: 'Categories for German real estate laws.'
 } as const;
 
+export const LawCreateSchema = {
+    properties: {
+        citation: {
+            type: 'string',
+            maxLength: 100,
+            title: 'Citation'
+        },
+        title_de: {
+            type: 'string',
+            maxLength: 500,
+            title: 'Title De'
+        },
+        title_en: {
+            type: 'string',
+            maxLength: 500,
+            title: 'Title En'
+        },
+        category: {
+            '$ref': '#/components/schemas/LawCategory'
+        },
+        property_type: {
+            '$ref': '#/components/schemas/PropertyTypeApplicability',
+            default: 'all'
+        },
+        one_line_summary: {
+            type: 'string',
+            maxLength: 280,
+            title: 'One Line Summary'
+        },
+        short_summary: {
+            type: 'string',
+            title: 'Short Summary'
+        },
+        detailed_explanation: {
+            type: 'string',
+            title: 'Detailed Explanation'
+        },
+        real_world_example: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Real World Example'
+        },
+        common_disputes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Common Disputes'
+        },
+        buyer_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Buyer Implications'
+        },
+        seller_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Seller Implications'
+        },
+        landlord_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Landlord Implications'
+        },
+        tenant_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tenant Implications'
+        },
+        original_text_de: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Original Text De'
+        },
+        last_amended: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Amended'
+        }
+    },
+    type: 'object',
+    required: ['citation', 'title_de', 'title_en', 'category', 'one_line_summary', 'short_summary', 'detailed_explanation'],
+    title: 'LawCreate',
+    description: 'Request schema for creating a law.'
+} as const;
+
 export const LawDetailResponseSchema = {
     properties: {
         id: {
@@ -4746,6 +5038,176 @@ export const LawListResponseSchema = {
     description: 'Paginated list of laws.'
 } as const;
 
+export const LawResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        citation: {
+            type: 'string',
+            title: 'Citation'
+        },
+        title_de: {
+            type: 'string',
+            title: 'Title De'
+        },
+        title_en: {
+            type: 'string',
+            title: 'Title En'
+        },
+        category: {
+            '$ref': '#/components/schemas/LawCategory'
+        },
+        property_type: {
+            '$ref': '#/components/schemas/PropertyTypeApplicability'
+        },
+        one_line_summary: {
+            type: 'string',
+            title: 'One Line Summary'
+        },
+        short_summary: {
+            type: 'string',
+            title: 'Short Summary'
+        },
+        detailed_explanation: {
+            type: 'string',
+            title: 'Detailed Explanation'
+        },
+        real_world_example: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Real World Example'
+        },
+        common_disputes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Common Disputes'
+        },
+        buyer_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Buyer Implications'
+        },
+        seller_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Seller Implications'
+        },
+        landlord_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Landlord Implications'
+        },
+        tenant_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tenant Implications'
+        },
+        original_text_de: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Original Text De'
+        },
+        last_amended: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Amended'
+        },
+        change_history: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Change History'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        },
+        court_rulings: {
+            items: {
+                '$ref': '#/components/schemas/CourtRulingResponse'
+            },
+            type: 'array',
+            title: 'Court Rulings',
+            default: []
+        },
+        state_variations: {
+            items: {
+                '$ref': '#/components/schemas/StateVariationResponse'
+            },
+            type: 'array',
+            title: 'State Variations',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'citation', 'title_de', 'title_en', 'category', 'property_type', 'one_line_summary', 'short_summary', 'detailed_explanation', 'created_at', 'updated_at'],
+    title: 'LawResponse',
+    description: 'Full response schema for a law.'
+} as const;
+
 export const LawSearchResponseSchema = {
     properties: {
         data: {
@@ -4846,6 +5308,178 @@ export const LawSummarySchema = {
     required: ['id', 'citation', 'title_en', 'category', 'property_type', 'one_line_summary'],
     title: 'LawSummary',
     description: 'Summary view of a law for list responses.'
+} as const;
+
+export const LawUpdateSchema = {
+    properties: {
+        title_de: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title De'
+        },
+        title_en: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title En'
+        },
+        category: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/LawCategory'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        property_type: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/PropertyTypeApplicability'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        one_line_summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'One Line Summary'
+        },
+        short_summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Short Summary'
+        },
+        detailed_explanation: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Detailed Explanation'
+        },
+        real_world_example: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Real World Example'
+        },
+        common_disputes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Common Disputes'
+        },
+        buyer_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Buyer Implications'
+        },
+        seller_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Seller Implications'
+        },
+        landlord_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Landlord Implications'
+        },
+        tenant_implications: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tenant Implications'
+        },
+        original_text_de: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Original Text De'
+        },
+        last_amended: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Amended'
+        }
+    },
+    type: 'object',
+    title: 'LawUpdate',
+    description: 'Request schema for updating a law.'
 } as const;
 
 export const LegalTermWarningSchema = {

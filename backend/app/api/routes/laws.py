@@ -4,12 +4,19 @@ Provides endpoints for browsing, searching, and bookmarking German real estate l
 """
 
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
-from app.api.deps import CurrentUser, OptionalCurrentUser, get_db
-from app.models.legal import LawCategory, PropertyTypeApplicability
+from app.api.deps import (
+    CurrentUser,
+    OptionalCurrentUser,
+    SessionDep,
+    get_current_active_superuser,
+    get_db,
+)
+from app.models.legal import Law, LawCategory, PropertyTypeApplicability
 from app.models.notification import NotificationType
 from app.schemas.legal import (
     BookmarkCreate,
@@ -18,18 +25,22 @@ from app.schemas.legal import (
     CourtRulingResponse,
     JourneyStepLawResponse,
     JourneyStepLawsResponse,
+    LawCreate,
     LawDetailResponse,
     LawFilter,
     LawListResponse,
+    LawResponse,
     LawSearchResponse,
     LawSearchResult,
     LawSummary,
+    LawUpdate,
     StateVariationResponse,
 )
 from app.services import notification_service
 from app.services.legal_service import (
     BookmarkAlreadyExistsError,
     BookmarkNotFoundError,
+    LawCitationExistsError,
     LawNotFoundError,
     get_laws,
     get_related_laws,
@@ -40,7 +51,13 @@ from app.services.legal_service import (
     create_bookmark as svc_create_bookmark,
 )
 from app.services.legal_service import (
+    create_law as svc_create_law,
+)
+from app.services.legal_service import (
     delete_bookmark as svc_delete_bookmark,
+)
+from app.services.legal_service import (
+    delete_law as svc_delete_law,
 )
 from app.services.legal_service import (
     get_law as svc_get_law,
@@ -51,8 +68,13 @@ from app.services.legal_service import (
 from app.services.legal_service import (
     search_laws as svc_search_laws,
 )
+from app.services.legal_service import (
+    update_law as svc_update_law,
+)
 
 router = APIRouter(prefix="/laws", tags=["laws"])
+
+_SuperUserDep = Annotated[Law, Depends(get_current_active_superuser)]
 
 
 @router.get("/", response_model=LawListResponse)
@@ -410,4 +432,69 @@ async def delete_bookmark(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Bookmark not found",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoints (superuser only)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/",
+    response_model=LawResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_law(
+    request: LawCreate,
+    session: SessionDep,
+    _current_user: _SuperUserDep,
+) -> LawResponse:
+    """Create a new law entry (admin only)."""
+    try:
+        law = svc_create_law(session, request.model_dump())
+    except LawCitationExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    return LawResponse.model_validate(law)
+
+
+@router.put("/{law_id}", response_model=LawResponse)
+async def update_law(
+    law_id: uuid.UUID,
+    request: LawUpdate,
+    session: SessionDep,
+    _current_user: _SuperUserDep,
+) -> LawResponse:
+    """Update a law entry (admin only)."""
+    try:
+        law = svc_update_law(session, law_id, request.model_dump(exclude_unset=True))
+    except LawNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Law {law_id} not found",
+        )
+    except LawCitationExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    return LawResponse.model_validate(law)
+
+
+@router.delete("/{law_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_law(
+    law_id: uuid.UUID,
+    session: SessionDep,
+    _current_user: _SuperUserDep,
+) -> None:
+    """Delete a law (admin only)."""
+    try:
+        svc_delete_law(session, law_id)
+    except LawNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Law {law_id} not found",
         )

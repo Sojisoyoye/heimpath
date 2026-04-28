@@ -984,6 +984,20 @@ export type GlossarySearchResponse = {
 };
 
 /**
+ * Request schema for creating a glossary term.
+ */
+export type GlossaryTermCreate = {
+    term_de: string;
+    term_en: string;
+    slug: string;
+    definition_short: string;
+    definition_long: string;
+    category: GlossaryCategory;
+    example_usage?: (string | null);
+    related_terms?: Array<(string)>;
+};
+
+/**
  * Full detail view of a glossary term.
  */
 export type GlossaryTermDetail = {
@@ -1008,6 +1022,20 @@ export type GlossaryTermSummary = {
     slug: string;
     definition_short: string;
     category: GlossaryCategory;
+};
+
+/**
+ * Request schema for updating a glossary term. All fields optional.
+ */
+export type GlossaryTermUpdate = {
+    term_de?: (string | null);
+    term_en?: (string | null);
+    slug?: (string | null);
+    definition_short?: (string | null);
+    definition_long?: (string | null);
+    category?: (GlossaryCategory | null);
+    example_usage?: (string | null);
+    related_terms?: (Array<(string)> | null);
 };
 
 /**
@@ -1346,6 +1374,28 @@ export type LanguageDetectionResponse = {
 export type LawCategory = 'buying_process' | 'costs_and_taxes' | 'rental_law' | 'condominium' | 'agent_regulations';
 
 /**
+ * Request schema for creating a law.
+ */
+export type LawCreate = {
+    citation: string;
+    title_de: string;
+    title_en: string;
+    category: LawCategory;
+    property_type?: PropertyTypeApplicability;
+    one_line_summary: string;
+    short_summary: string;
+    detailed_explanation: string;
+    real_world_example?: (string | null);
+    common_disputes?: (string | null);
+    buyer_implications?: (string | null);
+    seller_implications?: (string | null);
+    landlord_implications?: (string | null);
+    tenant_implications?: (string | null);
+    original_text_de?: (string | null);
+    last_amended?: (string | null);
+};
+
+/**
  * Extended response with related laws.
  */
 export type LawDetailResponse = {
@@ -1387,6 +1437,34 @@ export type LawListResponse = {
 };
 
 /**
+ * Full response schema for a law.
+ */
+export type LawResponse = {
+    id: string;
+    citation: string;
+    title_de: string;
+    title_en: string;
+    category: LawCategory;
+    property_type: PropertyTypeApplicability;
+    one_line_summary: string;
+    short_summary: string;
+    detailed_explanation: string;
+    real_world_example?: (string | null);
+    common_disputes?: (string | null);
+    buyer_implications?: (string | null);
+    seller_implications?: (string | null);
+    landlord_implications?: (string | null);
+    tenant_implications?: (string | null);
+    original_text_de?: (string | null);
+    last_amended?: (string | null);
+    change_history?: (string | null);
+    created_at: string;
+    updated_at: string;
+    court_rulings?: Array<CourtRulingResponse>;
+    state_variations?: Array<StateVariationResponse>;
+};
+
+/**
  * Search results response.
  */
 export type LawSearchResponse = {
@@ -1419,6 +1497,27 @@ export type LawSummary = {
     category: LawCategory;
     property_type: PropertyTypeApplicability;
     one_line_summary: string;
+};
+
+/**
+ * Request schema for updating a law.
+ */
+export type LawUpdate = {
+    title_de?: (string | null);
+    title_en?: (string | null);
+    category?: (LawCategory | null);
+    property_type?: (PropertyTypeApplicability | null);
+    one_line_summary?: (string | null);
+    short_summary?: (string | null);
+    detailed_explanation?: (string | null);
+    real_world_example?: (string | null);
+    common_disputes?: (string | null);
+    buyer_implications?: (string | null);
+    seller_implications?: (string | null);
+    landlord_implications?: (string | null);
+    tenant_implications?: (string | null);
+    original_text_de?: (string | null);
+    last_amended?: (string | null);
 };
 
 /**
@@ -3202,6 +3301,12 @@ export type GlossaryListTermsData = {
 
 export type GlossaryListTermsResponse = (GlossaryListResponse);
 
+export type GlossaryCreateGlossaryTermData = {
+    requestBody: GlossaryTermCreate;
+};
+
+export type GlossaryCreateGlossaryTermResponse = (GlossaryTermDetail);
+
 export type GlossarySearchGlossaryData = {
     limit?: number;
     /**
@@ -3219,6 +3324,19 @@ export type GlossaryGetTermData = {
 };
 
 export type GlossaryGetTermResponse = (GlossaryTermDetail);
+
+export type GlossaryUpdateGlossaryTermData = {
+    requestBody: GlossaryTermUpdate;
+    slug: string;
+};
+
+export type GlossaryUpdateGlossaryTermResponse = (GlossaryTermDetail);
+
+export type GlossaryDeleteGlossaryTermData = {
+    slug: string;
+};
+
+export type GlossaryDeleteGlossaryTermResponse = (void);
 
 export type JourneysCreateJourneyData = {
     requestBody: JourneyCreate;
@@ -3306,6 +3424,12 @@ export type LawsListLawsData = {
 
 export type LawsListLawsResponse = (LawListResponse);
 
+export type LawsCreateLawData = {
+    requestBody: LawCreate;
+};
+
+export type LawsCreateLawResponse = (LawResponse);
+
 export type LawsSearchLawsData = {
     limit?: number;
     /**
@@ -3333,6 +3457,19 @@ export type LawsGetLawData = {
 };
 
 export type LawsGetLawResponse = (LawDetailResponse);
+
+export type LawsUpdateLawData = {
+    lawId: string;
+    requestBody: LawUpdate;
+};
+
+export type LawsUpdateLawResponse = (LawResponse);
+
+export type LawsDeleteLawData = {
+    lawId: string;
+};
+
+export type LawsDeleteLawResponse = (void);
 
 export type LawsCreateBookmarkData = {
     lawId: string;

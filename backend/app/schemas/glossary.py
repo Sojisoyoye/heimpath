@@ -73,3 +73,32 @@ class GlossaryFilter(BaseModel):
     category: GlossaryCategory | None = None
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
+
+
+# --- Admin Create/Update Schemas ---
+
+
+class GlossaryTermCreate(BaseModel):
+    """Request schema for creating a glossary term."""
+
+    term_de: str = Field(..., max_length=200)
+    term_en: str = Field(..., max_length=200)
+    slug: str = Field(..., max_length=200, pattern=r"^[a-z0-9-]+$")
+    definition_short: str = Field(..., max_length=300)
+    definition_long: str
+    category: GlossaryCategory
+    example_usage: str | None = None
+    related_terms: list[str] = []
+
+
+class GlossaryTermUpdate(BaseModel):
+    """Request schema for updating a glossary term. All fields optional."""
+
+    term_de: str | None = Field(None, max_length=200)
+    term_en: str | None = Field(None, max_length=200)
+    slug: str | None = Field(None, max_length=200, pattern=r"^[a-z0-9-]+$")
+    definition_short: str | None = Field(None, max_length=300)
+    definition_long: str | None = None
+    category: GlossaryCategory | None = None
+    example_usage: str | None = None
+    related_terms: list[str] | None = None

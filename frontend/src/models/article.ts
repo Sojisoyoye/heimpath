@@ -62,3 +62,21 @@ export interface ArticleRating {
   notHelpfulCount: number
   userRating: boolean | null
 }
+
+// Admin create/update
+export interface ArticleCreate {
+  title: string
+  slug: string
+  metaDescription: string
+  category: ArticleCategory
+  difficultyLevel: DifficultyLevel
+  excerpt: string
+  content: string
+  keyTakeaways?: string[]
+  authorName: string
+  status?: ArticleStatus
+  relatedLawIds?: string[]
+  relatedCalculatorTypes?: string[]
+}
+
+export type ArticleUpdate = Partial<ArticleCreate>
