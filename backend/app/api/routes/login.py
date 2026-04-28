@@ -67,6 +67,10 @@ def login_access_token(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    elif not user.email_verified:
+        raise HTTPException(
+            status_code=403, detail="Please verify your email before logging in."
+        )
     rate_limit_service.record_successful_login(form_data.username)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(

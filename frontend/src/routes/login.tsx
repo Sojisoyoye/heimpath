@@ -1,13 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
 import {
   createFileRoute,
   Link as RouterLink,
   redirect,
+  useNavigate,
 } from "@tanstack/react-router"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import type { Body_login_login_access_token as AccessToken } from "@/client"
+import type {
+  Body_login_login_access_token as AccessToken,
+  ApiError,
+} from "@/client"
+import { AuthService, LoginService } from "@/client"
 import { seoMeta } from "@/common/seo"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
@@ -21,7 +28,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
-import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { isLoggedIn } from "@/hooks/useAuth"
+import useCustomToast from "@/hooks/useCustomToast"
+import { queryClient } from "@/query/client"
+import { handleError } from "@/utils"
 
 const formSchema = z.object({
   username: z
@@ -58,7 +68,9 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const { redirect: redirectTo } = Route.useSearch()
-  const { loginMutation } = useAuth(redirectTo)
+  const navigate = useNavigate()
+  const { showErrorToast, showSuccessToast } = useCustomToast()
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -69,8 +81,40 @@ function Login() {
     },
   })
 
+  const loginMutation = useMutation({
+    mutationFn: async (data: AccessToken) => {
+      await LoginService.loginAccessToken({ formData: data })
+      queryClient.clear()
+    },
+    onSuccess: () => {
+      if (redirectTo) {
+        window.location.href = redirectTo
+        return
+      }
+      void navigate({ to: "/dashboard" })
+    },
+    onError: (err: Error) => {
+      const apiErr = err as ApiError
+      if (apiErr.status === 403) {
+        setUnverifiedEmail(form.getValues("username"))
+      } else {
+        handleError.call(showErrorToast, err)
+      }
+    },
+  })
+
+  const resendMutation = useMutation({
+    mutationFn: (email: string) =>
+      AuthService.resendVerification({ requestBody: { email } }),
+    onSuccess: () =>
+      showSuccessToast("Verification email sent. Check your inbox."),
+    onError: () =>
+      showErrorToast("Failed to send verification email. Please try again."),
+  })
+
   const onSubmit = (data: FormData) => {
     if (loginMutation.isPending) return
+    setUnverifiedEmail(null)
     loginMutation.mutate(data)
   }
 
@@ -144,6 +188,29 @@ function Login() {
               Sign In
             </LoadingButton>
           </div>
+
+          {unverifiedEmail !== null && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+              <p className="font-medium text-amber-800">
+                Please verify your email address
+              </p>
+              <p className="mt-1 text-amber-700">
+                We sent a verification link to{" "}
+                <span className="font-medium">{unverifiedEmail}</span>. Check
+                your inbox and click the link to activate your account.
+              </p>
+              <LoadingButton
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-3 border-amber-300 bg-white text-amber-800 hover:bg-amber-50"
+                loading={resendMutation.isPending}
+                onClick={() => resendMutation.mutate(unverifiedEmail)}
+              >
+                Resend verification email
+              </LoadingButton>
+            </div>
+          )}
 
           <div className="text-center text-sm text-muted-foreground">
             New to HeimPath?
