@@ -6,10 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.core.config import settings
 
+_async_connect_args: dict = {"ssl": True} if settings.ENVIRONMENT != "local" else {}
+
 async_engine = create_async_engine(
     str(settings.ASYNC_DATABASE_URI),
     echo=settings.ENVIRONMENT == "local",
     pool_pre_ping=True,
+    connect_args=_async_connect_args,
 )
 
 AsyncSessionLocal = async_sessionmaker(
