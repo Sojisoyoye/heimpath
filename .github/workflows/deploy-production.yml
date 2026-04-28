@@ -54,7 +54,13 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
+            BACKEND_FQDN=$(az containerapp show \
+              --name heimpath-backend-prod \
+              --resource-group rg-heimpath-prod \
+              --query "properties.configuration.ingress.fqdn" \
+              --output tsv)
             az containerapp update \
               --name heimpath-frontend-prod \
               --resource-group rg-heimpath-prod \
-              --image ${{ steps.meta.outputs.prefix }}/frontend:${{ inputs.image_tag }}
+              --image ${{ steps.meta.outputs.prefix }}/frontend:${{ inputs.image_tag }} \
+              --set-env-vars "BACKEND_HOST=https://${BACKEND_FQDN}"

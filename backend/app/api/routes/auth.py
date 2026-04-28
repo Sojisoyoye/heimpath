@@ -6,6 +6,7 @@ Provides registration and login endpoints with:
 - JWT access and refresh tokens
 """
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -134,7 +135,8 @@ async def register(
                 token=token_data.token,
                 valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
             )
-            send_email(
+            await asyncio.to_thread(
+                send_email,
                 email_to=user.email,
                 subject=email_data.subject,
                 html_content=email_data.html_content,
@@ -503,7 +505,8 @@ async def resend_verification(
                 token=token_data.token,
                 valid_hours=EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
             )
-            send_email(
+            await asyncio.to_thread(
+                send_email,
                 email_to=user.email,
                 subject=email_data.subject,
                 html_content=email_data.html_content,
@@ -562,7 +565,8 @@ async def forgot_password(
                 email=user.email,
                 token=token_data.token,
             )
-            send_email(
+            await asyncio.to_thread(
+                send_email,
                 email_to=user.email,
                 subject=email_data.subject,
                 html_content=email_data.html_content,
