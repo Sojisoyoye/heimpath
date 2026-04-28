@@ -9,6 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.deps import SessionDep, get_current_active_superuser
+from app.models import User
 from app.models.glossary import GlossaryCategory, GlossaryTerm
 from app.schemas.glossary import (
     GlossaryCategoriesResponse,
@@ -35,7 +36,7 @@ from app.services.glossary_service import (
 
 router = APIRouter(prefix="/glossary", tags=["glossary"])
 
-_SuperUserDep = Annotated[GlossaryTerm, Depends(get_current_active_superuser)]
+_SuperUserDep = Annotated[User, Depends(get_current_active_superuser)]
 
 # Category display names
 _CATEGORY_NAMES = {

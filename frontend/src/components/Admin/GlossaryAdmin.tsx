@@ -4,7 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Pencil, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -73,6 +73,20 @@ function GlossaryFormDialog({
           }
         : {},
     })
+
+  useEffect(() => {
+    reset(
+      editTerm
+        ? {
+            termDe: editTerm.termDe,
+            termEn: editTerm.termEn,
+            slug: editTerm.slug,
+            definitionShort: editTerm.definitionShort,
+            category: editTerm.category,
+          }
+        : {},
+    )
+  }, [editTerm, reset])
 
   const mutation = useMutation({
     mutationFn: (data: GlossaryTermCreate) =>
@@ -189,8 +203,8 @@ function GlossaryAdmin() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.glossary.list({ pageSize: 200 }),
-    queryFn: () => GlossaryService.getTerms({ pageSize: 200 }),
+    queryKey: queryKeys.glossary.list({ pageSize: 100 }),
+    queryFn: () => GlossaryService.getTerms({ pageSize: 100 }),
   })
 
   const deleteMutation = useMutation({

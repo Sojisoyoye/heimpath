@@ -16,7 +16,8 @@ from app.api.deps import (
     get_current_active_superuser,
     get_db,
 )
-from app.models.legal import Law, LawCategory, PropertyTypeApplicability
+from app.models import User
+from app.models.legal import LawCategory, PropertyTypeApplicability
 from app.models.notification import NotificationType
 from app.schemas.legal import (
     BookmarkCreate,
@@ -74,7 +75,7 @@ from app.services.legal_service import (
 
 router = APIRouter(prefix="/laws", tags=["laws"])
 
-_SuperUserDep = Annotated[Law, Depends(get_current_active_superuser)]
+_SuperUserDep = Annotated[User, Depends(get_current_active_superuser)]
 
 
 @router.get("/", response_model=LawListResponse)

@@ -4,7 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Pencil, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -55,11 +55,12 @@ const STATUSES = [
   { value: "archived", label: "Archived" },
 ]
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  published: "default",
-  draft: "secondary",
-  archived: "outline",
-}
+const DIFFICULTY_VARIANT: Record<string, "default" | "secondary" | "outline"> =
+  {
+    beginner: "default",
+    intermediate: "secondary",
+    advanced: "outline",
+  }
 
 /******************************************************************************
                               Components
@@ -90,6 +91,21 @@ function ArticleFormDialog({
         }
       : { status: "draft" },
   })
+
+  useEffect(() => {
+    reset(
+      editArticle
+        ? {
+            title: editArticle.title,
+            slug: editArticle.slug,
+            category: editArticle.category,
+            difficultyLevel: editArticle.difficultyLevel,
+            excerpt: editArticle.excerpt,
+            authorName: editArticle.authorName,
+          }
+        : { status: "draft" },
+    )
+  }, [editArticle, reset])
 
   const mutation = useMutation({
     mutationFn: (data: ArticleCreate) =>
@@ -246,8 +262,8 @@ function ArticlesAdmin() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.articles.list({ pageSize: 200 }),
-    queryFn: () => ArticleService.getArticles({ pageSize: 200 }),
+    queryKey: queryKeys.articles.list({ pageSize: 100 }),
+    queryFn: () => ArticleService.getArticles({ pageSize: 100 }),
   })
 
   const deleteMutation = useMutation({
@@ -315,7 +331,7 @@ function ArticlesAdmin() {
                   <td className="px-4 py-3">
                     <Badge
                       variant={
-                        STATUS_VARIANT[article.difficultyLevel] ?? "outline"
+                        DIFFICULTY_VARIANT[article.difficultyLevel] ?? "outline"
                       }
                       className="text-xs"
                     >

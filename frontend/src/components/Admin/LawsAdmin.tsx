@@ -4,7 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Pencil, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -80,6 +80,21 @@ function LawFormDialog({
         }
       : {},
   })
+
+  useEffect(() => {
+    reset(
+      editLaw
+        ? {
+            citation: editLaw.citation,
+            titleDe: editLaw.titleDe,
+            titleEn: editLaw.titleEn,
+            category: editLaw.category,
+            propertyType: editLaw.propertyType,
+            oneLineSummary: editLaw.oneLineSummary,
+          }
+        : {},
+    )
+  }, [editLaw, reset])
 
   const mutation = useMutation({
     mutationFn: (data: LawCreate) =>
@@ -221,8 +236,8 @@ function LawsAdmin() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.laws.list({ pageSize: 200 }),
-    queryFn: () => LegalService.getLaws({ pageSize: 200 }),
+    queryKey: queryKeys.laws.list({ pageSize: 100 }),
+    queryFn: () => LegalService.getLaws({ pageSize: 100 }),
   })
 
   const deleteMutation = useMutation({

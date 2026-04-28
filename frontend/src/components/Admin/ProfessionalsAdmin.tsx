@@ -4,7 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CheckCircle, Pencil, Plus, Trash2, XCircle } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -77,6 +77,24 @@ function ProfessionalFormDialog({
           }
         : { isVerified: false },
     })
+
+  useEffect(() => {
+    reset(
+      editProfessional
+        ? {
+            name: editProfessional.name,
+            type: editProfessional.type,
+            city: editProfessional.city,
+            languages: editProfessional.languages,
+            description: editProfessional.description,
+            email: editProfessional.email,
+            phone: editProfessional.phone,
+            website: editProfessional.website,
+            isVerified: editProfessional.isVerified,
+          }
+        : { isVerified: false },
+    )
+  }, [editProfessional, reset])
 
   const mutation = useMutation({
     mutationFn: (data: ProfessionalCreate) =>
@@ -201,8 +219,8 @@ function ProfessionalsAdmin() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.professionals.list({ pageSize: 200 }),
-    queryFn: () => ProfessionalService.getProfessionals({ pageSize: 200 }),
+    queryKey: queryKeys.professionals.list({ pageSize: 100 }),
+    queryFn: () => ProfessionalService.getProfessionals({ pageSize: 100 }),
   })
 
   const deleteMutation = useMutation({
