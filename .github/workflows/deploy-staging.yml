@@ -77,7 +77,8 @@ jobs:
               --name heimpath-backend-staging \
               --resource-group rg-heimpath-staging \
               --image ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }} \
-              --set-env-vars "TRUSTED_PROXY_IPS=*"
+              --set-env-vars "TRUSTED_PROXY_IPS=*" \
+              --min-replicas 1
 
       - name: Deploy frontend
         uses: azure/cli@v2
