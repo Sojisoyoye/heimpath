@@ -88,10 +88,10 @@ function Login() {
     },
     onSuccess: () => {
       if (redirectTo) {
-        window.location.href = redirectTo
+        globalThis.location.href = redirectTo
         return
       }
-      void navigate({ to: "/dashboard" })
+      navigate({ to: "/dashboard" })
     },
     onError: (err: Error) => {
       const apiErr = err as ApiError

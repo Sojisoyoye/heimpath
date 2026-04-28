@@ -2030,6 +2030,7 @@ export class LoginService {
             formData: data.formData,
             mediaType: 'application/x-www-form-urlencoded',
             errors: {
+                403: 'Email not verified',
                 422: 'Validation Error'
             }
         });

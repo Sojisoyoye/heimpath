@@ -26,7 +26,10 @@ class PasswordRecoveryRequest(BaseModel):
     email: EmailStr
 
 
-@router.post("/login/access-token")
+@router.post(
+    "/login/access-token",
+    responses={403: {"description": "Email not verified"}},
+)
 def login_access_token(
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
