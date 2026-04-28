@@ -247,26 +247,42 @@ def _get_or_create_seed_users(session: Session, count: int) -> list[uuid.UUID]:
 
 
 def seed_reviews(session: Session) -> None:
-    """Seed sample reviews into the database. Idempotent."""
-    existing = session.execute(select(ProfessionalReview).limit(1)).scalars().first()
-    if existing:
-        logger.info("Reviews already seeded, skipping.")
-        return
+    """Seed sample reviews into the database.
 
+    Idempotent per professional: if a professional already has reviews they are
+    left untouched, but professionals with no reviews will have theirs added.
+    This allows the seed data to grow over time without losing existing reviews.
+    """
     # Build name -> professional lookup
     professionals = list(session.execute(select(Professional)).scalars().all())
     name_to_prof: dict[str, Professional] = {p.name: p for p in professionals}
 
-    # Count total reviews needed to create enough seed users
+    # Create enough seed users for the full expected set (idempotent via get-or-create)
     total_reviews = sum(len(r) for r in REVIEWS_BY_PROFESSIONAL.values())
     user_ids = _get_or_create_seed_users(session, total_reviews)
 
     inserted = 0
     user_idx = 0
+    newly_inserted_prof_ids: list[str] = []
     for prof_name, reviews in REVIEWS_BY_PROFESSIONAL.items():
         professional = name_to_prof.get(prof_name)
         if not professional:
             logger.warning("Professional '%s' not found, skipping reviews.", prof_name)
+            user_idx += len(reviews)  # keep user_idx in sync
+            continue
+
+        # Per-professional idempotency: skip if this pro already has reviews
+        already_has_reviews = (
+            session.execute(
+                select(ProfessionalReview)
+                .where(ProfessionalReview.professional_id == professional.id)
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
+        if already_has_reviews:
+            user_idx += len(reviews)  # keep user_idx in sync
             continue
 
         for review_data in reviews:
@@ -278,16 +294,19 @@ def seed_reviews(session: Session) -> None:
             session.add(review)
             inserted += 1
             user_idx += 1
+        newly_inserted_prof_ids.append(professional.id)
+
+    if inserted == 0:
+        logger.info("All reviews already seeded, skipping.")
+        return
 
     session.flush()
 
-    # Recompute denormalized fields for each professional that got reviews
+    # Recompute denormalized fields only for professionals that got new reviews
     from app.services.professional_service import recompute_professional_stats
 
-    for prof_name in REVIEWS_BY_PROFESSIONAL:
-        professional = name_to_prof.get(prof_name)
-        if professional:
-            recompute_professional_stats(session, professional.id)
+    for prof_id in newly_inserted_prof_ids:
+        recompute_professional_stats(session, prof_id)
 
     session.commit()
     logger.info("Seeded %d reviews.", inserted)

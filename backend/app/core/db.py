@@ -3,6 +3,7 @@ from sqlmodel import Session, create_engine, select
 from app import crud
 from app.core.config import settings
 from app.core.seed_professionals import seed_professionals
+from app.core.seed_reviews import seed_reviews
 from app.models import User, UserCreate
 from app.seed_glossary import seed_glossary
 from app.seed_laws import seed_laws
@@ -40,4 +41,5 @@ def init_db(session: Session) -> None:
 
     seed_laws(session)
     seed_professionals(session)
+    seed_reviews(session)
     seed_glossary(session)
