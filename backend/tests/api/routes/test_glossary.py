@@ -1,10 +1,15 @@
 """Tests for Glossary API endpoints."""
 
+import uuid
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
+from app import crud
 from app.core.config import settings
+from app.models import UserCreate
 from app.models.glossary import GlossaryCategory, GlossaryTerm
+from tests.utils.utils import random_email, random_lower_string
 
 BASE = f"{settings.API_V1_STR}/glossary"
 
@@ -12,6 +17,18 @@ BASE = f"{settings.API_V1_STR}/glossary"
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _get_auth_headers(client: TestClient, db: Session) -> dict[str, str]:
+    """Create a regular user and return auth headers."""
+    email = random_email()
+    password = random_lower_string()
+    crud.create_user(session=db, user_create=UserCreate(email=email, password=password))
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+    )
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
 
 def _create_term(db: Session, **overrides) -> GlossaryTerm:
@@ -224,3 +241,85 @@ class TestGetTerm:
         assert len(data["related_terms"]) == 1
         assert data["related_terms"][0]["slug"] == "notar"
         _cleanup_terms(db)
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoints (superuser only)
+# ---------------------------------------------------------------------------
+
+_SAMPLE_TERM_PAYLOAD = {
+    "term_de": "Testbegriff Admin",
+    "term_en": "Test Term Admin",
+    "slug": "testbegriff-admin",
+    "definition_short": "A test term for admin endpoint testing.",
+    "definition_long": "Used exclusively by automated admin endpoint tests.",
+    "category": "buying_process",
+}
+
+
+class TestAdminEndpoints:
+    """Tests for admin-only glossary CRUD endpoints."""
+
+    def test_create_term_requires_superuser(
+        self, client: TestClient, db: Session
+    ) -> None:
+        """Non-superuser cannot create a glossary term."""
+        headers = _get_auth_headers(client, db)
+        r = client.post(f"{BASE}/", json=_SAMPLE_TERM_PAYLOAD, headers=headers)
+        assert r.status_code == 403
+
+    def test_create_term_as_superuser(
+        self, client: TestClient, superuser_token_headers: dict[str, str]
+    ) -> None:
+        """Superuser can create a glossary term."""
+        payload = {
+            **_SAMPLE_TERM_PAYLOAD,
+            "slug": f"su-term-{uuid.uuid4().hex[:8]}",
+        }
+        r = client.post(f"{BASE}/", json=payload, headers=superuser_token_headers)
+        assert r.status_code == 201
+        assert r.json()["slug"] == payload["slug"]
+
+    def test_update_term_as_superuser(
+        self, client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+    ) -> None:
+        """Superuser can update a glossary term."""
+        slug = f"upd-{uuid.uuid4().hex[:8]}"
+        term = _create_term(db, slug=slug, term_de="Orig", term_en="Original")
+        r = client.put(
+            f"{BASE}/{term.slug}",
+            json={"term_en": "Updated Term"},
+            headers=superuser_token_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["term_en"] == "Updated Term"
+
+    def test_update_term_not_found(
+        self, client: TestClient, superuser_token_headers: dict[str, str]
+    ) -> None:
+        """Update non-existent term returns 404."""
+        r = client.put(
+            f"{BASE}/nonexistent-slug-xyz",
+            json={"term_en": "New"},
+            headers=superuser_token_headers,
+        )
+        assert r.status_code == 404
+
+    def test_delete_term_as_superuser(
+        self, client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+    ) -> None:
+        """Superuser can delete a glossary term."""
+        slug = f"del-{uuid.uuid4().hex[:8]}"
+        _create_term(db, slug=slug, term_de="ToDelete")
+        r = client.delete(f"{BASE}/{slug}", headers=superuser_token_headers)
+        assert r.status_code == 204
+
+    def test_delete_term_requires_superuser(
+        self, client: TestClient, db: Session
+    ) -> None:
+        """Non-superuser cannot delete a glossary term."""
+        headers = _get_auth_headers(client, db)
+        slug = f"prot-{uuid.uuid4().hex[:8]}"
+        _create_term(db, slug=slug, term_de="Protected")
+        r = client.delete(f"{BASE}/{slug}", headers=headers)
+        assert r.status_code == 403
