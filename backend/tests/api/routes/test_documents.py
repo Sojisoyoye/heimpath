@@ -4,7 +4,6 @@ import io
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
@@ -47,22 +46,17 @@ class TestDocumentUpload:
     def test_upload_non_pdf_returns_400(
         self, client: TestClient, normal_user_token_headers: dict[str, str]
     ) -> None:
-        with patch(
-            "app.api.routes.documents.document_service.save_upload",
-            new_callable=AsyncMock,
-        ) as mock_save:
-            mock_save.return_value = _mock_document()
-            r = client.post(
-                f"{BASE}/upload",
-                headers=normal_user_token_headers,
-                files={
-                    "file": (
-                        "evil.html",
-                        io.BytesIO(b"<html>not a pdf</html>"),
-                        "text/html",
-                    )
-                },
-            )
+        r = client.post(
+            f"{BASE}/upload",
+            headers=normal_user_token_headers,
+            files={
+                "file": (
+                    "evil.html",
+                    io.BytesIO(b"<html>not a pdf</html>"),
+                    "text/html",
+                )
+            },
+        )
         assert r.status_code == 400
         assert "PDF" in r.json()["detail"]
 
