@@ -130,7 +130,7 @@ variable "staging_frontend_url" {
 variable "staging_backend_min_replicas" {
   description = "Staging minimum backend replicas"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 variable "staging_backend_max_replicas" {
