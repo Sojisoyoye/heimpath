@@ -22,6 +22,12 @@ class LawNotFoundError(Exception):
     pass
 
 
+class LawCitationExistsError(Exception):
+    """Raised when a law with the same citation already exists."""
+
+    pass
+
+
 class BookmarkNotFoundError(Exception):
     """Raised when a bookmark is not found."""
 
@@ -349,3 +355,89 @@ def get_laws_by_category(
     """
     query = select(Law).where(Law.category == category.value).order_by(Law.citation)
     return list(session.exec(query).scalars().all())
+
+
+# ---------------------------------------------------------------------------
+# Admin CRUD
+# ---------------------------------------------------------------------------
+
+
+def create_law(session: Session, data: dict) -> Law:
+    """Create a new law entry.
+
+    Args:
+        session: Database session
+        data: Law field values
+
+    Returns:
+        Created Law instance
+
+    Raises:
+        LawCitationExistsError: If citation already exists
+    """
+    existing = session.exec(
+        select(Law).where(Law.citation == data.get("citation"))
+    ).first()
+    if existing:
+        raise LawCitationExistsError(
+            f"A law with citation '{data['citation']}' already exists"
+        )
+
+    law = Law(**data)
+    session.add(law)
+    session.commit()
+    session.refresh(law)
+    return law
+
+
+def update_law(session: Session, law_id: uuid.UUID, data: dict) -> Law:
+    """Update an existing law.
+
+    Args:
+        session: Database session
+        law_id: Law ID
+        data: Fields to update (partial)
+
+    Returns:
+        Updated Law instance
+
+    Raises:
+        LawNotFoundError: If law is not found
+        LawCitationExistsError: If new citation conflicts with existing law
+    """
+    law = session.get(Law, law_id)
+    if not law:
+        raise LawNotFoundError(f"Law {law_id} not found")
+
+    new_citation = data.get("citation")
+    if new_citation and new_citation != law.citation:
+        conflict = session.exec(select(Law).where(Law.citation == new_citation)).first()
+        if conflict:
+            raise LawCitationExistsError(
+                f"A law with citation '{new_citation}' already exists"
+            )
+
+    for field, value in data.items():
+        setattr(law, field, value)
+
+    session.commit()
+    session.refresh(law)
+    return law
+
+
+def delete_law(session: Session, law_id: uuid.UUID) -> None:
+    """Delete a law and all related data (bookmarks, rulings, variations).
+
+    Args:
+        session: Database session
+        law_id: Law ID
+
+    Raises:
+        LawNotFoundError: If law is not found
+    """
+    law = session.get(Law, law_id)
+    if not law:
+        raise LawNotFoundError(f"Law {law_id} not found")
+
+    session.delete(law)
+    session.commit()

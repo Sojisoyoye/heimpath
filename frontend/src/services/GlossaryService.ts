@@ -10,11 +10,13 @@ import type {
   GlossaryFilter,
   GlossaryListResponse,
   GlossarySearchResponse,
+  GlossaryTermCreate,
   GlossaryTermDetail,
   GlossaryTermSummary,
+  GlossaryTermUpdate,
 } from "@/models/glossary"
 import { PATHS } from "./common/Paths"
-import { transformKeys } from "./common/transformKeys"
+import { transformKeys, transformKeysToSnake } from "./common/transformKeys"
 
 interface RawListResponse {
   data: GlossaryTermSummary[]
@@ -88,6 +90,38 @@ class GlossaryServiceClass {
     })
     const transformed = transformKeys<RawCategoriesResponse>(response)
     return transformed.categories
+  }
+
+  // ── Admin (superuser only) ────────────────────────────────────────────────
+
+  async createTerm(data: GlossaryTermCreate): Promise<GlossaryTermDetail> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.GLOSSARY.CREATE,
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<GlossaryTermDetail>(response)
+  }
+
+  async updateTerm(
+    slug: string,
+    data: GlossaryTermUpdate,
+  ): Promise<GlossaryTermDetail> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "PUT",
+      url: PATHS.GLOSSARY.UPDATE(slug),
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<GlossaryTermDetail>(response)
+  }
+
+  async deleteTerm(slug: string): Promise<void> {
+    await request(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.GLOSSARY.DELETE(slug),
+    })
   }
 }
 

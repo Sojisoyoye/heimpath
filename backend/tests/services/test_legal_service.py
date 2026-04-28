@@ -247,3 +247,108 @@ class TestGetRelatedLaws:
         result = get_related_laws(mock_session, uuid.uuid4())
 
         assert len(result) == 1
+
+
+class TestCreateLaw:
+    """Tests for creating laws (admin)."""
+
+    def test_creates_law_successfully(self, sample_law: MagicMock) -> None:
+        """Test that create_law creates and returns a new law."""
+        from app.services.legal_service import create_law
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = None
+        mock_session.get.return_value = sample_law
+
+        data = {
+            "citation": "§ 999 BGB",
+            "title_de": "Neue Norm",
+            "title_en": "New Norm",
+            "category": LawCategory.BUYING_PROCESS.value,
+            "property_type": PropertyTypeApplicability.ALL.value,
+            "one_line_summary": "A new law.",
+            "short_summary": "Short.",
+            "detailed_explanation": "Long.",
+        }
+        result = create_law(mock_session, data)
+
+        mock_session.add.assert_called_once()
+        mock_session.commit.assert_called_once()
+        assert result is not None
+
+    def test_raises_on_duplicate_citation(self, sample_law: MagicMock) -> None:
+        """Test that create_law raises when citation already exists."""
+        from app.services.legal_service import LawCitationExistsError, create_law
+
+        mock_session = MagicMock()
+        mock_session.exec.return_value.first.return_value = sample_law
+
+        with pytest.raises(LawCitationExistsError):
+            create_law(mock_session, {"citation": "§ 433 BGB"})
+
+
+class TestUpdateLaw:
+    """Tests for updating laws (admin)."""
+
+    def test_updates_law_fields(self, sample_law: MagicMock) -> None:
+        """Test that update_law updates fields and returns the law."""
+        from app.services.legal_service import update_law
+
+        mock_session = MagicMock()
+        mock_session.get.return_value = sample_law
+
+        result = update_law(mock_session, sample_law.id, {"title_en": "Updated Title"})
+
+        assert sample_law.title_en == "Updated Title"
+        mock_session.commit.assert_called_once()
+        assert result == sample_law
+
+    def test_raises_when_not_found(self) -> None:
+        """Test that update_law raises when law does not exist."""
+        from app.services.legal_service import LawNotFoundError, update_law
+
+        mock_session = MagicMock()
+        mock_session.get.return_value = None
+
+        with pytest.raises(LawNotFoundError):
+            update_law(mock_session, uuid.uuid4(), {"title_en": "X"})
+
+    def test_raises_on_duplicate_citation(self, sample_law: MagicMock) -> None:
+        """Test that update_law raises when new citation conflicts."""
+        from app.services.legal_service import LawCitationExistsError, update_law
+
+        mock_session = MagicMock()
+        mock_session.get.return_value = sample_law
+        # citation conflict
+        conflicting = MagicMock()
+        conflicting.citation = "§ 99 BGB"
+        mock_session.exec.return_value.first.return_value = conflicting
+
+        with pytest.raises(LawCitationExistsError):
+            update_law(mock_session, sample_law.id, {"citation": "§ 99 BGB"})
+
+
+class TestDeleteLaw:
+    """Tests for deleting laws (admin)."""
+
+    def test_deletes_law(self, sample_law: MagicMock) -> None:
+        """Test that delete_law removes the law."""
+        from app.services.legal_service import delete_law
+
+        mock_session = MagicMock()
+        mock_session.get.return_value = sample_law
+
+        delete_law(mock_session, sample_law.id)
+
+        mock_session.delete.assert_called_once_with(sample_law)
+        mock_session.commit.assert_called_once()
+
+    def test_raises_when_not_found(self) -> None:
+        """Test that delete_law raises when law does not exist."""
+        from app.services.legal_service import LawNotFoundError, delete_law
+
+        mock_session = MagicMock()
+        mock_session.get.return_value = None
+
+        with pytest.raises(LawNotFoundError):
+            delete_law(mock_session, uuid.uuid4())

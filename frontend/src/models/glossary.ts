@@ -49,3 +49,17 @@ export interface GlossaryFilter {
   page?: number
   pageSize?: number
 }
+
+// Admin create/update
+export interface GlossaryTermCreate {
+  termDe: string
+  termEn: string
+  slug: string
+  definitionShort: string
+  definitionLong: string
+  category: GlossaryCategory
+  exampleUsage?: string
+  relatedTerms?: string[]
+}
+
+export type GlossaryTermUpdate = Partial<GlossaryTermCreate>

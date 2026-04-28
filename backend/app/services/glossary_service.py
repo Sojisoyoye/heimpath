@@ -12,6 +12,12 @@ class GlossaryTermNotFoundError(Exception):
     pass
 
 
+class GlossarySlugExistsError(Exception):
+    """Raised when a glossary term with the same slug already exists."""
+
+    pass
+
+
 def get_terms(
     session: Session,
     category: GlossaryCategory | None = None,
@@ -153,3 +159,103 @@ def get_related_terms(
 
     query = select(GlossaryTerm).where(GlossaryTerm.slug.in_(slugs))
     return list(session.exec(query).scalars().all())
+
+
+# ---------------------------------------------------------------------------
+# Admin CRUD
+# ---------------------------------------------------------------------------
+
+
+def create_term(session: Session, data: dict) -> GlossaryTerm:
+    """Create a new glossary term.
+
+    Args:
+        session: Database session
+        data: Term field values
+
+    Returns:
+        Created GlossaryTerm instance
+
+    Raises:
+        GlossarySlugExistsError: If slug already exists
+    """
+    existing = (
+        session.exec(select(GlossaryTerm).where(GlossaryTerm.slug == data.get("slug")))
+        .scalars()
+        .first()
+    )
+    if existing:
+        raise GlossarySlugExistsError(
+            f"A term with slug '{data['slug']}' already exists"
+        )
+
+    term = GlossaryTerm(**data)
+    session.add(term)
+    session.commit()
+    session.refresh(term)
+    return term
+
+
+def update_term(session: Session, slug: str, data: dict) -> GlossaryTerm:
+    """Update an existing glossary term.
+
+    Args:
+        session: Database session
+        slug: Term slug
+        data: Fields to update (partial)
+
+    Returns:
+        Updated GlossaryTerm instance
+
+    Raises:
+        GlossaryTermNotFoundError: If term is not found
+        GlossarySlugExistsError: If new slug conflicts with existing term
+    """
+    term = (
+        session.exec(select(GlossaryTerm).where(GlossaryTerm.slug == slug))
+        .scalars()
+        .first()
+    )
+    if not term:
+        raise GlossaryTermNotFoundError(f"Glossary term with slug '{slug}' not found")
+
+    new_slug = data.get("slug")
+    if new_slug and new_slug != slug:
+        conflict = (
+            session.exec(select(GlossaryTerm).where(GlossaryTerm.slug == new_slug))
+            .scalars()
+            .first()
+        )
+        if conflict:
+            raise GlossarySlugExistsError(
+                f"A term with slug '{new_slug}' already exists"
+            )
+
+    for field, value in data.items():
+        setattr(term, field, value)
+
+    session.commit()
+    session.refresh(term)
+    return term
+
+
+def delete_term(session: Session, slug: str) -> None:
+    """Delete a glossary term.
+
+    Args:
+        session: Database session
+        slug: Term slug
+
+    Raises:
+        GlossaryTermNotFoundError: If term is not found
+    """
+    term = (
+        session.exec(select(GlossaryTerm).where(GlossaryTerm.slug == slug))
+        .scalars()
+        .first()
+    )
+    if not term:
+        raise GlossaryTermNotFoundError(f"Glossary term with slug '{slug}' not found")
+
+    session.delete(term)
+    session.commit()

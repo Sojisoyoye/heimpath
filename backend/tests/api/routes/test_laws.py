@@ -293,3 +293,93 @@ def test_get_laws_for_journey_step(client: TestClient, db: Session) -> None:
     data = r.json()
     assert "data" in data
     assert data["step_content_key"] == "research_budget"
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoints (superuser only)
+# ---------------------------------------------------------------------------
+
+_SAMPLE_LAW_PAYLOAD = {
+    "citation": "§ 433 TestG",
+    "title_de": "Testnorm",
+    "title_en": "Test Law",
+    "category": "buying_process",
+    "property_type": "all",
+    "one_line_summary": "One line.",
+    "short_summary": "Short summary.",
+    "detailed_explanation": "Detailed explanation here.",
+}
+
+
+def test_create_law_requires_superuser(client: TestClient, db: Session) -> None:
+    """Non-superuser cannot create a law."""
+    headers, _ = get_auth_headers(client, db)
+    r = client.post(
+        f"{settings.API_V1_STR}/laws/",
+        json=_SAMPLE_LAW_PAYLOAD,
+        headers=headers,
+    )
+    assert r.status_code == 403
+
+
+def test_create_law_as_superuser(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Superuser can create a law."""
+    payload = {**_SAMPLE_LAW_PAYLOAD, "citation": f"§ {uuid.uuid4().hex[:6]} TestG"}
+    r = client.post(
+        f"{settings.API_V1_STR}/laws/",
+        json=payload,
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 201
+    assert r.json()["citation"] == payload["citation"]
+
+
+def test_update_law_as_superuser(
+    client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+) -> None:
+    """Superuser can update a law."""
+    law = create_sample_law(db)
+    r = client.put(
+        f"{settings.API_V1_STR}/laws/{law.id}",
+        json={"title_en": "Updated English Title"},
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["title_en"] == "Updated English Title"
+
+
+def test_update_law_not_found(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Update non-existent law returns 404."""
+    r = client.put(
+        f"{settings.API_V1_STR}/laws/{uuid.uuid4()}",
+        json={"title_en": "New Title"},
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 404
+
+
+def test_delete_law_as_superuser(
+    client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+) -> None:
+    """Superuser can delete a law."""
+    law = create_sample_law(db)
+    r = client.delete(
+        f"{settings.API_V1_STR}/laws/{law.id}",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 204
+
+
+def test_delete_law_requires_superuser(client: TestClient, db: Session) -> None:
+    """Non-superuser cannot delete a law."""
+    headers, _ = get_auth_headers(client, db)
+    law = create_sample_law(db)
+    r = client.delete(
+        f"{settings.API_V1_STR}/laws/{law.id}",
+        headers=headers,
+    )
+    assert r.status_code == 403

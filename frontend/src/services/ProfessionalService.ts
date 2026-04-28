@@ -9,15 +9,17 @@ import type {
   ContactInquiry,
   ContactInquiryCreate,
   Professional,
+  ProfessionalCreate,
   ProfessionalDetail,
   ProfessionalFilter,
   ProfessionalFilterOptions,
   ProfessionalReview,
+  ProfessionalUpdate,
   SavedProfessional,
   ServiceType,
 } from "@/models/professional"
 import { PATHS } from "./common/Paths"
-import { transformKeys } from "./common/transformKeys"
+import { transformKeys, transformKeysToSnake } from "./common/transformKeys"
 
 interface ProfessionalListResponse {
   data: Professional[]
@@ -174,6 +176,51 @@ class ProfessionalServiceClass {
     return transformKeys<{ items: SavedProfessional[]; total: number }>(
       response,
     )
+  }
+
+  // ── Admin (superuser only) ────────────────────────────────────────────────
+
+  async createProfessional(data: ProfessionalCreate): Promise<Professional> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.PROFESSIONALS.CREATE,
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<Professional>(response)
+  }
+
+  async updateProfessional(
+    id: string,
+    data: ProfessionalUpdate,
+  ): Promise<Professional> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "PUT",
+      url: PATHS.PROFESSIONALS.UPDATE(id),
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<Professional>(response)
+  }
+
+  async deleteProfessional(id: string): Promise<void> {
+    await request(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.PROFESSIONALS.DELETE(id),
+    })
+  }
+
+  async verifyProfessional(
+    id: string,
+    isVerified: boolean,
+  ): Promise<Professional> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "PATCH",
+      url: PATHS.PROFESSIONALS.VERIFY(id),
+      body: { is_verified: isVerified },
+      mediaType: "application/json",
+    })
+    return transformKeys<Professional>(response)
   }
 }
 

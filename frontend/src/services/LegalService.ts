@@ -11,13 +11,15 @@ import { request } from "@/client/core/request"
 import type {
   BookmarkResponse,
   LawCategory,
+  LawCreate,
   LawDetail,
   LawFilter,
   LawSearchResult,
   LawSummary,
+  LawUpdate,
 } from "@/models/legal"
 import { PATHS } from "./common/Paths"
-import { transformKeys } from "./common/transformKeys"
+import { transformKeys, transformKeysToSnake } from "./common/transformKeys"
 
 interface LawListResponse {
   data: LawSummary[]
@@ -163,6 +165,35 @@ class LegalServiceClass {
       url: PATHS.LAWS.BY_JOURNEY_STEP(stepKey),
     })
     return transformKeys<{ data: LawSummary[] }>(response)
+  }
+
+  // ── Admin (superuser only) ────────────────────────────────────────────────
+
+  async createLaw(data: LawCreate): Promise<LawDetail> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.LAWS.CREATE,
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<LawDetail>(response)
+  }
+
+  async updateLaw(id: string, data: LawUpdate): Promise<LawDetail> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "PUT",
+      url: PATHS.LAWS.UPDATE(id),
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<LawDetail>(response)
+  }
+
+  async deleteLaw(id: string): Promise<void> {
+    await request(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.LAWS.DELETE(id),
+    })
   }
 }
 

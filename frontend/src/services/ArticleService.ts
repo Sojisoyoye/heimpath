@@ -7,14 +7,16 @@ import { OpenAPI } from "@/client"
 import { request } from "@/client/core/request"
 import type {
   ArticleCategoryInfo,
+  ArticleCreate,
   ArticleDetail,
   ArticleFilter,
   ArticleRating,
   ArticleSearchResult,
   ArticleSummary,
+  ArticleUpdate,
 } from "@/models/article"
 import { PATHS } from "./common/Paths"
-import { transformKeys } from "./common/transformKeys"
+import { transformKeys, transformKeysToSnake } from "./common/transformKeys"
 
 interface ArticleListResponse {
   data: ArticleSummary[]
@@ -108,6 +110,35 @@ class ArticleServiceClass {
       mediaType: "application/json",
     })
     return transformKeys<ArticleRating>(response)
+  }
+
+  // ── Admin (superuser only) ────────────────────────────────────────────────
+
+  async createArticle(data: ArticleCreate): Promise<ArticleDetail> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.ARTICLES.CREATE,
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<ArticleDetail>(response)
+  }
+
+  async updateArticle(id: string, data: ArticleUpdate): Promise<ArticleDetail> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "PUT",
+      url: PATHS.ARTICLES.UPDATE(id),
+      body: transformKeysToSnake(data),
+      mediaType: "application/json",
+    })
+    return transformKeys<ArticleDetail>(response)
+  }
+
+  async deleteArticle(id: string): Promise<void> {
+    await request(OpenAPI, {
+      method: "DELETE",
+      url: PATHS.ARTICLES.DELETE(id),
+    })
   }
 }
 
