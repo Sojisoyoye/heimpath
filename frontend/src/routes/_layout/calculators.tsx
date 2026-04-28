@@ -3,12 +3,14 @@
  * Financial calculators for property investment
  */
 
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import {
+  ArrowLeft,
   ArrowUpDown,
   Building2,
   Calculator,
   CalendarClock,
+  ChevronRight,
   ClipboardList,
   Euro,
   Globe,
@@ -22,6 +24,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react"
+import type { ElementType } from "react"
 import {
   AfaCalculator,
   CityComparison,
@@ -41,7 +44,8 @@ import {
   StateComparison,
   TenantTrapCalculator,
 } from "@/components/Calculators"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 
 /******************************************************************************
                               Route
@@ -72,17 +76,313 @@ export const Route = createFileRoute("/_layout/calculators")({
 })
 
 /******************************************************************************
+                              Constants
+******************************************************************************/
+
+interface ICalculatorItem {
+  tab: string
+  label: string
+  description: string
+  icon: ElementType
+}
+
+interface ICategory {
+  id: string
+  label: string
+  items: ICalculatorItem[]
+}
+
+const CATEGORIES: ICategory[] = [
+  {
+    id: "buying-costs",
+    label: "Buying Costs",
+    items: [
+      {
+        tab: "costs",
+        label: "Hidden Costs",
+        description: "Calculate purchase fees, taxes and notary costs",
+        icon: Euro,
+      },
+      {
+        tab: "compare",
+        label: "State Comparison",
+        description: "Compare Grunderwerbsteuer rates across German states",
+        icon: ArrowUpDown,
+      },
+      {
+        tab: "cities",
+        label: "City Compare",
+        description: "Side-by-side investment comparison across cities",
+        icon: Building2,
+      },
+    ],
+  },
+  {
+    id: "investment",
+    label: "Investment Returns",
+    items: [
+      {
+        tab: "roi",
+        label: "ROI Calculator",
+        description: "Net rental yield and cash-on-cash return analysis",
+        icon: TrendingUp,
+      },
+      {
+        tab: "property-evaluation",
+        label: "Property Evaluation",
+        description: "Multi-year investment performance model",
+        icon: ClipboardList,
+      },
+      {
+        tab: "ownership",
+        label: "GmbH vs. Private",
+        description: "Tax comparison for corporate vs. personal ownership",
+        icon: Scale,
+      },
+      {
+        tab: "speculation-tax",
+        label: "Exit Tax",
+        description: "Spekulationssteuer on property sale within 10 years",
+        icon: TrendingDown,
+      },
+      {
+        tab: "afa",
+        label: "Depreciation (AfA)",
+        description: "Annual depreciation deductions on rental property",
+        icon: TrendingDown,
+      },
+    ],
+  },
+  {
+    id: "financing",
+    label: "Financing",
+    items: [
+      {
+        tab: "financing",
+        label: "Financing Wizard",
+        description: "Step-by-step guide to German mortgage financing",
+        icon: Landmark,
+      },
+      {
+        tab: "mortgage",
+        label: "Mortgage Amortisation",
+        description: "Monthly repayment schedule and interest breakdown",
+        icon: CalendarClock,
+      },
+      {
+        tab: "eligibility",
+        label: "Mortgage Eligibility",
+        description: "Borrowing capacity check for foreign buyers",
+        icon: ShieldCheck,
+      },
+      {
+        tab: "tax-guide",
+        label: "Cross-Border Tax",
+        description: "Double taxation treaty guidance for non-residents",
+        icon: Globe,
+      },
+    ],
+  },
+  {
+    id: "renting",
+    label: "Renting & Compliance",
+    items: [
+      {
+        tab: "rent-estimate",
+        label: "Rent Estimate",
+        description: "Market rent benchmarks by city and neighbourhood",
+        icon: MapPin,
+      },
+      {
+        tab: "rent-ceiling",
+        label: "Rent Ceiling Check",
+        description: "Mietpreisbremse compliance check for your property",
+        icon: Scale,
+      },
+      {
+        tab: "grundsteuer",
+        label: "Property Tax",
+        description: "Annual Grundsteuer estimate for any German property",
+        icon: Home,
+      },
+      {
+        tab: "tenant-trap",
+        label: "Tenant Risk",
+        description: "Identify red flags in rental applications",
+        icon: ShieldAlert,
+      },
+      {
+        tab: "geg-retrofit",
+        label: "Energy Retrofit",
+        description: "GEG compliance cost estimate and savings projection",
+        icon: Zap,
+      },
+    ],
+  },
+]
+
+/** Flat lookup: tab value → item metadata */
+const ITEM_MAP: Record<string, ICalculatorItem> = Object.fromEntries(
+  CATEGORIES.flatMap((cat) => cat.items.map((item) => [item.tab, item])),
+)
+
+/******************************************************************************
                               Components
 ******************************************************************************/
 
-/** Default component. Calculators page with tabs. */
+interface ICalculatorGridProps {
+  onSelect: (tab: string) => void
+}
+
+/** Grouped card grid — landing view when no calculator is selected */
+function CalculatorGrid({ onSelect }: Readonly<ICalculatorGridProps>) {
+  return (
+    <div className="space-y-8">
+      {CATEGORIES.map((category) => (
+        <div key={category.id}>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {category.label}
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {category.items.map((item) => {
+              const Icon = item.icon
+              return (
+                <Card
+                  key={item.tab}
+                  className="cursor-pointer border transition-shadow hover:border-primary/40 hover:shadow-md"
+                  onClick={() => onSelect(item.tab)}
+                >
+                  <CardContent className="flex items-start gap-3 p-4">
+                    <div className="mt-0.5 shrink-0 rounded-md bg-primary/10 p-2">
+                      <Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="text-sm font-medium leading-snug">
+                          {item.label}
+                        </p>
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      </div>
+                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                        {item.description}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+interface IActiveCalculatorProps {
+  tab: string
+  purchasePrice?: number
+  monthlyRent?: number
+  onBack: () => void
+}
+
+/** Renders the selected calculator with a back-to-grid breadcrumb */
+function ActiveCalculator({
+  tab,
+  purchasePrice,
+  monthlyRent,
+  onBack,
+}: Readonly<IActiveCalculatorProps>) {
+  const item = ITEM_MAP[tab]
+
+  const calculator = (() => {
+    switch (tab) {
+      case "costs":
+        return <HiddenCostsCalculator />
+      case "roi":
+        return <ROICalculator initialMonthlyRent={monthlyRent} />
+      case "compare":
+        return <StateComparison />
+      case "financing":
+        return <FinancingWizard />
+      case "property-evaluation":
+        return (
+          <PropertyEvaluationCalculator initialPurchasePrice={purchasePrice} />
+        )
+      case "ownership":
+        return <OwnershipComparison />
+      case "mortgage":
+        return <MortgageAmortisation />
+      case "cities":
+        return <CityComparison />
+      case "tax-guide":
+        return <CrossBorderTaxGuide />
+      case "eligibility":
+        return <MortgageEligibilityGuide />
+      case "rent-estimate":
+        return <RentEstimate />
+      case "speculation-tax":
+        return <SpeculationTaxCalculator />
+      case "grundsteuer":
+        return <GrundsteuerCalculator />
+      case "afa":
+        return <AfaCalculator />
+      case "tenant-trap":
+        return <TenantTrapCalculator />
+      case "geg-retrofit":
+        return <GegRetrofitCalculator />
+      case "rent-ceiling":
+        return <RentCeilingCalculator />
+      default:
+        return null
+    }
+  })()
+
+  if (!calculator) return null
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="-ml-1 gap-1.5"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          All Calculators
+        </Button>
+        {item && (
+          <span className="text-sm text-muted-foreground">/ {item.label}</span>
+        )}
+      </div>
+      {calculator}
+    </div>
+  )
+}
+
+/** Default component. Calculators page with grouped card grid navigation. */
 function CalculatorsPage() {
   const { tab, purchasePrice, monthlyRent } = Route.useSearch()
+  const navigate = useNavigate()
+
+  const handleSelect = (value: string) => {
+    void navigate({
+      to: "/calculators",
+      search: (prev) => ({ ...prev, tab: value }),
+    })
+  }
+
+  const handleBack = () => {
+    void navigate({
+      to: "/calculators",
+      search: (prev) => ({ ...prev, tab: undefined }),
+    })
+  }
 
   return (
     <div className="min-w-0 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
           <Calculator className="h-6 w-6" />
           Financial Calculators
         </h1>
@@ -91,210 +391,16 @@ function CalculatorsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={tab || "costs"}>
-        <TabsList className="flex h-auto w-full flex-wrap gap-1">
-          <TabsTrigger
-            value="costs"
-            className="gap-2"
-            aria-label="Hidden Costs"
-          >
-            <Euro className="h-4 w-4" />
-            <span className="hidden sm:inline">Hidden Costs</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="roi"
-            className="gap-2"
-            aria-label="ROI Calculator"
-          >
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">ROI Calculator</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="compare"
-            className="gap-2"
-            aria-label="State Comparison"
-          >
-            <ArrowUpDown className="h-4 w-4" />
-            <span className="hidden sm:inline">State Comparison</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="financing"
-            className="gap-2"
-            aria-label="Financing"
-          >
-            <Landmark className="h-4 w-4" />
-            <span className="hidden sm:inline">Financing</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="property-evaluation"
-            className="gap-2"
-            aria-label="Property Evaluation"
-          >
-            <ClipboardList className="h-4 w-4" />
-            <span className="hidden sm:inline">Property Evaluation</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="ownership"
-            className="gap-2"
-            aria-label="GmbH vs. Private"
-          >
-            <Scale className="h-4 w-4" />
-            <span className="hidden sm:inline">GmbH vs. Private</span>
-          </TabsTrigger>
-          <TabsTrigger value="mortgage" className="gap-2" aria-label="Mortgage">
-            <CalendarClock className="h-4 w-4" />
-            <span className="hidden sm:inline">Mortgage</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="cities"
-            className="gap-2"
-            aria-label="City Compare"
-          >
-            <Building2 className="h-4 w-4" />
-            <span className="hidden sm:inline">City Compare</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="tax-guide"
-            className="gap-2"
-            aria-label="Tax Guide"
-          >
-            <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">Tax Guide</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="eligibility"
-            className="gap-2"
-            aria-label="Mortgage Eligibility"
-          >
-            <ShieldCheck className="h-4 w-4" />
-            <span className="hidden sm:inline">Eligibility</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="rent-estimate"
-            className="gap-2"
-            aria-label="Rent Estimate"
-          >
-            <MapPin className="h-4 w-4" />
-            <span className="hidden sm:inline">Rent Estimate</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="speculation-tax"
-            className="gap-2"
-            aria-label="Speculation Tax"
-          >
-            <Scale className="h-4 w-4" />
-            <span className="hidden sm:inline">Exit Tax</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="grundsteuer"
-            className="gap-2"
-            aria-label="Property Tax"
-          >
-            <Home className="h-4 w-4" />
-            <span className="hidden sm:inline">Property Tax</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="afa"
-            className="gap-2"
-            aria-label="AfA Depreciation"
-          >
-            <TrendingDown className="h-4 w-4" />
-            <span className="hidden sm:inline">Depreciation</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="tenant-trap"
-            className="gap-2"
-            aria-label="Tenant Risk"
-          >
-            <ShieldAlert className="h-4 w-4" />
-            <span className="hidden sm:inline">Tenant Risk</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="geg-retrofit"
-            className="gap-2"
-            aria-label="Energy Retrofit"
-          >
-            <Zap className="h-4 w-4" />
-            <span className="hidden sm:inline">Energy Retrofit</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="rent-ceiling"
-            className="gap-2"
-            aria-label="Rent Ceiling Check"
-          >
-            <Scale className="h-4 w-4" />
-            <span className="hidden sm:inline">Rent Ceiling</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="costs" className="mt-6">
-          <HiddenCostsCalculator />
-        </TabsContent>
-
-        <TabsContent value="roi" className="mt-6">
-          <ROICalculator initialMonthlyRent={monthlyRent} />
-        </TabsContent>
-
-        <TabsContent value="compare" className="mt-6">
-          <StateComparison />
-        </TabsContent>
-
-        <TabsContent value="financing" className="mt-6">
-          <FinancingWizard />
-        </TabsContent>
-
-        <TabsContent value="property-evaluation" className="mt-6">
-          <PropertyEvaluationCalculator initialPurchasePrice={purchasePrice} />
-        </TabsContent>
-
-        <TabsContent value="ownership" className="mt-6">
-          <OwnershipComparison />
-        </TabsContent>
-
-        <TabsContent value="mortgage" className="mt-6">
-          <MortgageAmortisation />
-        </TabsContent>
-
-        <TabsContent value="cities" className="mt-6">
-          <CityComparison />
-        </TabsContent>
-
-        <TabsContent value="tax-guide" className="mt-6">
-          <CrossBorderTaxGuide />
-        </TabsContent>
-
-        <TabsContent value="eligibility" className="mt-6">
-          <MortgageEligibilityGuide />
-        </TabsContent>
-
-        <TabsContent value="rent-estimate" className="mt-6">
-          <RentEstimate />
-        </TabsContent>
-
-        <TabsContent value="speculation-tax" className="mt-6">
-          <SpeculationTaxCalculator />
-        </TabsContent>
-
-        <TabsContent value="grundsteuer" className="mt-6">
-          <GrundsteuerCalculator />
-        </TabsContent>
-
-        <TabsContent value="afa" className="mt-6">
-          <AfaCalculator />
-        </TabsContent>
-
-        <TabsContent value="tenant-trap" className="mt-6">
-          <TenantTrapCalculator />
-        </TabsContent>
-
-        <TabsContent value="geg-retrofit" className="mt-6">
-          <GegRetrofitCalculator />
-        </TabsContent>
-
-        <TabsContent value="rent-ceiling" className="mt-6">
-          <RentCeilingCalculator />
-        </TabsContent>
-      </Tabs>
+      {tab !== undefined && ITEM_MAP[tab] !== undefined ? (
+        <ActiveCalculator
+          tab={tab}
+          purchasePrice={purchasePrice}
+          monthlyRent={monthlyRent}
+          onBack={handleBack}
+        />
+      ) : (
+        <CalculatorGrid onSelect={handleSelect} />
+      )}
     </div>
   )
 }
