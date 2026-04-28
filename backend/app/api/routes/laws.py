@@ -443,7 +443,6 @@ async def delete_bookmark(
 
 @router.post(
     "/",
-    response_model=LawResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_law(
@@ -462,7 +461,7 @@ async def create_law(
     return LawResponse.model_validate(law)
 
 
-@router.put("/{law_id}", response_model=LawResponse)
+@router.put("/{law_id}")
 async def update_law(
     law_id: uuid.UUID,
     request: LawUpdate,

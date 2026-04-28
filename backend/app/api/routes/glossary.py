@@ -162,7 +162,6 @@ async def get_term(
 
 @router.post(
     "/",
-    response_model=GlossaryTermDetail,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_glossary_term(
@@ -191,7 +190,7 @@ async def create_glossary_term(
     )
 
 
-@router.put("/{slug}", response_model=GlossaryTermDetail)
+@router.put("/{slug}")
 async def update_glossary_term(
     slug: str,
     request: GlossaryTermUpdate,
