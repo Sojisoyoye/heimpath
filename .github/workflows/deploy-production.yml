@@ -59,6 +59,7 @@ jobs:
               --resource-group rg-heimpath-prod \
               --query "properties.configuration.ingress.fqdn" \
               --output tsv)
+            [ -z "$BACKEND_FQDN" ] && echo "ERROR: could not resolve backend FQDN" >&2 && exit 1
             az containerapp update \
               --name heimpath-frontend-prod \
               --resource-group rg-heimpath-prod \
