@@ -1,7 +1,8 @@
-import base64
 import io
+import os
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from fastapi import (
@@ -13,6 +14,7 @@ from fastapi import (
     UploadFile,
     status,
 )
+from fastapi.responses import FileResponse
 from PIL import Image
 from sqlmodel import func, select
 
@@ -46,6 +48,21 @@ ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
 MAX_AVATAR_DIMENSION = 256
 AVATAR_WEBP_QUALITY = 80
+
+
+def _avatar_dir() -> Path:
+    """Return the directory where avatar files are stored."""
+    return Path(settings.UPLOAD_DIR).resolve().parent / "avatars"
+
+
+def _avatar_path(user_id: uuid.UUID) -> Path:
+    """Return the filesystem path for a user's avatar file."""
+    return _avatar_dir() / f"{user_id}.webp"
+
+
+def _avatar_url(user_id: uuid.UUID) -> str:
+    """Return the absolute URL used to serve a user's avatar."""
+    return f"{settings.backend_url}{settings.API_V1_STR}/users/avatars/{user_id}"
 
 
 @router.get(
@@ -190,6 +207,10 @@ async def delete_user_me(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
     refresh_token = http_request.cookies.get("refresh_token")
+    # Remove avatar file from disk (GDPR right-to-erasure)
+    avatar_path = _avatar_path(current_user.id)
+    if avatar_path.exists():
+        avatar_path.unlink()
     session.delete(current_user)
     session.commit()
     # Invalidate the refresh token after the account is confirmed deleted so that
@@ -206,6 +227,25 @@ async def delete_user_me(
     )
     response.delete_cookie(
         key="logged_in", path="/", secure=secure, httponly=False, samesite="lax"
+    )
+
+
+# NOTE: This route must be declared BEFORE the generic /{user_id} catch-all
+# below, otherwise FastAPI would match "avatars" as a user_id UUID (and fail).
+# include_in_schema=False: the frontend uses the absolute URL stored in
+# avatar_url directly, so no generated client type is needed.
+@router.get("/avatars/{user_id}", include_in_schema=False)
+async def serve_avatar(user_id: uuid.UUID) -> FileResponse:
+    """Serve a user avatar image file (no authentication required)."""
+    path = _avatar_path(user_id)
+    if not path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Avatar not found"
+        )
+    return FileResponse(
+        path,
+        media_type="image/webp",
+        headers={"Cache-Control": "public, max-age=3600"},
     )
 
 
@@ -249,9 +289,14 @@ async def upload_avatar(
 
     buf = io.BytesIO()
     img.save(buf, format="WEBP", quality=AVATAR_WEBP_QUALITY)
-    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
 
-    current_user.avatar_url = f"data:image/webp;base64,{encoded}"
+    # Write avatar to filesystem instead of storing base64 in the DB
+    avatar_dir = _avatar_dir()
+    os.makedirs(avatar_dir, exist_ok=True)
+    path = _avatar_path(current_user.id)
+    path.write_bytes(buf.getvalue())
+
+    current_user.avatar_url = _avatar_url(current_user.id)
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
@@ -264,6 +309,10 @@ async def delete_avatar(
     current_user: CurrentUser,
 ) -> None:
     """Remove the current user's avatar."""
+    # Remove file from disk if it exists
+    path = _avatar_path(current_user.id)
+    if path.exists():
+        path.unlink()
     current_user.avatar_url = None
     session.add(current_user)
     session.commit()
@@ -361,5 +410,9 @@ async def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
+    # Remove avatar file from disk (GDPR right-to-erasure)
+    avatar_path = _avatar_path(user.id)
+    if avatar_path.exists():
+        avatar_path.unlink()
     session.delete(user)
     session.commit()

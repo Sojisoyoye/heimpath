@@ -2,7 +2,7 @@
 
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, Column, Enum, String, Text
+from sqlalchemy import Boolean, Column, Enum, String
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -40,7 +40,7 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     stripe_customer_id = Column(String(255), nullable=True, unique=True, index=True)
     stripe_subscription_id = Column(String(255), nullable=True, unique=True)
-    avatar_url = Column(Text, nullable=True)
+    avatar_url = Column(String(500), nullable=True)
 
     journeys = relationship(
         "Journey",

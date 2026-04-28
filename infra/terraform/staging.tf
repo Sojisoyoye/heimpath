@@ -139,6 +139,11 @@ resource "azurerm_container_app" "staging_backend" {
       }
 
       env {
+        name  = "DOMAIN"
+        value = var.domain
+      }
+
+      env {
         name  = "WEB_CONCURRENCY"
         value = "1"
       }

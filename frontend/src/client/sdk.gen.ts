@@ -980,9 +980,12 @@ export class ContractsService {
     /**
      * Get Shared Analysis
      * Retrieve a shared contract analysis by share_id (no auth required).
+     *
+     * Returns a limited preview with at most 3 clauses and an upgrade CTA.
+     * Full analysis requires an authenticated premium subscription.
      * @param data The data for the request.
      * @param data.shareId
-     * @returns ContractAnalysisResponse Successful Response
+     * @returns ContractSharedPreviewResponse Successful Response
      * @throws ApiError
      */
     public static getSharedAnalysis(data: ContractsGetSharedAnalysisData): CancelablePromise<ContractsGetSharedAnalysisResponse> {
@@ -1152,9 +1155,10 @@ export class DocumentsService {
     
     /**
      * Get Shared Document
-     * Get a shared document by share_id.
+     * Get a shared document by share_id (no authentication required).
      *
-     * No authentication required.
+     * Returns document metadata and the first translated page only.
+     * Full translation requires an authenticated subscription.
      * @param data The data for the request.
      * @param data.shareId
      * @returns DocumentDetailResponse Successful Response
