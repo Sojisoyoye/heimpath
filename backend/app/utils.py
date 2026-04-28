@@ -102,6 +102,7 @@ def _send_email_smtp(
     smtp_options: dict[str, Any] = {
         "host": settings.SMTP_HOST,
         "port": settings.SMTP_PORT,
+        "timeout": 10,
     }
     if settings.SMTP_TLS:
         smtp_options["tls"] = True
