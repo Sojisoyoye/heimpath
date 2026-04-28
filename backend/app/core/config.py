@@ -85,7 +85,9 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def ASYNC_DATABASE_URI(self) -> str:
-        base_url = str(
+        # asyncpg does not accept sslmode as a URL parameter — SSL is configured
+        # via connect_args in database.py instead.
+        return str(
             PostgresDsn.build(
                 scheme="postgresql+asyncpg",
                 username=self.POSTGRES_USER,
@@ -95,9 +97,6 @@ class Settings(BaseSettings):
                 path=self.POSTGRES_DB,
             )
         )
-        if self.ENVIRONMENT != "local":
-            base_url += "?sslmode=require"
-        return base_url
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
