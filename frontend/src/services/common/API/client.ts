@@ -16,7 +16,12 @@ import { OpenAPI } from "@/client"
  * is used directly.
  */
 export function initializeApiClient() {
-  OpenAPI.BASE = import.meta.env.PROD ? import.meta.env.VITE_API_URL : ""
+  // Always use relative URLs so requests go to the same origin as the frontend.
+  // In production, nginx proxies /api/ to the backend (see nginx.conf.template).
+  // In local dev, Vite proxies /api/ to the backend (see vite.config.ts).
+  // This ensures cookies set by the backend are on the frontend domain and
+  // readable by document.cookie for isLoggedIn() checks.
+  OpenAPI.BASE = ""
   OpenAPI.WITH_CREDENTIALS = true
 }
 

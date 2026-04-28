@@ -235,6 +235,11 @@ resource "azurerm_container_app" "staging_frontend" {
       image  = var.staging_frontend_image
       cpu    = 0.25
       memory = "0.5Gi"
+
+      env {
+        name  = "BACKEND_HOST"
+        value = "https://${azurerm_container_app.staging_backend.ingress[0].fqdn}"
+      }
     }
   }
 

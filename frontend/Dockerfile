@@ -23,5 +23,12 @@ FROM nginx:1
 
 COPY --from=build-stage /app/frontend/dist/ /usr/share/nginx/html
 
-COPY ./frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./frontend/nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
+# nginx.conf.template is processed at container startup by docker-entrypoint.sh,
+# which substitutes ${BACKEND_HOST} so /api/ requests are proxied to the backend
+# on the same origin — ensuring cookies set by the backend are visible to the
+# frontend's document.cookie (required for isLoggedIn() checks).
+COPY ./frontend/nginx.conf.template /etc/nginx/conf.d/default.conf.template
+COPY ./frontend/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+CMD ["/docker-entrypoint.sh"]
