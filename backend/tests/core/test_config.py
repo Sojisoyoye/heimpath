@@ -20,26 +20,26 @@ def _base_settings_kwargs() -> dict:
     }
 
 
-def test_trusted_proxy_ips_wildcard_rejected_in_staging() -> None:
-    """TRUSTED_PROXY_IPS='*' must raise ValueError in staging."""
-    with pytest.raises(ValueError, match="TRUSTED_PROXY_IPS"):
-        Settings(
-            **_base_settings_kwargs(),
-            ENVIRONMENT="staging",
-            TRUSTED_PROXY_IPS="*",
-            _env_file=None,
-        )
+def test_trusted_proxy_ips_wildcard_allowed_in_staging() -> None:
+    """TRUSTED_PROXY_IPS='*' is permitted in staging (app is behind ACA ingress)."""
+    s = Settings(
+        **_base_settings_kwargs(),
+        ENVIRONMENT="staging",
+        TRUSTED_PROXY_IPS="*",
+        _env_file=None,
+    )
+    assert s.TRUSTED_PROXY_IPS == "*"
 
 
-def test_trusted_proxy_ips_wildcard_rejected_in_production() -> None:
-    """TRUSTED_PROXY_IPS='*' must raise ValueError in production."""
-    with pytest.raises(ValueError, match="TRUSTED_PROXY_IPS"):
-        Settings(
-            **_base_settings_kwargs(),
-            ENVIRONMENT="production",
-            TRUSTED_PROXY_IPS="*",
-            _env_file=None,
-        )
+def test_trusted_proxy_ips_wildcard_allowed_in_production() -> None:
+    """TRUSTED_PROXY_IPS='*' is permitted in production (app is behind ACA ingress)."""
+    s = Settings(
+        **_base_settings_kwargs(),
+        ENVIRONMENT="production",
+        TRUSTED_PROXY_IPS="*",
+        _env_file=None,
+    )
+    assert s.TRUSTED_PROXY_IPS == "*"
 
 
 def test_trusted_proxy_ips_wildcard_allowed_in_local() -> None:
