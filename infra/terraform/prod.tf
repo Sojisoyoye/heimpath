@@ -148,6 +148,11 @@ resource "azurerm_container_app" "prod_backend" {
       }
 
       env {
+        name  = "TRUSTED_PROXY_IPS"
+        value = "*"
+      }
+
+      env {
         name  = "WEB_CONCURRENCY"
         value = "1"
       }
@@ -350,6 +355,11 @@ resource "azurerm_container_app_job" "prod_migration" {
       env {
         name        = "FIRST_SUPERUSER_PASSWORD"
         secret_name = "first-superuser-password"
+      }
+
+      env {
+        name  = "TRUSTED_PROXY_IPS"
+        value = "*"
       }
     }
   }
