@@ -1,6 +1,6 @@
 /**
- * Financing Eligibility Wizard
- * Assesses mortgage likelihood for foreign buyers in Germany
+ * Detailed Assessment — Section 2 of Mortgage Eligibility Checker
+ * Numeric mortgage eligibility scoring with loan estimates and document checklist.
  */
 
 import { Link } from "@tanstack/react-router"
@@ -20,7 +20,6 @@ import {
   Trash2,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -53,34 +52,26 @@ import type {
   SchufaRating,
 } from "@/models/calculator"
 import { handleError } from "@/utils"
-import { FormRow } from "./common/FormRow"
+import { FormRow } from "../common/FormRow"
 
-interface IProps {
-  className?: string
-}
-
-/******************************************************************************
-                              Types
-******************************************************************************/
+// ***************************************************************************
+//                              Types
+// ***************************************************************************
 
 interface AssessmentResults {
-  // Score breakdown
   employmentScore: number
   incomeRatioScore: number
   downPaymentScore: number
   schufaScore: number
   residencyScore: number
   yearsBonusScore: number
-  // Totals
   totalScore: number
   likelihoodLabel: string
-  // Estimates
   maxLoanEstimate: number
   recommendedDownPaymentPercent: number
   expectedRateMin: number
   expectedRateMax: number
   ltvRatio: number
-  // Advisory
   strengths: string[]
   improvements: string[]
   documentChecklist: string[]
@@ -96,9 +87,9 @@ interface WizardInputs {
   residencyStatus: FinancingResidencyStatus | ""
 }
 
-/******************************************************************************
-                              Constants
-******************************************************************************/
+// ***************************************************************************
+//                              Constants
+// ***************************************************************************
 
 const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
   style: "currency",
@@ -125,15 +116,17 @@ const SCHUFA_OPTIONS: { value: SchufaRating; label: string }[] = [
   { value: "unknown", label: "Unknown / Not yet obtained" },
 ]
 
-const RESIDENCY_OPTIONS: { value: FinancingResidencyStatus; label: string }[] =
-  [
-    { value: "german_citizen", label: "German Citizen" },
-    { value: "eu_citizen", label: "EU Citizen" },
-    { value: "permanent_resident", label: "Permanent Resident" },
-    { value: "temporary_resident", label: "Temporary Resident" },
-    { value: "non_eu", label: "Non-EU Resident" },
-    { value: "non_resident", label: "Non-Resident (Buying from Abroad)" },
-  ]
+const RESIDENCY_OPTIONS: {
+  value: FinancingResidencyStatus
+  label: string
+}[] = [
+  { value: "german_citizen", label: "German Citizen" },
+  { value: "eu_citizen", label: "EU Citizen" },
+  { value: "permanent_resident", label: "Permanent Resident" },
+  { value: "temporary_resident", label: "Temporary Resident" },
+  { value: "non_eu", label: "Non-EU Resident" },
+  { value: "non_resident", label: "Non-Resident (Buying from Abroad)" },
+]
 
 const LIKELIHOOD_COLORS: Record<string, string> = {
   High: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
@@ -249,13 +242,13 @@ const FINANCING_TIPS: Record<FinancingResidencyStatus, string[]> = {
   ],
 }
 
-/******************************************************************************
-                              Functions
-******************************************************************************/
+// ***************************************************************************
+//                              Functions
+// ***************************************************************************
 
 function parseNumber(value: string): number {
   const cleaned = value.replace(/[^\d.]/g, "")
-  return parseFloat(cleaned) || 0
+  return Number.parseFloat(cleaned) || 0
 }
 
 function scoreEmployment(status: EmploymentStatus): number {
@@ -363,17 +356,17 @@ function estimateRateRange(totalScore: number): [number, number] {
   return [6.0, 8.5]
 }
 
-function buildStrengths(
-  scores: Pick<
-    AssessmentResults,
-    | "employmentScore"
-    | "incomeRatioScore"
-    | "downPaymentScore"
-    | "schufaScore"
-    | "residencyScore"
-    | "yearsBonusScore"
-  >,
-): string[] {
+type ScoreBreakdown = Pick<
+  AssessmentResults,
+  | "employmentScore"
+  | "incomeRatioScore"
+  | "downPaymentScore"
+  | "schufaScore"
+  | "residencyScore"
+  | "yearsBonusScore"
+>
+
+function buildStrengths(scores: ScoreBreakdown): string[] {
   const strengths: string[] = []
   if (scores.employmentScore >= 16)
     strengths.push("Stable employment type is highly valued by German banks")
@@ -390,17 +383,7 @@ function buildStrengths(
   return strengths
 }
 
-function buildImprovements(
-  scores: Pick<
-    AssessmentResults,
-    | "employmentScore"
-    | "incomeRatioScore"
-    | "downPaymentScore"
-    | "schufaScore"
-    | "residencyScore"
-    | "yearsBonusScore"
-  >,
-): string[] {
+function buildImprovements(scores: ScoreBreakdown): string[] {
   const improvements: string[] = []
   if (scores.employmentScore < 12)
     improvements.push(
@@ -524,7 +507,7 @@ function calculateAssessment(inputs: WizardInputs): AssessmentResults | null {
   const ltvTotal = dp + maxLoan
   const ltv = ltvTotal > 0 ? maxLoan / ltvTotal : 0
 
-  const scores = {
+  const scores: ScoreBreakdown = {
     employmentScore,
     incomeRatioScore,
     downPaymentScore,
@@ -552,11 +535,10 @@ function calculateAssessment(inputs: WizardInputs): AssessmentResults | null {
   }
 }
 
-/******************************************************************************
-                              Components
-******************************************************************************/
+// ***************************************************************************
+//                              Components
+// ***************************************************************************
 
-/** Likelihood badge showing score and label. */
 function LikelihoodBadge(props: {
   score: number
   label: string
@@ -578,7 +560,6 @@ function LikelihoodBadge(props: {
   )
 }
 
-/** Score bar for individual factors. */
 function ScoreBar(props: { label: string; score: number; maxScore: number }) {
   const { label, score, maxScore } = props
   const pct = maxScore > 0 ? (score / maxScore) * 100 : 0
@@ -597,7 +578,7 @@ function ScoreBar(props: { label: string; score: number; maxScore: number }) {
           {score}/{maxScore}
         </span>
       </div>
-      <div className="h-2 rounded-full bg-muted overflow-hidden">
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
         <div
           className={cn("h-full rounded-full transition-all", barColor)}
           style={{ width: `${pct}%` }}
@@ -607,7 +588,6 @@ function ScoreBar(props: { label: string; score: number; maxScore: number }) {
   )
 }
 
-/** Bank compatibility table for selected residency status. */
 function BankCompatibilityTable(props: {
   residencyStatus: FinancingResidencyStatus
 }) {
@@ -615,7 +595,7 @@ function BankCompatibilityTable(props: {
 
   return (
     <div className="space-y-2">
-      <h4 className="font-medium text-sm flex items-center gap-2">
+      <h4 className="flex items-center gap-2 text-sm font-medium">
         <Landmark className="h-4 w-4" />
         Bank Compatibility
       </h4>
@@ -623,7 +603,7 @@ function BankCompatibilityTable(props: {
         {banks.map((entry) => (
           <div
             key={entry.bank}
-            className="flex items-center justify-between text-sm rounded-lg border px-3 py-2"
+            className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
           >
             <span>{entry.bank}</span>
             <span
@@ -641,7 +621,6 @@ function BankCompatibilityTable(props: {
   )
 }
 
-/** Financing tips card for selected residency status. */
 function FinancingTipsCard(props: {
   residencyStatus: FinancingResidencyStatus
 }) {
@@ -649,14 +628,14 @@ function FinancingTipsCard(props: {
 
   return (
     <div className="space-y-2">
-      <h4 className="font-medium text-sm flex items-center gap-2">
+      <h4 className="flex items-center gap-2 text-sm font-medium">
         <Lightbulb className="h-4 w-4 text-amber-500" />
         Financing Tips for Your Situation
       </h4>
       <ul className="space-y-1">
         {tips.map((tip) => (
           <li key={tip} className="flex items-start gap-2 text-sm">
-            <Lightbulb className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
             <span>{tip}</span>
           </li>
         ))}
@@ -665,7 +644,6 @@ function FinancingTipsCard(props: {
   )
 }
 
-/** Saved assessments list. */
 function SavedAssessments(props: {
   assessments: FinancingAssessmentSummary[]
   onDelete: (id: string) => void
@@ -689,8 +667,8 @@ function SavedAssessments(props: {
               className="flex items-center justify-between rounded-lg border p-3"
             >
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium truncate">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate font-medium">
                     {a.name ||
                       `Assessment — ${CURRENCY_FORMATTER.format(a.maxLoanEstimate)} max loan`}
                   </p>
@@ -704,7 +682,7 @@ function SavedAssessments(props: {
                   {new Date(a.createdAt).toLocaleDateString("de-DE")}
                 </p>
               </div>
-              <div className="flex items-center gap-1 ml-2">
+              <div className="ml-2 flex items-center gap-1">
                 {a.shareId && (
                   <Button
                     variant="ghost"
@@ -737,10 +715,11 @@ function SavedAssessments(props: {
   )
 }
 
-/** Default component. Financing eligibility wizard. */
-function FinancingWizard(props: IProps) {
-  const { className } = props
+// ***************************************************************************
+//                              Main Component
+// ***************************************************************************
 
+function DetailedAssessment() {
   const [inputs, setInputs] = useState<WizardInputs>({
     employmentStatus: "",
     employmentYears: "",
@@ -843,23 +822,22 @@ function FinancingWizard(props: IProps) {
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Input Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Landmark className="h-5 w-5" />
-              Financing Eligibility
+              Your Financial Details
             </CardTitle>
             <CardDescription>
               Assess your mortgage likelihood as a foreign buyer in Germany
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Employment */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">
+              <h4 className="text-sm font-medium text-muted-foreground">
                 Employment
               </h4>
               <FormRow label="Employment Status">
@@ -884,9 +862,12 @@ function FinancingWizard(props: IProps) {
                   </SelectContent>
                 </Select>
               </FormRow>
-              <FormRow htmlFor="employmentYears" label="Years at Current Job">
+              <FormRow
+                htmlFor="da-employmentYears"
+                label="Years at Current Job"
+              >
                 <Input
-                  id="employmentYears"
+                  id="da-employmentYears"
                   type="number"
                   min="0"
                   max="50"
@@ -902,24 +883,24 @@ function FinancingWizard(props: IProps) {
               </FormRow>
             </div>
 
-            {/* Income & Debt */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">
+              <h4 className="text-sm font-medium text-muted-foreground">
                 Income & Debt
               </h4>
-              <FormRow htmlFor="monthlyNetIncome" label="Monthly Net Income">
+              <FormRow htmlFor="da-monthlyNetIncome" label="Monthly Net Income">
                 <div className="relative">
                   <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="monthlyNetIncome"
+                    id="da-monthlyNetIncome"
                     type="text"
                     inputMode="numeric"
                     placeholder="4,000"
                     value={
                       inputs.monthlyNetIncome
-                        ? parseInt(inputs.monthlyNetIncome, 10).toLocaleString(
-                            "de-DE",
-                          )
+                        ? Number.parseInt(
+                            inputs.monthlyNetIncome,
+                            10,
+                          ).toLocaleString("de-DE")
                         : ""
                     }
                     onChange={(e) => handlePriceInput("monthlyNetIncome", e)}
@@ -927,19 +908,20 @@ function FinancingWizard(props: IProps) {
                   />
                 </div>
               </FormRow>
-              <FormRow htmlFor="monthlyDebt" label="Monthly Debt Payments">
+              <FormRow htmlFor="da-monthlyDebt" label="Monthly Debt Payments">
                 <div className="relative">
                   <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="monthlyDebt"
+                    id="da-monthlyDebt"
                     type="text"
                     inputMode="numeric"
                     placeholder="500"
                     value={
                       inputs.monthlyDebt
-                        ? parseInt(inputs.monthlyDebt, 10).toLocaleString(
-                            "de-DE",
-                          )
+                        ? Number.parseInt(
+                            inputs.monthlyDebt,
+                            10,
+                          ).toLocaleString("de-DE")
                         : ""
                     }
                     onChange={(e) => handlePriceInput("monthlyDebt", e)}
@@ -949,25 +931,24 @@ function FinancingWizard(props: IProps) {
               </FormRow>
             </div>
 
-            {/* Down Payment */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">
+              <h4 className="text-sm font-medium text-muted-foreground">
                 Down Payment
               </h4>
               <FormRow
-                htmlFor="availableDownPayment"
+                htmlFor="da-availableDownPayment"
                 label="Available Down Payment"
               >
                 <div className="relative">
                   <Euro className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="availableDownPayment"
+                    id="da-availableDownPayment"
                     type="text"
                     inputMode="numeric"
                     placeholder="60,000"
                     value={
                       inputs.availableDownPayment
-                        ? parseInt(
+                        ? Number.parseInt(
                             inputs.availableDownPayment,
                             10,
                           ).toLocaleString("de-DE")
@@ -982,9 +963,8 @@ function FinancingWizard(props: IProps) {
               </FormRow>
             </div>
 
-            {/* Credit & Residency */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">
+              <h4 className="text-sm font-medium text-muted-foreground">
                 Credit & Residency
               </h4>
               <FormRow label="SCHUFA Rating">
@@ -1045,7 +1025,7 @@ function FinancingWizard(props: IProps) {
         {/* Results Section */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <CardTitle>Assessment Results</CardTitle>
                 <CardDescription>
@@ -1063,9 +1043,8 @@ function FinancingWizard(props: IProps) {
           <CardContent>
             {results ? (
               <div className="space-y-6">
-                {/* Score Breakdown */}
                 <div className="space-y-3">
-                  <h4 className="font-medium text-sm">Score Breakdown</h4>
+                  <h4 className="text-sm font-medium">Score Breakdown</h4>
                   <ScoreBar
                     label="Employment Type"
                     score={results.employmentScore}
@@ -1100,9 +1079,8 @@ function FinancingWizard(props: IProps) {
 
                 <Separator />
 
-                {/* Loan Estimates */}
                 <div className="space-y-3">
-                  <h4 className="font-medium text-sm">Loan Estimates</h4>
+                  <h4 className="text-sm font-medium">Loan Estimates</h4>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-lg border p-3">
                       <p className="text-sm text-muted-foreground">
@@ -1139,7 +1117,6 @@ function FinancingWizard(props: IProps) {
                   </div>
                 </div>
 
-                {/* Bank Compatibility */}
                 {inputs.residencyStatus && (
                   <>
                     <Separator />
@@ -1149,7 +1126,6 @@ function FinancingWizard(props: IProps) {
                   </>
                 )}
 
-                {/* Financing Tips */}
                 {inputs.residencyStatus && (
                   <>
                     <Separator />
@@ -1161,17 +1137,16 @@ function FinancingWizard(props: IProps) {
 
                 <Separator />
 
-                {/* Strengths */}
                 {results.strengths.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm flex items-center gap-2">
+                    <h4 className="flex items-center gap-2 text-sm font-medium">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                       Strengths
                     </h4>
                     <ul className="space-y-1">
-                      {results.strengths.map((s, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                      {results.strengths.map((s) => (
+                        <li key={s} className="flex items-start gap-2 text-sm">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
                           <span>{s}</span>
                         </li>
                       ))}
@@ -1179,17 +1154,19 @@ function FinancingWizard(props: IProps) {
                   </div>
                 )}
 
-                {/* Improvements */}
                 {results.improvements.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm flex items-center gap-2">
+                    <h4 className="flex items-center gap-2 text-sm font-medium">
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                       Areas for Improvement
                     </h4>
                     <ul className="space-y-1">
-                      {results.improvements.map((imp, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                      {results.improvements.map((imp) => (
+                        <li
+                          key={imp}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                           <span>{imp}</span>
                         </li>
                       ))}
@@ -1199,25 +1176,23 @@ function FinancingWizard(props: IProps) {
 
                 <Separator />
 
-                {/* Document Checklist */}
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm flex items-center gap-2">
+                  <h4 className="flex items-center gap-2 text-sm font-medium">
                     <FileText className="h-4 w-4" />
                     Document Checklist
                   </h4>
                   <ul className="space-y-1">
-                    {results.documentChecklist.map((doc, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    {results.documentChecklist.map((doc) => (
+                      <li key={doc} className="flex items-start gap-2 text-sm">
+                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                         <span>{doc}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                {/* Mortgage Calculator Link */}
-                <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20 p-4">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-950/20">
+                  <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-300">
                     Ready to see your payment schedule?
                   </p>
                   <Link
@@ -1232,7 +1207,6 @@ function FinancingWizard(props: IProps) {
 
                 <Separator />
 
-                {/* Actions */}
                 <Button
                   onClick={handleExport}
                   variant="outline"
@@ -1259,8 +1233,8 @@ function FinancingWizard(props: IProps) {
                 </div>
 
                 {shareUrl && (
-                  <div className="rounded-lg border p-3 space-y-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
+                  <div className="space-y-2 rounded-lg border p-3">
+                    <p className="flex items-center gap-2 text-sm font-medium">
                       <Share2 className="h-4 w-4" />
                       Share Link
                     </p>
@@ -1279,7 +1253,7 @@ function FinancingWizard(props: IProps) {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Landmark className="h-12 w-12 text-muted-foreground mb-4" />
+                <Landmark className="mb-4 h-12 w-12 text-muted-foreground" />
                 <p className="text-muted-foreground">
                   Fill in your details to see your financing assessment
                 </p>
@@ -1289,7 +1263,6 @@ function FinancingWizard(props: IProps) {
         </Card>
       </div>
 
-      {/* Saved Assessments */}
       {savedAssessments && savedAssessments.data.length > 0 && (
         <SavedAssessments
           assessments={savedAssessments.data}
@@ -1301,8 +1274,8 @@ function FinancingWizard(props: IProps) {
   )
 }
 
-/******************************************************************************
-                              Export
-******************************************************************************/
+// ***************************************************************************
+//                              Export
+// ***************************************************************************
 
-export { FinancingWizard }
+export { DetailedAssessment }

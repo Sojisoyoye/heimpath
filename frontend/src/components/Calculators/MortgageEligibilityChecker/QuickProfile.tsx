@@ -1,7 +1,7 @@
 /**
- * Mortgage Eligibility Guide
- * Interactive guide for non-citizen mortgage eligibility in Germany.
- * Covers EU/EEA, non-EU permanent residents, limited visa holders, and non-residents.
+ * Quick Profile — Section 1 of Mortgage Eligibility Checker
+ * Shows lender access overview based on residency, employment type and property use.
+ * Data sourced from BaFin guidelines, Stiftung Warentest, and lender policy research.
  */
 
 import { Link } from "@tanstack/react-router"
@@ -36,18 +36,18 @@ import {
   NATIONALITY_GROUP_LABELS,
   STATUS_LABELS,
   STATUS_STYLES,
-} from "./eligibilityData"
+} from "../MortgageEligibilityGuide/eligibilityData"
 import type {
   EligibilityStatus,
   EmploymentType,
   ILenderResult,
   NationalityGroup,
   PropertyUse,
-} from "./types"
+} from "../MortgageEligibilityGuide/types"
 
-/******************************************************************************
-                              Constants
-******************************************************************************/
+// ***************************************************************************
+//                              Constants
+// ***************************************************************************
 
 const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
   employed: "Employed (permanent or fixed-term contract)",
@@ -61,31 +61,28 @@ const PROPERTY_USE_LABELS: Record<PropertyUse, string> = {
   rental: "Rental investment (I will rent it out)",
 }
 
-/** Returns the appropriate status icon for a given lender eligibility status. */
+// ***************************************************************************
+//                              Components
+// ***************************************************************************
+
 function getLenderStatusIcon(status: EligibilityStatus) {
   if (status === "easy")
-    return <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+    return <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
   if (status === "conditional")
-    return <Info className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+    return <Info className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" />
   if (status === "difficult")
-    return <AlertTriangle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
-  return <XCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+    return <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+  return <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
 }
-
-/******************************************************************************
-                              Components
-******************************************************************************/
 
 interface ILenderRowProps {
   result: ILenderResult
   propertyUse: PropertyUse
 }
 
-/** Single lender row in the eligibility table. */
 function LenderRow(props: Readonly<ILenderRowProps>) {
   const { result, propertyUse } = props
 
-  // Rental investment: show 5% lower LTV as a note
   const ltv =
     result.maxLtv != null && propertyUse === "rental"
       ? result.maxLtv - 5
@@ -97,15 +94,15 @@ function LenderRow(props: Readonly<ILenderRowProps>) {
       : result.minDownPayment
 
   return (
-    <div className="flex flex-col gap-2 py-3 border-b last:border-b-0">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className="flex flex-col gap-2 border-b py-3 last:border-b-0">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-medium">{result.lenderType}</p>
           <p className="text-xs text-muted-foreground">
             {result.lenderExamples}
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           {getLenderStatusIcon(result.eligibility)}
           <span
             className={cn(
@@ -129,11 +126,11 @@ function LenderRow(props: Readonly<ILenderRowProps>) {
         </div>
       )}
       {result.notes.length > 0 && (
-        <ul className="text-xs text-muted-foreground space-y-0.5 pl-3">
+        <ul className="space-y-0.5 pl-3 text-xs text-muted-foreground">
           {result.notes.map((note, i) => (
             <li
               key={`${result.lenderType}-note-${i}`}
-              className="list-disc list-outside"
+              className="list-outside list-disc"
             >
               {note}
             </li>
@@ -150,7 +147,6 @@ interface IResultsProps {
   propertyUse: PropertyUse
 }
 
-/** Full eligibility results panel. */
 function EligibilityResults(props: Readonly<IResultsProps>) {
   const { nationalityGroup, employmentType, propertyUse } = props
   const profile = ELIGIBILITY_PROFILES[nationalityGroup]
@@ -158,11 +154,10 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
 
   return (
     <div className="space-y-5">
-      {/* Overall status */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-wrap items-center gap-3">
         <Badge
           className={cn(
-            "text-sm px-3 py-1",
+            "px-3 py-1 text-sm",
             STATUS_STYLES[profile.overallStatus],
           )}
         >
@@ -175,13 +170,12 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
         )}
       </div>
 
-      {/* Summary */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Overview</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             {profile.summary}
           </p>
           {propertyUse === "rental" && (
@@ -195,7 +189,7 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
           {employmentNotes.length > 0 && (
             <div className="flex items-start gap-2 rounded-md bg-amber-50 p-3 dark:bg-amber-950/30">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-              <ul className="text-xs text-amber-800 dark:text-amber-200 space-y-1">
+              <ul className="space-y-1 text-xs text-amber-800 dark:text-amber-200">
                 {employmentNotes.map((note, i) => (
                   <li key={`emp-note-${i}`}>{note}</li>
                 ))}
@@ -205,7 +199,6 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
         </CardContent>
       </Card>
 
-      {/* Key requirements */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Key Requirements</CardTitle>
@@ -217,7 +210,7 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
           <ul className="space-y-1.5">
             {profile.keyRequirements.map((req) => (
               <li key={req} className="flex items-start gap-2 text-sm">
-                <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 {req}
               </li>
             ))}
@@ -225,7 +218,6 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
         </CardContent>
       </Card>
 
-      {/* Lender breakdown */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Lender Breakdown</CardTitle>
@@ -244,18 +236,21 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
         </CardContent>
       </Card>
 
-      {/* Next steps */}
       <Card className="border-primary/20 bg-primary/5">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Next Steps</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Scroll down to get a numeric eligibility score based on your
+            financial details.
+          </p>
           <Link
             to="/calculators"
-            search={{ tab: "financing" }}
+            search={{ tab: "mortgage" }}
             className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
           >
-            Calculate your monthly repayments with the Financing Wizard
+            Calculate your monthly repayments with Mortgage Amortisation
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
@@ -271,8 +266,11 @@ function EligibilityResults(props: Readonly<IResultsProps>) {
   )
 }
 
-/** Default export. Non-citizen mortgage eligibility guide. */
-function MortgageEligibilityGuide() {
+// ***************************************************************************
+//                              Main Component
+// ***************************************************************************
+
+function QuickProfile() {
   const [nationalityGroup, setNationalityGroup] = useState<
     NationalityGroup | ""
   >("")
@@ -284,15 +282,6 @@ function MortgageEligibilityGuide() {
 
   return (
     <div className="space-y-6">
-      {/* Intro */}
-      <div>
-        <p className="text-muted-foreground text-sm">
-          Answer 3 questions to see which German banks and lenders are likely to
-          finance your purchase — and on what terms.
-        </p>
-      </div>
-
-      {/* Questionnaire */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Your Profile</CardTitle>
@@ -302,14 +291,15 @@ function MortgageEligibilityGuide() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Nationality */}
           <div className="space-y-1.5">
-            <Label htmlFor="nationality">Nationality / Residence status</Label>
+            <Label htmlFor="qp-nationality">
+              Nationality / Residence status
+            </Label>
             <Select
               value={nationalityGroup}
               onValueChange={(v) => setNationalityGroup(v as NationalityGroup)}
             >
-              <SelectTrigger id="nationality">
+              <SelectTrigger id="qp-nationality">
                 <SelectValue placeholder="Select your status…" />
               </SelectTrigger>
               <SelectContent>
@@ -327,14 +317,13 @@ function MortgageEligibilityGuide() {
             </Select>
           </div>
 
-          {/* Employment */}
           <div className="space-y-1.5">
-            <Label htmlFor="employment">Employment type</Label>
+            <Label htmlFor="qp-employment">Employment type</Label>
             <Select
               value={employmentType}
               onValueChange={(v) => setEmploymentType(v as EmploymentType)}
             >
-              <SelectTrigger id="employment">
+              <SelectTrigger id="qp-employment">
                 <SelectValue placeholder="Select employment type…" />
               </SelectTrigger>
               <SelectContent>
@@ -352,14 +341,13 @@ function MortgageEligibilityGuide() {
             </Select>
           </div>
 
-          {/* Property use */}
           <div className="space-y-1.5">
-            <Label htmlFor="property-use">Intended property use</Label>
+            <Label htmlFor="qp-property-use">Intended property use</Label>
             <Select
               value={propertyUse}
               onValueChange={(v) => setPropertyUse(v as PropertyUse)}
             >
-              <SelectTrigger id="property-use">
+              <SelectTrigger id="qp-property-use">
                 <SelectValue placeholder="Select property use…" />
               </SelectTrigger>
               <SelectContent>
@@ -376,7 +364,6 @@ function MortgageEligibilityGuide() {
         </CardContent>
       </Card>
 
-      {/* Results */}
       {isComplete && (
         <EligibilityResults
           nationalityGroup={nationalityGroup as NationalityGroup}
@@ -388,8 +375,8 @@ function MortgageEligibilityGuide() {
   )
 }
 
-/******************************************************************************
-                              Export
-******************************************************************************/
+// ***************************************************************************
+//                              Export
+// ***************************************************************************
 
-export { MortgageEligibilityGuide }
+export { QuickProfile }

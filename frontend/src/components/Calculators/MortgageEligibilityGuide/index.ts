@@ -1,5 +1,6 @@
 /**
- * Mortgage Eligibility Guide index
+ * Mortgage Eligibility Guide data — imported by MortgageEligibilityChecker
  */
 
-export { MortgageEligibilityGuide } from "./MortgageEligibilityGuide"
+export * from "./eligibilityData"
+export type * from "./types"
