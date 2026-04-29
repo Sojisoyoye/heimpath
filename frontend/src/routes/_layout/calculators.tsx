@@ -107,7 +107,8 @@ const CATEGORIES: ICategory[] = [
       {
         tab: "compare",
         label: "State Comparison",
-        description: "Compare Grunderwerbsteuer rates across German states",
+        description:
+          "Compare Grunderwerbsteuer (Property Transfer Tax) rates across German states",
         icon: ArrowUpDown,
       },
       {
@@ -143,7 +144,8 @@ const CATEGORIES: ICategory[] = [
       {
         tab: "speculation-tax",
         label: "Exit Tax",
-        description: "Spekulationssteuer on property sale within 10 years",
+        description:
+          "Spekulationssteuer (Speculation Tax) on property sale within 10 years",
         icon: TrendingDown,
       },
       {
@@ -197,13 +199,15 @@ const CATEGORIES: ICategory[] = [
       {
         tab: "rent-ceiling",
         label: "Rent Ceiling Check",
-        description: "Mietpreisbremse compliance check for your property",
+        description:
+          "Mietpreisbremse (Rent Brake) compliance check for your property",
         icon: Scale,
       },
       {
         tab: "grundsteuer",
         label: "Property Tax",
-        description: "Annual Grundsteuer estimate for any German property",
+        description:
+          "Annual Grundsteuer (Property Tax) estimate for any German property",
         icon: Home,
       },
       {

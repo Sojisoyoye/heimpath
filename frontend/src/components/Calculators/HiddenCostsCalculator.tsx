@@ -444,7 +444,7 @@ function HiddenCostsCalculator(props: IProps) {
                     label={`Transfer Tax (${selectedState?.transferTaxRate}%)`}
                     amount={costs.transferTax}
                     percentage={(costs.transferTax / costs.propertyPrice) * 100}
-                    info="Grunderwerbsteuer - varies by state"
+                    info="Grunderwerbsteuer (Property Transfer Tax) - varies by state"
                   />
                   <CostLineItem
                     label="Notary Fee"
@@ -458,7 +458,7 @@ function HiddenCostsCalculator(props: IProps) {
                     percentage={
                       (costs.landRegistryFee / costs.propertyPrice) * 100
                     }
-                    info="Grundbucheintragung"
+                    info="Grundbucheintragung (Land Registry Registration)"
                   />
                   {costs.agentCommission > 0 && (
                     <CostLineItem
@@ -467,7 +467,7 @@ function HiddenCostsCalculator(props: IProps) {
                       percentage={
                         (costs.agentCommission / costs.propertyPrice) * 100
                       }
-                      info="Buyer's share of Maklergebühr"
+                      info="Buyer's share of Maklergebühr (agent commission)"
                     />
                   )}
                 </div>

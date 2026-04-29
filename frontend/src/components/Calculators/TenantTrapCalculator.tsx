@@ -302,7 +302,7 @@ function TenantTrapCalculator(props: Readonly<IProps>) {
             <FormRow
               label="Other fixed costs / unit"
               htmlFor="monthlyFixedCosts"
-              tooltip="Hausgeld, insurance, property tax — per unit per month"
+              tooltip="Hausgeld (service charge), insurance, property tax — per unit per month"
             >
               <Input
                 id="monthlyFixedCosts"
@@ -559,7 +559,7 @@ function TenantTrapCalculator(props: Readonly<IProps>) {
           <p className="mt-3 text-xs text-muted-foreground">
             Total timeline: typically <strong>18–24 months</strong> from first
             missed payment to vacant possession. During this period, mortgage
-            and Hausgeld obligations continue uninterrupted.
+            and Hausgeld (service charge) obligations continue uninterrupted.
           </p>
         </CardContent>
       </Card>

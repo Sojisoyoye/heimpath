@@ -69,7 +69,8 @@ function RunningCostsTab(props: Readonly<IProps>) {
           No running cost data yet
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add transactions with a cost category to start tracking Nebenkosten.
+          Add transactions with a cost category to start tracking Nebenkosten
+          (ancillary costs).
         </p>
       </div>
     )
@@ -107,7 +108,7 @@ function RunningCostsTab(props: Readonly<IProps>) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Monthly Nebenkosten
+              Total Monthly Nebenkosten (Ancillary Costs)
             </CardTitle>
           </CardHeader>
           <CardContent>
