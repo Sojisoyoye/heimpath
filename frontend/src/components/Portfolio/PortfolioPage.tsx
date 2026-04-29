@@ -82,6 +82,17 @@ function PortfolioPage() {
         <PerformanceChart performance={performance} />
       )}
 
+      {/* Section heading */}
+      {!isLoadingProperties && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">My Properties</h2>
+          <span className="text-sm text-muted-foreground">
+            {propertiesData?.data?.length ?? 0}{" "}
+            {propertiesData?.data?.length === 1 ? "property" : "properties"}
+          </span>
+        </div>
+      )}
+
       {/* Property Grid */}
       {isLoadingProperties && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
