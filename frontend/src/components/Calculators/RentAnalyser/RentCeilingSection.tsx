@@ -1,6 +1,7 @@
 /**
- * Mietpreisbremse Rent Ceiling Calculator
- * Checks whether the current rent exceeds the legal cap (Mietspiegel × 1.10)
+ * Rent Ceiling Section — Section 2 of Rent Analyser
+ * Checks whether a rent exceeds the legal Mietpreisbremse cap (§556d BGB).
+ * Postcode, size, and building year are shared from Section 1.
  */
 
 import {
@@ -33,28 +34,25 @@ import {
 import { useCheckRentCeiling } from "@/hooks/mutations/useCalculatorMutations"
 import useCustomToast from "@/hooks/useCustomToast"
 import type { RentCeilingCity, RentCeilingStatus } from "@/models/calculator"
-import { FormRow } from "./common/FormRow"
-import { MetricCard } from "./common/MetricCard"
+import { FormRow } from "../common/FormRow"
+import { MetricCard } from "../common/MetricCard"
 
-/******************************************************************************
-                              Types
-******************************************************************************/
+// ***************************************************************************
+//                              Types
+// ***************************************************************************
 
 interface IProps {
-  className?: string
-}
-
-interface FormInputs {
-  city: RentCeilingCity
   postcode: string
+  onPostcodeChange: (v: string) => void
   sizeSqm: string
+  onSizeSqmChange: (v: string) => void
   buildingYear: string
-  currentRent: string
+  onBuildingYearChange: (v: string) => void
 }
 
-/******************************************************************************
-                              Constants
-******************************************************************************/
+// ***************************************************************************
+//                              Constants
+// ***************************************************************************
 
 const EUR = new Intl.NumberFormat("de-DE", {
   style: "currency",
@@ -103,44 +101,37 @@ const STATUS_CONFIG: Record<
   },
 }
 
-const DEFAULT_INPUTS: FormInputs = {
-  city: "berlin",
-  postcode: "",
-  sizeSqm: "",
-  buildingYear: "",
-  currentRent: "",
-}
+// ***************************************************************************
+//                              Main Component
+// ***************************************************************************
 
-/******************************************************************************
-                              Components
-******************************************************************************/
+function RentCeilingSection(props: Readonly<IProps>) {
+  const {
+    postcode,
+    onPostcodeChange,
+    sizeSqm,
+    onSizeSqmChange,
+    buildingYear,
+    onBuildingYearChange,
+  } = props
 
-/** Default component. Mietpreisbremse rent ceiling calculator. */
-function RentCeilingCalculator(props: Readonly<IProps>) {
-  const { className } = props
-  const [inputs, setInputs] = useState<FormInputs>(DEFAULT_INPUTS)
+  const [city, setCity] = useState<RentCeilingCity>("berlin")
+  const [currentRent, setCurrentRent] = useState("")
+
   const check = useCheckRentCeiling()
   const { showErrorToast } = useCustomToast()
 
   const allFilled =
-    inputs.postcode.length === 5 &&
-    inputs.sizeSqm.length > 0 &&
-    inputs.currentRent.length > 0
-
-  function handleChange(field: keyof FormInputs, value: string) {
-    setInputs((prev) => ({ ...prev, [field]: value }))
-  }
+    postcode.length === 5 && sizeSqm.length > 0 && currentRent.length > 0
 
   function handleCheck() {
     check.mutate(
       {
-        city: inputs.city,
-        postcode: inputs.postcode,
-        sizeSqm: Number(inputs.sizeSqm),
-        currentRent: Number(inputs.currentRent),
-        ...(inputs.buildingYear
-          ? { buildingYear: Number(inputs.buildingYear) }
-          : {}),
+        city,
+        postcode,
+        sizeSqm: Number(sizeSqm),
+        currentRent: Number(currentRent),
+        ...(buildingYear ? { buildingYear: Number(buildingYear) } : {}),
       },
       {
         onError: () =>
@@ -153,25 +144,25 @@ function RentCeilingCalculator(props: Readonly<IProps>) {
   const statusConfig = result ? STATUS_CONFIG[result.status] : null
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className="space-y-6">
       {/* Input Card */}
       <Card>
         <CardHeader>
           <CardTitle>Mietpreisbremse (Rent Brake) Check</CardTitle>
           <CardDescription>
-            Check whether your current rent exceeds the legal cap (Mietspiegel
-            rent index&nbsp;×&nbsp;1.10) under §556d BGB
+            Check whether a rent exceeds the legal cap (Mietspiegel rent
+            index&nbsp;×&nbsp;1.10) under §556d BGB
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* City */}
           <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
+            <Label htmlFor="rc-city">City</Label>
             <Select
-              value={inputs.city}
-              onValueChange={(v) => handleChange("city", v)}
+              value={city}
+              onValueChange={(v) => setCity(v as RentCeilingCity)}
             >
-              <SelectTrigger id="city">
+              <SelectTrigger id="rc-city">
                 <SelectValue placeholder="Select city" />
               </SelectTrigger>
               <SelectContent>
@@ -184,62 +175,64 @@ function RentCeilingCalculator(props: Readonly<IProps>) {
             </Select>
           </div>
 
-          {/* Postcode */}
-          <FormRow label="Postcode" htmlFor="postcode" required>
+          {/* Postcode — shared with Section 1 */}
+          <FormRow label="Postcode" htmlFor="rc-postcode" required>
             <Input
-              id="postcode"
+              id="rc-postcode"
               type="text"
               inputMode="numeric"
               maxLength={5}
               placeholder="e.g. 10115"
-              value={inputs.postcode}
-              onChange={(e) => handleChange("postcode", e.target.value)}
+              value={postcode}
+              onChange={(e) =>
+                onPostcodeChange(e.target.value.replace(/\D/g, "").slice(0, 5))
+              }
             />
           </FormRow>
 
-          {/* Size */}
-          <FormRow label="Apartment size (m²)" htmlFor="sizeSqm" required>
+          {/* Size — shared with Section 1 */}
+          <FormRow label="Apartment size (m²)" htmlFor="rc-sizeSqm" required>
             <Input
-              id="sizeSqm"
+              id="rc-sizeSqm"
               type="number"
               min="1"
               max="1000"
               placeholder="e.g. 65"
-              value={inputs.sizeSqm}
-              onChange={(e) => handleChange("sizeSqm", e.target.value)}
+              value={sizeSqm}
+              onChange={(e) => onSizeSqmChange(e.target.value)}
             />
           </FormRow>
 
-          {/* Building year (optional) */}
+          {/* Building year — shared with Section 1 */}
           <FormRow
             label="Building year (optional)"
-            htmlFor="buildingYear"
+            htmlFor="rc-buildingYear"
             tooltip="Construction year — accepted for future Mietspiegel adjustments"
           >
             <Input
-              id="buildingYear"
+              id="rc-buildingYear"
               type="number"
               min="1800"
               max="2030"
               placeholder="e.g. 1990"
-              value={inputs.buildingYear}
-              onChange={(e) => handleChange("buildingYear", e.target.value)}
+              value={buildingYear}
+              onChange={(e) => onBuildingYearChange(e.target.value)}
             />
           </FormRow>
 
-          {/* Current rent */}
+          {/* Current rent — unique to Section 2 */}
           <FormRow
             label="Current monthly rent (EUR)"
-            htmlFor="currentRent"
+            htmlFor="rc-currentRent"
             required
           >
             <Input
-              id="currentRent"
+              id="rc-currentRent"
               type="number"
               min="1"
               placeholder="e.g. 1200"
-              value={inputs.currentRent}
-              onChange={(e) => handleChange("currentRent", e.target.value)}
+              value={currentRent}
+              onChange={(e) => setCurrentRent(e.target.value)}
             />
           </FormRow>
 
@@ -263,7 +256,6 @@ function RentCeilingCalculator(props: Readonly<IProps>) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Legal warning for OVER_LIMIT */}
             {result.status === "OVER_LIMIT" && (
               <Alert variant="destructive">
                 <AlertOctagon className="h-4 w-4" />
@@ -274,7 +266,6 @@ function RentCeilingCalculator(props: Readonly<IProps>) {
               </Alert>
             )}
 
-            {/* Key metrics */}
             <div className="grid grid-cols-2 gap-3">
               <MetricCard
                 label="Your Rent"
@@ -323,9 +314,8 @@ function RentCeilingCalculator(props: Readonly<IProps>) {
   )
 }
 
-/******************************************************************************
-                              Export
-******************************************************************************/
+// ***************************************************************************
+//                              Export
+// ***************************************************************************
 
-export { RentCeilingCalculator }
-export default RentCeilingCalculator
+export { RentCeilingSection }
