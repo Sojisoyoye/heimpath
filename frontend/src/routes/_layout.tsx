@@ -1,15 +1,33 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
-import { MailWarning, X } from "lucide-react"
+import {
+  ArrowRight,
+  BookOpen,
+  Calculator,
+  type FileText,
+  History,
+  MailWarning,
+  MapIcon,
+  Upload,
+  X,
+} from "lucide-react"
 import { useState } from "react"
 
 import { AuthService, type UserPublic, UsersService } from "@/client"
+import { cn } from "@/common/utils"
 import { Footer } from "@/components/Common/Footer"
 import { NavUserMenu } from "@/components/Common/NavUserMenu"
 import { FeedbackDialog } from "@/components/Feedback/FeedbackDialog"
 import NotificationBell from "@/components/Notifications/NotificationBell"
 import { SearchTrigger } from "@/components/Search"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   SidebarInset,
   SidebarProvider,
@@ -20,8 +38,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useDashboardOverview } from "@/hooks/queries/useDashboardQueries"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
+import type { ActivityItem, ActivityType } from "@/models/dashboard"
 import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout")({
@@ -92,6 +112,115 @@ function useEmailVerification() {
 /******************************************************************************
                               Components
 ******************************************************************************/
+
+/******************************************************************************
+                        Activity History
+******************************************************************************/
+
+const ACTIVITY_ICONS_NAV: Record<ActivityType, typeof FileText> = {
+  journey_started: MapIcon,
+  step_completed: ArrowRight,
+  document_uploaded: Upload,
+  calculation_saved: Calculator,
+  roi_calculated: Calculator,
+  financing_assessed: Calculator,
+  law_bookmarked: BookOpen,
+}
+
+const ACTIVITY_COLORS_NAV: Record<ActivityType, string> = {
+  journey_started: "text-blue-600 bg-blue-50 dark:bg-blue-950/30",
+  step_completed: "text-amber-600 bg-amber-50 dark:bg-amber-950/30",
+  document_uploaded: "text-purple-600 bg-purple-50 dark:bg-purple-950/30",
+  calculation_saved: "text-orange-600 bg-orange-50 dark:bg-orange-950/30",
+  roi_calculated: "text-orange-600 bg-orange-50 dark:bg-orange-950/30",
+  financing_assessed: "text-orange-600 bg-orange-50 dark:bg-orange-950/30",
+  law_bookmarked: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30",
+}
+
+/** Single activity row inside the popover. */
+function ActivityRow({ item }: Readonly<{ item: ActivityItem }>) {
+  const Icon = ACTIVITY_ICONS_NAV[item.activityType] ?? History
+  const colorClass =
+    ACTIVITY_COLORS_NAV[item.activityType] ??
+    "text-gray-600 bg-gray-50 dark:bg-gray-950/30"
+
+  const now = Date.now()
+  const then = new Date(item.timestamp).getTime()
+  const diffMin = Math.floor((now - then) / 60_000)
+  const relativeTime =
+    diffMin < 1
+      ? "Just now"
+      : diffMin < 60
+        ? `${diffMin}m ago`
+        : diffMin < 1440
+          ? `${Math.floor(diffMin / 60)}h ago`
+          : `${Math.floor(diffMin / 1440)}d ago`
+
+  return (
+    <div className="flex items-start gap-3 py-2">
+      <div
+        className={cn(
+          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+          colorClass,
+        )}
+      >
+        <Icon className="h-3.5 w-3.5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{item.title}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {item.description}
+        </p>
+        <p className="text-xs text-muted-foreground">{relativeTime}</p>
+      </div>
+    </div>
+  )
+}
+
+/** History icon button in the navbar — shows recent activity in a dropdown. */
+function ActivityHistoryButton() {
+  const { data } = useDashboardOverview()
+  const activities = data?.recentActivity ?? []
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-8 w-8"
+          aria-label="Recent activity"
+        >
+          <History className="h-4 w-4" />
+          {activities.length > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+              {Math.min(activities.length, 9)}
+              {activities.length > 9 ? "+" : ""}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80 p-0">
+        <DropdownMenuLabel className="border-b px-4 py-2 font-semibold">
+          Recent Activity
+        </DropdownMenuLabel>
+        <div className="max-h-[400px] divide-y overflow-y-auto px-4">
+          {activities.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              No activity yet
+            </p>
+          ) : (
+            activities
+              .slice(0, 10)
+              .map((item, idx) => (
+                <ActivityRow key={`${item.entityId}-${idx}`} item={item} />
+              ))
+          )}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 /** Subtle header icon shown after the banner has been dismissed. */
 function UnverifiedEmailIndicator(
@@ -185,6 +314,7 @@ function Layout() {
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-2">
             <SearchTrigger />
+            <ActivityHistoryButton />
             <NotificationBell />
             {showIndicator && (
               <UnverifiedEmailIndicator

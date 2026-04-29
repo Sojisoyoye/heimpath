@@ -9,7 +9,6 @@ import {
   BookOpen,
   Building2,
   Calculator,
-  Clock,
   FileText,
   LayoutDashboard,
   MapIcon,
@@ -38,8 +37,6 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type {
-  ActivityItem,
-  ActivityType,
   BookmarkedLawSummary,
   DashboardOverview,
   JourneyOverview,
@@ -61,30 +58,16 @@ const PHASE_LABELS: Record<string, string> = Object.fromEntries(
   JOURNEY_PHASES.map((p) => [p.key, p.label]),
 )
 
-const ACTIVITY_ICONS: Record<ActivityType, typeof FileText> = {
-  journey_started: MapIcon,
-  step_completed: ArrowRight,
-  document_uploaded: Upload,
-  calculation_saved: Calculator,
-  roi_calculated: Calculator,
-  financing_assessed: Calculator,
-  law_bookmarked: BookOpen,
-}
-
-const ACTIVITY_COLORS: Record<ActivityType, string> = {
-  journey_started: "text-blue-600 bg-blue-50",
-  step_completed: "text-amber-600 bg-amber-50",
-  document_uploaded: "text-purple-600 bg-purple-50",
-  calculation_saved: "text-orange-600 bg-orange-50",
-  roi_calculated: "text-orange-600 bg-orange-50",
-  financing_assessed: "text-orange-600 bg-orange-50",
-  law_bookmarked: "text-indigo-600 bg-indigo-50",
-}
-
 const CALC_TYPE_LABELS: Record<string, string> = {
   hidden_costs: "Hidden Costs",
   roi: "ROI Analysis",
   financing: "Financing",
+}
+
+const CALC_TYPE_TAB: Record<string, string> = {
+  hidden_costs: "costs",
+  roi: "roi",
+  financing: "financing",
 }
 
 /** Show Getting Started at the top when fewer than this many steps are done. */
@@ -326,8 +309,18 @@ function SavedItemsSection(props: {
   documents: SavedDocumentSummary[]
   calculations: SavedCalculationSummary[]
   bookmarks: BookmarkedLawSummary[]
+  docsThisMonth: number
+  calcsTotal: number
+  bookmarksTotal: number
 }) {
-  const { documents, calculations, bookmarks } = props
+  const {
+    documents,
+    calculations,
+    bookmarks,
+    docsThisMonth,
+    calcsTotal,
+    bookmarksTotal,
+  } = props
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
@@ -337,7 +330,12 @@ function SavedItemsSection(props: {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-purple-600" />
-              <CardTitle className="text-base">Recent Documents</CardTitle>
+              <CardTitle className="text-base">Documents</CardTitle>
+              {docsThisMonth > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {docsThisMonth}
+                </Badge>
+              )}
             </div>
             <Button variant="link" size="sm" className="h-auto p-0" asChild>
               <Link to="/documents">View all</Link>
@@ -350,18 +348,24 @@ function SavedItemsSection(props: {
               No documents uploaded yet.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {documents.map((doc) => (
-                <li key={doc.id} className="flex items-center gap-2 text-sm">
-                  <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <span className="block truncate">
-                      {doc.originalFilename}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(doc.createdAt)}
-                    </span>
-                  </div>
+                <li key={doc.id}>
+                  <Link
+                    to="/documents/$documentId"
+                    params={{ documentId: doc.id }}
+                    className="flex items-center gap-2 rounded-md px-1 py-1 text-sm hover:bg-muted"
+                  >
+                    <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate">
+                        {doc.originalFilename}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatRelativeTime(doc.createdAt)}
+                      </span>
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -376,6 +380,11 @@ function SavedItemsSection(props: {
             <div className="flex items-center gap-2">
               <Calculator className="h-4 w-4 text-orange-600" />
               <CardTitle className="text-base">Calculations</CardTitle>
+              {calcsTotal > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {calcsTotal}
+                </Badge>
+              )}
             </div>
             <Button variant="link" size="sm" className="h-auto p-0" asChild>
               <Link to="/calculators">View all</Link>
@@ -388,22 +397,32 @@ function SavedItemsSection(props: {
               No calculations saved yet.
             </p>
           ) : (
-            <ul className="space-y-2">
-              {calculations.map((calc) => (
-                <li key={calc.id} className="text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">
-                      {calc.name ?? CALC_TYPE_LABELS[calc.calculatorType]}
+            <ul className="space-y-1">
+              {calculations.map((calc) => {
+                const tab = CALC_TYPE_TAB[calc.calculatorType] ?? "costs"
+                return (
+                  <li key={calc.id}>
+                    <Link
+                      to="/calculators"
+                      search={{ tab }}
+                      className="flex items-center justify-between rounded-md px-1 py-1 text-sm hover:bg-muted"
+                    >
+                      <span className="truncate">
+                        {calc.name ?? CALC_TYPE_LABELS[calc.calculatorType]}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="ml-2 shrink-0 text-xs"
+                      >
+                        {calc.headlineValue}
+                      </Badge>
+                    </Link>
+                    <span className="px-1 text-xs text-muted-foreground">
+                      {formatRelativeTime(calc.createdAt)}
                     </span>
-                    <Badge variant="outline" className="ml-2 shrink-0 text-xs">
-                      {calc.headlineValue}
-                    </Badge>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {formatRelativeTime(calc.createdAt)}
-                  </span>
-                </li>
-              ))}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </CardContent>
@@ -416,6 +435,11 @@ function SavedItemsSection(props: {
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-indigo-600" />
               <CardTitle className="text-base">Bookmarked Laws</CardTitle>
+              {bookmarksTotal > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {bookmarksTotal}
+                </Badge>
+              )}
             </div>
             <Button variant="link" size="sm" className="h-auto p-0" asChild>
               <Link to="/laws">View all</Link>
@@ -428,16 +452,22 @@ function SavedItemsSection(props: {
               No laws bookmarked yet.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {bookmarks.map((law) => (
-                <li key={law.id} className="text-sm">
-                  <span className="font-medium">{law.citation}</span>
-                  <span className="ml-1 text-muted-foreground">
-                    {law.titleEn}
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
-                    {formatRelativeTime(law.bookmarkedAt)}
-                  </span>
+                <li key={law.id}>
+                  <Link
+                    to="/laws/$lawId"
+                    params={{ lawId: law.id }}
+                    className="block rounded-md px-1 py-1 text-sm hover:bg-muted"
+                  >
+                    <span className="font-medium">{law.citation}</span>
+                    <span className="ml-1 truncate text-muted-foreground">
+                      {law.titleEn}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {formatRelativeTime(law.bookmarkedAt)}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -445,89 +475,6 @@ function SavedItemsSection(props: {
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-/** Vertical activity timeline. */
-function ActivityTimeline(props: { activities: ActivityItem[] }) {
-  const { activities } = props
-
-  if (activities.length === 0) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">No activity yet.</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Recent Activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {activities.map((item, idx) => {
-            const Icon = ACTIVITY_ICONS[item.activityType] ?? Clock
-            const colorClass =
-              ACTIVITY_COLORS[item.activityType] ?? "text-gray-600 bg-gray-50"
-
-            return (
-              <div key={`${item.entityId}-${idx}`} className="flex gap-3">
-                <div
-                  className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                    colorClass,
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {item.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatRelativeTime(item.timestamp)}
-                  </p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-/** Usage stats summary row. */
-function UsageStats(props: {
-  docsThisMonth: number
-  totalCalcs: number
-  totalBookmarks: number
-}) {
-  const stats = [
-    { label: "Docs this month", value: props.docsThisMonth },
-    { label: "Total calculations", value: props.totalCalcs },
-    { label: "Bookmarked laws", value: props.totalBookmarks },
-  ]
-
-  return (
-    <Card>
-      <CardContent className="grid grid-cols-3 gap-4 py-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="text-center">
-            <p className="text-2xl font-bold">{stat.value}</p>
-            <p className="text-xs text-muted-foreground">{stat.label}</p>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
   )
 }
 
@@ -611,6 +558,9 @@ function DashboardPage(props: Readonly<IProps>) {
             documents={data.recentDocuments}
             calculations={data.recentCalculations}
             bookmarks={data.bookmarkedLaws}
+            docsThisMonth={data.documentsTranslatedThisMonth}
+            calcsTotal={data.totalCalculations}
+            bookmarksTotal={data.totalBookmarks}
           />
         </div>
 
@@ -619,12 +569,6 @@ function DashboardPage(props: Readonly<IProps>) {
           {/* Show Getting Started in sidebar for returning users */}
           {!isNewUser && <GettingStartedChecklist data={data} />}
           <QuickActions journeyId={data.journey?.id} />
-          <ActivityTimeline activities={data.recentActivity} />
-          <UsageStats
-            docsThisMonth={data.documentsTranslatedThisMonth}
-            totalCalcs={data.totalCalculations}
-            totalBookmarks={data.totalBookmarks}
-          />
         </div>
       </div>
     </div>
