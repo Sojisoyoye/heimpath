@@ -71,7 +71,7 @@ function AuthLayout(props: IProps) {
   return (
     <div className="grid min-h-svh md:grid-cols-2">
       <div
-        className="relative flex max-h-[50vh] flex-col justify-center overflow-hidden p-6 md:max-h-none md:p-12 bg-cover bg-center"
+        className="relative hidden flex-col justify-center overflow-hidden p-6 md:flex md:p-12 bg-cover bg-center"
         style={{ backgroundImage: "url('/images/auth-bg.jpg')" }}
       >
         <div className="absolute inset-0 bg-black/55" />
