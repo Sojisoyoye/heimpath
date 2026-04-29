@@ -20,7 +20,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   TrendingDown,
-  TrendingUp,
   Zap,
 } from "lucide-react"
 import type { ElementType } from "react"
@@ -37,7 +36,6 @@ import {
   OwnershipComparison,
   PropertyEvaluationCalculator,
   RentAnalyser,
-  ROICalculator,
   SpeculationTaxCalculator,
   StateComparison,
   TenantTrapCalculator,
@@ -121,15 +119,10 @@ const CATEGORIES: ICategory[] = [
     label: "Investment Returns",
     items: [
       {
-        tab: "roi",
-        label: "ROI Calculator",
-        description: "Net rental yield and cash-on-cash return analysis",
-        icon: TrendingUp,
-      },
-      {
         tab: "property-evaluation",
         label: "Property Evaluation",
-        description: "Multi-year investment performance model",
+        description:
+          "Yield, cashflow, AfA depreciation and multi-year investment model",
         icon: ClipboardList,
       },
       {
@@ -313,7 +306,6 @@ function CalculatorGrid({ onSelect }: Readonly<ICalculatorGridProps>) {
 interface IActiveCalculatorProps {
   tab: string
   purchasePrice?: number
-  monthlyRent?: number
   onBack: () => void
 }
 
@@ -321,7 +313,6 @@ interface IActiveCalculatorProps {
 function ActiveCalculator({
   tab,
   purchasePrice,
-  monthlyRent,
   onBack,
 }: Readonly<IActiveCalculatorProps>) {
   const item = ITEM_MAP[tab]
@@ -330,10 +321,10 @@ function ActiveCalculator({
     switch (tab) {
       case "costs":
         return <HiddenCostsCalculator />
-      case "roi":
-        return <ROICalculator initialMonthlyRent={monthlyRent} />
       case "compare":
         return <StateComparison />
+      // "roi" was merged into "property-evaluation" — redirect gracefully
+      case "roi":
       case "property-evaluation":
         return (
           <PropertyEvaluationCalculator initialPurchasePrice={purchasePrice} />
@@ -395,7 +386,7 @@ function ActiveCalculator({
 
 /** Default component. Calculators page with grouped card grid navigation. */
 function CalculatorsPage() {
-  const { tab, purchasePrice, monthlyRent } = Route.useSearch()
+  const { tab, purchasePrice } = Route.useSearch()
   const navigate = useNavigate()
 
   const handleSelect = (value: string) => {
@@ -428,7 +419,6 @@ function CalculatorsPage() {
         <ActiveCalculator
           tab={tab}
           purchasePrice={purchasePrice}
-          monthlyRent={monthlyRent}
           onBack={handleBack}
         />
       ) : (

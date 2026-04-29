@@ -37,6 +37,7 @@ import type { PropertyEvaluationSummary } from "@/models/propertyEvaluation"
 import { CalculatorService } from "@/services/CalculatorService"
 import { handleError } from "@/utils"
 import {
+  AfaCard,
   AnnualCashflowTable,
   EvaluationSection,
   FinancingSection,
@@ -559,6 +560,17 @@ function PropertyEvaluationCalculator(
       {/* Annual Cashflow Table */}
       {!isOwnerOccupier && results && results.annualRows.length > 0 && (
         <AnnualCashflowTable rows={results.annualRows} />
+      )}
+
+      {/* AfA Depreciation Card */}
+      {!isOwnerOccupier && results && (
+        <AfaCard
+          purchasePrice={state.propertyInfo.purchasePrice}
+          buildingSharePercent={state.rent.buildingSharePercent}
+          depreciationRatePercent={state.rent.depreciationRatePercent}
+          marginalTaxRatePercent={state.rent.marginalTaxRatePercent}
+          annualRows={results.annualRows}
+        />
       )}
 
       {/* Saved Evaluations */}

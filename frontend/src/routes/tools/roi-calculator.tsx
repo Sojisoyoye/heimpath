@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { ROICalculator } from "@/components/Calculators"
+import { PropertyEvaluationCalculator } from "@/components/Calculators"
 import { ToolsPageLayout } from "@/components/Tools/ToolsPageLayout"
 import { toolsMeta } from "@/components/Tools/toolsMeta"
 
@@ -21,7 +21,7 @@ function ROICalculatorPage() {
       title="German Rental Property ROI Calculator"
       description="Evaluate your rental property investment in Germany. Get an investment grade, see after-tax cash flow, and view 10-year return projections including depreciation benefits."
     >
-      <ROICalculator />
+      <PropertyEvaluationCalculator />
     </ToolsPageLayout>
   )
 }

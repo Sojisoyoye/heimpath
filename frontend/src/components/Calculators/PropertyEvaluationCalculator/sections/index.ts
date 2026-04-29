@@ -2,6 +2,7 @@
  * Property Evaluation Calculator sections index
  */
 
+export { AfaCard } from "./AfaCard"
 export { AnnualCashflowTable } from "./AnnualCashflowTable"
 export { EvaluationSection } from "./EvaluationSection"
 export { FinancingSection } from "./FinancingSection"

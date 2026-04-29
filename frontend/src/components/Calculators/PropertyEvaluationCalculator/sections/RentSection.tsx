@@ -3,6 +3,7 @@
  * Inputs for rental income, depreciation, tax settings, and forecast assumptions
  */
 
+import { Link } from "@tanstack/react-router"
 import { Banknote, Info } from "lucide-react"
 import { GERMAN_STATES } from "@/common/constants"
 import { SECTION_COLORS } from "@/common/constants/propertyEvaluation"
@@ -99,6 +100,15 @@ function RentSection(props: IProps) {
             {CURRENCY_FORMATTER.format(marketData.rentRange.max)})
           </p>
         )}
+        <p className="text-xs">
+          <Link
+            to="/calculators"
+            search={{ tab: "rent-analyser" }}
+            className="text-primary hover:underline"
+          >
+            Estimate market rent →
+          </Link>
+        </p>
 
         {/* Rent summary */}
         {squareMeters > 0 && (
