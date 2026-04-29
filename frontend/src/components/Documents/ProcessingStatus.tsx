@@ -14,6 +14,7 @@ interface IProps {
   documentId: string
   status: DocumentStatus
   pageCount: number
+  translatedPageCount?: number
   errorMessage?: string | null
 }
 
@@ -23,7 +24,8 @@ interface IProps {
 
 /** Default component. Document processing status indicator. */
 function ProcessingStatus(props: IProps) {
-  const { documentId, status, pageCount, errorMessage } = props
+  const { documentId, status, pageCount, translatedPageCount, errorMessage } =
+    props
   const queryClient = useQueryClient()
 
   const isProcessing = status === "uploaded" || status === "processing"
@@ -45,6 +47,44 @@ function ProcessingStatus(props: IProps) {
   }, [statusData, documentId, queryClient])
 
   if (currentStatus === "completed") {
+    const knownCount = translatedPageCount ?? pageCount
+    const allTranslated = knownCount >= pageCount
+    const noneTranslated = knownCount === 0
+
+    if (noneTranslated) {
+      return (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800/40 dark:bg-amber-950/20 p-4">
+          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
+              Translation could not be completed
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-500">
+              0 of {pageCount} {pageCount === 1 ? "page" : "pages"} were
+              translated — the document may be image-only or unsupported
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    if (!allTranslated) {
+      return (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800/40 dark:bg-amber-950/20 p-4">
+          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
+              Partially translated
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-500">
+              {knownCount} of {pageCount} {pageCount === 1 ? "page" : "pages"}{" "}
+              translated — some pages may be image-only
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20 p-4">
         <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
