@@ -15,7 +15,6 @@ import {
   Euro,
   Globe,
   Home,
-  Landmark,
   MapPin,
   Scale,
   ShieldAlert,
@@ -30,12 +29,11 @@ import {
   AfaCalculator,
   CityComparison,
   CrossBorderTaxGuide,
-  FinancingWizard,
   GegRetrofitCalculator,
   GrundsteuerCalculator,
   HiddenCostsCalculator,
   MortgageAmortisation,
-  MortgageEligibilityGuide,
+  MortgageEligibilityChecker,
   OwnershipComparison,
   PropertyEvaluationCalculator,
   RentCeilingCalculator,
@@ -161,22 +159,17 @@ const CATEGORIES: ICategory[] = [
     label: "Financing",
     items: [
       {
-        tab: "financing",
-        label: "Financing Wizard",
-        description: "Step-by-step guide to German mortgage financing",
-        icon: Landmark,
+        tab: "eligibility",
+        label: "Mortgage Eligibility Checker",
+        description:
+          "Lender access overview and numeric eligibility score for foreign buyers",
+        icon: ShieldCheck,
       },
       {
         tab: "mortgage",
         label: "Mortgage Amortisation",
         description: "Monthly repayment schedule and interest breakdown",
         icon: CalendarClock,
-      },
-      {
-        tab: "eligibility",
-        label: "Mortgage Eligibility",
-        description: "Borrowing capacity check for foreign buyers",
-        icon: ShieldCheck,
       },
       {
         tab: "tax-guide",
@@ -348,8 +341,6 @@ function ActiveCalculator({
         return <ROICalculator initialMonthlyRent={monthlyRent} />
       case "compare":
         return <StateComparison />
-      case "financing":
-        return <FinancingWizard />
       case "property-evaluation":
         return (
           <PropertyEvaluationCalculator initialPurchasePrice={purchasePrice} />
@@ -363,7 +354,7 @@ function ActiveCalculator({
       case "tax-guide":
         return <CrossBorderTaxGuide />
       case "eligibility":
-        return <MortgageEligibilityGuide />
+        return <MortgageEligibilityChecker />
       case "rent-estimate":
         return <RentEstimate />
       case "speculation-tax":
