@@ -5,7 +5,7 @@
  * Baden-Württemberg (Bodenwertmodell).
  */
 
-import { Home, Info, RefreshCw } from "lucide-react"
+import { Home, RefreshCw } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import {
   Bar,
@@ -27,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Disclaimer } from "@/components/ui/disclaimer"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -953,18 +954,15 @@ function GrundsteuerCalculator({ className }: Readonly<IProps>) {
             </div>
 
             {/* Disclaimer */}
-            <div className="flex items-start gap-2 rounded-lg bg-muted p-3">
-              <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground">
-                Estimates only. Actual Grundsteuer is determined by the official
-                Grundsteuerwertbescheid from your Finanzamt and the
-                Grundsteuerbescheid from your municipality. Hebesätze may change
-                annually. The Bavaria and Baden-Württemberg models use
-                simplified inputs — consult a <em>Steuerberater</em> for your
-                exact liability. For Bavaria: the Äquivalenzbetrag caps area at
-                100 sqm (building) and 500 sqm (land) for the full rate.
-              </p>
-            </div>
+            <Disclaimer>
+              Estimates only. Actual Grundsteuer is determined by the official
+              Grundsteuerwertbescheid from your Finanzamt and the
+              Grundsteuerbescheid from your municipality. Hebesätze may change
+              annually. The Bavaria and Baden-Württemberg models use simplified
+              inputs — consult a <em>Steuerberater</em> for your exact
+              liability. For Bavaria: the Äquivalenzbetrag caps area at 100 sqm
+              (building) and 500 sqm (land) for the full rate.
+            </Disclaimer>
           </CardContent>
         </Card>
       )}

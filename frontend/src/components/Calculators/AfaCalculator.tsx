@@ -4,7 +4,7 @@
  * Covers all three AfA rate tiers: pre-1925 (2.5%), 1925-2022 (2.0%), 2023+ (3.0%).
  */
 
-import { Info, RefreshCw, TrendingDown } from "lucide-react"
+import { RefreshCw, TrendingDown } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import {
   Bar,
@@ -25,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Disclaimer } from "@/components/ui/disclaimer"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { FormRow } from "./common/FormRow"
@@ -708,19 +709,15 @@ function AfaCalculator({ className }: Readonly<IProps>) {
               </div>
             </div>
 
-            <div className="flex items-start gap-2 rounded-lg bg-muted p-3">
-              <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground">
-                Estimates only. The land/building split must be confirmed by
-                your Finanzamt via a Kaufpreisaufteilung. Foreign owners must
-                file a German Einkommensteuererklärung (income tax return) to
-                claim Werbungskosten deductions. Renovation costs before first
-                letting may also be depreciable. Consult a{" "}
-                <em>Steuerberater</em> for your exact position. The 3% AfA rate
-                applies to buildings completed on or after 1 January 2023
-                (Jahressteuergesetz 2022).
-              </p>
-            </div>
+            <Disclaimer>
+              Estimates only. The land/building split must be confirmed by your
+              Finanzamt via a Kaufpreisaufteilung. Foreign owners must file a
+              German Einkommensteuererklärung (income tax return) to claim
+              Werbungskosten deductions. Renovation costs before first letting
+              may also be depreciable. Consult a <em>Steuerberater</em> for your
+              exact position. The 3% AfA rate applies to buildings completed on
+              or after 1 January 2023 (Jahressteuergesetz 2022).
+            </Disclaimer>
           </CardContent>
         </Card>
       )}
