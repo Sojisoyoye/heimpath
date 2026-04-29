@@ -1144,8 +1144,8 @@ function DetailedAssessment() {
                       Strengths
                     </h4>
                     <ul className="space-y-1">
-                      {results.strengths.map((s, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
+                      {results.strengths.map((s) => (
+                        <li key={s} className="flex items-start gap-2 text-sm">
                           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
                           <span>{s}</span>
                         </li>
@@ -1161,8 +1161,11 @@ function DetailedAssessment() {
                       Areas for Improvement
                     </h4>
                     <ul className="space-y-1">
-                      {results.improvements.map((imp, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
+                      {results.improvements.map((imp) => (
+                        <li
+                          key={imp}
+                          className="flex items-start gap-2 text-sm"
+                        >
                           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                           <span>{imp}</span>
                         </li>
@@ -1179,8 +1182,8 @@ function DetailedAssessment() {
                     Document Checklist
                   </h4>
                   <ul className="space-y-1">
-                    {results.documentChecklist.map((doc, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
+                    {results.documentChecklist.map((doc) => (
+                      <li key={doc} className="flex items-start gap-2 text-sm">
                         <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                         <span>{doc}</span>
                       </li>

@@ -4,6 +4,7 @@
  * numeric financing assessment (detailed).
  */
 
+import { Landmark, ShieldCheck } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { DetailedAssessment } from "./DetailedAssessment"
 import { QuickProfile } from "./QuickProfile"
@@ -18,7 +19,8 @@ function MortgageEligibilityChecker() {
       {/* Section 1 */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <ShieldCheck className="h-5 w-5 text-primary" />
             1. Lender Access — Quick Profile
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -34,7 +36,10 @@ function MortgageEligibilityChecker() {
       {/* Section 2 */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">2. Financial Assessment</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Landmark className="h-5 w-5 text-primary" />
+            2. Financial Assessment
+          </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Enter your financial details to receive a numeric eligibility score,
             max loan estimate, and personalised document checklist.

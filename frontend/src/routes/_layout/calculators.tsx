@@ -353,6 +353,8 @@ function ActiveCalculator({
         return <CityComparison />
       case "tax-guide":
         return <CrossBorderTaxGuide />
+      // "financing" was merged into "eligibility" — redirect gracefully
+      case "financing":
       case "eligibility":
         return <MortgageEligibilityChecker />
       case "rent-estimate":
