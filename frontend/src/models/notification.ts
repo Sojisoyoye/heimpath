@@ -1,6 +1,7 @@
 export type NotificationType =
   | "step_completed"
   | "document_translated"
+  | "translation_failed"
   | "calculation_saved"
   | "law_bookmarked"
   | "journey_deadline"
