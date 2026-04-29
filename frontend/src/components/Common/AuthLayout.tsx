@@ -97,8 +97,13 @@ function AuthLayout(props: IProps) {
       </div>
 
       <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex items-center justify-end">
-          <Appearance />
+        <div className="flex items-center justify-between">
+          <div className="md:hidden">
+            <Logo variant="full" />
+          </div>
+          <div className="ml-auto">
+            <Appearance />
+          </div>
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-sm">{children}</div>
