@@ -18,6 +18,7 @@ import { KpiSummaryBar } from "./KpiSummaryBar"
 import { PerformanceChart } from "./PerformanceChart"
 import { PropertyCard } from "./PropertyCard"
 import { PropertyFormModal } from "./PropertyFormModal"
+import { RentflowBanner } from "./RentflowBanner"
 
 /******************************************************************************
                               Components
@@ -92,6 +93,9 @@ function PortfolioPage() {
           </span>
         </div>
       )}
+
+      {/* Rentflow hand-off prompt for large portfolios */}
+      <RentflowBanner propertyCount={propertiesData?.data?.length ?? 0} />
 
       {/* Property Grid */}
       {isLoadingProperties && (
