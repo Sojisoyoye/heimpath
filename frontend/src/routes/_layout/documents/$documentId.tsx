@@ -105,6 +105,13 @@ function DocumentDetailPage() {
   const isCompleted = doc.status === "completed"
   const translation = doc.translation
 
+  // Pass 0 when completed but no translation record so banner shows amber, not green
+  const translatedPageCount = translation
+    ? translation.translatedPages.filter((p) => !!p.translatedText).length
+    : isCompleted
+      ? 0
+      : undefined
+
   return (
     <div className="space-y-6">
       {/* Back link and header */}
@@ -162,6 +169,7 @@ function DocumentDetailPage() {
         documentId={doc.id}
         status={doc.status}
         pageCount={doc.pageCount}
+        translatedPageCount={translatedPageCount}
         errorMessage={doc.errorMessage}
       />
 

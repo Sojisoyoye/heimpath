@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react"
 import type { ElementType } from "react"
+import { useState } from "react"
 import {
   AfaCalculator,
   CityComparison,
@@ -236,44 +237,85 @@ interface ICalculatorGridProps {
 
 /** Grouped card grid — landing view when no calculator is selected */
 function CalculatorGrid({ onSelect }: Readonly<ICalculatorGridProps>) {
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
+
+  const visibleCategories =
+    activeFilter == null
+      ? CATEGORIES
+      : CATEGORIES.filter((c) => c.id === activeFilter)
+
   return (
-    <div className="space-y-8">
-      {CATEGORIES.map((category) => (
-        <div key={category.id}>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {category.label}
-          </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {category.items.map((item) => {
-              const Icon = item.icon
-              return (
-                <Card
-                  key={item.tab}
-                  className="cursor-pointer border transition-shadow hover:border-primary/40 hover:shadow-md"
-                  onClick={() => onSelect(item.tab)}
-                >
-                  <CardContent className="flex items-start gap-3 p-4">
-                    <div className="mt-0.5 shrink-0 rounded-md bg-primary/10 p-2">
-                      <Icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <p className="text-sm font-medium leading-snug">
-                          {item.label}
-                        </p>
-                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+    <div className="space-y-6">
+      {/* Category filter pills */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveFilter(null)}
+          className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+            activeFilter == null
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+          }`}
+        >
+          All
+        </button>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() =>
+              setActiveFilter(activeFilter === cat.id ? null : cat.id)
+            }
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              activeFilter === cat.id
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Calculator cards grouped by category */}
+      <div className="space-y-8">
+        {visibleCategories.map((category) => (
+          <div key={category.id}>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {category.label}
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {category.items.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Card
+                    key={item.tab}
+                    className="cursor-pointer border transition-shadow hover:border-primary/40 hover:shadow-md"
+                    onClick={() => onSelect(item.tab)}
+                  >
+                    <CardContent className="flex items-start gap-3 p-4">
+                      <div className="mt-0.5 shrink-0 rounded-md bg-primary/10 p-2">
+                        <Icon className="h-4 w-4 text-primary" />
                       </div>
-                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                        {item.description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="text-sm font-medium leading-snug">
+                            {item.label}
+                          </p>
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        </div>
+                        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
