@@ -2,6 +2,7 @@
 
 import os
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -9,6 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.models.document import Document, DocumentStatus, DocumentType
+from app.models.notification import NotificationType
 from app.services import document_service
 from app.services.document_service import (
     _detect_clauses,
@@ -277,3 +279,100 @@ class TestSaveUploadPathSanitization:
         assert len(written_files) == 1
         assert written_files[0].name == doc.stored_filename
         os.remove(written_files[0])
+
+
+# ── process_document notification dispatch ───────────────────────────────────
+
+
+def _make_process_document_mocks(
+    document_id: uuid.UUID,
+    user_id: uuid.UUID,
+    doc_type: str = DocumentType.UNKNOWN.value,
+) -> tuple[MagicMock, MagicMock]:
+    """Build a mock async session and session factory for process_document tests."""
+    doc = Document(
+        id=document_id,
+        user_id=user_id,
+        original_filename="test.pdf",
+        stored_filename="abc.pdf",
+        file_path="/tmp/abc.pdf",
+        file_size_bytes=1024,
+        page_count=1,
+        document_type=doc_type,
+        status=DocumentStatus.PROCESSING.value,
+    )
+    doc.created_at = datetime.now(timezone.utc)
+
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = doc
+
+    mock_session = AsyncMock()
+    mock_session.execute.return_value = mock_result
+    mock_session.commit = AsyncMock()
+    mock_session.add = MagicMock()
+
+    @asynccontextmanager
+    async def _factory():
+        yield mock_session
+
+    return mock_session, _factory
+
+
+def _make_sync_session_mock() -> MagicMock:
+    """Create a mock sync session context manager (for SyncSession(engine) usage)."""
+    mock_cm = MagicMock()
+    mock_cm.__enter__ = MagicMock(return_value=mock_cm)
+    mock_cm.__exit__ = MagicMock(return_value=False)
+    return mock_cm
+
+
+class TestProcessDocumentNotifications:
+    @pytest.mark.asyncio
+    async def test_sends_translation_failed_notification_on_processing_error(
+        self,
+    ) -> None:
+        """Failure during processing dispatches a TRANSLATION_FAILED notification."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+
+        mock_session, session_factory = _make_process_document_mocks(
+            document_id, user_id
+        )
+        mock_sync_cm = _make_sync_session_mock()
+
+        with (
+            patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
+            patch(
+                "app.services.notification_service.create_notification"
+            ) as mock_create,
+            patch("sqlmodel.Session", return_value=mock_sync_cm),
+        ):
+            await document_service.process_document(document_id, session_factory)
+
+        mock_create.assert_called_once()
+        _, call_kwargs = mock_create.call_args
+        assert call_kwargs["user_id"] == user_id
+        assert call_kwargs["type"] == NotificationType.TRANSLATION_FAILED
+        assert str(document_id) in call_kwargs["action_url"]
+
+    @pytest.mark.asyncio
+    async def test_notification_failure_does_not_propagate(self) -> None:
+        """If the failure notification itself raises, processing completes silently."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+
+        mock_session, session_factory = _make_process_document_mocks(
+            document_id, user_id
+        )
+        mock_sync_cm = _make_sync_session_mock()
+
+        with (
+            patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
+            patch(
+                "app.services.notification_service.create_notification",
+                side_effect=Exception("notification DB unavailable"),
+            ),
+            patch("sqlmodel.Session", return_value=mock_sync_cm),
+        ):
+            # Should not raise — notification errors are swallowed
+            await document_service.process_document(document_id, session_factory)
