@@ -38,15 +38,15 @@ function OwnershipManagement(_props: Readonly<IProps>) {
           },
           {
             icon: CreditCard,
-            label: "Hausgeld Payments",
+            label: "Hausgeld (Service Charge) Payments",
             detail:
-              "Set up a Dauerauftrag (standing order) for monthly Hausgeld — typically 2-4 EUR/sqm covering maintenance reserves, building insurance, and communal services.",
+              "Set up a Dauerauftrag (standing order) for monthly Hausgeld (service charge) — typically 2-4 EUR/sqm covering maintenance reserves, building insurance, and communal services.",
           },
           {
             icon: Building2,
-            label: "Teilungserklarung & Hausordnung",
+            label: "Teilungserklärung & Hausordnung",
             detail:
-              "Review the declaration of division (Teilungserklarung) to understand your rights and obligations. The Hausordnung defines house rules for all owners.",
+              "Review the Teilungserklärung (declaration of division) to understand your rights and obligations. The Hausordnung (house rules) defines conduct rules for all owners.",
           },
         ]}
         tip="Attend the annual owners' meeting (Eigentumerversammlung) — important decisions about renovations and special levies (Sonderumlage) are made there."
@@ -65,7 +65,7 @@ function OwnershipManagement(_props: Readonly<IProps>) {
             icon: Recycle,
             label: "Waste Collection (Mullabfuhr)",
             detail:
-              "Register for waste collection service with your local municipality. Choose the right bin sizes to keep Nebenkosten reasonable.",
+              "Register for waste collection service with your local municipality. Choose the right bin sizes to keep Nebenkosten (ancillary costs) reasonable.",
           },
           {
             icon: ThermometerSun,

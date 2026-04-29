@@ -157,10 +157,10 @@ function RentCeilingCalculator(props: Readonly<IProps>) {
       {/* Input Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Mietpreisbremse Rent Check</CardTitle>
+          <CardTitle>Mietpreisbremse (Rent Brake) Check</CardTitle>
           <CardDescription>
-            Check whether your current rent exceeds the legal cap
-            (Mietspiegel&nbsp;×&nbsp;1.10) under §556d BGB
+            Check whether your current rent exceeds the legal cap (Mietspiegel
+            rent index&nbsp;×&nbsp;1.10) under §556d BGB
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

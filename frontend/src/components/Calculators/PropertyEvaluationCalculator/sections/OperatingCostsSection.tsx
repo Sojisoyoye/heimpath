@@ -77,7 +77,7 @@ function OperatingCostsSection(props: IProps) {
           </div>
           <div className="flex justify-between text-sm border-t pt-2 mt-2">
             <span className="text-muted-foreground">
-              Overall Mgmt. Costs (Hausgeld)
+              Overall Mgmt. Costs (Hausgeld / Service Charge)
             </span>
             <span className="font-medium text-orange-600 dark:text-orange-400">
               {CURRENCY_FORMATTER.format(overallHausgeld)}
@@ -92,7 +92,7 @@ function OperatingCostsSection(props: IProps) {
           </p>
           <FormRow
             htmlFor="hausgeldAllocable"
-            label="Allocable Hausgeld (EUR/mo)"
+            label="Allocable Hausgeld (Service Charge, EUR/mo)"
             tooltip="Umlagefähige Nebenkosten — costs passed through to the tenant (heating, water, garbage, cleaning, etc.)"
           >
             <Input
@@ -135,7 +135,7 @@ function OperatingCostsSection(props: IProps) {
 
           <FormRow
             htmlFor="hausgeldNonAllocable"
-            label="Non-alloc. Hausgeld (EUR/mo)"
+            label="Non-alloc. Hausgeld (Service Charge, EUR/mo)"
             tooltip="Nicht umlagefähige Kosten — landlord-only costs that cannot be passed to the tenant (property management fees, etc.)"
           >
             <Input

@@ -605,8 +605,9 @@ function GegRetrofitCalculator(props: Readonly<IProps>) {
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Estimate mandatory energy upgrade costs under the
-            Gebäudeenergiegesetz (GEG). Enter the energy class from the
-            property's Energieausweis.
+            Gebäudeenergiegesetz (GEG — Building Energy Act). Enter the energy
+            class from the property's Energieausweis (energy performance
+            certificate).
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={handleReset}>

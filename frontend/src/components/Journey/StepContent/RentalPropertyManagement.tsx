@@ -33,7 +33,7 @@ function RentalPropertyManagement(_props: Readonly<IProps>) {
             icon: Euro,
             label: "Self-Management",
             detail:
-              "Saves the management fee but requires time and knowledge of German rental law. You'll need to handle tenant inquiries, maintenance requests, and the annual Nebenkostenabrechnung yourself.",
+              "Saves the management fee but requires time and knowledge of German rental law. You'll need to handle tenant inquiries, maintenance requests, and the annual Nebenkostenabrechnung (utility cost statement) yourself.",
           },
         ]}
         tip="Even if you self-manage, keep a Hausverwaltung contact ready as a backup. Some issues (legal disputes, emergency repairs) benefit from professional handling."

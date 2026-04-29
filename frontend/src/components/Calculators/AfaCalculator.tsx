@@ -409,7 +409,7 @@ function AfaCalculator({ className }: Readonly<IProps>) {
                 htmlFor="managementFee"
                 label="Management Fee (€)"
                 optional
-                tooltip="Hausverwaltungsgebühr — typically 3–5% of annual gross rent."
+                tooltip="Hausverwaltungsgebühr (property management fee) — typically 3–5% of annual gross rent."
               >
                 <Input
                   id="managementFee"
@@ -441,9 +441,9 @@ function AfaCalculator({ className }: Readonly<IProps>) {
 
               <FormRow
                 htmlFor="grundsteuer"
-                label="Grundsteuer (€)"
+                label="Grundsteuer (Property Tax, €)"
                 optional
-                tooltip="Annual property tax from your Grundsteuerbescheid. Use the Property Tax tab to estimate this."
+                tooltip="Annual Grundsteuer (property tax) from your Grundsteuerbescheid (tax assessment notice). Use the Property Tax tab to estimate this."
               >
                 <Input
                   id="grundsteuer"

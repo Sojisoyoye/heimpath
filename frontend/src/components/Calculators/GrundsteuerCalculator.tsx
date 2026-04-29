@@ -487,7 +487,7 @@ function ModelInputs(
           htmlFor="landArea"
           label="Land Area (sqm)"
           optional
-          tooltip="Grundstücksfläche. Enter 0 for apartments with no private land share."
+          tooltip="Grundstücksfläche (plot area). Enter 0 for apartments with no private land share."
         >
           <Input
             id="landArea"
@@ -509,7 +509,7 @@ function ModelInputs(
         <FormRow
           htmlFor="bwLandArea"
           label="Land Area (sqm)"
-          tooltip="Grundstücksfläche from the Grundbuch or listing. For condos use your share of the total land area (Miteigentumsanteil × Gesamtfläche)."
+          tooltip="Grundstücksfläche (plot area) from the Grundbuch (land registry) or listing. For condos use your share of the total land area (Miteigentumsanteil × Gesamtfläche)."
         >
           <Input
             id="bwLandArea"
@@ -523,8 +523,8 @@ function ModelInputs(
         </FormRow>
         <FormRow
           htmlFor="bodenrichtwert"
-          label="Bodenrichtwert (€/sqm)"
-          tooltip="Official land reference value for your area, published by the Gutachterausschuss. Look it up at boris-bw.de."
+          label="Bodenrichtwert (Standard Land Value, €/sqm)"
+          tooltip="Official standard land value for your area, published by the Gutachterausschuss (Expert Valuation Committee). Look it up at boris-bw.de."
         >
           <Input
             id="bodenrichtwert"
