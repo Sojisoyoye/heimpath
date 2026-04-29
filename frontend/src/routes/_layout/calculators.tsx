@@ -36,8 +36,7 @@ import {
   MortgageEligibilityChecker,
   OwnershipComparison,
   PropertyEvaluationCalculator,
-  RentCeilingCalculator,
-  RentEstimate,
+  RentAnalyser,
   ROICalculator,
   SpeculationTaxCalculator,
   StateComparison,
@@ -184,17 +183,11 @@ const CATEGORIES: ICategory[] = [
     label: "Renting & Compliance",
     items: [
       {
-        tab: "rent-estimate",
-        label: "Rent Estimate",
-        description: "Market rent benchmarks by city and neighbourhood",
-        icon: MapPin,
-      },
-      {
-        tab: "rent-ceiling",
-        label: "Rent Ceiling Check",
+        tab: "rent-analyser",
+        label: "Rent Analyser",
         description:
-          "Mietpreisbremse (Rent Brake) compliance check for your property",
-        icon: Scale,
+          "Market rent estimate (Mietspiegel) and Mietpreisbremse compliance check in one tool",
+        icon: MapPin,
       },
       {
         tab: "grundsteuer",
@@ -357,8 +350,11 @@ function ActiveCalculator({
       case "financing":
       case "eligibility":
         return <MortgageEligibilityChecker />
+      // "rent-estimate" and "rent-ceiling" were merged into "rent-analyser"
       case "rent-estimate":
-        return <RentEstimate />
+      case "rent-ceiling":
+      case "rent-analyser":
+        return <RentAnalyser />
       case "speculation-tax":
         return <SpeculationTaxCalculator />
       case "grundsteuer":
@@ -369,8 +365,6 @@ function ActiveCalculator({
         return <TenantTrapCalculator />
       case "geg-retrofit":
         return <GegRetrofitCalculator />
-      case "rent-ceiling":
-        return <RentCeilingCalculator />
       default:
         return null
     }
