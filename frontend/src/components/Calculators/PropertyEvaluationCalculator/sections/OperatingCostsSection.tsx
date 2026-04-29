@@ -93,7 +93,7 @@ function OperatingCostsSection(props: IProps) {
           <FormRow
             htmlFor="hausgeldAllocable"
             label="Allocable Hausgeld (Service Charge, EUR/mo)"
-            tooltip="Umlagefähige Nebenkosten — costs passed through to the tenant (heating, water, garbage, cleaning, etc.)"
+            tooltip="Umlagefähige Nebenkosten (allocable ancillary costs) — costs passed through to the tenant (heating, water, garbage, cleaning, etc.)"
           >
             <Input
               id="hausgeldAllocable"
@@ -136,7 +136,7 @@ function OperatingCostsSection(props: IProps) {
           <FormRow
             htmlFor="hausgeldNonAllocable"
             label="Non-alloc. Hausgeld (Service Charge, EUR/mo)"
-            tooltip="Nicht umlagefähige Kosten — landlord-only costs that cannot be passed to the tenant (property management fees, etc.)"
+            tooltip="Nicht umlagefähige Kosten (non-allocable costs) — landlord-only costs that cannot be passed to the tenant (property management fees, etc.)"
           >
             <Input
               id="hausgeldNonAllocable"

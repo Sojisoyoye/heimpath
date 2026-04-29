@@ -36,7 +36,7 @@ function RentalPropertyManagement(_props: Readonly<IProps>) {
               "Saves the management fee but requires time and knowledge of German rental law. You'll need to handle tenant inquiries, maintenance requests, and the annual Nebenkostenabrechnung (utility cost statement) yourself.",
           },
         ]}
-        tip="Even if you self-manage, keep a Hausverwaltung contact ready as a backup. Some issues (legal disputes, emergency repairs) benefit from professional handling."
+        tip="Even if you self-manage, keep a Hausverwaltung (property management company) contact ready as a backup. Some issues (legal disputes, emergency repairs) benefit from professional handling."
       />
       <GuidanceCard
         title="Ongoing Responsibilities"

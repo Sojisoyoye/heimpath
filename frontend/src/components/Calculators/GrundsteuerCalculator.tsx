@@ -509,7 +509,7 @@ function ModelInputs(
         <FormRow
           htmlFor="bwLandArea"
           label="Land Area (sqm)"
-          tooltip="Grundstücksfläche (plot area) from the Grundbuch (land registry) or listing. For condos use your share of the total land area (Miteigentumsanteil × Gesamtfläche)."
+          tooltip="Grundstücksfläche (plot area) from the Grundbuch (land registry) or listing. For condos use your share of the total land area (Miteigentumsanteil × Gesamtfläche — co-ownership share × total floor area)."
         >
           <Input
             id="bwLandArea"
