@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Disclaimer } from "@/components/ui/disclaimer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -311,14 +312,10 @@ function RentCeilingCalculator(props: Readonly<IProps>) {
               />
             )}
 
-            <div className="space-y-1 border-t pt-3">
-              <p className="text-xs text-muted-foreground">
-                Source: {result.dataSource}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {result.disclaimer}
-              </p>
-            </div>
+            <Disclaimer className="mt-3">
+              <p>Source: {result.dataSource}</p>
+              <p className="mt-1">{result.disclaimer}</p>
+            </Disclaimer>
           </CardContent>
         </Card>
       )}

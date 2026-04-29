@@ -3,7 +3,7 @@
  * Calculates German capital-gains tax liability on property sales within 10 years
  */
 
-import { AlertTriangle, Euro, Info, RefreshCw, Scale } from "lucide-react"
+import { AlertTriangle, Euro, RefreshCw, Scale } from "lucide-react"
 import { useMemo, useState } from "react"
 import {
   Bar,
@@ -25,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Disclaimer } from "@/components/ui/disclaimer"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
@@ -860,17 +861,14 @@ function SpeculationTaxCalculator({ className }: Readonly<IProps>) {
             </div>
 
             {/* Legal Disclaimer */}
-            <div className="flex items-start gap-2 rounded-lg bg-muted p-3">
-              <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground">
-                This calculator provides estimates only and does not constitute
-                tax advice. The § 23 EStG speculation tax is assessed at your
-                personal marginal income tax rate. Consult a qualified{" "}
-                <em>Steuerberater</em> for your specific situation. Church tax
-                (Kirchensteuer) and solidarity surcharge (Solidaritätszuschlag)
-                are not included.
-              </p>
-            </div>
+            <Disclaimer>
+              This calculator provides estimates only and does not constitute
+              tax advice. The § 23 EStG speculation tax is assessed at your
+              personal marginal income tax rate. Consult a qualified{" "}
+              <em>Steuerberater</em> for your specific situation. Church tax
+              (Kirchensteuer) and solidarity surcharge (Solidaritätszuschlag)
+              are not included.
+            </Disclaimer>
           </CardContent>
         </Card>
       )}
