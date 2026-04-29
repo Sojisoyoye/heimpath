@@ -1663,7 +1663,7 @@ export type NotificationResponse = {
 /**
  * Types of notifications.
  */
-export type NotificationType = 'step_completed' | 'document_translated' | 'calculation_saved' | 'law_bookmarked' | 'journey_deadline' | 'payment_reminder' | 'subscription_expiring' | 'system_announcement' | 'weekly_digest';
+export type NotificationType = 'step_completed' | 'document_translated' | 'translation_failed' | 'calculation_saved' | 'law_bookmarked' | 'journey_deadline' | 'payment_reminder' | 'subscription_expiring' | 'system_announcement' | 'weekly_digest';
 
 /**
  * List of saved ownership comparisons.

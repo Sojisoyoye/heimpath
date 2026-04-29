@@ -486,6 +486,28 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                     document.status = DocumentStatus.FAILED.value
                     document.error_message = str(e)[:1000]
                     await session.commit()
+
+                    # Notify user that translation failed
+                    try:
+                        from sqlmodel import Session as SyncSession
+
+                        from app.core.db import engine as sync_engine
+                        from app.models.notification import NotificationType
+                        from app.services import notification_service
+
+                        with SyncSession(sync_engine) as sync_session:
+                            notification_service.create_notification(
+                                sync_session,
+                                user_id=document.user_id,
+                                type=NotificationType.TRANSLATION_FAILED,
+                                title="Translation Failed",
+                                message=f'Translation of "{document.original_filename}" could not be completed.',
+                                action_url=f"/documents/{document_id}",
+                            )
+                    except Exception:
+                        logger.exception(
+                            "Failed to send translation failure notification"
+                        )
             except Exception:
                 logger.exception("Failed to update document status to failed")
 

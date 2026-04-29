@@ -5885,7 +5885,7 @@ export const NotificationResponseSchema = {
 
 export const NotificationTypeSchema = {
     type: 'string',
-    enum: ['step_completed', 'document_translated', 'calculation_saved', 'law_bookmarked', 'journey_deadline', 'payment_reminder', 'subscription_expiring', 'system_announcement', 'weekly_digest'],
+    enum: ['step_completed', 'document_translated', 'translation_failed', 'calculation_saved', 'law_bookmarked', 'journey_deadline', 'payment_reminder', 'subscription_expiring', 'system_announcement', 'weekly_digest'],
     title: 'NotificationType',
     description: 'Types of notifications.'
 } as const;

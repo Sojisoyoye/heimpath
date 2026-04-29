@@ -5,10 +5,12 @@ import {
   Bookmark,
   Calculator,
   CheckCircle,
+  ChevronRight,
   Clock,
   CreditCard,
   FileText,
   Info,
+  XCircle,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -35,6 +37,7 @@ import type { Notification, NotificationType } from "@/models/notification"
 const NOTIFICATION_ICONS: Record<NotificationType, typeof Bell> = {
   step_completed: CheckCircle,
   document_translated: FileText,
+  translation_failed: XCircle,
   calculation_saved: Calculator,
   law_bookmarked: Bookmark,
   journey_deadline: Clock,
@@ -79,6 +82,9 @@ function NotificationItem({
         </p>
         <p className="mt-1 text-xs text-muted-foreground/70">{timeAgo}</p>
       </div>
+      {notification.actionUrl && (
+        <ChevronRight className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/50" />
+      )}
       {!notification.isRead && (
         <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
       )}

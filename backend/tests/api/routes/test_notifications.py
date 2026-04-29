@@ -71,6 +71,72 @@ def test_list_notifications_with_data(client: TestClient, db: Session) -> None:
     assert data["unread_count"] == 1
 
 
+def test_notification_action_url_returned_in_response(
+    client: TestClient, db: Session
+) -> None:
+    """Test that action_url is included in the notification list response."""
+    headers, user_id = get_auth_headers(client, db)
+    doc_id = uuid.uuid4()
+    create_notification(
+        db,
+        user_id,
+        type=NotificationType.DOCUMENT_TRANSLATED.value,
+        title="Document Translated",
+        action_url=f"/documents/{doc_id}",
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/notifications/", headers=headers)
+
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["data"]) == 1
+    assert data["data"][0]["action_url"] == f"/documents/{doc_id}"
+
+
+def test_notification_without_action_url_returns_null(
+    client: TestClient, db: Session
+) -> None:
+    """Test that notifications without action_url return null, not missing field."""
+    headers, user_id = get_auth_headers(client, db)
+    create_notification(
+        db,
+        user_id,
+        type=NotificationType.SYSTEM_ANNOUNCEMENT.value,
+        title="System Announcement",
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/notifications/", headers=headers)
+
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["data"]) == 1
+    assert data["data"][0]["action_url"] is None
+
+
+def test_translation_failed_notification_has_action_url(
+    client: TestClient, db: Session
+) -> None:
+    """Test that translation_failed notifications carry the document action_url."""
+    headers, user_id = get_auth_headers(client, db)
+    doc_id = uuid.uuid4()
+    create_notification(
+        db,
+        user_id,
+        type=NotificationType.TRANSLATION_FAILED.value,
+        title="Translation Failed",
+        action_url=f"/documents/{doc_id}",
+    )
+
+    r = client.get(f"{settings.API_V1_STR}/notifications/", headers=headers)
+
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["data"]) == 1
+    item = data["data"][0]
+    assert item["type"] == "translation_failed"
+    assert item["action_url"] == f"/documents/{doc_id}"
+
+
 def test_list_notifications_unread_only(client: TestClient, db: Session) -> None:
     """Test filtering for unread-only notifications."""
     headers, user_id = get_auth_headers(client, db)

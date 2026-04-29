@@ -14,6 +14,7 @@ class NotificationType(str, PyEnum):
 
     STEP_COMPLETED = "step_completed"
     DOCUMENT_TRANSLATED = "document_translated"
+    TRANSLATION_FAILED = "translation_failed"
     CALCULATION_SAVED = "calculation_saved"
     LAW_BOOKMARKED = "law_bookmarked"
     JOURNEY_DEADLINE = "journey_deadline"
@@ -26,6 +27,7 @@ class NotificationType(str, PyEnum):
 _notification_type_enum = PgEnum(
     "step_completed",
     "document_translated",
+    "translation_failed",
     "calculation_saved",
     "law_bookmarked",
     "journey_deadline",
