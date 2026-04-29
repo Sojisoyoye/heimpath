@@ -32,6 +32,7 @@ class JourneyOverview(BaseModel):
     completed_steps: int
     total_steps: int
     estimated_days_remaining: int | None = None
+    total_estimated_days: int | None = None
     started_at: datetime | None = None
     next_step_title: str | None = None
     next_step_id: uuid.UUID | None = None

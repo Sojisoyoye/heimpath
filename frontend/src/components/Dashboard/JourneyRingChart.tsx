@@ -15,6 +15,8 @@ interface IProps {
   phases: Record<string, PhaseData>
   overallPercentage: number
   size?: number
+  startedAt?: string | null
+  totalEstimatedDays?: number | null
 }
 
 /******************************************************************************
@@ -99,9 +101,26 @@ function PhaseArc(props: {
   )
 }
 
+/** Number of whole days elapsed since a UTC ISO date string. */
+function daysSince(isoDate: string): number {
+  const start = new Date(isoDate)
+  const now = new Date()
+  return Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+}
+
 /** Default component. Donut chart with per-phase arcs. */
 function JourneyRingChart(props: Readonly<IProps>) {
-  const { phases, overallPercentage, size = 160 } = props
+  const {
+    phases,
+    overallPercentage,
+    size = 160,
+    startedAt,
+    totalEstimatedDays,
+  } = props
+
+  const dayNumber =
+    startedAt != null ? Math.max(1, daysSince(startedAt) + 1) : null
+  const showDayLabel = dayNumber != null && totalEstimatedDays != null
 
   const cx = size / 2
   const cy = size / 2
@@ -170,6 +189,11 @@ function JourneyRingChart(props: Readonly<IProps>) {
             {Math.round(overallPercentage)}%
           </span>
           <span className="text-xs text-muted-foreground">Complete</span>
+          {showDayLabel && (
+            <span className="mt-0.5 text-[10px] text-muted-foreground">
+              Day {dayNumber} of {totalEstimatedDays}
+            </span>
+          )}
         </div>
       </div>
 
