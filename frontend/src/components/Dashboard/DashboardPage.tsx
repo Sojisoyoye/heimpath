@@ -139,6 +139,8 @@ function JourneyOverviewCard(props: { journey: JourneyOverview }) {
         <JourneyRingChart
           phases={journey.phases}
           overallPercentage={journey.progressPercentage}
+          startedAt={journey.startedAt}
+          totalEstimatedDays={journey.totalEstimatedDays}
         />
 
         {journey.nextStepTitle && (

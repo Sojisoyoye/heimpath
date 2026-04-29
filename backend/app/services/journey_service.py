@@ -1802,11 +1802,14 @@ def get_progress(
             ),
         }
 
-    # Estimate remaining days
+    # Estimate remaining days (only uncompleted/unskipped steps)
     remaining_steps = [
         s for s in steps if s.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED)
     ]
     estimated_days = sum(s.estimated_duration_days or 0 for s in remaining_steps)
+
+    # Total estimated duration across all steps (fixed target for progress gauge)
+    total_estimated_days = sum(s.estimated_duration_days or 0 for s in steps)
 
     return {
         "journey_id": journey.id,
@@ -1818,5 +1821,8 @@ def get_progress(
         if total_steps > 0
         else 0,
         "estimated_days_remaining": estimated_days if estimated_days > 0 else None,
+        "total_estimated_days": total_estimated_days
+        if total_estimated_days > 0
+        else None,
         "phases": phases,
     }

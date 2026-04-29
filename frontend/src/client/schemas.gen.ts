@@ -3881,6 +3881,17 @@ export const JourneyOverviewSchema = {
             ],
             title: 'Estimated Days Remaining'
         },
+        total_estimated_days: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Total Estimated Days'
+        },
         started_at: {
             anyOf: [
                 {

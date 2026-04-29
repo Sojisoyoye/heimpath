@@ -1159,6 +1159,7 @@ export type JourneyOverview = {
     completed_steps: number;
     total_steps: number;
     estimated_days_remaining?: (number | null);
+    total_estimated_days?: (number | null);
     started_at?: (string | null);
     next_step_title?: (string | null);
     next_step_id?: (string | null);

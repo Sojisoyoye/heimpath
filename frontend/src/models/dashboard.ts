@@ -21,6 +21,7 @@ export interface JourneyOverview {
   completedSteps: number
   totalSteps: number
   estimatedDaysRemaining: number | null
+  totalEstimatedDays: number | null
   startedAt: string | null
   nextStepTitle: string | null
   nextStepId: string | null

@@ -86,6 +86,7 @@ def get_journey_overview(
         completed_steps=progress["completed_steps"],
         total_steps=progress["total_steps"],
         estimated_days_remaining=progress["estimated_days_remaining"],
+        total_estimated_days=progress["total_estimated_days"],
         started_at=journey.started_at,
         next_step_title=next_step.title if next_step else None,
         next_step_id=next_step.id if next_step else None,

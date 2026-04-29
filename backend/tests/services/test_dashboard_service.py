@@ -71,6 +71,7 @@ class TestGetDashboardOverview:
             completed_steps=0,
             total_steps=10,
             estimated_days_remaining=60,
+            total_estimated_days=90,
             started_at=None,
             next_step_title=None,
             next_step_id=None,
@@ -171,6 +172,7 @@ class TestGetJourneyOverview:
             "completed_steps": 0,
             "total_steps": 15,
             "estimated_days_remaining": 120,
+            "total_estimated_days": 120,
             "phases": {
                 "research": {"total": 3, "completed": 0},
                 "preparation": {"total": 4, "completed": 0},
@@ -191,6 +193,7 @@ class TestGetJourneyOverview:
         assert result.estimated_total_cost == 250_000.0
         assert result.days_to_target is not None
         assert result.days_to_target >= 0
+        assert result.total_estimated_days == 120
 
     @patch("app.services.dashboard_service._get_estimated_total_cost")
     @patch("app.services.dashboard_service.journey_service")
@@ -215,6 +218,7 @@ class TestGetJourneyOverview:
             "completed_steps": 15,
             "total_steps": 15,
             "estimated_days_remaining": None,
+            "total_estimated_days": None,
             "phases": {
                 "research": {"total": 3, "completed": 3},
                 "preparation": {"total": 4, "completed": 4},
@@ -230,6 +234,39 @@ class TestGetJourneyOverview:
         assert result.progress_percentage == 100.0
         assert result.next_step_title is None
         assert result.next_step_id is None
+
+    @patch("app.services.dashboard_service._get_estimated_total_cost")
+    @patch("app.services.dashboard_service.journey_service")
+    def test_total_estimated_days_exposed_in_overview(
+        self, mock_js, mock_cost, user_id: uuid.UUID
+    ) -> None:
+        """Test that total_estimated_days is populated from progress data."""
+        mock_cost.return_value = None
+
+        mock_journey = MagicMock(spec=Journey)
+        mock_journey.id = uuid.uuid4()
+        mock_journey.title = "Test Journey"
+        mock_journey.started_at = None
+        mock_journey.budget_euros = None
+        mock_journey.target_purchase_date = None
+
+        mock_js.get_user_journeys.return_value = [mock_journey]
+        mock_js.get_progress.return_value = {
+            "current_phase": JourneyPhase.RESEARCH,
+            "current_step_number": 1,
+            "progress_percentage": 20.0,
+            "completed_steps": 1,
+            "total_steps": 5,
+            "estimated_days_remaining": 72,
+            "total_estimated_days": 90,
+            "phases": {"research": {"total": 5, "completed": 1}},
+        }
+        mock_js.get_next_step.return_value = None
+
+        result = get_journey_overview(MagicMock(), user_id)
+
+        assert result is not None
+        assert result.total_estimated_days == 90
 
 
 class TestGetRecentDocuments:
