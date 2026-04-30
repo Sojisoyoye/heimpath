@@ -39,7 +39,10 @@ const NOTIFICATION_CATEGORIES: CategoryGroup[] = [
   },
   {
     label: "Documents",
-    types: [{ type: "document_translated", label: "Document Translated" }],
+    types: [
+      { type: "document_translated", label: "Document Translated" },
+      { type: "translation_failed", label: "Translation Failed" },
+    ],
   },
   {
     label: "Calculators",
