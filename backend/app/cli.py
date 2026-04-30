@@ -24,9 +24,19 @@ def send_weekly_digest() -> None:
         logger.info("Done — %d digest emails sent.", count)
 
 
+def send_deadline_reminders() -> None:
+    """Create a DB session and fire journey deadline reminder notifications."""
+    from app.services import deadline_service
+
+    with Session(engine) as session:
+        count = deadline_service.send_deadline_reminders(session)
+        logger.info("Done — %d deadline reminders sent.", count)
+
+
 def main() -> None:
     commands = {
         "send-weekly-digest": send_weekly_digest,
+        "send-deadline-reminders": send_deadline_reminders,
     }
 
     if len(sys.argv) < 2 or sys.argv[1] not in commands:
