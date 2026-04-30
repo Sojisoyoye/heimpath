@@ -306,7 +306,9 @@ function ArticlesAdmin() {
               <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
                 Difficulty
               </th>
-              <th className="px-4 py-3 text-left font-medium">Author</th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Author
+              </th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
@@ -342,7 +344,7 @@ function ArticlesAdmin() {
                       {article.difficultyLevel}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                  <td className="hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell">
                     {article.authorName}
                   </td>
                   <td className="px-4 py-3 text-right">
