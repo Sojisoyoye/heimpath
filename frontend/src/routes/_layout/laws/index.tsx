@@ -5,10 +5,11 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Bookmark, Scale, Search } from "lucide-react"
-import { useState } from "react"
+import { validateSearchTabQuery } from "@/common/utils"
 import { LawList, LawSearch } from "@/components/Legal"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useTabQueryNavigation } from "@/hooks"
 
 /******************************************************************************
                               Route
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const Route = createFileRoute("/_layout/laws/")({
   component: LawsPage,
+  validateSearch: validateSearchTabQuery,
   head: () => ({
     meta: [{ title: "Legal Knowledge Base - HeimPath" }],
   }),
@@ -27,7 +29,9 @@ export const Route = createFileRoute("/_layout/laws/")({
 
 /** Default component. Laws listing page. */
 function LawsPage() {
-  const [activeTab, setActiveTab] = useState<string>("browse")
+  const { tab, q } = Route.useSearch()
+  const { activeTab, handleTabChange, handleQueryChange } =
+    useTabQueryNavigation("/laws", { tab, q })
 
   return (
     <div className="space-y-6">
@@ -51,7 +55,7 @@ function LawsPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="browse" className="gap-2">
             <Scale className="h-4 w-4" />
@@ -68,7 +72,7 @@ function LawsPage() {
         </TabsContent>
 
         <TabsContent value="search" className="mt-6">
-          <LawSearch />
+          <LawSearch initialQuery={q} onQueryChange={handleQueryChange} />
         </TabsContent>
       </Tabs>
     </div>

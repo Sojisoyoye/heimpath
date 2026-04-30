@@ -5,9 +5,10 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 import { Languages, Search } from "lucide-react"
-import { useState } from "react"
+import { validateSearchTabQuery } from "@/common/utils"
 import { GlossaryList, GlossarySearch } from "@/components/Glossary"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useTabQueryNavigation } from "@/hooks"
 
 /******************************************************************************
                               Route
@@ -15,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const Route = createFileRoute("/_layout/glossary/")({
   component: GlossaryPage,
+  validateSearch: validateSearchTabQuery,
   head: () => ({
     meta: [{ title: "German RE Glossary - HeimPath" }],
   }),
@@ -26,7 +28,9 @@ export const Route = createFileRoute("/_layout/glossary/")({
 
 /** Default component. Glossary listing page. */
 function GlossaryPage() {
-  const [activeTab, setActiveTab] = useState<string>("browse")
+  const { tab, q } = Route.useSearch()
+  const { activeTab, handleTabChange, handleQueryChange } =
+    useTabQueryNavigation("/glossary", { tab, q })
 
   return (
     <div className="space-y-6">
@@ -42,7 +46,7 @@ function GlossaryPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="browse" className="gap-2">
             <Languages className="h-4 w-4" />
@@ -59,7 +63,7 @@ function GlossaryPage() {
         </TabsContent>
 
         <TabsContent value="search" className="mt-6">
-          <GlossarySearch />
+          <GlossarySearch initialQuery={q} onQueryChange={handleQueryChange} />
         </TabsContent>
       </Tabs>
     </div>
