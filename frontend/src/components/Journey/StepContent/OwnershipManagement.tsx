@@ -14,6 +14,7 @@ import {
 
 import type { JourneyStep } from "@/models/journey"
 import { GuidanceCard } from "./GuidanceCard"
+import { PartnerReferralBanner } from "./PartnerReferralBanner"
 
 interface IProps {
   step: JourneyStep
@@ -74,6 +75,13 @@ function OwnershipManagement(_props: Readonly<IProps>) {
               "Schedule an annual Heizungswartung (heating system maintenance). It's legally required for gas systems and keeps your system efficient.",
           },
         ]}
+      />
+
+      <PartnerReferralBanner
+        partnerName="Myhammer"
+        description="Find English-speaking, vetted tradespeople across Germany on Myhammer — post your job, get quotes, and read verified reviews from other homeowners."
+        ctaLabel="Find a Handwerker"
+        href="https://www.myhammer.de"
       />
     </div>
   )

@@ -19,6 +19,8 @@ import { ProgressBar } from "../ProgressBar"
 import { TaskCheckbox } from "../TaskCheckbox"
 import { FinanceCheck } from "./FinanceCheck"
 import { MarketInsights } from "./MarketInsights"
+import { MortgageComparison } from "./MortgageComparison"
+import { MortgagePreapproval } from "./MortgagePreapproval"
 import { OwnershipInsurance } from "./OwnershipInsurance"
 import { OwnershipManagement } from "./OwnershipManagement"
 import { OwnershipRegistration } from "./OwnershipRegistration"
@@ -61,6 +63,8 @@ const STEP_CONTENT_REGISTRY: Record<
   (props: IStepContentProps) => ReactNode
 > = {
   finance_check: (p) => <FinanceCheck step={p.step} />,
+  mortgage_preapproval: (p) => <MortgagePreapproval step={p.step} />,
+  mortgage_comparison: (p) => <MortgageComparison step={p.step} />,
   research_goals: (p) => (
     <PropertyGoalsForm
       journeyId={p.journeyId}
