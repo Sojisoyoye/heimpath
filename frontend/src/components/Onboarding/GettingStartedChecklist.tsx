@@ -53,7 +53,7 @@ const CHECKLIST_ITEMS: ReadonlyArray<ChecklistItem> = [
     label: "Calculate hidden costs",
     icon: Calculator,
     to: "/calculators",
-    search: { tab: "hidden-costs" },
+    search: { tab: "costs" },
   },
   {
     id: "document",
