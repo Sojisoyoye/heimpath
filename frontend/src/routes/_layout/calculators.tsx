@@ -51,19 +51,13 @@ export const Route = createFileRoute("/_layout/calculators")({
   component: CalculatorsPage,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { tab?: string; purchasePrice?: number; monthlyRent?: number } => ({
+  ): { tab?: string; purchasePrice?: number } => ({
     tab: (search.tab as string) || undefined,
     purchasePrice:
       typeof search.purchasePrice === "number"
         ? search.purchasePrice
         : typeof search.purchasePrice === "string"
           ? Number.parseFloat(search.purchasePrice) || undefined
-          : undefined,
-    monthlyRent:
-      typeof search.monthlyRent === "number"
-        ? search.monthlyRent
-        : typeof search.monthlyRent === "string"
-          ? Number.parseFloat(search.monthlyRent) || undefined
           : undefined,
   }),
   head: () => ({
@@ -384,10 +378,21 @@ function ActiveCalculator({
   )
 }
 
+/** Resolve legacy tab aliases to their canonical tab values. */
+const TAB_ALIASES: Record<string, string> = {
+  roi: "property-evaluation",
+  financing: "eligibility",
+  "rent-estimate": "rent-analyser",
+  "rent-ceiling": "rent-analyser",
+}
+
 /** Default component. Calculators page with grouped card grid navigation. */
 function CalculatorsPage() {
   const { tab, purchasePrice } = Route.useSearch()
   const navigate = useNavigate()
+
+  // Resolve legacy aliases so old deep-links still open the right calculator
+  const resolvedTab = tab ? (TAB_ALIASES[tab] ?? tab) : undefined
 
   const handleSelect = (value: string) => {
     navigate({
@@ -415,9 +420,9 @@ function CalculatorsPage() {
         </p>
       </div>
 
-      {tab !== undefined && ITEM_MAP[tab] !== undefined ? (
+      {resolvedTab !== undefined && ITEM_MAP[resolvedTab] !== undefined ? (
         <ActiveCalculator
-          tab={tab}
+          tab={resolvedTab}
           purchasePrice={purchasePrice}
           onBack={handleBack}
         />

@@ -563,7 +563,7 @@ function PropertyEvaluationCalculator(
       )}
 
       {/* AfA Depreciation Card */}
-      {!isOwnerOccupier && results && (
+      {!isOwnerOccupier && results && results.annualRows.length > 0 && (
         <AfaCard
           purchasePrice={state.propertyInfo.purchasePrice}
           buildingSharePercent={state.rent.buildingSharePercent}

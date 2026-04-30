@@ -33,7 +33,12 @@ interface IProps {
                               Functions
 ******************************************************************************/
 
-/** Return the standard §7 EStG AfA rate for a given construction year. */
+/**
+ * Return the standard §7 Abs. 4 EStG AfA rate.
+ * Note: the 3% rate applies to buildings completed (Fertigstellung) from
+ * 1 January 2023 (JStG 2022), not simply built in 2023+.
+ * Use the completion year when evaluating new-builds.
+ */
 function getAfaRate(year: number): number {
   if (year < 1925) return 2.5
   if (year >= 2023) return 3.0
@@ -60,40 +65,43 @@ function AfaCard(props: Readonly<IProps>) {
   } = props
 
   const [isOpen, setIsOpen] = useState(false)
-  const [constructionYear, setConstructionYear] = useState("")
+  const [completionYear, setCompletionYear] = useState("")
 
   const buildingValue = purchasePrice * (buildingSharePercent / 100)
   const annualAfa = buildingValue * (depreciationRatePercent / 100)
   const afaTaxSaving = annualAfa * (marginalTaxRatePercent / 100)
 
   const suggestedRate =
-    constructionYear && Number(constructionYear) >= 1800
-      ? getAfaRate(Number(constructionYear))
+    completionYear && Number(completionYear) >= 1800
+      ? getAfaRate(Number(completionYear))
       : null
 
-  const chartData = useMemo(() => {
-    let cum = 0
-    return annualRows.map((r) => {
-      cum += r.actualTaxSaving
-      return {
+  const chartData = useMemo(
+    () =>
+      annualRows.map((r) => ({
         name: `Yr ${r.year}`,
         taxSaving: Math.round(r.actualTaxSaving),
-        cumulative: Math.round(cum),
-      }
-    })
-  }, [annualRows])
+      })),
+    [annualRows],
+  )
 
   const totalTaxSaving = annualRows.reduce((s, r) => s + r.actualTaxSaving, 0)
 
+  function handleToggle() {
+    setIsOpen((o) => !o)
+  }
+
   return (
     <Card className="overflow-hidden">
-      <CardHeader
-        className="py-3 cursor-pointer select-none"
-        onClick={() => setIsOpen((o) => !o)}
-      >
-        <CardTitle className="flex items-center gap-2 text-base">
+      <CardHeader className="py-3">
+        <button
+          type="button"
+          className="flex w-full cursor-pointer select-none items-center gap-2 text-base font-semibold"
+          onClick={handleToggle}
+          aria-expanded={isOpen}
+        >
           <TrendingDown className="h-4 w-4" />
-          Depreciation (AfA)
+          <CardTitle className="text-base">Depreciation (AfA)</CardTitle>
           <span className="ml-auto">
             {isOpen ? (
               <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -101,36 +109,42 @@ function AfaCard(props: Readonly<IProps>) {
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             )}
           </span>
-        </CardTitle>
+        </button>
       </CardHeader>
 
       {isOpen && (
         <CardContent className="space-y-4 pt-0">
-          {/* Construction year helper */}
+          {/* Completion year helper */}
           <div className="space-y-1">
             <Label
-              htmlFor="afa-construction-year"
+              htmlFor="afa-completion-year"
               className="text-xs text-muted-foreground"
             >
-              Construction year (optional — suggests standard AfA rate)
+              Completion year / Baujahr (optional — suggests standard AfA rate)
             </Label>
             <Input
-              id="afa-construction-year"
+              id="afa-completion-year"
               type="number"
               min="1800"
               max="2030"
               placeholder="e.g. 1990"
-              value={constructionYear}
-              onChange={(e) => setConstructionYear(e.target.value)}
+              value={completionYear}
+              onChange={(e) => setCompletionYear(e.target.value)}
               className="h-8 text-sm"
             />
             {suggestedRate !== null && (
               <p className="text-xs text-muted-foreground">
-                Standard rate for {constructionYear}:{" "}
+                Standard rate for {completionYear}:{" "}
                 <span className="font-medium">{suggestedRate}%</span>
                 {suggestedRate !== depreciationRatePercent && (
                   <span className="ml-1">
                     (you have set {depreciationRatePercent}% in Rent section)
+                  </span>
+                )}
+                {Number(completionYear) >= 2023 && (
+                  <span className="ml-1 text-amber-600">
+                    — 3% applies to new-builds completed from 1 Jan 2023 (§7
+                    Abs. 4 EStG, JStG 2022)
                   </span>
                 )}
               </p>

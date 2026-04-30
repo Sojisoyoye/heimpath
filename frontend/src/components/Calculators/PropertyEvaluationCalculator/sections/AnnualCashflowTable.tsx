@@ -40,7 +40,7 @@ function formatYAxisTick(v: number): string {
 ******************************************************************************/
 
 /** Default component. Annual cashflow projection table with area chart. */
-function AnnualCashflowTable(props: IProps) {
+function AnnualCashflowTable(props: Readonly<IProps>) {
   const { rows, className } = props
   const [tableOpen, setTableOpen] = useState(false)
 

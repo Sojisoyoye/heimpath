@@ -150,7 +150,7 @@ function RentSection(props: IProps) {
           <FormRow
             htmlFor="depreciationRate"
             label="Depreciation Rate (%)"
-            tooltip="AfA (Absetzung für Abnutzung) — tax-deductible building wear. 2% for buildings built after 1924, 2.5% for older"
+            tooltip="AfA (Absetzung für Abnutzung) — tax-deductible building wear. 2.5% pre-1925, 2% 1925–2022, 3% new-builds completed from 1 Jan 2023 (§7 Abs. 4 EStG, JStG 2022)"
           >
             <Input
               id="depreciationRate"
