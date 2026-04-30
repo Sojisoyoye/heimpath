@@ -377,11 +377,11 @@ resource "azurerm_container_app_job" "prod_weekly_digest" {
   location                     = azurerm_resource_group.prod.location
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.prod.name
-  replica_timeout_in_seconds   = 600
+  replica_timeout_in_seconds   = 1800
   replica_retry_limit          = 1
 
   schedule_trigger_config {
-    cron_expression          = "0 7 * * 1" # Mondays 07:00 UTC
+    cron_expression          = "0 6 * * 1" # Mondays 06:00 UTC
     parallelism              = 1
     replica_completion_count = 1
   }
