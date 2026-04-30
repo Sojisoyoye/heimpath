@@ -22,7 +22,12 @@ function LandingHeader() {
         <div className="flex items-center gap-2">
           <Appearance />
           {authenticated ? (
-            <NavUserMenu />
+            <>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/dashboard">Go to Dashboard</Link>
+              </Button>
+              <NavUserMenu />
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>

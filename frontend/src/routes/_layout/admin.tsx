@@ -21,14 +21,29 @@ function getUsersQueryOptions() {
   }
 }
 
+function AdminErrorFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3">
+      <p className="text-lg font-semibold">Failed to load admin panel</p>
+      <p className="text-sm text-muted-foreground">
+        Please refresh the page. If the problem persists, contact support.
+      </p>
+    </div>
+  )
+}
+
 export const Route = createFileRoute("/_layout/admin")({
   component: Admin,
+  errorComponent: AdminErrorFallback,
   beforeLoad: async () => {
-    const user = await UsersService.readUserMe()
+    let user: UserPublic
+    try {
+      user = await UsersService.readUserMe()
+    } catch {
+      throw redirect({ to: "/dashboard" })
+    }
     if (!user.is_superuser) {
-      throw redirect({
-        to: "/dashboard",
-      })
+      throw redirect({ to: "/dashboard" })
     }
   },
   head: () => ({
