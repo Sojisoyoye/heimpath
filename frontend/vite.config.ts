@@ -6,6 +6,12 @@ import { defineConfig } from "vite"
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    // Disable Vite's inline modulepreload polyfill so it doesn't violate
+    // the `script-src 'self'` CSP directive (the polyfill is only needed
+    // for browsers that are >3 years old and no longer in our support matrix).
+    modulePreload: { polyfill: false },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
