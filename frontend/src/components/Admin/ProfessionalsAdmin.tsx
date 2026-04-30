@@ -128,7 +128,7 @@ function ProfessionalFormDialog({
             <Label>Name *</Label>
             <Input {...register("name", { required: true })} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label>Type *</Label>
               <Select
@@ -168,7 +168,7 @@ function ProfessionalFormDialog({
             <Label>Description</Label>
             <Textarea rows={3} {...register("description")} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label>Email</Label>
               <Input type="email" {...register("email")} />
@@ -261,7 +261,7 @@ function ProfessionalsAdmin() {
           Add Professional
         </Button>
       </div>
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>

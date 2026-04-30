@@ -83,13 +83,15 @@ function Admin() {
         <p className="text-muted-foreground">Manage users and content</p>
       </div>
       <Tabs defaultValue="users">
-        <TabsList>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="laws">Laws</TabsTrigger>
-          <TabsTrigger value="glossary">Glossary</TabsTrigger>
-          <TabsTrigger value="articles">Articles</TabsTrigger>
-          <TabsTrigger value="professionals">Professionals</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="w-max">
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="laws">Laws</TabsTrigger>
+            <TabsTrigger value="glossary">Glossary</TabsTrigger>
+            <TabsTrigger value="articles">Articles</TabsTrigger>
+            <TabsTrigger value="professionals">Professionals</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="users" className="mt-6">
           <div className="flex items-center justify-between mb-4">
