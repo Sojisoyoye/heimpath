@@ -155,6 +155,7 @@ function AnnualCashflowTable(props: Readonly<IProps>) {
         <button
           type="button"
           onClick={() => setTableOpen((o) => !o)}
+          aria-expanded={tableOpen}
           className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
         >
           <span>Year-by-Year Detail</span>
