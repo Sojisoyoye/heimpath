@@ -384,6 +384,8 @@ const TAB_ALIASES: Record<string, string> = {
   financing: "eligibility",
   "rent-estimate": "rent-analyser",
   "rent-ceiling": "rent-analyser",
+  "hidden-costs": "costs",
+  amortisation: "mortgage",
 }
 
 /** Default component. Calculators page with grouped card grid navigation. */

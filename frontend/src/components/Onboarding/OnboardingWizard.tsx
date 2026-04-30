@@ -118,7 +118,7 @@ const PRIORITY_CONFIG: Record<
 > = {
   understand_costs: {
     route: "/calculators",
-    search: { tab: "hidden-costs" },
+    search: { tab: "costs" },
     cta: "Calculate Hidden Costs",
     detail:
       "Use our Hidden Costs Calculator to see the real total cost of buying property in any German state — including taxes, notary fees, and agent commissions.",

@@ -62,7 +62,7 @@ function MortgageComparison(_props: Readonly<IProps>) {
       tip="Run the Mortgage Amortisation Calculator with each offer's rate and repayment to see the exact total cost over time. Small differences compound significantly over 20+ years."
       ctaLabel="Open Amortisation Calculator"
       ctaHref="/calculators"
-      ctaSearch={{ tab: "amortisation" }}
+      ctaSearch={{ tab: "mortgage" }}
     />
   )
 }
