@@ -137,7 +137,7 @@ function ArticleFormDialog({
             <Label>Title *</Label>
             <Input {...register("title", { required: true })} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label>Slug *</Label>
               <Input
@@ -150,7 +150,7 @@ function ArticleFormDialog({
               <Input {...register("authorName", { required: true })} />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-1">
               <Label>Category *</Label>
               <Select
@@ -295,7 +295,7 @@ function ArticlesAdmin() {
           Add Article
         </Button>
       </div>
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>

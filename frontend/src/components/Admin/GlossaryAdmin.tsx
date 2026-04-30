@@ -112,7 +112,7 @@ function GlossaryFormDialog({
           <DialogTitle>{editTerm ? "Edit Term" : "Add Term"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-2">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label>Term (German) *</Label>
               <Input
@@ -128,7 +128,7 @@ function GlossaryFormDialog({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label>Slug *</Label>
               <Input
@@ -236,7 +236,7 @@ function GlossaryAdmin() {
           Add Term
         </Button>
       </div>
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
