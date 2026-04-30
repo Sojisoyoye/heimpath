@@ -5,9 +5,10 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 import { BookOpen, Search } from "lucide-react"
-import { useState } from "react"
+import { validateSearchTabQuery } from "@/common/utils"
 import { ArticleList, ArticleSearch } from "@/components/Articles"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useTabQueryNavigation } from "@/hooks"
 
 /******************************************************************************
                               Route
@@ -15,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const Route = createFileRoute("/_layout/articles/")({
   component: ArticlesPage,
+  validateSearch: validateSearchTabQuery,
   head: () => ({
     meta: [{ title: "Content Library - HeimPath" }],
   }),
@@ -26,7 +28,9 @@ export const Route = createFileRoute("/_layout/articles/")({
 
 /** Default component. Articles listing page. */
 function ArticlesPage() {
-  const [activeTab, setActiveTab] = useState<string>("browse")
+  const { tab, q } = Route.useSearch()
+  const { activeTab, handleTabChange, handleQueryChange } =
+    useTabQueryNavigation("/articles", { tab, q })
 
   return (
     <div className="space-y-6">
@@ -42,7 +46,7 @@ function ArticlesPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="browse" className="gap-2">
             <BookOpen className="h-4 w-4" />
@@ -59,7 +63,7 @@ function ArticlesPage() {
         </TabsContent>
 
         <TabsContent value="search" className="mt-6">
-          <ArticleSearch />
+          <ArticleSearch initialQuery={q} onQueryChange={handleQueryChange} />
         </TabsContent>
       </Tabs>
     </div>
