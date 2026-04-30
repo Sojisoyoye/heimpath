@@ -34,6 +34,7 @@ export const columns: ColumnDef<UserTableData>[] = [
   {
     accessorKey: "email",
     header: "Email",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => (
       <span className="text-muted-foreground">{row.original.email}</span>
     ),
