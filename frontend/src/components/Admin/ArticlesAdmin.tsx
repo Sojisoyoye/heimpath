@@ -300,8 +300,12 @@ function ArticlesAdmin() {
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="px-4 py-3 text-left font-medium">Title</th>
-              <th className="px-4 py-3 text-left font-medium">Category</th>
-              <th className="px-4 py-3 text-left font-medium">Difficulty</th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Category
+              </th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Difficulty
+              </th>
               <th className="px-4 py-3 text-left font-medium">Author</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
@@ -325,10 +329,10 @@ function ArticlesAdmin() {
                   <td className="px-4 py-3 max-w-xs truncate font-medium">
                     {article.title}
                   </td>
-                  <td className="px-4 py-3 text-xs capitalize">
+                  <td className="hidden px-4 py-3 text-xs capitalize sm:table-cell">
                     {article.category.replace(/_/g, " ")}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="hidden px-4 py-3 sm:table-cell">
                     <Badge
                       variant={
                         DIFFICULTY_VARIANT[article.difficultyLevel] ?? "outline"

@@ -267,8 +267,12 @@ function ProfessionalsAdmin() {
             <tr>
               <th className="px-4 py-3 text-left font-medium">Name</th>
               <th className="px-4 py-3 text-left font-medium">Type</th>
-              <th className="px-4 py-3 text-left font-medium">City</th>
-              <th className="px-4 py-3 text-left font-medium">Verified</th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                City
+              </th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Verified
+              </th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
@@ -292,8 +296,8 @@ function ProfessionalsAdmin() {
                   <td className="px-4 py-3 text-xs capitalize">
                     {p.type.replace(/_/g, " ")}
                   </td>
-                  <td className="px-4 py-3">{p.city}</td>
-                  <td className="px-4 py-3">
+                  <td className="hidden px-4 py-3 sm:table-cell">{p.city}</td>
+                  <td className="hidden px-4 py-3 sm:table-cell">
                     {p.isVerified ? (
                       <Badge variant="default" className="text-xs">
                         Verified

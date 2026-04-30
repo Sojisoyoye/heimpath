@@ -273,8 +273,12 @@ function LawsAdmin() {
             <tr>
               <th className="px-4 py-3 text-left font-medium">Citation</th>
               <th className="px-4 py-3 text-left font-medium">Title (EN)</th>
-              <th className="px-4 py-3 text-left font-medium">Category</th>
-              <th className="px-4 py-3 text-left font-medium">Type</th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Category
+              </th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Type
+              </th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
@@ -298,10 +302,10 @@ function LawsAdmin() {
                     {law.citation}
                   </td>
                   <td className="px-4 py-3 max-w-xs truncate">{law.titleEn}</td>
-                  <td className="px-4 py-3 text-xs capitalize">
+                  <td className="hidden px-4 py-3 text-xs capitalize sm:table-cell">
                     {law.category.replace(/_/g, " ")}
                   </td>
-                  <td className="px-4 py-3 text-xs capitalize">
+                  <td className="hidden px-4 py-3 text-xs capitalize sm:table-cell">
                     {law.propertyType}
                   </td>
                   <td className="px-4 py-3 text-right">

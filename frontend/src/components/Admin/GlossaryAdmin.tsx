@@ -242,8 +242,12 @@ function GlossaryAdmin() {
             <tr>
               <th className="px-4 py-3 text-left font-medium">Term (DE)</th>
               <th className="px-4 py-3 text-left font-medium">Term (EN)</th>
-              <th className="px-4 py-3 text-left font-medium">Slug</th>
-              <th className="px-4 py-3 text-left font-medium">Category</th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Slug
+              </th>
+              <th className="hidden px-4 py-3 text-left font-medium sm:table-cell">
+                Category
+              </th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
@@ -265,10 +269,10 @@ function GlossaryAdmin() {
                 >
                   <td className="px-4 py-3 font-medium">{term.termDe}</td>
                   <td className="px-4 py-3">{term.termEn}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                  <td className="hidden px-4 py-3 font-mono text-xs text-muted-foreground sm:table-cell">
                     {term.slug}
                   </td>
-                  <td className="px-4 py-3 text-xs capitalize">
+                  <td className="hidden px-4 py-3 text-xs capitalize sm:table-cell">
                     {term.category.replace(/_/g, " ")}
                   </td>
                   <td className="px-4 py-3 text-right">
