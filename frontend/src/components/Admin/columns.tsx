@@ -42,6 +42,7 @@ export const columns: ColumnDef<UserTableData>[] = [
   {
     accessorKey: "is_superuser",
     header: "Role",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => (
       <Badge variant={row.original.is_superuser ? "default" : "secondary"}>
         {row.original.is_superuser ? "Superuser" : "User"}
@@ -51,6 +52,7 @@ export const columns: ColumnDef<UserTableData>[] = [
   {
     accessorKey: "is_active",
     header: "Status",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span
