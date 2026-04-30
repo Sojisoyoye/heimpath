@@ -61,8 +61,15 @@ def send_deadline_reminders(session: Session) -> int:
             )
             continue
 
-        _create_reminder(session, journey, days_remaining, action_url)
-        sent_count += 1
+        try:
+            _create_reminder(session, journey, days_remaining, action_url)
+            sent_count += 1
+        except Exception:
+            logger.exception(
+                "Failed to create deadline reminder for journey %s (%d days)",
+                journey.id,
+                days_remaining,
+            )
 
     logger.info("Deadline reminders complete: %d notifications created.", sent_count)
     return sent_count
@@ -76,20 +83,20 @@ def send_deadline_reminders(session: Session) -> int:
 def _get_journeys_with_upcoming_deadline(
     session: Session, today: date
 ) -> list[Journey]:
-    """Return all journeys whose target_purchase_date is today or in the future."""
+    """Return journeys whose target_purchase_date falls within the reminder horizon."""
     today_start = datetime.combine(today, datetime.min.time()).replace(
         tzinfo=timezone.utc
     )
+    horizon = today_start + timedelta(days=max(REMINDER_MILESTONES))
     stmt = select(Journey).where(
         Journey.target_purchase_date.is_not(None),  # type: ignore[union-attr]
         Journey.target_purchase_date >= today_start,  # type: ignore[operator]
+        Journey.target_purchase_date <= horizon,  # type: ignore[operator]
     )
     return list(session.exec(stmt).all())
 
 
-def _already_notified(
-    session: Session, user_id: uuid.UUID, action_url: str
-) -> bool:
+def _already_notified(session: Session, user_id: uuid.UUID, action_url: str) -> bool:
     """Return True if a JOURNEY_DEADLINE notification for this action_url was
     created within the deduplication window."""
     cutoff = datetime.now(timezone.utc) - timedelta(days=_DEDUP_WINDOW_DAYS)
@@ -142,8 +149,8 @@ def _build_message(days_remaining: int) -> str:
             "30 days until your target purchase date. "
             "Time to finalise your mortgage offer and check all purchase documents."
         )
-    # 90 days
+    # days_remaining == 90
     return (
-        f"{days_remaining} days until your target purchase date. "
+        "90 days until your target purchase date. "
         "A good time to schedule your notary appointment and confirm your financing."
     )

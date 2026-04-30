@@ -1,8 +1,8 @@
 """Tests for the deadline reminder service."""
 
 import uuid
-from datetime import date, datetime, timedelta, timezone
-from unittest.mock import MagicMock, call, patch
+from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -15,7 +15,6 @@ from app.services.deadline_service import (
     _get_journeys_with_upcoming_deadline,
     send_deadline_reminders,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -93,9 +92,7 @@ class TestAlreadyNotified:
         result = _already_notified(mock_session, user_id, "/journeys/abc")
         assert result is False
 
-    def test_returns_true_when_notification_exists(
-        self, mock_session, user_id
-    ) -> None:
+    def test_returns_true_when_notification_exists(self, mock_session, user_id) -> None:
         mock_session.execute.return_value.scalar_one_or_none.return_value = MagicMock()
         result = _already_notified(mock_session, user_id, "/journeys/abc")
         assert result is True
@@ -183,9 +180,7 @@ class TestSendDeadlineReminders:
                 "_get_journeys_with_upcoming_deadline",
                 return_value=[journey],
             ),
-            patch.object(
-                deadline_service, "_already_notified", return_value=False
-            ),
+            patch.object(deadline_service, "_already_notified", return_value=False),
             patch.object(deadline_service, "_create_reminder") as mock_create,
         ):
             count = send_deadline_reminders(mock_session)
@@ -193,9 +188,7 @@ class TestSendDeadlineReminders:
         assert count == 1
         mock_create.assert_called_once()
 
-    def test_skips_non_milestone_day(
-        self, mock_session, user_id, journey_id
-    ) -> None:
+    def test_skips_non_milestone_day(self, mock_session, user_id, journey_id) -> None:
         journey = _make_journey(user_id, journey_id, days_from_today=45)
 
         with (
@@ -222,9 +215,7 @@ class TestSendDeadlineReminders:
                 "_get_journeys_with_upcoming_deadline",
                 return_value=[journey],
             ),
-            patch.object(
-                deadline_service, "_already_notified", return_value=True
-            ),
+            patch.object(deadline_service, "_already_notified", return_value=True),
             patch.object(deadline_service, "_create_reminder") as mock_create,
         ):
             count = send_deadline_reminders(mock_session)
@@ -246,9 +237,7 @@ class TestSendDeadlineReminders:
                 "_get_journeys_with_upcoming_deadline",
                 return_value=[journey1, journey2],
             ),
-            patch.object(
-                deadline_service, "_already_notified", return_value=False
-            ),
+            patch.object(deadline_service, "_already_notified", return_value=False),
             patch.object(deadline_service, "_create_reminder") as mock_create,
         ):
             count = send_deadline_reminders(mock_session)
