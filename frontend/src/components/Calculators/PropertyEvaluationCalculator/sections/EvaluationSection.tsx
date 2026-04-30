@@ -29,6 +29,20 @@ interface IProps {
 }
 
 /******************************************************************************
+                              Constants
+******************************************************************************/
+
+const GRADE_COLORS: Record<string, string> = {
+  Excellent:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  Good: "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-400",
+  Moderate:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  Poor: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  "Very Poor": "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+}
+
+/******************************************************************************
                               Functions
 ******************************************************************************/
 
@@ -47,6 +61,59 @@ function formatTaxImpact(value: number): {
     label: "Taxes",
     formatted: `- ${CURRENCY_FORMATTER.format(Math.abs(value))}`,
   }
+}
+
+/** Score gross rental yield (0–10). */
+function scoreGrossYield(pct: number): number {
+  if (pct >= 6) return 10
+  if (pct >= 5) return 8
+  if (pct >= 4) return 5
+  if (pct >= 3) return 3
+  return 0
+}
+
+/** Score net yield (0–10). */
+function scoreNetYield(pct: number): number {
+  if (pct >= 5) return 10
+  if (pct >= 4) return 8
+  if (pct >= 3) return 5
+  if (pct >= 2) return 3
+  return 0
+}
+
+/** Score cash-on-cash return (0–10). */
+function scoreCashOnCash(pct: number): number {
+  if (pct >= 8) return 10
+  if (pct >= 6) return 8
+  if (pct >= 4) return 5
+  if (pct >= 2) return 3
+  return 0
+}
+
+/** Score monthly cashflow after tax (0–10). */
+function scoreCashFlow(monthly: number): number {
+  if (monthly >= 200) return 10
+  if (monthly >= 0) return 6
+  if (monthly >= -100) return 3
+  return 0
+}
+
+/** Score Kaufpreisfaktor — lower is better (0–10). */
+function scoreFactor(factor: number): number {
+  if (factor <= 15) return 10
+  if (factor <= 20) return 8
+  if (factor <= 25) return 5
+  if (factor <= 30) return 3
+  return 0
+}
+
+/** Map weighted score to grade label. */
+function gradeLabel(score: number): string {
+  if (score >= 8) return "Excellent"
+  if (score >= 6) return "Good"
+  if (score >= 4) return "Moderate"
+  if (score >= 2) return "Poor"
+  return "Very Poor"
 }
 
 /******************************************************************************
@@ -78,6 +145,69 @@ function ResultLine(props: {
         )}
       </div>
       <span className={cn("text-sm", highlight && "text-base")}>{value}</span>
+    </div>
+  )
+}
+
+/** Investment grade badge. */
+function GradeBadge(props: { grade: string }) {
+  const { grade } = props
+  const colorClass = GRADE_COLORS[grade] ?? GRADE_COLORS["Very Poor"]
+  return (
+    <span
+      className={cn(
+        "rounded-full px-2 py-0.5 text-xs font-semibold",
+        colorClass,
+      )}
+    >
+      {grade}
+    </span>
+  )
+}
+
+/** Weighted investment score block. */
+function InvestmentScore(props: { results: EvaluationResults }) {
+  const { results } = props
+
+  const grossYieldPct = results.grossRentalYield * 100
+  const purchasePrice =
+    results.grossRentalYield > 0
+      ? results.netColdRentAnnual / results.grossRentalYield
+      : 0
+  const annualNOI =
+    (results.monthlyCashflowPretax + results.monthlyDebtService) * 12
+  const netYieldPct = purchasePrice > 0 ? (annualNOI / purchasePrice) * 100 : 0
+  const cocPct =
+    results.equity > 0
+      ? ((results.monthlyCashflowAfterTax * 12) / results.equity) * 100
+      : 0
+
+  const rawScore =
+    scoreGrossYield(grossYieldPct) * 0.25 +
+    scoreNetYield(netYieldPct) * 0.25 +
+    scoreCashOnCash(cocPct) * 0.25 +
+    scoreCashFlow(results.monthlyCashflowAfterTax) * 0.15 +
+    scoreFactor(results.factorColdRentVsPrice) * 0.1
+
+  const grade = gradeLabel(rawScore)
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-muted-foreground">
+        Investment Score
+      </p>
+      <div className="flex items-center justify-between">
+        <GradeBadge grade={grade} />
+        <span className="text-sm text-muted-foreground">
+          {rawScore.toFixed(1)} / 10
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span>Gross Yield: {grossYieldPct.toFixed(1)}%</span>
+        <span>Net Yield: {netYieldPct.toFixed(1)}%</span>
+        <span>Cash-on-Cash: {cocPct.toFixed(1)}%</span>
+        <span>Factor: {results.factorColdRentVsPrice.toFixed(1)}×</span>
+      </div>
     </div>
   )
 }
@@ -323,6 +453,9 @@ function InvestorView(props: { results: EvaluationResults }) {
           <Separator />
         </>
       )}
+
+      {/* Investment Score */}
+      <InvestmentScore results={results} />
     </CardContent>
   )
 }

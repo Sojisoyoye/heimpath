@@ -306,16 +306,10 @@ function MarketRentSection(props: Readonly<IProps>) {
                 </p>
                 <Link
                   to="/calculators"
-                  search={{
-                    tab: "roi",
-                    monthlyRent:
-                      estimate.monthlyRent != null
-                        ? Math.round(estimate.monthlyRent)
-                        : undefined,
-                  }}
+                  search={{ tab: "property-evaluation" }}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                 >
-                  Open ROI Calculator
+                  Open Property Evaluation
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>

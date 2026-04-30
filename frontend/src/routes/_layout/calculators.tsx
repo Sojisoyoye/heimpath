@@ -20,7 +20,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   TrendingDown,
-  TrendingUp,
   Zap,
 } from "lucide-react"
 import type { ElementType } from "react"
@@ -37,7 +36,6 @@ import {
   OwnershipComparison,
   PropertyEvaluationCalculator,
   RentAnalyser,
-  ROICalculator,
   SpeculationTaxCalculator,
   StateComparison,
   TenantTrapCalculator,
@@ -53,19 +51,13 @@ export const Route = createFileRoute("/_layout/calculators")({
   component: CalculatorsPage,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { tab?: string; purchasePrice?: number; monthlyRent?: number } => ({
+  ): { tab?: string; purchasePrice?: number } => ({
     tab: (search.tab as string) || undefined,
     purchasePrice:
       typeof search.purchasePrice === "number"
         ? search.purchasePrice
         : typeof search.purchasePrice === "string"
           ? Number.parseFloat(search.purchasePrice) || undefined
-          : undefined,
-    monthlyRent:
-      typeof search.monthlyRent === "number"
-        ? search.monthlyRent
-        : typeof search.monthlyRent === "string"
-          ? Number.parseFloat(search.monthlyRent) || undefined
           : undefined,
   }),
   head: () => ({
@@ -121,15 +113,10 @@ const CATEGORIES: ICategory[] = [
     label: "Investment Returns",
     items: [
       {
-        tab: "roi",
-        label: "ROI Calculator",
-        description: "Net rental yield and cash-on-cash return analysis",
-        icon: TrendingUp,
-      },
-      {
         tab: "property-evaluation",
         label: "Property Evaluation",
-        description: "Multi-year investment performance model",
+        description:
+          "Yield, cashflow, AfA depreciation and multi-year investment model",
         icon: ClipboardList,
       },
       {
@@ -313,7 +300,6 @@ function CalculatorGrid({ onSelect }: Readonly<ICalculatorGridProps>) {
 interface IActiveCalculatorProps {
   tab: string
   purchasePrice?: number
-  monthlyRent?: number
   onBack: () => void
 }
 
@@ -321,7 +307,6 @@ interface IActiveCalculatorProps {
 function ActiveCalculator({
   tab,
   purchasePrice,
-  monthlyRent,
   onBack,
 }: Readonly<IActiveCalculatorProps>) {
   const item = ITEM_MAP[tab]
@@ -330,10 +315,10 @@ function ActiveCalculator({
     switch (tab) {
       case "costs":
         return <HiddenCostsCalculator />
-      case "roi":
-        return <ROICalculator initialMonthlyRent={monthlyRent} />
       case "compare":
         return <StateComparison />
+      // "roi" was merged into "property-evaluation" — redirect gracefully
+      case "roi":
       case "property-evaluation":
         return (
           <PropertyEvaluationCalculator initialPurchasePrice={purchasePrice} />
@@ -393,10 +378,21 @@ function ActiveCalculator({
   )
 }
 
+/** Resolve legacy tab aliases to their canonical tab values. */
+const TAB_ALIASES: Record<string, string> = {
+  roi: "property-evaluation",
+  financing: "eligibility",
+  "rent-estimate": "rent-analyser",
+  "rent-ceiling": "rent-analyser",
+}
+
 /** Default component. Calculators page with grouped card grid navigation. */
 function CalculatorsPage() {
-  const { tab, purchasePrice, monthlyRent } = Route.useSearch()
+  const { tab, purchasePrice } = Route.useSearch()
   const navigate = useNavigate()
+
+  // Resolve legacy aliases so old deep-links still open the right calculator
+  const resolvedTab = tab ? (TAB_ALIASES[tab] ?? tab) : undefined
 
   const handleSelect = (value: string) => {
     navigate({
@@ -424,11 +420,10 @@ function CalculatorsPage() {
         </p>
       </div>
 
-      {tab !== undefined && ITEM_MAP[tab] !== undefined ? (
+      {resolvedTab !== undefined && ITEM_MAP[resolvedTab] !== undefined ? (
         <ActiveCalculator
-          tab={tab}
+          tab={resolvedTab}
           purchasePrice={purchasePrice}
-          monthlyRent={monthlyRent}
           onBack={handleBack}
         />
       ) : (
