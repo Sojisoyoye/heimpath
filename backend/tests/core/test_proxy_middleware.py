@@ -51,6 +51,17 @@ class TestXForwardedFor:
         resp = client.get("/")
         assert resp.text.startswith("testclient")
 
+    def test_duplicate_xff_headers_uses_rightmost(self, client: TestClient) -> None:
+        """Two separate XFF header lines must be joined; rightmost value wins."""
+        resp = client.get(
+            "/",
+            headers=[
+                ("x-forwarded-for", "9.9.9.9"),
+                ("x-forwarded-for", "1.2.3.4"),
+            ],
+        )
+        assert resp.text.startswith("1.2.3.4")
+
 
 class TestXForwardedProto:
     def test_https_proto_is_applied(self, client: TestClient) -> None:
