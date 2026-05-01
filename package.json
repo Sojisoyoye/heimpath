@@ -9,7 +9,8 @@
     "handlebars": "^4.7.9",
     "lodash": "^4.18.0",
     "rollup": "^4.59.0",
-    "picomatch": ">=4.0.4"
+    "picomatch": ">=4.0.4",
+    "defu": ">=6.1.5"
   },
   "scripts": {
     "dev": "bun run --filter frontend dev",

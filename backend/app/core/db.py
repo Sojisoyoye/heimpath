@@ -8,7 +8,14 @@ from app.models import User, UserCreate
 from app.seed_glossary import seed_glossary
 from app.seed_laws import seed_laws
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+engine = create_engine(
+    str(settings.SQLALCHEMY_DATABASE_URI),
+    pool_size=5,
+    max_overflow=10,
+    pool_timeout=30,
+    pool_pre_ping=True,  # validates connections before use; recovers after DB restarts
+    pool_recycle=1800,  # recycle connections after 30 min to avoid stale TCP sessions
+)
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
