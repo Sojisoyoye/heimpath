@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic.networks import EmailStr
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, text
 
 from app.api.deps import get_current_active_superuser, get_db
@@ -31,8 +32,9 @@ def test_email(email_to: EmailStr) -> Message:
 
 @router.get("/health-check/")
 def health_check(db: Annotated[Session, Depends(get_db)]) -> bool:
+    # Sync def — get_db is a sync generator; async is not needed here.
     try:
         db.exec(text("SELECT 1"))
         return True
-    except Exception as exc:
+    except SQLAlchemyError as exc:
         raise HTTPException(status_code=503, detail="Database unavailable") from exc
