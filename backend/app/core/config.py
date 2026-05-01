@@ -38,11 +38,6 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     # Redis (token blacklist + rate limiting)
     REDIS_URL: str = "redis://localhost:6379"
-    # Comma-separated list of trusted proxy IPs for X-Forwarded-* headers.
-    # In production, scope this to the Azure load balancer CIDR (e.g. "10.0.0.0/8").
-    # "*" trusts all sources and should only be used when the container is not
-    # directly reachable from the internet (e.g. protected by Azure Container Apps ingress).
-    TRUSTED_PROXY_IPS: str = "*"
     FRONTEND_HOST: str = "http://localhost:5173"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
