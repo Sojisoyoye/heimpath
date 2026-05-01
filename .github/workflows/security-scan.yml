@@ -46,10 +46,8 @@ jobs:
         run: bun install --frozen-lockfile
         working-directory: frontend
       - name: Run bun audit
-        run: bun audit
+        run: bun audit --audit-level=high
         working-directory: frontend
-        # continue-on-error until transitive vulns in @hey-api/openapi-ts are resolved upstream
-        continue-on-error: true
 
   container-scan:
     # Only run on schedule — building Docker images is too slow for every PR

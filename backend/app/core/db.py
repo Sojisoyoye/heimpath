@@ -8,7 +8,23 @@ from app.models import User, UserCreate
 from app.seed_glossary import seed_glossary
 from app.seed_laws import seed_laws
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+# Pool sizing: max_connections per replica = (_POOL_SIZE + _POOL_MAX_OVERFLOW) * WEB_CONCURRENCY
+# With WEB_CONCURRENCY=2 and prod max_replicas=2: (_POOL_SIZE + _POOL_MAX_OVERFLOW) * 2 * 2
+# DB is Neon (pgBouncer-style pooler in session mode by default). In transaction-pooling mode
+# the held-connection ceiling is lower; confirm mode in Neon dashboard before scaling replicas.
+_POOL_SIZE = 3
+_POOL_MAX_OVERFLOW = 5
+_POOL_TIMEOUT_SECONDS = 30
+_POOL_RECYCLE_SECONDS = 1800
+
+engine = create_engine(
+    str(settings.SQLALCHEMY_DATABASE_URI),
+    pool_size=_POOL_SIZE,
+    max_overflow=_POOL_MAX_OVERFLOW,
+    pool_timeout=_POOL_TIMEOUT_SECONDS,
+    pool_pre_ping=True,  # validates connections before use; recovers after DB restarts
+    pool_recycle=_POOL_RECYCLE_SECONDS,  # evict connections every 30 min before Azure drops them
+)
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB

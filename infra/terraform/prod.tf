@@ -178,7 +178,7 @@ resource "azurerm_container_app" "prod_backend" {
 
       env {
         name  = "WEB_CONCURRENCY"
-        value = "1"
+        value = "2"
       }
 
       env {
