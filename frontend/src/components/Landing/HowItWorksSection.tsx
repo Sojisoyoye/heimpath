@@ -7,14 +7,6 @@ import {
   Search,
 } from "lucide-react"
 import { AnimateIn } from "./AnimateIn"
-import {
-  BuyingIllustration,
-  ClosingIllustration,
-  OwnershipIllustration,
-  PreparationIllustration,
-  RentalSetupIllustration,
-  ResearchIllustration,
-} from "./PhaseIllustrations"
 
 /******************************************************************************
                               Constants
@@ -23,7 +15,6 @@ import {
 const PHASES = [
   {
     icon: Search,
-    illustration: ResearchIllustration,
     title: "Research",
     description:
       "Explore the market, understand requirements, and identify the right location for your investment.",
@@ -32,7 +23,6 @@ const PHASES = [
   },
   {
     icon: ClipboardList,
-    illustration: PreparationIllustration,
     title: "Preparation",
     description:
       "Gather documents, secure financing, and prepare for the buying process with expert checklists.",
@@ -42,7 +32,6 @@ const PHASES = [
   },
   {
     icon: Handshake,
-    illustration: BuyingIllustration,
     title: "Buying",
     description:
       "Navigate offers, notary appointments, and contract signing with step-by-step guidance.",
@@ -52,7 +41,6 @@ const PHASES = [
   },
   {
     icon: KeyRound,
-    illustration: ClosingIllustration,
     title: "Closing",
     description:
       "Complete registration, handle final payments, and receive the keys to your new property.",
@@ -62,7 +50,6 @@ const PHASES = [
   },
   {
     icon: Home,
-    illustration: OwnershipIllustration,
     title: "Ownership",
     description:
       "Handle land registry, insurance, tax setup, and property management after your purchase.",
@@ -71,7 +58,6 @@ const PHASES = [
   },
   {
     icon: Building2,
-    illustration: RentalSetupIllustration,
     title: "Rental Setup",
     description:
       "Set up rental operations, understand landlord law, analyse yields, and onboard tenants.",
@@ -89,15 +75,9 @@ const PHASES = [
 function PhaseStep(props: { phase: (typeof PHASES)[number]; index: number }) {
   const { phase, index } = props
   const Icon = phase.icon
-  const Illustration = phase.illustration
 
   return (
     <div className="flex flex-1 flex-col items-center text-center">
-      {/* Illustration */}
-      <div className="mb-3 h-16 w-16">
-        <Illustration />
-      </div>
-
       {/* Step number + icon */}
       <div className="relative">
         <div
@@ -136,7 +116,7 @@ function HowItWorksSection() {
         {/* Desktop: horizontal timeline */}
         <div className="relative hidden gap-4 lg:flex">
           {/* Dashed connector line — aligned with icon circles below illustrations */}
-          <div className="pointer-events-none absolute left-[8%] right-[8%] top-[6.5rem] border-t-2 border-dashed border-muted-foreground/25" />
+          <div className="pointer-events-none absolute left-[8%] right-[8%] top-8 border-t-2 border-dashed border-muted-foreground/25" />
 
           {PHASES.map((phase, i) => (
             <AnimateIn
@@ -162,14 +142,10 @@ function HowItWorksSection() {
         <div className="flex flex-col gap-8 md:hidden">
           {PHASES.map((phase, i) => {
             const Icon = phase.icon
-            const Illustration = phase.illustration
             return (
               <AnimateIn key={phase.title} delayMs={(i + 1) * 100}>
                 <div className="flex items-start gap-4">
                   <div className="flex flex-col items-center">
-                    <div className="mb-2 h-10 w-10">
-                      <Illustration />
-                    </div>
                     <div
                       className={`relative flex h-12 w-12 items-center justify-center rounded-full ${phase.color} ring-4 ${phase.ring}`}
                     >
