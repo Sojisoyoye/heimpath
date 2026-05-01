@@ -1,7 +1,6 @@
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any
 
 import sentry_sdk
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -35,24 +34,32 @@ class _ContainerAppsProxyMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> Any:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] in ("http", "websocket"):
-            headers = dict(scope["headers"])
+            headers: list[tuple[bytes, bytes]] = scope["headers"]
 
-            if b"x-forwarded-for" in headers:
-                xff = headers[b"x-forwarded-for"].decode("latin1")
-                real_ip = xff.split(",")[-1].strip()
+            xff_values = [
+                v.decode("latin1") for k, v in headers if k == b"x-forwarded-for"
+            ]
+            if xff_values:
+                # CAE Envoy appends the real client IP at the end of the XFF chain.
+                # Take the rightmost entry to prevent spoofing via injected XFF values.
+                real_ip = ", ".join(xff_values).split(",")[-1].strip()
+                # Only overwrite when non-empty; scope["client"] may be None on
+                # Unix-socket connections where the server has no peer address.
                 if real_ip:
                     scope["client"] = (real_ip, 0)
 
-            if b"x-forwarded-proto" in headers:
-                proto = (
-                    headers[b"x-forwarded-proto"].decode("latin1").split(",")[0].strip()
-                )
+            proto_values = [
+                v.decode("latin1") for k, v in headers if k == b"x-forwarded-proto"
+            ]
+            if proto_values:
+                # Take the leftmost proto — set by the client; CAE does not override it.
+                proto = proto_values[0].split(",")[0].strip()
                 if proto in {"http", "https", "ws", "wss"}:
                     scope["scheme"] = proto
 
-        return await self.app(scope, receive, send)
+        await self.app(scope, receive, send)
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
