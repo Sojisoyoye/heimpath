@@ -33,6 +33,8 @@ def test_email(email_to: EmailStr) -> Message:
 @router.get("/health-check/")
 def health_check(db: Annotated[Session, Depends(get_db)]) -> bool:
     # Sync def — get_db is a sync generator; async is not needed here.
+    # SELECT 1 is intentionally cheap; pool_pre_ping validates the connection before
+    # checkout so this probe adds minimal pool pressure even at short probe intervals.
     try:
         db.exec(text("SELECT 1"))
         return True

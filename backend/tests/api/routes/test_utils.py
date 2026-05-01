@@ -24,7 +24,7 @@ def test_health_check_returns_503_when_db_unavailable(client: TestClient) -> Non
 
     def broken_db() -> Generator[Session, None, None]:
         session = MagicMock(spec=Session)
-        session.exec.side_effect = OperationalError("DB down", None, None)
+        session.exec.side_effect = OperationalError("DB down", None, Exception("DB down"))
         yield session
 
     app.dependency_overrides[get_db] = broken_db

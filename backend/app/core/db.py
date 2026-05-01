@@ -10,7 +10,8 @@ from app.seed_laws import seed_laws
 
 # Pool sizing: max_connections per replica = (_POOL_SIZE + _POOL_MAX_OVERFLOW) * WEB_CONCURRENCY
 # With WEB_CONCURRENCY=2 and prod max_replicas=2: (_POOL_SIZE + _POOL_MAX_OVERFLOW) * 2 * 2
-# must stay below the Postgres server's max_connections (verify against DB SKU before scaling).
+# DB is Neon (pgBouncer-style pooler in session mode by default). In transaction-pooling mode
+# the held-connection ceiling is lower; confirm mode in Neon dashboard before scaling replicas.
 _POOL_SIZE = 3
 _POOL_MAX_OVERFLOW = 5
 _POOL_TIMEOUT_SECONDS = 30
