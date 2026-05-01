@@ -20,50 +20,6 @@ def _base_settings_kwargs() -> dict:
     }
 
 
-def test_trusted_proxy_ips_wildcard_allowed_in_staging() -> None:
-    """TRUSTED_PROXY_IPS='*' is permitted in staging (app is behind ACA ingress)."""
-    s = Settings(
-        **_base_settings_kwargs(),
-        ENVIRONMENT="staging",
-        TRUSTED_PROXY_IPS="*",
-        _env_file=None,
-    )
-    assert s.TRUSTED_PROXY_IPS == "*"
-
-
-def test_trusted_proxy_ips_wildcard_allowed_in_production() -> None:
-    """TRUSTED_PROXY_IPS='*' is permitted in production (app is behind ACA ingress)."""
-    s = Settings(
-        **_base_settings_kwargs(),
-        ENVIRONMENT="production",
-        TRUSTED_PROXY_IPS="*",
-        _env_file=None,
-    )
-    assert s.TRUSTED_PROXY_IPS == "*"
-
-
-def test_trusted_proxy_ips_wildcard_allowed_in_local() -> None:
-    """TRUSTED_PROXY_IPS='*' is permitted in local environment."""
-    s = Settings(
-        **_base_settings_kwargs(),
-        ENVIRONMENT="local",
-        TRUSTED_PROXY_IPS="*",
-        _env_file=None,
-    )
-    assert s.TRUSTED_PROXY_IPS == "*"
-
-
-def test_trusted_proxy_ips_cidr_allowed_in_production() -> None:
-    """A specific CIDR range is accepted in production."""
-    s = Settings(
-        **_base_settings_kwargs(),
-        ENVIRONMENT="production",
-        TRUSTED_PROXY_IPS="10.0.0.0/8",
-        _env_file=None,
-    )
-    assert s.TRUSTED_PROXY_IPS == "10.0.0.0/8"
-
-
 # ── SECRET_KEY validation ──────────────────────────────────────────────────
 
 
@@ -74,7 +30,6 @@ def test_secret_key_changethis_raises_in_production() -> None:
         Settings(
             **kwargs,
             ENVIRONMENT="production",
-            TRUSTED_PROXY_IPS="10.0.0.0/8",
             _env_file=None,
         )
 
@@ -93,7 +48,6 @@ def test_postgres_password_empty_raises_in_production() -> None:
         Settings(
             **kwargs,
             ENVIRONMENT="production",
-            TRUSTED_PROXY_IPS="10.0.0.0/8",
             _env_file=None,
         )
 

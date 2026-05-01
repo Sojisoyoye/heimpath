@@ -47,8 +47,7 @@ jobs:
             az containerapp update \
               --name heimpath-backend-prod \
               --resource-group rg-heimpath-prod \
-              --image ${{ steps.meta.outputs.prefix }}/backend:${{ inputs.image_tag }} \
-              --set-env-vars "TRUSTED_PROXY_IPS=*"
+              --image ${{ steps.meta.outputs.prefix }}/backend:${{ inputs.image_tag }}
 
       - name: Deploy frontend
         uses: azure/cli@v2

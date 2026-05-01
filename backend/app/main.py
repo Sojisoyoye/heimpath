@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from sqlmodel import Session
 from starlette.middleware.cors import CORSMiddleware
-from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.api.main import api_router
 from app.core.config import settings
@@ -16,6 +16,50 @@ from app.core.db import engine
 from app.services.portfolio_service import generate_recurring_transactions
 
 logger = logging.getLogger(__name__)
+
+
+class _ContainerAppsProxyMiddleware:
+    """Proxy header middleware for Azure Container Apps.
+
+    Container Apps' Envoy ingress appends the real downstream client IP to the
+    X-Forwarded-For chain.  Reading the rightmost entry gives the IP added by
+    the trusted CAE ingress, which cannot be spoofed: even if a client injects
+    values earlier in the chain, CAE always appends the real IP at the end.
+
+    Replaces uvicorn's ProxyHeadersMiddleware (which reads the leftmost value
+    and is therefore vulnerable to X-Forwarded-For spoofing when all hosts are
+    trusted).
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] in ("http", "websocket"):
+            headers: list[tuple[bytes, bytes]] = scope["headers"]
+
+            xff_values = [
+                v.decode("latin1") for k, v in headers if k == b"x-forwarded-for"
+            ]
+            if xff_values:
+                # CAE Envoy appends the real client IP at the end of the XFF chain.
+                # Take the rightmost entry to prevent spoofing via injected XFF values.
+                real_ip = ", ".join(xff_values).split(",")[-1].strip()
+                # Only overwrite when non-empty; scope["client"] may be None on
+                # Unix-socket connections where the server has no peer address.
+                if real_ip:
+                    scope["client"] = (real_ip, 0)
+
+            proto_values = [
+                v.decode("latin1") for k, v in headers if k == b"x-forwarded-proto"
+            ]
+            if proto_values:
+                # Take the leftmost proto — set by the client; CAE does not override it.
+                proto = proto_values[0].split(",")[0].strip()
+                if proto in {"http", "https", "ws", "wss"}:
+                    scope["scheme"] = proto
+
+        await self.app(scope, receive, send)
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -71,13 +115,8 @@ if settings.all_cors_origins:
         allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
     )
 
-# Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For) from Azure Container Apps.
-# trusted_hosts is controlled by TRUSTED_PROXY_IPS in config; set it to the load
-# balancer CIDR in production rather than leaving it as "*".
+# Extract real client IP from X-Forwarded-For set by Azure Container Apps ingress.
 if settings.ENVIRONMENT != "local":
-    app.add_middleware(
-        ProxyHeadersMiddleware,
-        trusted_hosts=settings.TRUSTED_PROXY_IPS.split(","),
-    )
+    app.add_middleware(_ContainerAppsProxyMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
