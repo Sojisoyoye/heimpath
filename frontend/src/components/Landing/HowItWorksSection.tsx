@@ -115,7 +115,7 @@ function HowItWorksSection() {
 
         {/* Desktop: horizontal timeline */}
         <div className="relative hidden gap-4 lg:flex">
-          {/* Dashed connector line — aligned with icon circles below illustrations */}
+          {/* Dashed connector line — centred on icon circles */}
           <div className="pointer-events-none absolute left-[8%] right-[8%] top-8 border-t-2 border-dashed border-muted-foreground/25" />
 
           {PHASES.map((phase, i) => (
