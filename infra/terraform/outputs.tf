@@ -30,6 +30,10 @@ output "staging_frontend_url" {
   value = "https://${azurerm_container_app.staging_frontend.ingress[0].fqdn}"
 }
 
+output "staging_redis_hostname" {
+  value = azurerm_redis_cache.staging.hostname
+}
+
 # ──────────────────────────────────────────────
 # Production outputs
 # ──────────────────────────────────────────────
@@ -52,4 +56,8 @@ output "prod_backend_url" {
 
 output "prod_frontend_url" {
   value = "https://${azurerm_container_app.prod_frontend.ingress[0].fqdn}"
+}
+
+output "prod_redis_hostname" {
+  value = azurerm_redis_cache.prod.hostname
 }

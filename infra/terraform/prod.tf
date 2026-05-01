@@ -16,6 +16,30 @@ resource "azurerm_resource_group" "prod" {
   }
 }
 
+# ── Redis ─────────────────────────────────────
+
+resource "azurerm_redis_cache" "prod" {
+  name                 = "heimpath-redis-prod"
+  location             = azurerm_resource_group.prod.location
+  resource_group_name  = azurerm_resource_group.prod.name
+  capacity             = 0
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = false
+  minimum_tls_version  = "1.2"
+
+  redis_configuration {}
+
+  tags = {
+    project     = "heimpath"
+    environment = "prod"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 # ── Backend ──────────────────────────────────
 
 resource "azurerm_container_app" "prod_backend" {
@@ -48,6 +72,11 @@ resource "azurerm_container_app" "prod_backend" {
   secret {
     name  = "first-superuser-password"
     value = var.prod_first_superuser_password
+  }
+
+  secret {
+    name  = "redis-url"
+    value = "rediss://:${azurerm_redis_cache.prod.primary_access_key}@${azurerm_redis_cache.prod.hostname}:${azurerm_redis_cache.prod.ssl_port}/0"
   }
 
   dynamic "secret" {
@@ -155,6 +184,11 @@ resource "azurerm_container_app" "prod_backend" {
       env {
         name  = "WEB_CONCURRENCY"
         value = "1"
+      }
+
+      env {
+        name        = "REDIS_URL"
+        secret_name = "redis-url"
       }
 
       dynamic "env" {

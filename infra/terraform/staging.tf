@@ -12,6 +12,26 @@ resource "azurerm_resource_group" "staging" {
   }
 }
 
+# ── Redis ─────────────────────────────────────
+
+resource "azurerm_redis_cache" "staging" {
+  name                 = "heimpath-redis-staging"
+  location             = azurerm_resource_group.staging.location
+  resource_group_name  = azurerm_resource_group.staging.name
+  capacity             = 0
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = false
+  minimum_tls_version  = "1.2"
+
+  redis_configuration {}
+
+  tags = {
+    project     = "heimpath"
+    environment = "staging"
+  }
+}
+
 # ── Backend ──────────────────────────────────
 
 resource "azurerm_container_app" "staging_backend" {
@@ -44,6 +64,11 @@ resource "azurerm_container_app" "staging_backend" {
   secret {
     name  = "first-superuser-password"
     value = var.staging_first_superuser_password
+  }
+
+  secret {
+    name  = "redis-url"
+    value = "rediss://:${azurerm_redis_cache.staging.primary_access_key}@${azurerm_redis_cache.staging.hostname}:${azurerm_redis_cache.staging.ssl_port}/0"
   }
 
   dynamic "secret" {
@@ -151,6 +176,11 @@ resource "azurerm_container_app" "staging_backend" {
       env {
         name  = "WEB_CONCURRENCY"
         value = "1"
+      }
+
+      env {
+        name        = "REDIS_URL"
+        secret_name = "redis-url"
       }
 
       dynamic "env" {
