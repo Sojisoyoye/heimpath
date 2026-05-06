@@ -166,6 +166,12 @@ class Settings(BaseSettings):
     MAX_PAGES_FREE: int = 10
     MAX_PAGES_PREMIUM: int = 20
 
+    # Reliability settings
+    TRANSLATION_CONFIDENCE_THRESHOLD: float = 0.70
+    AZURE_TRANSLATOR_TIMEOUT_SECONDS: int = 60
+    MAX_JSON_BODY_SIZE_BYTES: int = 1_048_576  # 1 MB
+    DB_STATEMENT_TIMEOUT_MS: int = 10_000  # 10 seconds
+
     # Domain used to construct absolute backend URLs (e.g. avatar serving)
     DOMAIN: str = "localhost"
 
