@@ -108,7 +108,10 @@ class Settings(BaseSettings):
             self.EMAILS_FROM_NAME = self.PROJECT_NAME
         return self
 
-    # SendGrid (preferred over SMTP when configured)
+    # Resend (preferred when configured — resend.com, free tier 3k/month)
+    RESEND_API_KEY: str | None = None
+
+    # SendGrid (used when Resend is not configured)
     SENDGRID_API_KEY: str | None = None
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 1
@@ -117,8 +120,14 @@ class Settings(BaseSettings):
     @property
     def emails_enabled(self) -> bool:
         return bool(
-            (self.SMTP_HOST or self.SENDGRID_API_KEY) and self.EMAILS_FROM_EMAIL
+            (self.RESEND_API_KEY or self.SMTP_HOST or self.SENDGRID_API_KEY)
+            and self.EMAILS_FROM_EMAIL
         )
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def resend_enabled(self) -> bool:
+        return bool(self.RESEND_API_KEY)
 
     @computed_field  # type: ignore[prop-decorator]
     @property

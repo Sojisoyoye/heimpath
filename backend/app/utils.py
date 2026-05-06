@@ -44,7 +44,14 @@ def send_email(
 ) -> None:
     assert settings.emails_enabled, "no provided configuration for email variables"
 
-    if settings.sendgrid_enabled:
+    if settings.resend_enabled:
+        _send_email_resend(
+            email_to=email_to,
+            subject=subject,
+            html_content=html_content,
+            unsubscribe_url=unsubscribe_url,
+        )
+    elif settings.sendgrid_enabled:
         _send_email_sendgrid(
             email_to=email_to,
             subject=subject,
@@ -57,6 +64,37 @@ def send_email(
             subject=subject,
             html_content=html_content,
         )
+
+
+def _send_email_resend(
+    *,
+    email_to: str,
+    subject: str,
+    html_content: str,
+    unsubscribe_url: str | None = None,
+) -> None:
+    """Send email via Resend API (preferred — resend.com, free tier 3k/month)."""
+    import resend
+
+    resend.api_key = settings.RESEND_API_KEY
+    from_address = (
+        f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
+        if settings.EMAILS_FROM_NAME
+        else str(settings.EMAILS_FROM_EMAIL)
+    )
+    params: resend.Emails.SendParams = {
+        "from": from_address,
+        "to": [email_to],
+        "subject": subject,
+        "html": html_content,
+    }
+    if unsubscribe_url:
+        params["headers"] = {
+            "List-Unsubscribe": f"<{unsubscribe_url}>",
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+    email = resend.Emails.send(params)
+    logger.info("Resend email id: %s", email.get("id"))
 
 
 def _send_email_sendgrid(
