@@ -6,6 +6,7 @@ import {
   redirect,
   useNavigate,
 } from "@tanstack/react-router"
+import { Mail } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -118,6 +119,49 @@ function Login() {
     loginMutation.mutate(data)
   }
 
+  if (unverifiedEmail !== null) {
+    return (
+      <AuthLayout>
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+              <Mail className="h-6 w-6 text-amber-600" />
+            </div>
+            <h1 className="text-2xl font-bold">Verify your email</h1>
+            <p className="text-sm text-muted-foreground">
+              We sent a verification link to{" "}
+              <span className="font-medium text-foreground">
+                {unverifiedEmail}
+              </span>
+              . Click the link in the email to activate your account.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            Can&apos;t find the email? Check your spam or junk folder.
+          </div>
+
+          <LoadingButton
+            type="button"
+            className="w-full"
+            loading={resendMutation.isPending}
+            onClick={() => resendMutation.mutate(unverifiedEmail)}
+          >
+            Resend verification email
+          </LoadingButton>
+
+          <button
+            type="button"
+            className="text-sm text-muted-foreground hover:text-foreground"
+            onClick={() => setUnverifiedEmail(null)}
+          >
+            ← Back to sign in
+          </button>
+        </div>
+      </AuthLayout>
+    )
+  }
+
   return (
     <AuthLayout>
       <Form {...form}>
@@ -188,29 +232,6 @@ function Login() {
               Sign In
             </LoadingButton>
           </div>
-
-          {unverifiedEmail !== null && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-              <p className="font-medium text-amber-800">
-                Please verify your email address
-              </p>
-              <p className="mt-1 text-amber-700">
-                We sent a verification link to{" "}
-                <span className="font-medium">{unverifiedEmail}</span>. Check
-                your inbox and click the link to activate your account.
-              </p>
-              <LoadingButton
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-3 border-amber-300 bg-white text-amber-800 hover:bg-amber-50"
-                loading={resendMutation.isPending}
-                onClick={() => resendMutation.mutate(unverifiedEmail)}
-              >
-                Resend verification email
-              </LoadingButton>
-            </div>
-          )}
 
           <div className="text-center text-sm text-muted-foreground">
             New to HeimPath?
