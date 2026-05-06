@@ -33,13 +33,15 @@ class RequestLoggingMiddleware:
             return
 
         request_id = str(uuid.uuid4())
-        if "state" not in scope or not isinstance(scope["state"], State):
+        if not isinstance(scope.get("state"), State):
             scope["state"] = State()
         scope["state"].request_id = request_id
 
         path = scope.get("path", "")
         method = scope.get("method", "")
-        _logger.info("request started method=%s path=%s request_id=%s", method, path, request_id)
+        _logger.info(
+            "request started method=%s path=%s request_id=%s", method, path, request_id
+        )
         start = time.perf_counter()
 
         async def send_with_request_id(message: Message) -> None:

@@ -3,7 +3,6 @@
 import asyncio
 from unittest.mock import patch
 
-import pytest
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -12,14 +11,13 @@ from starlette.testclient import TestClient
 
 from app.core.middleware import ContentSizeLimitMiddleware, RequestLoggingMiddleware
 
-
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 
 def _ok_app():
     """Minimal Starlette app that handles GET and POST at '/'."""
 
-    async def homepage(request: Request) -> JSONResponse:
+    async def homepage(_request: Request) -> JSONResponse:
         return JSONResponse({"status": "ok"})
 
     return Starlette(routes=[Route("/", homepage, methods=["GET", "POST"])])
@@ -72,7 +70,7 @@ class TestRequestLoggingMiddleware:
         """Non-HTTP scopes (e.g. lifespan) must be forwarded unchanged."""
         called = []
 
-        async def raw_app(scope, receive, send):
+        async def raw_app(scope, _receive, _send):
             called.append(scope["type"])
 
         mw = RequestLoggingMiddleware(raw_app)
@@ -179,7 +177,7 @@ class TestContentSizeLimitMiddleware:
     def test_non_http_scope_passes_through(self) -> None:
         called = []
 
-        async def raw_app(scope, receive, send):
+        async def raw_app(scope, _receive, _send):
             called.append(scope["type"])
 
         mw = ContentSizeLimitMiddleware(raw_app)
