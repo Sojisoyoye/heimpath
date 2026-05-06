@@ -1,0 +1,48 @@
+.vscode/*
+.vscode
+!.vscode/extensions.json
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+.taskmaster/
+.claude/
+.copier/
+.DS_Store
+**/.env
+CONTRIBUTING.md
+backend/uploads/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
+.coverage
+.coverage/
+*.log
+
+# Python virtual environment
+.venv
+
+# Logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+# Environment variables
+.env
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files (tasks/todo.md is tracked; .taskmaster/ is ignored above)

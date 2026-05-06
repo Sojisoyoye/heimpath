@@ -1,0 +1,738 @@
+"""Document upload, PDF extraction, and translation service.
+
+Handles document lifecycle: upload, PDF text extraction, clause detection,
+translation via Azure Translator, and risk warning collection.
+"""
+
+import asyncio
+import logging
+import os
+import re
+import secrets
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
+from fastapi import HTTPException, status
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.core.config import settings
+from app.models.document import (
+    Document,
+    DocumentStatus,
+    DocumentTranslation,
+    DocumentType,
+)
+from app.schemas.translation import SupportedLanguage
+from app.services.clause_analyzer_service import analyze_kaufvertrag
+from app.services.clause_risk_analyzer_service import analyze_clause_risks
+from app.services.document_type_analyzer_service import analyze_document_type
+from app.services.glossary_linker_service import link_glossary_terms
+from app.services.translation_service import get_translation_service
+
+logger = logging.getLogger(__name__)
+
+
+# Regex patterns for German legal clause detection
+CLAUSE_PATTERNS: list[tuple[str, str, str]] = [
+    # (clause_type, pattern, risk_level)
+    (
+        "purchase_price",
+        r"(?:Kaufpreis|kaufpreis)\s*(?:beträgt|:|\s)\s*(?:EUR|€)?\s*[\d.,]+",
+        "high",
+    ),
+    (
+        "deadline",
+        r"(?:Frist|frist|Termin|termin|bis\s+(?:zum|spätestens))\s+\d{1,2}\.\s*\d{1,2}\.\s*\d{2,4}",
+        "high",
+    ),
+    (
+        "warranty_exclusion",
+        r"(?:Gewährleistung|Sachmängelhaftung|Haftung)\s+(?:wird\s+)?(?:ausgeschlossen|ausschließen|entfällt)",
+        "high",
+    ),
+    (
+        "special_condition",
+        r"(?:Sonderbedingung|Besondere\s+Vereinbarung|Auflage|Bedingung)\s*[:.]",
+        "medium",
+    ),
+    (
+        "financial_term",
+        r"(?:Grundschuld|Hypothek|Darlehen|Zinsen|Tilgung|Annuität)\s*(?:in\s+Höhe\s+von|beträgt|:)?\s*(?:EUR|€)?\s*[\d.,]*",
+        "medium",
+    ),
+]
+
+# Keywords for document type detection
+DOCUMENT_TYPE_KEYWORDS: dict[DocumentType, list[str]] = {
+    DocumentType.KAUFVERTRAG: [
+        "kaufvertrag",
+        "purchase agreement",
+        "notarvertrag",
+        "kaufpreis",
+        "veräußerung",
+        "eigentumsübertragung",
+        "auflassung",
+    ],
+    DocumentType.MIETVERTRAG: [
+        "mietvertrag",
+        "mieter",
+        "vermieter",
+        "miete",
+        "kaltmiete",
+        "warmmiete",
+        "mietverhältnis",
+        "kaution",
+    ],
+    DocumentType.EXPOSE: [
+        "exposé",
+        "expose",
+        "objektbeschreibung",
+        "lagebeschreibung",
+        "wohnfläche",
+        "zimmer",
+        "baujahr",
+        "energieausweis",
+    ],
+    DocumentType.NEBENKOSTENABRECHNUNG: [
+        "nebenkostenabrechnung",
+        "betriebskostenabrechnung",
+        "heizkosten",
+        "hausgeld",
+        "umlageschlüssel",
+    ],
+    DocumentType.GRUNDBUCHAUSZUG: [
+        "grundbuch",
+        "grundbuchauszug",
+        "abteilung",
+        "flur",
+        "flurstück",
+        "bestandsverzeichnis",
+        "eigentümer",
+    ],
+    DocumentType.TEILUNGSERKLAERUNG: [
+        "teilungserklärung",
+        "sondereigentum",
+        "gemeinschaftseigentum",
+        "miteigentumsanteil",
+        "wohnungseigentum",
+    ],
+    DocumentType.HAUSGELDABRECHNUNG: [
+        "hausgeldabrechnung",
+        "wirtschaftsplan",
+        "instandhaltungsrücklage",
+        "verwaltergebühr",
+        "rücklage",
+    ],
+    DocumentType.WOHNUNGSGRUNDRISS: [
+        "grundriss",
+        "wohnungsgrundriss",
+        "raumaufteilung",
+        "zimmer",
+        "fläche",
+        "wohnfläche",
+        "skizze",
+        "maßstab",
+    ],
+    DocumentType.WEG_PROTOKOLL: [
+        "weg-protokoll",
+        "protokoll der eigentümerversammlung",
+        "eigentümerversammlung",
+        "wohnungseigentümer",
+        "sonderumlage",
+        "instandhaltungsrücklage",
+        "hausgeldabrechnung",
+        "verwalter",
+        "beschluss",
+        "tagesordnung",
+    ],
+}
+
+# Document types that receive structured AI analysis (excludes Kaufvertrag which
+# uses the dedicated clause_analyzer_service instead)
+TYPED_ANALYSIS_TYPES: frozenset[str] = frozenset(
+    {
+        DocumentType.GRUNDBUCHAUSZUG.value,
+        DocumentType.TEILUNGSERKLAERUNG.value,
+        DocumentType.MIETVERTRAG.value,
+        DocumentType.WOHNUNGSGRUNDRISS.value,
+        DocumentType.WEG_PROTOKOLL.value,
+    }
+)
+
+
+PDF_MAGIC = b"%PDF"
+
+
+def validate_pdf_bytes(content: bytes) -> None:
+    """Raise ValueError if content does not begin with the PDF magic bytes.
+
+    Checking magic bytes prevents disguised files (HTML, JS polyglots, etc.)
+    from being accepted regardless of what Content-Type the client sends.
+    """
+    if not content.startswith(PDF_MAGIC):
+        raise ValueError("File does not appear to be a valid PDF")
+
+
+def _detect_document_type(text: str) -> DocumentType:
+    """Detect document type based on keyword frequency in extracted text."""
+    text_lower = text.lower()
+    scores: dict[DocumentType, int] = {}
+
+    for doc_type, keywords in DOCUMENT_TYPE_KEYWORDS.items():
+        score = sum(1 for kw in keywords if kw in text_lower)
+        if score > 0:
+            scores[doc_type] = score
+
+    if not scores:
+        return DocumentType.UNKNOWN
+
+    return max(scores, key=scores.get)  # type: ignore[arg-type]
+
+
+def _detect_clauses(text: str, page_number: int) -> list[dict]:
+    """Detect legal clauses in text using regex patterns."""
+    clauses = []
+    for clause_type, pattern, risk_level in CLAUSE_PATTERNS:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            clauses.append(
+                {
+                    "clause_type": clause_type,
+                    "original_text": match.group(0).strip(),
+                    "translated_text": "",
+                    "page_number": page_number,
+                    "risk_level": risk_level,
+                }
+            )
+    return clauses
+
+
+def _extract_pages_sync(file_path: str) -> list[dict]:
+    """Extract text from PDF pages (blocking — run in thread)."""
+    import pdfplumber
+
+    pages = []
+    with pdfplumber.open(file_path) as pdf:
+        for i, page in enumerate(pdf.pages, start=1):
+            text = page.extract_text() or ""
+            pages.append(
+                {"page_number": i, "original_text": text, "translated_text": ""}
+            )
+    return pages
+
+
+def _count_pages_sync(file_path: str) -> int:
+    """Count PDF pages (blocking — run in thread)."""
+    import pdfplumber
+
+    with pdfplumber.open(file_path) as pdf:
+        return len(pdf.pages)
+
+
+async def save_upload(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    file_content: bytes,
+    filename: str,
+    is_premium: bool,
+    journey_step_id: uuid.UUID | None = None,
+) -> Document:
+    """Validate, save, and register an uploaded PDF document.
+
+    Args:
+        session: Async database session.
+        user_id: Owner's user ID.
+        file_content: Raw file bytes.
+        filename: Original filename.
+        is_premium: Whether user has premium subscription.
+        journey_step_id: Optional journey step to link the document to.
+
+    Returns:
+        Created Document database record.
+
+    Raises:
+        ValueError: If file exceeds size or page limits.
+    """
+    # Validate file size
+    max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
+    if len(file_content) > max_bytes:
+        raise ValueError(f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB} MB")
+
+    # Validate magic bytes — reject disguised non-PDF files regardless of Content-Type
+    validate_pdf_bytes(file_content)
+
+    # Write file to disk using a UUID-only name so the original filename can never
+    # introduce path traversal components (M6: sanitize stored file paths).
+    upload_dir = Path(settings.UPLOAD_DIR).resolve()
+    os.makedirs(upload_dir, exist_ok=True)
+
+    stored_filename = f"{uuid.uuid4().hex}.pdf"
+    file_path = str(upload_dir / stored_filename)
+
+    with open(file_path, "wb") as f:
+        f.write(file_content)
+
+    # Extract page count and detect type
+    page_count = await asyncio.to_thread(_count_pages_sync, file_path)
+
+    max_pages = settings.MAX_PAGES_PREMIUM if is_premium else settings.MAX_PAGES_FREE
+    if page_count > max_pages:
+        os.remove(file_path)
+        raise ValueError(
+            f"Document has {page_count} pages, exceeding the {max_pages}-page limit. "
+            f"{'Upgrade to premium for more pages.' if not is_premium else 'Maximum pages exceeded.'}"
+        )
+
+    # Quick type detection from first pages
+    pages = await asyncio.to_thread(_extract_pages_sync, file_path)
+    combined_text = " ".join(p["original_text"] for p in pages[:3])
+    document_type = _detect_document_type(combined_text)
+
+    # Create DB record
+    document = Document(
+        user_id=user_id,
+        journey_step_id=journey_step_id,
+        original_filename=filename,
+        stored_filename=stored_filename,
+        file_path=file_path,
+        file_size_bytes=len(file_content),
+        page_count=page_count,
+        document_type=document_type.value,
+        status=DocumentStatus.UPLOADED.value,
+    )
+    session.add(document)
+    await session.commit()
+    await session.refresh(document)
+
+    return document
+
+
+async def process_document(document_id: uuid.UUID, session_factory) -> None:  # type: ignore[type-arg]
+    """Background task: extract text, translate, detect clauses, save results.
+
+    Args:
+        document_id: ID of the document to process.
+        session_factory: Async session factory (AsyncSessionLocal) for
+            creating a new session outside the request lifecycle.
+    """
+    async with session_factory() as session:
+        try:
+            # Load document
+            result = await session.execute(
+                select(Document).where(Document.id == document_id)
+            )
+            document = result.scalar_one_or_none()
+            if not document:
+                logger.error("Document %s not found for processing", document_id)
+                return
+
+            # Mark as processing
+            document.status = DocumentStatus.PROCESSING.value
+            await session.commit()
+
+            processing_started_at = datetime.now(timezone.utc)
+
+            # Extract text from PDF
+            pages = await asyncio.to_thread(_extract_pages_sync, document.file_path)
+
+            # Detect clauses across all pages
+            all_clauses: list[dict] = []
+            for page in pages:
+                clauses = _detect_clauses(page["original_text"], page["page_number"])
+                all_clauses.extend(clauses)
+
+            # Translate pages using Azure Translator
+            translation_service = get_translation_service()
+            all_risk_warnings: list[dict] = []
+
+            if translation_service:
+                # Translate page texts
+                page_texts = [
+                    p["original_text"] for p in pages if p["original_text"].strip()
+                ]
+                if page_texts:
+                    batch_result = await translation_service.batch_translate(
+                        texts=page_texts,
+                        source_language=SupportedLanguage.GERMAN,
+                        target_language=SupportedLanguage.ENGLISH,
+                        include_legal_warnings=True,
+                    )
+
+                    # Map translations back to pages
+                    text_idx = 0
+                    for page in pages:
+                        if page["original_text"].strip() and text_idx < len(
+                            batch_result.translations
+                        ):
+                            tr = batch_result.translations[text_idx]
+                            page["translated_text"] = tr.translation.translated_text
+
+                            # Collect risk warnings from this page
+                            for warning in tr.legal_warnings:
+                                all_risk_warnings.append(
+                                    {
+                                        "original_term": warning.original_term,
+                                        "translated_term": warning.translated_term,
+                                        "risk_level": warning.risk_level.value,
+                                        "explanation": warning.explanation,
+                                        "page_number": page["page_number"],
+                                    }
+                                )
+                            text_idx += 1
+
+                # Translate clause contexts
+                clause_texts = [
+                    c["original_text"]
+                    for c in all_clauses
+                    if c["original_text"].strip()
+                ]
+                if clause_texts:
+                    clause_batch = await translation_service.batch_translate(
+                        texts=clause_texts,
+                        source_language=SupportedLanguage.GERMAN,
+                        target_language=SupportedLanguage.ENGLISH,
+                        include_legal_warnings=False,
+                    )
+                    text_idx = 0
+                    for clause in all_clauses:
+                        if clause["original_text"].strip() and text_idx < len(
+                            clause_batch.translations
+                        ):
+                            clause["translated_text"] = clause_batch.translations[
+                                text_idx
+                            ].translation.translated_text
+                            text_idx += 1
+
+            # Deduplicate risk warnings by term
+            seen_terms: set[str] = set()
+            unique_warnings: list[dict] = []
+            for w in all_risk_warnings:
+                if w["original_term"] not in seen_terms:
+                    seen_terms.add(w["original_term"])
+                    unique_warnings.append(w)
+
+            # AI-powered clause risk annotation (all document types)
+            all_clauses = await analyze_clause_risks(all_clauses)
+
+            # AI analysis for Kaufvertrag documents
+            kaufvertrag_analysis_data = None
+            if document.document_type == DocumentType.KAUFVERTRAG.value:
+                kaufvertrag_analysis_data = await analyze_kaufvertrag(
+                    pages, document.document_type
+                )
+
+            # AI analysis for other typed document types
+            type_analysis_data = None
+            if document.document_type in TYPED_ANALYSIS_TYPES:
+                type_analysis_data = await analyze_document_type(
+                    pages, document.document_type
+                )
+
+            # Link glossary terms found in the original German text
+            glossary_links_data = await link_glossary_terms(session, document_id, pages)
+
+            # Save translation record
+            translation = DocumentTranslation(
+                document_id=document_id,
+                source_language="de",
+                target_language="en",
+                translated_pages=pages,
+                clauses_detected=all_clauses,
+                risk_warnings=unique_warnings,
+                kaufvertrag_analysis=kaufvertrag_analysis_data,
+                type_analysis=type_analysis_data,
+                glossary_links=glossary_links_data or None,
+                processing_started_at=processing_started_at,
+                processing_completed_at=datetime.now(timezone.utc),
+            )
+            session.add(translation)
+
+            document.status = DocumentStatus.COMPLETED.value
+            await session.commit()
+
+            logger.info("Document %s processed successfully", document_id)
+
+            # Send notification about completed translation
+            try:
+                from sqlmodel import Session as SyncSession
+
+                from app.core.db import engine as sync_engine
+                from app.models.notification import NotificationType
+                from app.services import notification_service
+
+                with SyncSession(sync_engine) as sync_session:
+                    notification_service.create_notification(
+                        sync_session,
+                        user_id=document.user_id,
+                        type=NotificationType.DOCUMENT_TRANSLATED,
+                        title="Document Translated",
+                        message=f'Your document "{document.original_filename}" has been translated.',
+                        action_url=f"/documents/{document_id}",
+                    )
+            except Exception:
+                logger.exception("Failed to send document translation notification")
+
+        except Exception as e:
+            logger.exception("Failed to process document %s", document_id)
+            # Mark as failed
+            try:
+                result = await session.execute(
+                    select(Document).where(Document.id == document_id)
+                )
+                document = result.scalar_one_or_none()
+                if document:
+                    document.status = DocumentStatus.FAILED.value
+                    document.error_message = str(e)[:1000]
+                    await session.commit()
+
+                    # Notify user that translation failed
+                    try:
+                        from sqlmodel import Session as SyncSession
+
+                        from app.core.db import engine as sync_engine
+                        from app.models.notification import NotificationType
+                        from app.services import notification_service
+
+                        with SyncSession(sync_engine) as sync_session:
+                            notification_service.create_notification(
+                                sync_session,
+                                user_id=document.user_id,
+                                type=NotificationType.TRANSLATION_FAILED,
+                                title="Translation Failed",
+                                message=f'Translation of "{document.original_filename}" could not be completed.',
+                                action_url=f"/documents/{document_id}",
+                            )
+                    except Exception:
+                        logger.exception(
+                            "Failed to send translation failure notification"
+                        )
+            except Exception:
+                logger.exception("Failed to update document status to failed")
+
+
+async def get_document(
+    session: AsyncSession,
+    document_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> Document | None:
+    """Get a document with its translation, checking ownership.
+
+    Args:
+        session: Async database session.
+        document_id: Document UUID.
+        user_id: User UUID for ownership check.
+
+    Returns:
+        Document with translation loaded, or None if not found / not owned.
+    """
+    result = await session.execute(
+        select(Document)
+        .options(selectinload(Document.translation))
+        .where(Document.id == document_id, Document.user_id == user_id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def list_documents(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    page: int = 1,
+    page_size: int = 20,
+    search: str | None = None,
+    document_type: str | None = None,
+    status_filter: str | None = None,
+) -> tuple[list[Document], int]:
+    """Get paginated list of user's documents with optional filters.
+
+    Args:
+        session: Async database session.
+        user_id: User UUID.
+        page: Page number (1-indexed).
+        page_size: Items per page.
+        search: Optional search term for filename.
+        document_type: Optional document type filter.
+        status_filter: Optional status filter.
+
+    Returns:
+        Tuple of (documents list, total count).
+    """
+    # Build base filter
+    conditions = [Document.user_id == user_id]
+    if search:
+        # Escape LIKE wildcards to prevent injection via %, _, \
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        conditions.append(Document.original_filename.ilike(f"%{escaped}%", escape="\\"))
+    if document_type:
+        conditions.append(Document.document_type == document_type)
+    if status_filter:
+        conditions.append(Document.status == status_filter)
+
+    # Count total
+    count_query = select(func.count()).select_from(Document).where(*conditions)
+    count_result = await session.execute(count_query)
+    total = count_result.scalar() or 0
+
+    # Fetch page
+    offset = (page - 1) * page_size
+    result = await session.execute(
+        select(Document)
+        .where(*conditions)
+        .order_by(Document.created_at.desc())
+        .offset(offset)
+        .limit(page_size)
+    )
+    documents = list(result.scalars().all())
+
+    return documents, total
+
+
+async def generate_share_id(
+    session: AsyncSession,
+    document_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> Document:
+    """Generate a share_id for a completed document.
+
+    Args:
+        session: Async database session.
+        document_id: Document UUID.
+        user_id: User UUID for ownership check.
+
+    Returns:
+        Updated Document with share_id set.
+
+    Raises:
+        HTTPException: If document not found, not owned, or not completed.
+    """
+    result = await session.execute(
+        select(Document).where(Document.id == document_id, Document.user_id == user_id)
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    if document.status != DocumentStatus.COMPLETED.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only completed documents can be shared",
+        )
+
+    # Reuse existing share_id if already generated
+    if not document.share_id:
+        document.share_id = secrets.token_urlsafe(8)
+        await session.commit()
+        await session.refresh(document)
+
+    return document
+
+
+async def get_by_share_id(
+    session: AsyncSession,
+    share_id: str,
+) -> Document:
+    """Get a document by share_id (no auth required).
+
+    Args:
+        session: Async database session.
+        share_id: The share token.
+
+    Returns:
+        Document with translation loaded.
+
+    Raises:
+        HTTPException: If shared document not found.
+    """
+    result = await session.execute(
+        select(Document)
+        .options(selectinload(Document.translation))
+        .where(Document.share_id == share_id)
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Shared document not found",
+        )
+    return document
+
+
+async def delete_document(
+    session: AsyncSession,
+    document_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> None:
+    """Delete a document with ownership check.
+
+    Removes the file from disk and deletes the database record.
+
+    Args:
+        session: Async database session.
+        document_id: Document UUID.
+        user_id: User UUID for ownership check.
+
+    Raises:
+        HTTPException: If document not found or not owned.
+    """
+    result = await session.execute(
+        select(Document).where(Document.id == document_id, Document.user_id == user_id)
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    # Remove file from disk (async to avoid blocking the event loop)
+    if document.file_path and os.path.exists(document.file_path):
+        await asyncio.to_thread(os.remove, document.file_path)
+
+    await session.delete(document)
+    await session.commit()
+
+
+async def get_documents_by_step_id(
+    session: AsyncSession,
+    step_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> list[Document]:
+    """Get all documents linked to a journey step, owned by user.
+
+    Args:
+        session: Async database session.
+        step_id: Journey step UUID.
+        user_id: User UUID for ownership check.
+
+    Returns:
+        List of documents linked to the step.
+    """
+    result = await session.execute(
+        select(Document)
+        .where(Document.journey_step_id == step_id, Document.user_id == user_id)
+        .order_by(Document.created_at.desc())
+    )
+    return list(result.scalars().all())
+
+
+async def count_user_documents(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+) -> int:
+    """Count total documents uploaded by a user.
+
+    Args:
+        session: Async database session.
+        user_id: User UUID.
+
+    Returns:
+        Total document count.
+    """
+    result = await session.execute(
+        select(func.count()).select_from(Document).where(Document.user_id == user_id)
+    )
+    return result.scalar() or 0

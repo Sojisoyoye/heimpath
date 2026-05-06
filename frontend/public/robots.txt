@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /tools/
+
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /admin
+Disallow: /calculators
+Disallow: /documents
+Disallow: /journeys
+Disallow: /portfolio
+Disallow: /articles
+Disallow: /search
+
+Sitemap: https://heimpath.com/sitemap.xml

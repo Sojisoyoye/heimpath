@@ -1,0 +1,111 @@
+/**
+ * Application constants
+ */
+
+// German states for property location selection
+export const GERMAN_STATES = [
+  { code: "BW", name: "Baden-Württemberg", transferTaxRate: 5.0 },
+  { code: "BY", name: "Bayern", transferTaxRate: 3.5 },
+  { code: "BE", name: "Berlin", transferTaxRate: 6.0 },
+  { code: "BB", name: "Brandenburg", transferTaxRate: 6.5 },
+  { code: "HB", name: "Bremen", transferTaxRate: 5.0 },
+  { code: "HH", name: "Hamburg", transferTaxRate: 5.5 },
+  { code: "HE", name: "Hessen", transferTaxRate: 6.0 },
+  { code: "MV", name: "Mecklenburg-Vorpommern", transferTaxRate: 6.0 },
+  { code: "NI", name: "Niedersachsen", transferTaxRate: 5.0 },
+  { code: "NW", name: "Nordrhein-Westfalen", transferTaxRate: 6.5 },
+  { code: "RP", name: "Rheinland-Pfalz", transferTaxRate: 5.0 },
+  { code: "SL", name: "Saarland", transferTaxRate: 6.5 },
+  { code: "SN", name: "Sachsen", transferTaxRate: 5.5 },
+  { code: "ST", name: "Sachsen-Anhalt", transferTaxRate: 5.0 },
+  { code: "SH", name: "Schleswig-Holstein", transferTaxRate: 6.5 },
+  { code: "TH", name: "Thüringen", transferTaxRate: 6.5 },
+] as const
+
+// Property types
+export const PROPERTY_TYPES = [
+  { value: "apartment", label: "Apartment (Eigentumswohnung)" },
+  { value: "house", label: "House (Einfamilienhaus)" },
+  { value: "multi_family", label: "Multi-family (Mehrfamilienhaus)" },
+  { value: "commercial", label: "Commercial (Gewerbeimmobilie)" },
+  { value: "land", label: "Land (Grundstück)" },
+] as const
+
+// Financing types
+export const FINANCING_TYPES = [
+  { value: "cash", label: "Cash purchase (Barkauf)" },
+  { value: "mortgage", label: "Mortgage (Hypothek)" },
+  { value: "mixed", label: "Mixed financing" },
+] as const
+
+// Residency status options
+export const RESIDENCY_STATUS_OPTIONS = [
+  { value: "german_citizen", label: "German citizen" },
+  { value: "eu_citizen", label: "EU/EEA citizen" },
+  { value: "non_eu_resident", label: "Non-EU resident in Germany" },
+  { value: "non_resident", label: "Non-resident (living abroad)" },
+] as const
+
+// Journey phases
+export const JOURNEY_PHASES = [
+  { key: "research", label: "Research", order: 1 },
+  { key: "preparation", label: "Preparation", order: 2 },
+  { key: "buying", label: "Buying", order: 3 },
+  { key: "closing", label: "Closing", order: 4 },
+  { key: "ownership", label: "Ownership", order: 5 },
+  { key: "rental_setup", label: "Rental Setup", order: 6 },
+  { key: "rental_search", label: "Apartment Search", order: 7 },
+  { key: "rental_application", label: "Application", order: 8 },
+  { key: "rental_contract", label: "Lease Review", order: 9 },
+  { key: "rental_move_in", label: "Move-In", order: 10 },
+] as const
+
+// Journey phase colors (used for phase badges across components)
+export const PHASE_COLORS: Record<string, string> = {
+  research: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  preparation:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  buying:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  closing:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  ownership:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  rental_setup:
+    "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
+  rental_search:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
+  rental_application:
+    "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
+  rental_contract:
+    "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400",
+  rental_move_in:
+    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+}
+
+// Law categories
+export const LAW_CATEGORIES = [
+  { key: "buying_process", label: "Buying Process", icon: "FileText" },
+  { key: "costs_and_taxes", label: "Costs & Taxes", icon: "Calculator" },
+  { key: "rental_law", label: "Rental & Landlord Law", icon: "Home" },
+  { key: "condominium", label: "Condominium Ownership", icon: "Building" },
+  { key: "agent_regulations", label: "Agent Regulations", icon: "Users" },
+] as const
+
+// Cost calculation constants
+export const COST_DEFAULTS = {
+  NOTARY_FEE_PERCENT: 1.5,
+  LAND_REGISTRY_FEE_PERCENT: 0.5,
+  AGENT_COMMISSION_PERCENT: 3.57, // Buyer's share after Bestellerprinzip
+  RENOVATION_ESTIMATE_PERCENT: 5.0, // Estimated renovation costs
+} as const
+
+// Pagination defaults
+export const PAGINATION = {
+  DEFAULT_PAGE_SIZE: 20,
+  MAX_PAGE_SIZE: 100,
+} as const
+
+export * from "./propertyEvaluation"
+// Re-export property goals constants
+export * from "./propertyGoals"

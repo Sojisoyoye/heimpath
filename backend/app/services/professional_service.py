@@ -1,0 +1,460 @@
+"""Professional network directory service."""
+
+import logging
+import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy import func, select, update
+from sqlmodel import Session
+
+from app.models.professional import (
+    ContactInquiry,
+    Professional,
+    ProfessionalReview,
+    SavedProfessional,
+    ServiceType,
+)
+
+logger = logging.getLogger(__name__)
+
+
+class ProfessionalNotFoundError(Exception):
+    """Raised when a professional is not found."""
+
+    pass
+
+
+class DuplicateReviewError(Exception):
+    """Raised when a user tries to review the same professional twice."""
+
+    pass
+
+
+class ProfessionalAlreadySavedError(Exception):
+    """Raised when a user tries to save a professional they already saved."""
+
+    pass
+
+
+class SavedProfessionalNotFoundError(Exception):
+    """Raised when a saved professional record is not found."""
+
+    pass
+
+
+def get_professionals(
+    session: Session,
+    professional_type: str | None = None,
+    city: str | None = None,
+    language: str | None = None,
+    min_rating: float | None = None,
+    sort_by: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> tuple[list[Professional], int]:
+    """Get paginated list of professionals with optional filters."""
+    query = select(Professional)
+
+    if professional_type:
+        query = query.where(Professional.type == professional_type)
+
+    if city:
+        query = query.where(Professional.city == city)
+
+    if language:
+        # Escape SQL LIKE wildcards in user input to prevent pattern abuse
+        safe_language = language.replace("%", r"\%").replace("_", r"\_")
+        query = query.where(
+            Professional.languages.ilike(f"%{safe_language}%", escape="\\")
+        )
+
+    if min_rating is not None:
+        query = query.where(Professional.average_rating >= min_rating)
+
+    # Total count
+    count_query = select(func.count()).select_from(query.subquery())
+    total = session.execute(count_query).scalar() or 0
+
+    # Sort order
+    if sort_by == "reviews":
+        order = Professional.review_count.desc()
+    elif sort_by == "recommended":
+        order = Professional.recommendation_rate.desc().nulls_last()
+    else:
+        order = Professional.average_rating.desc()
+
+    # Pagination
+    offset = (page - 1) * page_size
+    query = query.order_by(order).offset(offset).limit(page_size)
+
+    professionals = list(session.execute(query).scalars().all())
+    return professionals, total
+
+
+def get_professional_by_id(
+    session: Session, professional_id: uuid.UUID
+) -> Professional:
+    """Get a professional by ID."""
+    query = select(Professional).where(Professional.id == professional_id)
+    professional = session.execute(query).scalars().first()
+    if not professional:
+        raise ProfessionalNotFoundError(f"Professional {professional_id} not found")
+    return professional
+
+
+def get_reviews_for_professional(
+    session: Session, professional_id: uuid.UUID
+) -> list[ProfessionalReview]:
+    """Get all reviews for a professional."""
+    query = (
+        select(ProfessionalReview)
+        .where(ProfessionalReview.professional_id == professional_id)
+        .order_by(ProfessionalReview.created_at.desc())
+    )
+    return list(session.execute(query).scalars().all())
+
+
+def submit_review(
+    session: Session,
+    professional_id: uuid.UUID,
+    user_id: uuid.UUID,
+    rating: int,
+    comment: str | None = None,
+    service_used: ServiceType | None = None,
+    language_used: str | None = None,
+    would_recommend: bool | None = None,
+    response_time_rating: int | None = None,
+) -> ProfessionalReview:
+    """Submit a review for a professional. One review per user per professional."""
+    # Verify professional exists
+    get_professional_by_id(session, professional_id)
+
+    # Check for existing review
+    existing = (
+        session.execute(
+            select(ProfessionalReview).where(
+                ProfessionalReview.professional_id == professional_id,
+                ProfessionalReview.user_id == user_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+    if existing:
+        raise DuplicateReviewError("You have already reviewed this professional")
+
+    review = ProfessionalReview(
+        professional_id=professional_id,
+        user_id=user_id,
+        rating=rating,
+        comment=comment,
+        service_used=service_used,
+        language_used=language_used,
+        would_recommend=would_recommend,
+        response_time_rating=response_time_rating,
+    )
+    session.add(review)
+    session.flush()
+
+    # Update denormalized rating fields and trust signals
+    _update_professional_rating(session, professional_id)
+    _update_trust_signals(session, professional_id)
+
+    session.commit()
+    session.refresh(review)
+    return review
+
+
+def _update_professional_rating(session: Session, professional_id: uuid.UUID) -> None:
+    """Recalculate average rating and review count for a professional."""
+    result = session.execute(
+        select(
+            func.avg(ProfessionalReview.rating),
+            func.count(ProfessionalReview.id),
+        ).where(ProfessionalReview.professional_id == professional_id)
+    ).one()
+
+    avg_rating = float(result[0]) if result[0] else 0.0
+    count = result[1] or 0
+
+    professional = get_professional_by_id(session, professional_id)
+    professional.average_rating = round(avg_rating, 2)
+    professional.review_count = count
+    session.add(professional)
+
+
+def _update_trust_signals(session: Session, professional_id: uuid.UUID) -> None:
+    """Recompute recommendation rate and review highlights for a professional."""
+    # Recommendation rate
+    recommend_total = (
+        session.execute(
+            select(func.count(ProfessionalReview.id)).where(
+                ProfessionalReview.professional_id == professional_id,
+                ProfessionalReview.would_recommend.is_not(None),
+            )
+        ).scalar()
+        or 0
+    )
+    recommend_yes = (
+        session.execute(
+            select(func.count(ProfessionalReview.id)).where(
+                ProfessionalReview.professional_id == professional_id,
+                ProfessionalReview.would_recommend.is_(True),
+            )
+        ).scalar()
+        or 0
+    )
+    recommendation_rate = (
+        round(recommend_yes / recommend_total * 100, 1) if recommend_total > 0 else None
+    )
+
+    # Review highlights
+    avg_response_time = session.execute(
+        select(func.avg(ProfessionalReview.response_time_rating)).where(
+            ProfessionalReview.professional_id == professional_id,
+            ProfessionalReview.response_time_rating.is_not(None),
+        )
+    ).scalar()
+
+    top_services_rows = (
+        session.execute(
+            select(
+                ProfessionalReview.service_used,
+                func.count(ProfessionalReview.id).label("cnt"),
+            )
+            .where(
+                ProfessionalReview.professional_id == professional_id,
+                ProfessionalReview.service_used.is_not(None),
+            )
+            .group_by(ProfessionalReview.service_used)
+            .order_by(func.count(ProfessionalReview.id).desc())
+            .limit(3)
+        )
+        .tuples()
+        .all()
+    )
+    top_services = [row[0] for row in top_services_rows]
+
+    review_highlights: dict | None = None
+    if top_services or avg_response_time is not None:
+        review_highlights = {
+            "top_services": top_services,
+            "avg_response_time": round(float(avg_response_time), 1)
+            if avg_response_time is not None
+            else None,
+        }
+
+    professional = get_professional_by_id(session, professional_id)
+    professional.recommendation_rate = recommendation_rate
+    professional.review_highlights = review_highlights
+    session.add(professional)
+
+
+def recompute_professional_stats(session: Session, professional_id: uuid.UUID) -> None:
+    """Recompute all denormalized stats (rating, count, trust signals)."""
+    _update_professional_rating(session, professional_id)
+    _update_trust_signals(session, professional_id)
+
+
+def create_professional(session: Session, data: dict) -> Professional:
+    """Create a new professional (admin)."""
+    professional = Professional(**data)
+    session.add(professional)
+    session.commit()
+    session.refresh(professional)
+    return professional
+
+
+def update_professional(
+    session: Session, professional_id: uuid.UUID, data: dict
+) -> Professional:
+    """Update a professional (admin). Supports partial update."""
+    professional = get_professional_by_id(session, professional_id)
+
+    for key, value in data.items():
+        setattr(professional, key, value)
+
+    session.add(professional)
+    session.commit()
+    session.refresh(professional)
+    return professional
+
+
+def delete_professional(session: Session, professional_id: uuid.UUID) -> None:
+    """Delete a professional and cascade reviews (admin)."""
+    professional = get_professional_by_id(session, professional_id)
+    session.delete(professional)
+    session.commit()
+
+
+def get_available_cities(session: Session) -> list[str]:
+    """Get distinct cities that have professionals."""
+    query = select(Professional.city).distinct().order_by(Professional.city)
+    return list(session.execute(query).scalars().all())
+
+
+def get_available_languages(session: Session) -> list[str]:
+    """Get distinct languages spoken by professionals."""
+    rows = session.execute(select(Professional.languages)).scalars().all()
+    languages: set[str] = set()
+    for lang_str in rows:
+        for lang in lang_str.split(","):
+            stripped = lang.strip()
+            if stripped:
+                languages.add(stripped)
+    return sorted(languages)
+
+
+def submit_inquiry(
+    session: Session,
+    professional_id: uuid.UUID,
+    sender_name: str,
+    sender_email: str,
+    message: str,
+) -> ContactInquiry:
+    """Submit a contact inquiry to a professional and attempt email delivery."""
+    professional = get_professional_by_id(session, professional_id)
+
+    inquiry = ContactInquiry(
+        professional_id=professional_id,
+        sender_name=sender_name,
+        sender_email=sender_email,
+        message=message,
+        status="pending",
+    )
+    session.add(inquiry)
+    session.flush()
+
+    _send_inquiry_email(professional, sender_name, sender_email, message, inquiry)
+
+    session.commit()
+    session.refresh(inquiry)
+    return inquiry
+
+
+def track_click(session: Session, professional_id: uuid.UUID) -> None:
+    """Increment referral click count for a professional (atomic)."""
+    # Verify professional exists first
+    get_professional_by_id(session, professional_id)
+    session.execute(
+        update(Professional)
+        .where(Professional.id == professional_id)
+        .values(click_count=Professional.click_count + 1)
+    )
+    session.commit()
+
+
+def is_professional_saved(
+    session: Session, professional_id: uuid.UUID, user_id: uuid.UUID
+) -> bool:
+    """Return True if the user has already saved this professional."""
+    result = (
+        session.execute(
+            select(SavedProfessional).where(
+                SavedProfessional.professional_id == professional_id,
+                SavedProfessional.user_id == user_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
+    return result is not None
+
+
+def save_professional(
+    session: Session, professional_id: uuid.UUID, user_id: uuid.UUID
+) -> SavedProfessional:
+    """Save a professional for the user. Raises ProfessionalAlreadySavedError if duplicate."""
+    # Verify professional exists
+    get_professional_by_id(session, professional_id)
+
+    if is_professional_saved(session, professional_id, user_id):
+        raise ProfessionalAlreadySavedError("You have already saved this professional")
+
+    saved = SavedProfessional(professional_id=professional_id, user_id=user_id)
+    session.add(saved)
+    session.commit()
+    session.refresh(saved)
+    return saved
+
+
+def unsave_professional(
+    session: Session, professional_id: uuid.UUID, user_id: uuid.UUID
+) -> None:
+    """Remove a saved professional. Raises SavedProfessionalNotFoundError if not found."""
+    saved = (
+        session.execute(
+            select(SavedProfessional).where(
+                SavedProfessional.professional_id == professional_id,
+                SavedProfessional.user_id == user_id,
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if not saved:
+        raise SavedProfessionalNotFoundError("Saved professional not found")
+    session.delete(saved)
+    session.commit()
+
+
+def get_saved_professionals(
+    session: Session, user_id: uuid.UUID
+) -> list[SavedProfessional]:
+    """Get all saved professionals for a user."""
+    query = (
+        select(SavedProfessional)
+        .where(SavedProfessional.user_id == user_id)
+        .order_by(SavedProfessional.created_at.desc())
+    )
+    return list(session.execute(query).scalars().all())
+
+
+def _send_inquiry_email(
+    professional: Professional,
+    sender_name: str,
+    sender_email: str,
+    message: str,
+    inquiry: ContactInquiry,
+) -> None:
+    """Send inquiry email to the professional. Fails silently if email is unavailable."""
+    try:
+        if not professional.email:
+            inquiry.status = "failed"
+            return
+
+        from app.core.config import settings
+
+        if not settings.emails_enabled:
+            inquiry.status = "skipped"
+            return
+
+        from app.utils import render_email_template, send_email
+
+        html_content = render_email_template(
+            template_name="notification.html",
+            context={
+                "project_name": settings.PROJECT_NAME,
+                "title": f"New inquiry from {sender_name}",
+                "message": (
+                    f"You have received a new inquiry from {sender_name} "
+                    f"({sender_email}):\n\n{message}"
+                ),
+                "action_url": settings.FRONTEND_HOST,
+                "action_text": "View HeimPath",
+                "unsubscribe_url": None,
+            },
+        )
+
+        send_email(
+            email_to=professional.email,
+            subject=f"{settings.PROJECT_NAME}: New inquiry from {sender_name}",
+            html_content=html_content,
+        )
+
+        inquiry.status = "sent"
+        inquiry.sent_at = datetime.now(timezone.utc)
+    except Exception:
+        logger.exception("Failed to send inquiry email to %s", professional.email)
+        inquiry.status = "failed"

@@ -1,0 +1,115 @@
+name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+  schedule:
+    # Run weekly on Mondays at 9:00 UTC
+    - cron: "0 9 * * 1"
+
+jobs:
+  python-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Install dependencies
+        run: uv sync --locked
+        working-directory: backend
+      - name: Install pip-audit
+        run: uv pip install pip-audit
+        working-directory: backend
+      - name: Run pip-audit
+        # CVE-2026-3219: vulnerability in pip itself (CI runner toolchain),
+        # not in application dependencies. Ignored until pip releases a fix.
+        run: uv run pip-audit --ignore-vuln CVE-2026-3219
+        working-directory: backend
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+        working-directory: frontend
+      - name: Run bun audit
+        run: bun audit --audit-level=high
+        working-directory: frontend
+
+  container-scan:
+    # Only run on schedule — building Docker images is too slow for every PR
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Build backend image
+        run: docker build -t heimpath-backend:scan -f backend/Dockerfile .
+      - name: Build frontend image
+        run: docker build -t heimpath-frontend:scan -f frontend/Dockerfile .
+      - name: Run Trivy on backend
+        uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          image-ref: "heimpath-backend:scan"
+          format: "sarif"
+          output: "trivy-backend-results.sarif"
+          severity: "CRITICAL,HIGH"
+      - name: Run Trivy on frontend
+        uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          image-ref: "heimpath-frontend:scan"
+          format: "sarif"
+          output: "trivy-frontend-results.sarif"
+          severity: "CRITICAL,HIGH"
+      - name: Upload backend scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-backend-results.sarif"
+          category: "trivy-backend"
+      - name: Upload frontend scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-frontend-results.sarif"
+          category: "trivy-frontend"
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@v3.94.2
+        with:
+          extra_args: --only-verified
+
+  alls-green:
+    if: always()
+    needs:
+      - python-audit
+      - npm-audit
+      - container-scan
+      - secret-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether all jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          allowed-skips: container-scan
+          jobs: ${{ toJSON(needs) }}

@@ -1,0 +1,48 @@
+from fastapi import APIRouter
+
+from app.api.routes import (
+    articles,
+    auth,
+    calculators,
+    contracts,
+    dashboard,
+    documents,
+    feedback,
+    financing,
+    glossary,
+    journeys,
+    laws,
+    login,
+    market,
+    notifications,
+    portfolio,
+    professionals,
+    search,
+    subscriptions,
+    translations,
+    users,
+    utils,
+)
+
+api_router = APIRouter()
+api_router.include_router(auth.router)
+api_router.include_router(login.router)
+api_router.include_router(users.router)
+api_router.include_router(utils.router)
+api_router.include_router(journeys.router)
+api_router.include_router(subscriptions.router)
+api_router.include_router(laws.router)
+api_router.include_router(translations.router)
+api_router.include_router(documents.router)
+api_router.include_router(calculators.router)
+api_router.include_router(financing.router)
+api_router.include_router(dashboard.router)
+api_router.include_router(notifications.router)
+api_router.include_router(articles.router)
+api_router.include_router(search.router)
+api_router.include_router(market.router)
+api_router.include_router(professionals.router)
+api_router.include_router(contracts.router)
+api_router.include_router(portfolio.router)
+api_router.include_router(glossary.router)
+api_router.include_router(feedback.router)

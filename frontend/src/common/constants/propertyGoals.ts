@@ -1,0 +1,342 @@
+/**
+ * Property Goals Constants
+ * Options for Step 1: Define Your Property Goals
+ */
+
+export const PROPERTY_USE_OPTIONS = [
+  { value: "live_in", label: "Live in (Selbstnutzer)" },
+  { value: "rent_out", label: "Rent out (Kapitalanlage)" },
+] as const
+
+export const ROOM_OPTIONS = [
+  { value: 1, label: "1 Room" },
+  { value: 2, label: "2 Rooms" },
+  { value: 3, label: "3 Rooms" },
+  { value: 4, label: "4 Rooms" },
+  { value: 5, label: "5+ Rooms" },
+] as const
+
+export const BATHROOM_OPTIONS = [
+  { value: 1, label: "1 Bathroom" },
+  { value: 2, label: "2 Bathrooms" },
+  { value: 3, label: "3+ Bathrooms" },
+] as const
+
+export const FLOOR_OPTIONS = [
+  { value: "ground", label: "Ground Floor (Erdgeschoss)" },
+  { value: "middle", label: "Middle Floors (1-3)" },
+  { value: "top", label: "Top Floor (Dachgeschoss)" },
+  { value: "any", label: "Any Floor" },
+] as const
+
+export const PROPERTY_FEATURES = [
+  { value: "balcony", label: "Balcony / Terrace", icon: "Sun" },
+  { value: "garden", label: "Garden", icon: "Flower2" },
+  { value: "parking", label: "Parking / Garage", icon: "Car" },
+  { value: "storage", label: "Storage Room (Keller)", icon: "Package" },
+  { value: "modern_kitchen", label: "Modern Kitchen", icon: "ChefHat" },
+  { value: "energy_efficient", label: "Energy Efficient", icon: "Leaf" },
+  { value: "new_building", label: "New Building (Neubau)", icon: "Building2" },
+  { value: "renovated", label: "Recently Renovated", icon: "Hammer" },
+  { value: "quiet_location", label: "Quiet Location", icon: "Volume2" },
+  { value: "good_transport", label: "Good Public Transport", icon: "Train" },
+  {
+    value: "wheelchair_accessible",
+    label: "Wheelchair Accessible",
+    icon: "Accessibility",
+  },
+  { value: "pets_allowed", label: "Pets Allowed", icon: "Dog" },
+] as const
+
+export const SIZE_RANGES = [
+  { min: 30, max: 50, label: "30-50 m² (Studio/1BR)" },
+  { min: 50, max: 70, label: "50-70 m² (Small Apt)" },
+  { min: 70, max: 100, label: "70-100 m² (Medium Apt)" },
+  { min: 100, max: 150, label: "100-150 m² (Large Apt/House)" },
+  { min: 150, max: 300, label: "150+ m² (Large House)" },
+] as const
+
+/**
+ * Market data constants for Step 2: Market Insights
+ * Average prices per sqm by German state (2024 estimates)
+ */
+export const MARKET_DATA_BY_STATE: Record<
+  string,
+  {
+    avgPricePerSqm: number
+    priceRange: { min: number; max: number }
+    avgRentPerSqm: number
+    rentRange: { min: number; max: number }
+    agentFeePercent: number
+    trend: "rising" | "stable" | "falling"
+    hotspots: string[]
+  }
+> = {
+  BW: {
+    avgPricePerSqm: 3800,
+    priceRange: { min: 2500, max: 6000 },
+    avgRentPerSqm: 10.5,
+    rentRange: { min: 7.5, max: 14.0 },
+    agentFeePercent: 3.57,
+    trend: "stable",
+    hotspots: ["Stuttgart", "Freiburg", "Karlsruhe"],
+  },
+  BY: {
+    avgPricePerSqm: 4500,
+    priceRange: { min: 2800, max: 9000 },
+    avgRentPerSqm: 12.0,
+    rentRange: { min: 8.0, max: 18.0 },
+    agentFeePercent: 3.57,
+    trend: "stable",
+    hotspots: ["Munich", "Nuremberg", "Augsburg"],
+  },
+  BE: {
+    avgPricePerSqm: 5200,
+    priceRange: { min: 3500, max: 8000 },
+    avgRentPerSqm: 13.5,
+    rentRange: { min: 10.0, max: 17.0 },
+    agentFeePercent: 3.57,
+    trend: "rising",
+    hotspots: ["Mitte", "Prenzlauer Berg", "Kreuzberg"],
+  },
+  BB: {
+    avgPricePerSqm: 2800,
+    priceRange: { min: 1800, max: 4500 },
+    avgRentPerSqm: 8.0,
+    rentRange: { min: 6.0, max: 11.0 },
+    agentFeePercent: 3.57,
+    trend: "rising",
+    hotspots: ["Potsdam", "Cottbus", "Brandenburg an der Havel"],
+  },
+  HB: {
+    avgPricePerSqm: 2900,
+    priceRange: { min: 2000, max: 4500 },
+    avgRentPerSqm: 8.5,
+    rentRange: { min: 6.5, max: 11.0 },
+    agentFeePercent: 2.98,
+    trend: "stable",
+    hotspots: ["Bremen-Mitte", "Schwachhausen", "Horn-Lehe"],
+  },
+  HH: {
+    avgPricePerSqm: 5800,
+    priceRange: { min: 4000, max: 10000 },
+    avgRentPerSqm: 13.0,
+    rentRange: { min: 9.5, max: 17.5 },
+    agentFeePercent: 3.12,
+    trend: "stable",
+    hotspots: ["Eppendorf", "Winterhude", "Eimsbüttel"],
+  },
+  HE: {
+    avgPricePerSqm: 3600,
+    priceRange: { min: 2200, max: 7000 },
+    avgRentPerSqm: 11.0,
+    rentRange: { min: 8.0, max: 15.0 },
+    agentFeePercent: 2.98,
+    trend: "stable",
+    hotspots: ["Frankfurt", "Wiesbaden", "Darmstadt"],
+  },
+  MV: {
+    avgPricePerSqm: 2200,
+    priceRange: { min: 1400, max: 4000 },
+    avgRentPerSqm: 7.5,
+    rentRange: { min: 5.5, max: 10.0 },
+    agentFeePercent: 2.98,
+    trend: "rising",
+    hotspots: ["Rostock", "Schwerin", "Greifswald"],
+  },
+  NI: {
+    avgPricePerSqm: 2600,
+    priceRange: { min: 1800, max: 4500 },
+    avgRentPerSqm: 8.5,
+    rentRange: { min: 6.5, max: 11.5 },
+    agentFeePercent: 2.98,
+    trend: "stable",
+    hotspots: ["Hannover", "Braunschweig", "Oldenburg"],
+  },
+  NW: {
+    avgPricePerSqm: 3200,
+    priceRange: { min: 2000, max: 6000 },
+    avgRentPerSqm: 9.5,
+    rentRange: { min: 7.0, max: 13.5 },
+    agentFeePercent: 3.57,
+    trend: "stable",
+    hotspots: ["Düsseldorf", "Cologne", "Münster"],
+  },
+  RP: {
+    avgPricePerSqm: 2400,
+    priceRange: { min: 1600, max: 4000 },
+    avgRentPerSqm: 8.0,
+    rentRange: { min: 6.0, max: 10.5 },
+    agentFeePercent: 2.98,
+    trend: "stable",
+    hotspots: ["Mainz", "Koblenz", "Trier"],
+  },
+  SL: {
+    avgPricePerSqm: 2000,
+    priceRange: { min: 1400, max: 3200 },
+    avgRentPerSqm: 7.0,
+    rentRange: { min: 5.5, max: 9.0 },
+    agentFeePercent: 3.57,
+    trend: "stable",
+    hotspots: ["Saarbrücken", "Neunkirchen", "Homburg"],
+  },
+  SN: {
+    avgPricePerSqm: 2400,
+    priceRange: { min: 1600, max: 4000 },
+    avgRentPerSqm: 7.5,
+    rentRange: { min: 5.5, max: 10.0 },
+    agentFeePercent: 2.98,
+    trend: "rising",
+    hotspots: ["Leipzig", "Dresden", "Chemnitz"],
+  },
+  ST: {
+    avgPricePerSqm: 1800,
+    priceRange: { min: 1200, max: 3000 },
+    avgRentPerSqm: 6.5,
+    rentRange: { min: 5.0, max: 8.5 },
+    agentFeePercent: 2.98,
+    trend: "stable",
+    hotspots: ["Magdeburg", "Halle", "Dessau"],
+  },
+  SH: {
+    avgPricePerSqm: 3000,
+    priceRange: { min: 2000, max: 5500 },
+    avgRentPerSqm: 9.5,
+    rentRange: { min: 7.0, max: 12.5 },
+    agentFeePercent: 3.57,
+    trend: "stable",
+    hotspots: ["Kiel", "Lübeck", "Flensburg"],
+  },
+  TH: {
+    avgPricePerSqm: 1900,
+    priceRange: { min: 1300, max: 3200 },
+    avgRentPerSqm: 6.5,
+    rentRange: { min: 5.0, max: 8.5 },
+    agentFeePercent: 2.98,
+    trend: "stable",
+    hotspots: ["Erfurt", "Jena", "Weimar"],
+  },
+}
+
+/**
+ * City-level market data for hotspot cities within each state
+ * Used to refine market insights when a preferred area is specified
+ */
+export const CITY_MARKET_DATA: Record<
+  string,
+  Record<
+    string,
+    {
+      avgPricePerSqm: number
+      priceRange: { min: number; max: number }
+    }
+  >
+> = {
+  BW: {
+    Stuttgart: { avgPricePerSqm: 4800, priceRange: { min: 3200, max: 7500 } },
+    Freiburg: { avgPricePerSqm: 4200, priceRange: { min: 2800, max: 6500 } },
+    Karlsruhe: { avgPricePerSqm: 3600, priceRange: { min: 2400, max: 5500 } },
+  },
+  BY: {
+    Munich: { avgPricePerSqm: 7500, priceRange: { min: 5000, max: 12000 } },
+    Nuremberg: { avgPricePerSqm: 3800, priceRange: { min: 2500, max: 6000 } },
+    Augsburg: { avgPricePerSqm: 3500, priceRange: { min: 2300, max: 5500 } },
+  },
+  BE: {
+    Mitte: { avgPricePerSqm: 6500, priceRange: { min: 4500, max: 10000 } },
+    "Prenzlauer Berg": {
+      avgPricePerSqm: 5800,
+      priceRange: { min: 4000, max: 8500 },
+    },
+    Kreuzberg: { avgPricePerSqm: 5500, priceRange: { min: 3800, max: 8000 } },
+  },
+  BB: {
+    Potsdam: { avgPricePerSqm: 3800, priceRange: { min: 2500, max: 6000 } },
+    Cottbus: { avgPricePerSqm: 2200, priceRange: { min: 1400, max: 3500 } },
+    "Brandenburg an der Havel": {
+      avgPricePerSqm: 2400,
+      priceRange: { min: 1600, max: 3800 },
+    },
+  },
+  HB: {
+    "Bremen-Mitte": {
+      avgPricePerSqm: 3200,
+      priceRange: { min: 2200, max: 5000 },
+    },
+    Schwachhausen: {
+      avgPricePerSqm: 3500,
+      priceRange: { min: 2400, max: 5500 },
+    },
+    "Horn-Lehe": { avgPricePerSqm: 3000, priceRange: { min: 2000, max: 4800 } },
+  },
+  HH: {
+    Eppendorf: { avgPricePerSqm: 7000, priceRange: { min: 5000, max: 11000 } },
+    Winterhude: { avgPricePerSqm: 6500, priceRange: { min: 4500, max: 10000 } },
+    Eimsbüttel: { avgPricePerSqm: 6000, priceRange: { min: 4200, max: 9500 } },
+  },
+  HE: {
+    Frankfurt: { avgPricePerSqm: 5200, priceRange: { min: 3500, max: 8500 } },
+    Wiesbaden: { avgPricePerSqm: 4000, priceRange: { min: 2800, max: 6500 } },
+    Darmstadt: { avgPricePerSqm: 3800, priceRange: { min: 2600, max: 6000 } },
+  },
+  MV: {
+    Rostock: { avgPricePerSqm: 2800, priceRange: { min: 1800, max: 4500 } },
+    Schwerin: { avgPricePerSqm: 2400, priceRange: { min: 1500, max: 4000 } },
+    Greifswald: { avgPricePerSqm: 2600, priceRange: { min: 1700, max: 4200 } },
+  },
+  NI: {
+    Hannover: { avgPricePerSqm: 3200, priceRange: { min: 2200, max: 5000 } },
+    Braunschweig: {
+      avgPricePerSqm: 2800,
+      priceRange: { min: 1900, max: 4500 },
+    },
+    Oldenburg: { avgPricePerSqm: 2700, priceRange: { min: 1800, max: 4200 } },
+  },
+  NW: {
+    Düsseldorf: { avgPricePerSqm: 4200, priceRange: { min: 2800, max: 7000 } },
+    Cologne: { avgPricePerSqm: 4000, priceRange: { min: 2700, max: 6500 } },
+    Münster: { avgPricePerSqm: 3800, priceRange: { min: 2500, max: 6000 } },
+  },
+  RP: {
+    Mainz: { avgPricePerSqm: 3200, priceRange: { min: 2200, max: 5000 } },
+    Koblenz: { avgPricePerSqm: 2600, priceRange: { min: 1800, max: 4000 } },
+    Trier: { avgPricePerSqm: 2800, priceRange: { min: 1900, max: 4200 } },
+  },
+  SL: {
+    Saarbrücken: { avgPricePerSqm: 2200, priceRange: { min: 1500, max: 3500 } },
+    Neunkirchen: { avgPricePerSqm: 1800, priceRange: { min: 1200, max: 2800 } },
+    Homburg: { avgPricePerSqm: 1900, priceRange: { min: 1300, max: 3000 } },
+  },
+  SN: {
+    Leipzig: { avgPricePerSqm: 3000, priceRange: { min: 2000, max: 5000 } },
+    Dresden: { avgPricePerSqm: 2800, priceRange: { min: 1900, max: 4500 } },
+    Chemnitz: { avgPricePerSqm: 1800, priceRange: { min: 1200, max: 3000 } },
+  },
+  ST: {
+    Magdeburg: { avgPricePerSqm: 2000, priceRange: { min: 1300, max: 3200 } },
+    Halle: { avgPricePerSqm: 2100, priceRange: { min: 1400, max: 3400 } },
+    Dessau: { avgPricePerSqm: 1500, priceRange: { min: 1000, max: 2500 } },
+  },
+  SH: {
+    Kiel: { avgPricePerSqm: 3200, priceRange: { min: 2200, max: 5200 } },
+    Lübeck: { avgPricePerSqm: 3400, priceRange: { min: 2300, max: 5500 } },
+    Flensburg: { avgPricePerSqm: 2800, priceRange: { min: 1900, max: 4500 } },
+  },
+  TH: {
+    Erfurt: { avgPricePerSqm: 2200, priceRange: { min: 1500, max: 3500 } },
+    Jena: { avgPricePerSqm: 2600, priceRange: { min: 1800, max: 4200 } },
+    Weimar: { avgPricePerSqm: 2400, priceRange: { min: 1600, max: 3800 } },
+  },
+}
+
+/**
+ * Property type price multipliers
+ * Relative to apartment prices
+ */
+export const PROPERTY_TYPE_MULTIPLIERS: Record<string, number> = {
+  apartment: 1.0,
+  house: 1.3,
+  multi_family: 1.5,
+  commercial: 1.4,
+  land: 0.4,
+}

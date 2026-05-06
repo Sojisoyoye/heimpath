@@ -1,0 +1,36 @@
+server {
+  listen 80;
+
+  add_header X-Frame-Options "SAMEORIGIN" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-XSS-Protection "1; mode=block" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()" always;
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://*.sentry.io https://api.cognitive.microsofttranslator.com https://heimpath-translator.cognitiveservices.azure.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none';" always;
+
+  # Proxy /api/ to the backend so the browser sees one origin and cookies
+  # (logged_in, access_token) are set on the frontend domain — making them
+  # readable by document.cookie for isLoggedIn() checks.
+  location /api/ {
+    proxy_pass ${BACKEND_HOST}/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $proxy_host;
+    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_ssl_server_name on;
+  }
+
+  # Block direct browser access to backend-only paths.
+  location /docs { return 404; }
+  location /redoc { return 404; }
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+    try_files $uri /index.html =404;
+  }
+}

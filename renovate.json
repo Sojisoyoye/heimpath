@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies", "internal"],
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "schedule": ["every day"]
+    },
+    {
+      "matchManagers": ["pep621", "uv"],
+      "schedule": ["every weekend"]
+    },
+    {
+      "matchManagers": ["bun", "npm"],
+      "schedule": ["every weekend"],
+      "excludePackageNames": ["@hey-api/openapi-ts"]
+    },
+    {
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "schedule": ["every weekend"]
+    },
+    {
+      "matchManagers": ["terraform"],
+      "schedule": ["every weekend"]
+    }
+  ]
+}

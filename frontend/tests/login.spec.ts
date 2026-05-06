@@ -1,0 +1,121 @@
+import { expect, type Page, test } from "@playwright/test"
+import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
+import { randomPassword } from "./utils/random.ts"
+
+test.use({ storageState: { cookies: [], origins: [] } })
+
+const fillForm = async (page: Page, email: string, password: string) => {
+  await page.getByTestId("email-input").fill(email)
+  await page.getByTestId("password-input").fill(password)
+}
+
+const verifyInput = async (page: Page, testId: string) => {
+  const input = page.getByTestId(testId)
+  await expect(input).toBeVisible()
+  await expect(input).toHaveText("")
+  await expect(input).toBeEditable()
+}
+
+test("Inputs are visible, empty and editable", async ({ page }) => {
+  await page.goto("/login")
+
+  await verifyInput(page, "email-input")
+  await verifyInput(page, "password-input")
+})
+
+test("Sign In button is visible", async ({ page }) => {
+  await page.goto("/login")
+
+  await expect(page.getByRole("button", { name: "Sign In" })).toBeVisible()
+})
+
+test("Forgot Password link is visible", async ({ page }) => {
+  await page.goto("/login")
+
+  await expect(
+    page.getByRole("link", { name: "Forgot password?" }),
+  ).toBeVisible()
+})
+
+test("Log in with valid email and password ", async ({ page }) => {
+  await page.goto("/login")
+
+  await fillForm(page, firstSuperuser, firstSuperuserPassword)
+  await page.getByRole("button", { name: "Sign In" }).click()
+
+  await page.waitForURL("/dashboard")
+
+  await expect(page.getByText("Welcome back,", { exact: false })).toBeVisible()
+})
+
+test("Log in with invalid email", async ({ page }) => {
+  await page.goto("/login")
+
+  await fillForm(page, "invalidemail", firstSuperuserPassword)
+  await page.getByRole("button", { name: "Sign In" }).click()
+
+  await expect(
+    page.getByText("Please enter a valid email address"),
+  ).toBeVisible()
+})
+
+test("Log in with invalid password", async ({ page }) => {
+  const password = randomPassword()
+
+  await page.goto("/login")
+  await fillForm(page, firstSuperuser, password)
+  await page.getByRole("button", { name: "Sign In" }).click()
+
+  await expect(page.getByText("Incorrect email or password")).toBeVisible()
+})
+
+test("Successful log out", async ({ page }) => {
+  await page.goto("/login")
+
+  await fillForm(page, firstSuperuser, firstSuperuserPassword)
+  await page.getByRole("button", { name: "Sign In" }).click()
+
+  await page.waitForURL("/dashboard")
+
+  await expect(page.getByText("Welcome back,", { exact: false })).toBeVisible()
+
+  await page.getByTestId("user-menu").click()
+  await page.getByRole("menuitem", { name: "Log out" }).click()
+  await page.waitForURL("/login")
+})
+
+test("Logged-out user cannot access protected routes", async ({ page }) => {
+  await page.goto("/login")
+
+  await fillForm(page, firstSuperuser, firstSuperuserPassword)
+  await page.getByRole("button", { name: "Sign In" }).click()
+
+  await page.waitForURL("/dashboard")
+
+  await expect(page.getByText("Welcome back,", { exact: false })).toBeVisible()
+
+  await page.getByTestId("user-menu").click()
+  await page.getByRole("menuitem", { name: "Log out" }).click()
+  await page.waitForURL("/login")
+
+  await page.goto("/settings")
+  await page.waitForURL("/login")
+})
+
+test("Redirects to /login when token is wrong", async ({ page, context }) => {
+  // Navigate to any public page first so page.url() returns a real URL
+  // (not "about:blank") and we can derive the correct hostname for cookies.
+  await page.goto("/login")
+  const domain = new URL(page.url()).hostname
+
+  // Set a stale `logged_in` indicator cookie so isLoggedIn() returns true,
+  // but the access_token cookie contains an invalid JWT — the backend will
+  // reject it and the global 401/403 handler should redirect to /login.
+  await context.addCookies([
+    { name: "logged_in", value: "1", domain, path: "/" },
+    { name: "access_token", value: "invalid_token", domain, path: "/" },
+  ])
+  await page.goto("/settings")
+  await page.waitForURL("/login")
+  await expect(page).toHaveURL("/login")
+})
