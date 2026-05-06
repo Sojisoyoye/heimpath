@@ -3,8 +3,10 @@
 from enum import Enum as PyEnum
 
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -162,6 +164,15 @@ class DocumentTranslation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Linked glossary terms (populated at processing time)
     glossary_links = Column(MutableList.as_mutable(JSONB), nullable=True, default=None)
+
+    # Confidence gating — set during processing when avg confidence < threshold
+    requires_manual_review = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
+    translation_confidence_score = Column(Float, nullable=True)
 
     # Timing
     processing_started_at = Column(DateTime(timezone=True), nullable=True)

@@ -36,6 +36,7 @@ from app.models.article import (
     ArticleStatus,
     DifficultyLevel,
 )
+from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.calculator import HiddenCostCalculation
 from app.models.contract import ContractAnalysis
@@ -110,6 +111,7 @@ __all__ = [
     "UserUpdateMe",
     # New SQLAlchemy models
     "Article",
+    "AuditLog",
     "ArticleCategory",
     "ArticleRating",
     "ArticleStatus",
