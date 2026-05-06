@@ -181,6 +181,12 @@ class Settings(BaseSettings):
     MAX_JSON_BODY_SIZE_BYTES: int = 1_048_576  # 1 MB
     DB_STATEMENT_TIMEOUT_MS: int = 10_000  # 10 seconds
 
+    # Email settings
+    # Set NOTIFICATION_EMAILS_ENABLED=false to suppress all non-essential emails
+    # (notifications, weekly digest).  Forgot-password and email verification
+    # emails are always sent regardless of this flag.
+    NOTIFICATION_EMAILS_ENABLED: bool = True
+
     # Domain used to construct absolute backend URLs (e.g. avatar serving)
     DOMAIN: str = "localhost"
 

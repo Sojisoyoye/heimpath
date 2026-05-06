@@ -190,7 +190,7 @@ export class AuthService {
      * - At least 1 uppercase letter
      * - At least 1 number
      *
-     * Rate limiting: 3 attempts per hour.
+     * Rate limiting: 3 attempts per hour per email, 5 per hour per IP.
      *
      * Returns the created user (without password).
      * @param data The data for the request.

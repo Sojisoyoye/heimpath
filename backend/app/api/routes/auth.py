@@ -68,6 +68,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 )
 async def register(
     request: RegisterRequest,
+    http_request: Request,
     session: Session = Depends(get_db),
 ) -> User:
     """
@@ -78,11 +79,22 @@ async def register(
     - At least 1 uppercase letter
     - At least 1 number
 
-    Rate limiting: 3 attempts per hour.
+    Rate limiting: 3 attempts per hour per email, 5 per hour per IP.
 
     Returns the created user (without password).
     """
-    # Check rate limit before processing
+    client_ip = http_request.client.host if http_request.client else None
+
+    # Check IP-based registration rate limit first (prevents mass-registration
+    # with different emails from the same source, which exhausts email quotas).
+    if client_ip and rate_limit_service.is_ip_register_locked(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many registration attempts. Please try again later.",
+            headers={"Retry-After": "3600"},
+        )
+
+    # Check per-email rate limit
     if rate_limit_service.is_register_locked(request.email):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -122,6 +134,12 @@ async def register(
         rate_limit_service.record_register_attempt(request.email)
     except Exception:
         logger.warning("Failed to record register rate-limit for %s", request.email)
+
+    try:
+        if client_ip:
+            rate_limit_service.record_ip_register(client_ip)
+    except Exception:
+        logger.warning("Failed to record IP register rate-limit for %s", client_ip)
 
     try:
         token_data = generate_verification_token(
