@@ -288,6 +288,8 @@ def _send_notification_email(
     try:
         if not settings.emails_enabled:
             return
+        if not settings.NOTIFICATION_EMAILS_ENABLED:
+            return
 
         from app.models import User
 

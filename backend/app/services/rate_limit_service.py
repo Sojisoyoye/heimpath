@@ -57,6 +57,16 @@ IP_FAILED_LOCKOUT_SECONDS: int = 3600  # 1 hour
 _IP_FAILED_ATTEMPTS_PREFIX = "auth:ratelimit:ip:attempts:"
 _IP_FAILED_LOCKOUT_PREFIX = "auth:ratelimit:ip:lockout:"
 
+# IP-based registration rate limit constants
+# Prevents a single source from mass-registering accounts with different emails
+# (which would exhaust transactional email API daily quotas).
+IP_REGISTER_MAX: int = 5
+IP_REGISTER_WINDOW_SECONDS: int = 3600  # 1 hour
+IP_REGISTER_LOCKOUT_SECONDS: int = 3600  # 1 hour
+
+_IP_REGISTER_ATTEMPTS_PREFIX = "auth:ratelimit:ip_register:attempts:"
+_IP_REGISTER_LOCKOUT_PREFIX = "auth:ratelimit:ip_register:lockout:"
+
 # ── Professional click rate limiting ─────────────────────────────────────────
 # Professional click rate limit constants
 CLICK_MAX_ATTEMPTS: int = 20
@@ -299,4 +309,24 @@ def record_ip_failed(ip: str) -> RateLimitInfo:
         IP_FAILED_MAX,
         IP_FAILED_WINDOW_SECONDS,
         IP_FAILED_LOCKOUT_SECONDS,
+    )
+
+
+# ── IP-based registration rate limiting ───────────────────────────────────────
+
+
+def is_ip_register_locked(ip: str) -> bool:
+    """Return *True* if the IP is locked for new account registrations."""
+    return _redis().ttl(f"{_IP_REGISTER_LOCKOUT_PREFIX}{ip}") > 0
+
+
+def record_ip_register(ip: str) -> RateLimitInfo:
+    """Record a registration from an IP and return the updated status."""
+    return _record_attempt(
+        ip,
+        _IP_REGISTER_ATTEMPTS_PREFIX,
+        _IP_REGISTER_LOCKOUT_PREFIX,
+        IP_REGISTER_MAX,
+        IP_REGISTER_WINDOW_SECONDS,
+        IP_REGISTER_LOCKOUT_SECONDS,
     )
