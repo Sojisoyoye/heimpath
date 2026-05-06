@@ -2,8 +2,8 @@
 
 Three named retry strategies protect the three external integrations:
 - stripe_retry       — Stripe API (sync, 3 attempts)
-- translator_retry   — Azure Translator API (async, 3 attempts)
-- anthropic_retry    — Anthropic Claude API (async, 2 attempts)
+- translator_retry   — Azure Translator API (sync/async, 3 attempts)
+- anthropic_retry    — Anthropic Claude API (sync/async, 2 attempts)
 
 Usage::
 
@@ -23,8 +23,8 @@ dependencies with service modules.
 
 import logging
 
-import stripe
 import anthropic
+import stripe
 from tenacity import (
     before_sleep_log,
     retry,

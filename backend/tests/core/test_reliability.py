@@ -24,7 +24,9 @@ class TestIsTransientStripeError:
     """
 
     def test_api_connection_error_is_transient(self) -> None:
-        assert _is_transient_stripe_error(stripe.APIConnectionError("connection failed"))
+        assert _is_transient_stripe_error(
+            stripe.APIConnectionError("connection failed")
+        )
 
     def test_rate_limit_error_is_transient(self) -> None:
         # stripe 7.x RateLimitError constructor takes only a message
@@ -51,12 +53,10 @@ class TestIsTransientTranslatorError:
         assert _is_transient_translator_error(aiohttp.ClientConnectionError())
 
     def test_translation_error_429_is_transient(self) -> None:
-        # Simulate TranslationError being importable
-        with patch.dict("sys.modules", {}):
-            from app.services.translation_service import TranslationError
+        from app.services.translation_service import TranslationError
 
-            err = TranslationError("API error 429: Too Many Requests")
-            assert _is_transient_translator_error(err)
+        err = TranslationError("API error 429: Too Many Requests")
+        assert _is_transient_translator_error(err)
 
     def test_translation_error_503_is_transient(self) -> None:
         from app.services.translation_service import TranslationError
