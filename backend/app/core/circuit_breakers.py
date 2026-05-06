@@ -7,19 +7,21 @@ Each breaker protects one external integration:
 
 Usage at call sites::
 
-    from app.core.circuit_breakers import stripe_breaker
+    from app.core.circuit_breakers import stripe_breaker, async_call
 
     # sync
     result = stripe_breaker.call(stripe.checkout.Session.create, **params)
 
-    # async
-    result = await translator_breaker.call_async(my_async_fn, *args)
+    # async (pybreaker.call_async requires tornado — use async_call instead)
+    result = await async_call(translator_breaker, my_async_fn, *args)
 
 This module intentionally imports ONLY pybreaker and logging to prevent
 circular imports — services must not be imported here.
 """
 
 import logging
+from collections.abc import Callable
+from typing import Any
 
 import pybreaker
 
@@ -78,3 +80,37 @@ anthropic_breaker = pybreaker.CircuitBreaker(
     name="anthropic",
     listeners=[_listener],
 )
+
+
+async def async_call(
+    breaker: pybreaker.CircuitBreaker,
+    func: Callable[..., Any],
+    *args: Any,
+    **kwargs: Any,
+) -> Any:
+    """Async-compatible circuit breaker call.
+
+    pybreaker's ``call_async`` requires tornado (``HAS_TORNADO_SUPPORT``),
+    which is not available in all environments.  This wrapper uses pybreaker's
+    public state API to achieve the same effect natively with asyncio.
+
+    Raises:
+        pybreaker.CircuitBreakerError: If the circuit is open.
+    """
+    # ``state`` is a property that handles half-open → open/closed transitions.
+    # ``before_call`` raises CircuitBreakerError immediately when the circuit is open.
+    state = breaker.state
+    state.before_call(func, *args, **kwargs)
+
+    for listener in breaker.listeners:
+        listener.before_call(breaker, func, *args, **kwargs)
+
+    try:
+        result = await func(*args, **kwargs)
+        state.on_success()
+        return result
+    except BaseException as exc:
+        # on_failure increments the fail counter and may trip the circuit,
+        # in which case it raises CircuitBreakerError itself.
+        state.on_failure(exc)
+        raise

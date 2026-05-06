@@ -4,16 +4,20 @@ Provides subscription management via Stripe including checkout sessions,
 customer portal, and webhook processing.
 """
 
+import hashlib
 import logging
 import uuid
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+import pybreaker
 import stripe
 from stripe import InvalidRequestError, SignatureVerificationError
 
+from app.core.circuit_breakers import stripe_breaker
 from app.core.config import settings
+from app.core.reliability import stripe_retry
 from app.models import SubscriptionTier
 
 logger = logging.getLogger(__name__)
@@ -202,12 +206,19 @@ class PaymentService:
             PaymentError: If customer creation fails.
         """
         try:
-            customer = stripe.Customer.create(
-                email=email,
-                name=name,
-                metadata={"user_id": str(user_id)},
-            )
+
+            @stripe_retry
+            def _do_create():
+                return stripe.Customer.create(
+                    email=email,
+                    name=name,
+                    metadata={"user_id": str(user_id)},
+                )
+
+            customer = stripe_breaker.call(_do_create)
             return customer.id
+        except pybreaker.CircuitBreakerError as e:
+            raise PaymentError("Stripe circuit breaker is open") from e
         except stripe.StripeError as e:
             raise PaymentError(f"Failed to create customer: {e}") from e
 
@@ -232,8 +243,10 @@ class PaymentService:
         if stripe_customer_id:
             try:
                 # Verify customer exists
-                stripe.Customer.retrieve(stripe_customer_id)
+                stripe_breaker.call(stripe.Customer.retrieve, stripe_customer_id)
                 return stripe_customer_id
+            except pybreaker.CircuitBreakerError as e:
+                raise PaymentError("Stripe circuit breaker is open") from e
             except InvalidRequestError:
                 # Customer doesn't exist, create new one
                 pass
@@ -277,21 +290,32 @@ class PaymentService:
                 stripe_customer_id=stripe_customer_id,
             )
 
-            session = stripe.checkout.Session.create(
-                customer=customer_id,
-                mode="subscription",
-                line_items=[{"price": price_id, "quantity": 1}],
-                success_url=success_url,
-                cancel_url=cancel_url,
-                # Only store user_id — tier is derived from price_id on receipt
-                # to prevent metadata tampering.
-                metadata={"user_id": str(user_id)},
-            )
+            idempotency_key = hashlib.sha256(
+                f"checkout:{user_id}:{tier.value}".encode()
+            ).hexdigest()[:40]
+
+            @stripe_retry
+            def _do_create():
+                return stripe.checkout.Session.create(
+                    customer=customer_id,
+                    mode="subscription",
+                    line_items=[{"price": price_id, "quantity": 1}],
+                    success_url=success_url,
+                    cancel_url=cancel_url,
+                    # Only store user_id — tier is derived from price_id on receipt
+                    # to prevent metadata tampering.
+                    metadata={"user_id": str(user_id)},
+                    idempotency_key=idempotency_key,
+                )
+
+            session = stripe_breaker.call(_do_create)
 
             return CheckoutSessionResult(
                 session_id=session.id,
                 url=session.url or "",
             )
+        except pybreaker.CircuitBreakerError as e:
+            raise CheckoutSessionError("Stripe circuit breaker is open") from e
         except stripe.StripeError as e:
             raise CheckoutSessionError(f"Failed to create checkout session: {e}") from e
 
@@ -314,11 +338,18 @@ class PaymentService:
             PaymentError: If portal session creation fails.
         """
         try:
-            session = stripe.billing_portal.Session.create(
-                customer=stripe_customer_id,
-                return_url=return_url,
-            )
+
+            @stripe_retry
+            def _do_create():
+                return stripe.billing_portal.Session.create(
+                    customer=stripe_customer_id,
+                    return_url=return_url,
+                )
+
+            session = stripe_breaker.call(_do_create)
             return PortalSessionResult(url=session.url)
+        except pybreaker.CircuitBreakerError as e:
+            raise PaymentError("Stripe circuit breaker is open") from e
         except InvalidRequestError as e:
             if "No such customer" in str(e):
                 raise CustomerNotFoundError(
