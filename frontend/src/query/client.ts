@@ -6,6 +6,8 @@ import { ApiError } from "@/client"
  */
 const handleApiError = (error: Error) => {
   if (error instanceof ApiError && [401, 403].includes(error.status)) {
+    // Stay on /login — the login component handles its own 403 (unverified email)
+    if (globalThis.location.pathname === "/login") return
     queryClient.clear()
     localStorage.removeItem("access_token")
     window.location.href = "/login"
