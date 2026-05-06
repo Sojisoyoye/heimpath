@@ -2,8 +2,11 @@
 
 from unittest.mock import AsyncMock, patch
 
+import aiohttp
 import pytest
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_none
 
+from app.core.reliability import _is_transient_translator_error
 from app.schemas.translation import RiskLevel, SupportedLanguage
 from app.services.translation_service import (
     TranslationError,
@@ -429,3 +432,143 @@ class TestCharacterCounting:
             )
 
         assert result.character_count == len("Der Kaufvertrag")
+
+
+class TestReliability:
+    """Tests for retry, timeout, and confidence-gating behaviour."""
+
+    @pytest.mark.asyncio
+    async def test_low_confidence_sets_requires_review(
+        self, translation_service: TranslationService
+    ) -> None:
+        """Confidence below threshold sets requires_review regardless of legal terms."""
+        mock_response = [
+            {
+                "detectedLanguage": {"language": "de", "score": 0.55},
+                "translations": [{"text": "The plot of land", "to": "en"}],
+            }
+        ]
+
+        with patch.object(
+            translation_service, "_make_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = mock_response
+
+            result = await translation_service.translate_with_warnings(
+                text="Das Grundstück",  # no high-risk legal terms
+                source_language=SupportedLanguage.GERMAN,
+                target_language=SupportedLanguage.ENGLISH,
+            )
+
+        assert result.requires_review is True
+
+    @pytest.mark.asyncio
+    async def test_high_confidence_no_legal_terms_no_review(
+        self, translation_service: TranslationService
+    ) -> None:
+        """High confidence and no legal terms means requires_review is False."""
+        mock_response = [
+            {
+                "detectedLanguage": {"language": "de", "score": 0.99},
+                "translations": [{"text": "The weather is nice.", "to": "en"}],
+            }
+        ]
+
+        with patch.object(
+            translation_service, "_make_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = mock_response
+
+            result = await translation_service.translate_with_warnings(
+                text="Das Wetter ist schön.",
+                source_language=SupportedLanguage.GERMAN,
+                target_language=SupportedLanguage.ENGLISH,
+            )
+
+        assert result.requires_review is False
+
+    @pytest.mark.asyncio
+    async def test_timeout_raises_translation_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """aiohttp.ServerTimeoutError from _make_request surfaces as TranslationError."""
+        with patch.object(
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            side_effect=aiohttp.ServerTimeoutError(),
+        ):
+            with pytest.raises(TranslationError):
+                await translation_service.translate_text(
+                    text="Der Kaufvertrag",
+                    source_language=SupportedLanguage.GERMAN,
+                    target_language=SupportedLanguage.ENGLISH,
+                )
+
+    @pytest.mark.asyncio
+    async def test_retries_on_503(
+        self, translation_service: TranslationService
+    ) -> None:
+        """translate_text retries when _make_request raises a 503 TranslationError."""
+        call_count = 0
+        success_data = [
+            {
+                "detectedLanguage": {"language": "de", "score": 0.98},
+                "translations": [{"text": "The purchase agreement", "to": "en"}],
+            }
+        ]
+
+        async def _flaky(text: str, source_language: str, target_language: str) -> list:  # noqa: ARG001
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise TranslationError(
+                    "Translation API error (status 503): Service unavailable"
+                )
+            return success_data
+
+        # Replace _make_request with a no-wait retry version to keep tests fast
+        fast_retry = retry(
+            stop=stop_after_attempt(3),
+            wait=wait_none(),
+            retry=retry_if_exception(_is_transient_translator_error),
+            reraise=True,
+        )
+        translation_service._make_request = fast_retry(_flaky)  # type: ignore[method-assign]
+
+        result = await translation_service.translate_text(
+            text="Der Kaufvertrag",
+            source_language=SupportedLanguage.GERMAN,
+            target_language=SupportedLanguage.ENGLISH,
+        )
+
+        assert call_count == 2
+        assert result.translated_text == "The purchase agreement"
+
+    @pytest.mark.asyncio
+    async def test_batch_response_length_mismatch_raises(
+        self, translation_service: TranslationService
+    ) -> None:
+        """batch_translate raises TranslationError when API returns fewer results."""
+        # API returns 3 results but we sent 5 texts
+        mock_response = [
+            {
+                "detectedLanguage": {"language": "de", "score": 0.98},
+                "translations": [{"text": f"Translation {i}", "to": "en"}],
+            }
+            for i in range(3)
+        ]
+
+        with patch.object(
+            translation_service, "_make_batch_request", new_callable=AsyncMock
+        ) as mock_batch:
+            mock_batch.return_value = mock_response
+
+            with pytest.raises(TranslationError) as exc_info:
+                await translation_service.batch_translate(
+                    texts=["Text 1", "Text 2", "Text 3", "Text 4", "Text 5"],
+                    source_language=SupportedLanguage.GERMAN,
+                    target_language=SupportedLanguage.ENGLISH,
+                )
+
+        assert "mismatch" in str(exc_info.value).lower()

@@ -10,8 +10,12 @@ from functools import lru_cache
 from typing import Any
 
 import aiohttp
+import pybreaker
 
+from app.core.circuit_breakers import async_call as _breaker_async_call
+from app.core.circuit_breakers import translator_breaker
 from app.core.config import settings
+from app.core.reliability import translator_retry
 from app.schemas.translation import (
     BatchTranslationResponse,
     LegalTermWarning,
@@ -228,6 +232,7 @@ class TranslationService:
             "Content-Type": "application/json",
         }
 
+    @translator_retry
     async def _make_request(
         self,
         text: str,
@@ -254,8 +259,9 @@ class TranslationService:
             "to": target_language,
         }
         body = [{"text": text}]
+        timeout = aiohttp.ClientTimeout(total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS)
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
                 url,
                 headers=self._get_headers(),
@@ -269,6 +275,7 @@ class TranslationService:
                     )
                 return await response.json()
 
+    @translator_retry
     async def _make_batch_request(
         self,
         texts: list[str],
@@ -295,8 +302,9 @@ class TranslationService:
             "to": target_language,
         }
         body = [{"text": text} for text in texts]
+        timeout = aiohttp.ClientTimeout(total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS)
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
                 url,
                 headers=self._get_headers(),
@@ -326,7 +334,9 @@ class TranslationService:
         params = {"api-version": "3.0"}
         body = [{"text": text}]
 
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS)
+
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
                 url,
                 headers=self._get_headers(),
@@ -360,7 +370,9 @@ class TranslationService:
             TranslationError: If translation fails.
         """
         try:
-            response = await self._make_request(
+            response = await _breaker_async_call(
+                translator_breaker,
+                self._make_request,
                 text=text,
                 source_language=source_language.value,
                 target_language=target_language.value,
@@ -385,6 +397,8 @@ class TranslationService:
                 target_language=target_language.value,
                 confidence=confidence,
             )
+        except pybreaker.CircuitBreakerError as e:
+            raise TranslationError("Azure Translator circuit breaker is open") from e
         except TranslationError:
             raise
         except Exception as e:
@@ -471,8 +485,11 @@ class TranslationService:
             TranslationResponse with translation and warnings.
 
         Raises:
-            TranslationError: If translation fails.
+            TranslationError: If text is empty or translation fails.
         """
+        if not text:
+            raise TranslationError("Cannot translate empty text")
+
         result = await self.translate_text(
             text=text,
             source_language=source_language,
@@ -480,12 +497,13 @@ class TranslationService:
         )
 
         legal_warnings: list[LegalTermWarning] = []
-        requires_review = False
+        # Require review if confidence is below the configured threshold
+        requires_review = result.confidence < settings.TRANSLATION_CONFIDENCE_THRESHOLD
 
         if include_legal_warnings:
             legal_warnings = self.detect_legal_terms(text)
-            # Require review if any high-risk terms are present
-            requires_review = any(
+            # Also require review if any high-risk terms are present
+            requires_review = requires_review or any(
                 w.risk_level == RiskLevel.HIGH for w in legal_warnings
             )
 
@@ -525,12 +543,24 @@ class TranslationService:
         Raises:
             TranslationError: If translation fails.
         """
+        if not texts:
+            return BatchTranslationResponse(
+                translations=[], total_character_count=0, total_warnings=0
+            )
+
         try:
-            response = await self._make_batch_request(
+            response = await _breaker_async_call(
+                translator_breaker,
+                self._make_batch_request,
                 texts=texts,
                 source_language=source_language.value,
                 target_language=target_language.value,
             )
+
+            if len(response) != len(texts):
+                raise TranslationError(
+                    f"Batch response mismatch: sent {len(texts)}, received {len(response)}"
+                )
 
             translations: list[TranslationResponse] = []
             total_chars = 0
@@ -576,6 +606,8 @@ class TranslationService:
                 total_character_count=total_chars,
                 total_warnings=total_warnings,
             )
+        except pybreaker.CircuitBreakerError as e:
+            raise TranslationError("Azure Translator circuit breaker is open") from e
         except TranslationError:
             raise
         except Exception as e:

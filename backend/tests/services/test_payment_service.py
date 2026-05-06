@@ -3,6 +3,7 @@
 import uuid
 from unittest.mock import MagicMock, patch
 
+import pybreaker
 import pytest
 import stripe
 
@@ -392,3 +393,112 @@ class TestGetCheckoutPriceId:
         ):
             result = payment_service.get_checkout_price_id("cs_error")
         assert result is None
+
+
+class TestReliability:
+    """Tests for retry, idempotency, and circuit-breaker behaviour."""
+
+    @pytest.mark.asyncio
+    async def test_checkout_session_passes_idempotency_key(
+        self, payment_service: PaymentService
+    ) -> None:
+        """stripe.checkout.Session.create receives an idempotency_key."""
+        user_id = uuid.uuid4()
+        mock_customer = MagicMock()
+        mock_customer.id = "cus_test123"
+        mock_session = MagicMock()
+        mock_session.id = "cs_test_session"
+        mock_session.url = "https://checkout.stripe.com/test"
+
+        with patch.object(stripe.Customer, "create", return_value=mock_customer):
+            with patch.object(
+                stripe.checkout.Session, "create", return_value=mock_session
+            ) as mock_create:
+                await payment_service.create_checkout_session(
+                    user_id=user_id,
+                    email="test@example.com",
+                    tier=SubscriptionTier.PREMIUM,
+                    success_url="https://example.com/success",
+                    cancel_url="https://example.com/cancel",
+                )
+
+        _, kwargs = mock_create.call_args
+        assert "idempotency_key" in kwargs
+        assert len(kwargs["idempotency_key"]) == 40  # sha256 hex truncated to 40 chars
+
+    @pytest.mark.asyncio
+    async def test_checkout_idempotency_key_is_deterministic(
+        self, payment_service: PaymentService
+    ) -> None:
+        """Same user+tier always produces the same idempotency key."""
+        user_id = uuid.uuid4()
+        mock_customer = MagicMock()
+        mock_customer.id = "cus_test123"
+        mock_session = MagicMock()
+        mock_session.id = "cs_test"
+        mock_session.url = "https://checkout.stripe.com/test"
+
+        captured_keys: list[str] = []
+
+        def _capture_create(**kwargs):
+            captured_keys.append(kwargs["idempotency_key"])
+            return mock_session
+
+        with patch.object(stripe.Customer, "create", return_value=mock_customer):
+            with patch.object(
+                stripe.checkout.Session, "create", side_effect=_capture_create
+            ):
+                for _ in range(2):
+                    await payment_service.create_checkout_session(
+                        user_id=user_id,
+                        email="test@example.com",
+                        tier=SubscriptionTier.PREMIUM,
+                        success_url="https://example.com/success",
+                        cancel_url="https://example.com/cancel",
+                    )
+
+        assert captured_keys[0] == captured_keys[1]
+
+    @pytest.mark.asyncio
+    async def test_circuit_breaker_open_raises_checkout_error(
+        self, payment_service: PaymentService
+    ) -> None:
+        """CircuitBreakerError from stripe_breaker is converted to CheckoutSessionError."""
+        mock_customer = MagicMock()
+        mock_customer.id = "cus_existing"
+
+        # Provide stripe_customer_id so get_or_create_customer calls retrieve
+        # via stripe_breaker.call (first call → succeeds), then checkout.Session.create
+        # via stripe_breaker.call (second call → raises CircuitBreakerError).
+        with patch(
+            "app.services.payment_service.stripe_breaker.call",
+            side_effect=[mock_customer, pybreaker.CircuitBreakerError()],
+        ):
+            with pytest.raises(CheckoutSessionError) as exc_info:
+                await payment_service.create_checkout_session(
+                    user_id=uuid.uuid4(),
+                    email="test@example.com",
+                    tier=SubscriptionTier.PREMIUM,
+                    success_url="https://example.com/success",
+                    cancel_url="https://example.com/cancel",
+                    stripe_customer_id="cus_existing",
+                )
+
+        assert "circuit breaker" in str(exc_info.value).lower()
+
+    @pytest.mark.asyncio
+    async def test_circuit_breaker_open_raises_payment_error_for_portal(
+        self, payment_service: PaymentService
+    ) -> None:
+        """CircuitBreakerError during portal session creation raises PaymentError."""
+        with patch(
+            "app.services.payment_service.stripe_breaker.call",
+            side_effect=pybreaker.CircuitBreakerError(),
+        ):
+            with pytest.raises(PaymentError) as exc_info:
+                await payment_service.create_portal_session(
+                    stripe_customer_id="cus_test123",
+                    return_url="https://example.com/account",
+                )
+
+        assert "circuit breaker" in str(exc_info.value).lower()
