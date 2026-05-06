@@ -33,6 +33,10 @@ def send_weekly_digest(session: Session) -> int:
     Returns:
         Number of digest emails successfully sent.
     """
+    if not settings.NOTIFICATION_EMAILS_ENABLED:
+        logger.info("Notification emails disabled — skipping weekly digest")
+        return 0
+
     from app.models import User
 
     one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
