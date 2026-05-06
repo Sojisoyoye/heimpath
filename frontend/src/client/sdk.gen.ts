@@ -316,7 +316,7 @@ export class AuthService {
      * Generates a new verification token and sends it to the user's email.
      * Any previous token for the user is invalidated.
      *
-     * Rate limiting: 3 attempts per hour.
+     * Rate limiting: 3 attempts per hour per email, 10 per hour per IP.
      *
      * Note: Always returns success to prevent email enumeration attacks.
      * @param data The data for the request.
@@ -343,7 +343,7 @@ export class AuthService {
      * Generates a reset token and sends it to the user's email.
      * Tokens expire after 1 hour.
      *
-     * Rate limiting: 3 attempts per hour.
+     * Rate limiting: 3 attempts per hour per email, 10 per hour per IP.
      *
      * Note: Always returns success to prevent email enumeration attacks.
      * @param data The data for the request.

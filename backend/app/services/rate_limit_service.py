@@ -67,6 +67,28 @@ IP_REGISTER_LOCKOUT_SECONDS: int = 3600  # 1 hour
 _IP_REGISTER_ATTEMPTS_PREFIX = "auth:ratelimit:ip_register:attempts:"
 _IP_REGISTER_LOCKOUT_PREFIX = "auth:ratelimit:ip_register:lockout:"
 
+# IP-based password reset rate limit constants
+# Prevents a bot from triggering password reset emails for many different
+# addresses from a single source.
+IP_PASSWORD_RESET_MAX: int = 10
+IP_PASSWORD_RESET_WINDOW_SECONDS: int = 3600  # 1 hour
+IP_PASSWORD_RESET_LOCKOUT_SECONDS: int = 3600  # 1 hour
+
+_IP_PASSWORD_RESET_ATTEMPTS_PREFIX = "auth:ratelimit:ip_password_reset:attempts:"
+_IP_PASSWORD_RESET_LOCKOUT_PREFIX = "auth:ratelimit:ip_password_reset:lockout:"
+
+# IP-based resend-verification rate limit constants
+IP_RESEND_VERIFICATION_MAX: int = 10
+IP_RESEND_VERIFICATION_WINDOW_SECONDS: int = 3600  # 1 hour
+IP_RESEND_VERIFICATION_LOCKOUT_SECONDS: int = 3600  # 1 hour
+
+_IP_RESEND_VERIFICATION_ATTEMPTS_PREFIX = (
+    "auth:ratelimit:ip_resend_verification:attempts:"
+)
+_IP_RESEND_VERIFICATION_LOCKOUT_PREFIX = (
+    "auth:ratelimit:ip_resend_verification:lockout:"
+)
+
 # ── Professional click rate limiting ─────────────────────────────────────────
 # Professional click rate limit constants
 CLICK_MAX_ATTEMPTS: int = 20
@@ -329,4 +351,44 @@ def record_ip_register(ip: str) -> RateLimitInfo:
         IP_REGISTER_MAX,
         IP_REGISTER_WINDOW_SECONDS,
         IP_REGISTER_LOCKOUT_SECONDS,
+    )
+
+
+# ── IP-based password reset rate limiting ─────────────────────────────────────
+
+
+def is_ip_password_reset_locked(ip: str) -> bool:
+    """Return *True* if the IP is locked for password reset requests."""
+    return _redis().ttl(f"{_IP_PASSWORD_RESET_LOCKOUT_PREFIX}{ip}") > 0
+
+
+def record_ip_password_reset(ip: str) -> RateLimitInfo:
+    """Record a password reset request from an IP and return the updated status."""
+    return _record_attempt(
+        ip,
+        _IP_PASSWORD_RESET_ATTEMPTS_PREFIX,
+        _IP_PASSWORD_RESET_LOCKOUT_PREFIX,
+        IP_PASSWORD_RESET_MAX,
+        IP_PASSWORD_RESET_WINDOW_SECONDS,
+        IP_PASSWORD_RESET_LOCKOUT_SECONDS,
+    )
+
+
+# ── IP-based resend-verification rate limiting ────────────────────────────────
+
+
+def is_ip_resend_verification_locked(ip: str) -> bool:
+    """Return *True* if the IP is locked for resend-verification requests."""
+    return _redis().ttl(f"{_IP_RESEND_VERIFICATION_LOCKOUT_PREFIX}{ip}") > 0
+
+
+def record_ip_resend_verification(ip: str) -> RateLimitInfo:
+    """Record a resend-verification request from an IP and return the updated status."""
+    return _record_attempt(
+        ip,
+        _IP_RESEND_VERIFICATION_ATTEMPTS_PREFIX,
+        _IP_RESEND_VERIFICATION_LOCKOUT_PREFIX,
+        IP_RESEND_VERIFICATION_MAX,
+        IP_RESEND_VERIFICATION_WINDOW_SECONDS,
+        IP_RESEND_VERIFICATION_LOCKOUT_SECONDS,
     )
