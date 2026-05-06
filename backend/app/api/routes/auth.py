@@ -468,6 +468,7 @@ async def verify_email(
 @router.post("/resend-verification", response_model=VerifyEmailResponse)
 async def resend_verification(
     request: ResendVerificationRequest,
+    http_request: Request,
     session: Session = Depends(get_db),
 ) -> VerifyEmailResponse:
     """
@@ -476,11 +477,20 @@ async def resend_verification(
     Generates a new verification token and sends it to the user's email.
     Any previous token for the user is invalidated.
 
-    Rate limiting: 3 attempts per hour.
+    Rate limiting: 3 attempts per hour per email, 10 per hour per IP.
 
     Note: Always returns success to prevent email enumeration attacks.
     """
-    # Check rate limit before processing
+    client_ip = http_request.client.host if http_request.client else None
+
+    if client_ip and rate_limit_service.is_ip_resend_verification_locked(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many verification email requests. Please try again later.",
+            headers={"Retry-After": "3600"},
+        )
+
+    # Check per-email rate limit before processing
     if rate_limit_service.is_resend_verification_locked(request.email):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -490,6 +500,14 @@ async def resend_verification(
 
     # Record attempt regardless of outcome (prevents email enumeration via timing)
     rate_limit_service.record_resend_verification_attempt(request.email)
+
+    try:
+        if client_ip:
+            rate_limit_service.record_ip_resend_verification(client_ip)
+    except Exception:
+        logger.warning(
+            "Failed to record IP resend-verification rate-limit for %s", client_ip
+        )
 
     # Find user by email
     statement = select(User).where(User.email == request.email)
@@ -538,6 +556,7 @@ async def resend_verification(
 @router.post("/forgot-password", response_model=ForgotPasswordResponse)
 async def forgot_password(
     request: ForgotPasswordRequest,
+    http_request: Request,
     session: Session = Depends(get_db),
 ) -> ForgotPasswordResponse:
     """
@@ -546,11 +565,20 @@ async def forgot_password(
     Generates a reset token and sends it to the user's email.
     Tokens expire after 1 hour.
 
-    Rate limiting: 3 attempts per hour.
+    Rate limiting: 3 attempts per hour per email, 10 per hour per IP.
 
     Note: Always returns success to prevent email enumeration attacks.
     """
-    # Check rate limit before processing
+    client_ip = http_request.client.host if http_request.client else None
+
+    if client_ip and rate_limit_service.is_ip_password_reset_locked(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many password reset attempts. Please try again later.",
+            headers={"Retry-After": "3600"},
+        )
+
+    # Check per-email rate limit before processing
     if rate_limit_service.is_password_reset_locked(request.email):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -564,6 +592,14 @@ async def forgot_password(
 
     # Record attempt regardless of outcome (prevents email enumeration via timing)
     rate_limit_service.record_password_reset_attempt(request.email)
+
+    try:
+        if client_ip:
+            rate_limit_service.record_ip_password_reset(client_ip)
+    except Exception:
+        logger.warning(
+            "Failed to record IP password-reset rate-limit for %s", client_ip
+        )
 
     statement = select(User).where(User.email == request.email)
     user = session.exec(statement).first()
