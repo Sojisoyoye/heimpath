@@ -44,12 +44,16 @@ def health_check(db: Annotated[Session, Depends(get_db)]) -> bool:
         raise HTTPException(status_code=503, detail="Database unavailable") from exc
 
 
-@router.get("/health-check/redis/")
+@router.get(
+    "/health-check/redis/",
+    dependencies=[Depends(get_current_active_superuser)],
+)
 def redis_health_check() -> bool:
-    """Verify Redis connectivity. Returns 503 if Redis is unreachable."""
+    """Verify Redis connectivity. Superuser-only — not for public probing."""
+    # Sync def — get_redis() is synchronous; no async I/O here.
     try:
         client = get_redis()
         client.ping()
         return True
-    except (redis_lib.RedisError, RuntimeError, OSError) as exc:
+    except (redis_lib.RedisError, RuntimeError) as exc:
         raise HTTPException(status_code=503, detail="Redis unavailable") from exc

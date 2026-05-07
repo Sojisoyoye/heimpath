@@ -3553,7 +3553,7 @@ export class UtilsService {
     
     /**
      * Redis Health Check
-     * Verify Redis connectivity. Returns 503 if Redis is unreachable.
+     * Verify Redis connectivity. Superuser-only — not for public probing.
      * @returns boolean Successful Response
      * @throws ApiError
      */
