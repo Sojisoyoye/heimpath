@@ -6,6 +6,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, FileText, Share2, Trash2 } from "lucide-react"
 import { useCallback, useState } from "react"
+import ErrorBoundary from "@/components/Common/ErrorBoundary"
 import {
   ClauseAnalysis,
   ClauseHighlights,
@@ -28,7 +29,7 @@ import type { DocumentType } from "@/models/document"
 ******************************************************************************/
 
 export const Route = createFileRoute("/_layout/documents/$documentId")({
-  component: DocumentDetailPage,
+  component: DocumentDetailPageWithBoundary,
   head: () => ({
     meta: [{ title: "Document Details - HeimPath" }],
   }),
@@ -228,4 +229,15 @@ function DocumentDetailPage() {
                               Export
 ******************************************************************************/
 
-export default DocumentDetailPage
+/** Wraps the document detail page with a route-level error boundary so that
+ *  render failures (e.g. unexpected API response shapes) degrade gracefully
+ *  without crashing the sidebar or global navigation. */
+function DocumentDetailPageWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <DocumentDetailPage />
+    </ErrorBoundary>
+  )
+}
+
+export default DocumentDetailPageWithBoundary
