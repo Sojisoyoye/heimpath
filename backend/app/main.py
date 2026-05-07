@@ -12,7 +12,9 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.database import AsyncSessionLocal
 from app.core.db import engine
+from app.services.document_service import mark_stuck_documents_failed
 from app.services.portfolio_service import generate_recurring_transactions
 
 logger = logging.getLogger(__name__)
@@ -76,6 +78,17 @@ async def _run_recurring_generation() -> None:
         logger.exception("Recurring transaction generation failed")
 
 
+async def _run_stuck_document_cleanup() -> None:
+    """Scheduler job: mark stuck PROCESSING documents as FAILED."""
+    try:
+        async with AsyncSessionLocal() as session:
+            count = await mark_stuck_documents_failed(session)
+        if count:
+            logger.info("Stuck document cleanup: marked %d as failed", count)
+    except Exception:
+        logger.exception("Stuck document cleanup failed")
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("SECRET_KEY loaded, length=%d", len(settings.SECRET_KEY))
@@ -86,6 +99,11 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         day_of_week="mon",
         hour=2,
         timezone="UTC",
+    )
+    scheduler.add_job(
+        _run_stuck_document_cleanup,
+        trigger="interval",
+        minutes=5,
     )
     scheduler.start()
     yield

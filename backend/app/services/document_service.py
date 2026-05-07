@@ -10,11 +10,11 @@ import os
 import re
 import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -717,6 +717,39 @@ async def get_documents_by_step_id(
         .order_by(Document.created_at.desc())
     )
     return list(result.scalars().all())
+
+
+async def mark_stuck_documents_failed(
+    session: AsyncSession, timeout_minutes: int = 10
+) -> int:
+    """Mark PROCESSING documents older than timeout_minutes as FAILED.
+
+    Uses a bulk UPDATE to avoid loading rows into Python. updated_at is used
+    as the staleness heuristic; note that mid-flight writes by the worker could
+    refresh updated_at, potentially extending the window before cleanup fires.
+
+    Called by APScheduler every 5 minutes to recover stuck documents.
+    Returns count of documents marked failed.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=timeout_minutes)
+    result = await session.execute(
+        update(Document)
+        .where(
+            Document.status == DocumentStatus.PROCESSING.value,
+            Document.updated_at < cutoff,
+        )
+        .values(
+            status=DocumentStatus.FAILED.value,
+            error_message="Processing timeout - please retry",
+        )
+        .returning(Document.id)
+    )
+    affected_ids = result.scalars().all()
+    count = len(affected_ids)
+    if count:
+        await session.commit()
+        logger.warning("Marked %d stuck document(s) as failed: %s", count, affected_ids)
+    return count
 
 
 async def count_user_documents(
