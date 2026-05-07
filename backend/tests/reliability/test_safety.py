@@ -280,9 +280,8 @@ class TestAuditTrailSafety:
 
     def test_log_action_writes_correct_fields(self) -> None:
         """Audit log entry has all expected fields populated."""
-        from app.services.audit_service import log_action
-
         from app.models.audit_log import AuditLog
+        from app.services.audit_service import log_action
 
         mock_session = MagicMock()
         user_id = uuid.uuid4()
@@ -305,13 +304,12 @@ class TestAuditTrailSafety:
         assert entry.resource_type == "document"
         assert entry.resource_id == doc_id
         assert entry.status == "success"
-        assert entry.metadata == {"filename": "contract.pdf", "page_count": 5}
+        assert entry.extra_data == {"filename": "contract.pdf", "page_count": 5}
 
     def test_log_action_extracts_ip_and_request_id_from_request(self) -> None:
         """IP address and request ID are pulled from the Request object."""
-        from app.services.audit_service import log_action
-
         from app.models.audit_log import AuditLog
+        from app.services.audit_service import log_action
 
         mock_session = MagicMock()
         mock_request = MagicMock()
