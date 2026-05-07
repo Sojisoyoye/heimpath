@@ -1,5 +1,6 @@
 """Tests for the Translation Service."""
 
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 import aiohttp
@@ -434,6 +435,64 @@ class TestCharacterCounting:
         assert result.character_count == len("Der Kaufvertrag")
 
 
+def _mock_session(
+    status: int, body: list | None = None, error_text: str = ""
+) -> object:
+    """Return a mock aiohttp ClientSession that responds with *status* and optional *body*."""
+
+    class _MockResponse:
+        async def __aenter__(self) -> "_MockResponse":
+            return self
+
+        async def __aexit__(self, *args: object) -> bool:
+            return False
+
+        @property
+        def status(self) -> int:  # noqa: A003
+            return status
+
+        async def json(self) -> list:
+            return body or []
+
+        async def text(self) -> str:
+            return error_text
+
+    class _MockSession:
+        async def __aenter__(self) -> "_MockSession":
+            return self
+
+        async def __aexit__(self, *args: object) -> bool:
+            return False
+
+        def post(self, *args: object, **kwargs: object) -> _MockResponse:
+            return _MockResponse()
+
+    return _MockSession()
+
+
+def _timeout_session(error: BaseException) -> object:
+    """Return a mock aiohttp ClientSession that raises *error* when entering session.post()."""
+
+    class _TimeoutResponse:
+        async def __aenter__(self) -> None:
+            raise error
+
+        async def __aexit__(self, *args: object) -> bool:
+            return False
+
+    class _TimeoutSession:
+        async def __aenter__(self) -> "_TimeoutSession":
+            return self
+
+        async def __aexit__(self, *args: object) -> bool:
+            return False
+
+        def post(self, *args: object, **kwargs: object) -> _TimeoutResponse:
+            return _TimeoutResponse()
+
+    return _TimeoutSession()
+
+
 class TestReliability:
     """Tests for retry, timeout, and confidence-gating behaviour."""
 
@@ -645,3 +704,88 @@ class TestReliability:
             str(args) for args, _ in mock_logger.debug.call_args_list
         )
         assert "2" in all_debug_args
+
+    def test_translation_timeout_constant_has_connect_and_sock_read(self) -> None:
+        """_TRANSLATION_TIMEOUT uses total from settings plus explicit connect/sock_read."""
+        from app.core.config import settings
+        from app.services.translation_service import _TRANSLATION_TIMEOUT
+
+        assert _TRANSLATION_TIMEOUT.total == settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS
+        assert _TRANSLATION_TIMEOUT.connect is not None
+        assert _TRANSLATION_TIMEOUT.sock_read is not None
+
+    @pytest.mark.asyncio
+    async def test_post_happy_path_returns_json(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_post returns JSON body on a successful 200 response."""
+        expected = [{"translations": [{"text": "Hello", "to": "en"}]}]
+        with patch(
+            "aiohttp.ClientSession", return_value=_mock_session(200, body=expected)
+        ):
+            result = await translation_service._make_request(
+                text="Hallo",
+                source_language="de",
+                target_language="en",
+            )
+        assert result == expected
+
+    @pytest.mark.asyncio
+    async def test_post_non_200_raises_translation_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_post raises TranslationError when Azure returns a non-200 status."""
+        with patch(
+            "aiohttp.ClientSession",
+            return_value=_mock_session(400, error_text="Bad request"),
+        ):
+            with pytest.raises(TranslationError, match="400"):
+                await translation_service._make_request(
+                    text="Hallo",
+                    source_language="de",
+                    target_language="en",
+                )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_timeout_in_make_request_raises_translation_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """asyncio.TimeoutError during the HTTP call raises TranslationError with 'timed out'."""
+        with patch(
+            "aiohttp.ClientSession",
+            return_value=_timeout_session(asyncio.TimeoutError()),
+        ):
+            with pytest.raises(TranslationError, match="timed out"):
+                await translation_service._make_request(
+                    text="test",
+                    source_language="de",
+                    target_language="en",
+                )
+
+    @pytest.mark.asyncio
+    async def test_server_timeout_in_make_batch_request_raises_translation_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """aiohttp.ServerTimeoutError in batch HTTP call raises TranslationError with 'timed out'."""
+        with patch(
+            "aiohttp.ClientSession",
+            return_value=_timeout_session(aiohttp.ServerTimeoutError()),
+        ):
+            with pytest.raises(TranslationError, match="timed out"):
+                await translation_service._make_batch_request(
+                    texts=["test"],
+                    source_language="de",
+                    target_language="en",
+                )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_timeout_in_make_detect_request_raises_translation_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """asyncio.TimeoutError in detect HTTP call raises TranslationError with 'timed out'."""
+        with patch(
+            "aiohttp.ClientSession",
+            return_value=_timeout_session(asyncio.TimeoutError()),
+        ):
+            with pytest.raises(TranslationError, match="timed out"):
+                await translation_service._make_detect_request(text="test")

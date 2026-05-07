@@ -4,6 +4,7 @@ Provides document translation for German real estate documents using
 Microsoft Azure Translator API (free tier: 2M chars/month).
 """
 
+import asyncio
 import logging
 import re
 from dataclasses import dataclass
@@ -29,6 +30,16 @@ from app.schemas.translation import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Shared ClientTimeout for all Azure Translator calls.
+# connect: max time to establish the TCP+TLS connection.
+# sock_read: max time to receive data once connected.
+# total: overall hard cap per request.
+_TRANSLATION_TIMEOUT = aiohttp.ClientTimeout(
+    total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS,
+    connect=10,
+    sock_read=50,
+)
 
 
 class TranslationError(Exception):
@@ -235,6 +246,39 @@ class TranslationService:
             "Content-Type": "application/json",
         }
 
+    async def _post(
+        self,
+        url: str,
+        params: dict[str, str],
+        body: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """POST to Azure Translator with the shared timeout; handle HTTP and timeout errors.
+
+        All three request methods delegate here so that the aiohttp session
+        management and timeout handling live in one place.
+
+        Raises:
+            TranslationError: On non-200 status or a connect/read timeout.
+        """
+        try:
+            async with aiohttp.ClientSession(timeout=_TRANSLATION_TIMEOUT) as session:
+                async with session.post(
+                    url,
+                    headers=self._get_headers(),
+                    params=params,
+                    json=body,
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise TranslationError(
+                            f"Azure Translator API error (status {response.status}): {error_text}"
+                        )
+                    return await response.json()
+        except (asyncio.TimeoutError, aiohttp.ServerTimeoutError) as exc:
+            raise TranslationError(
+                f"Translation request timed out after {settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS}s"
+            ) from exc
+
     @translator_retry
     async def _make_request(
         self,
@@ -255,28 +299,15 @@ class TranslationService:
         Raises:
             TranslationError: If the API request fails.
         """
-        url = f"{self._endpoint}/translate"
-        params = {
-            "api-version": "3.0",
-            "from": source_language,
-            "to": target_language,
-        }
-        body = [{"text": text}]
-        timeout = aiohttp.ClientTimeout(total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS)
-
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                url,
-                headers=self._get_headers(),
-                params=params,
-                json=body,
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise TranslationError(
-                        f"Translation API error (status {response.status}): {error_text}"
-                    )
-                return await response.json()
+        return await self._post(
+            url=f"{self._endpoint}/translate",
+            params={
+                "api-version": "3.0",
+                "from": source_language,
+                "to": target_language,
+            },
+            body=[{"text": text}],
+        )
 
     @translator_retry
     async def _make_batch_request(
@@ -298,28 +329,15 @@ class TranslationService:
         Raises:
             TranslationError: If the API request fails.
         """
-        url = f"{self._endpoint}/translate"
-        params = {
-            "api-version": "3.0",
-            "from": source_language,
-            "to": target_language,
-        }
-        body = [{"text": text} for text in texts]
-        timeout = aiohttp.ClientTimeout(total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS)
-
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                url,
-                headers=self._get_headers(),
-                params=params,
-                json=body,
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise TranslationError(
-                        f"Translation API error (status {response.status}): {error_text}"
-                    )
-                return await response.json()
+        return await self._post(
+            url=f"{self._endpoint}/translate",
+            params={
+                "api-version": "3.0",
+                "from": source_language,
+                "to": target_language,
+            },
+            body=[{"text": t} for t in texts],
+        )
 
     async def _make_detect_request(self, text: str) -> list[dict[str, Any]]:
         """Make a language detection request to Azure Translator API.
@@ -333,25 +351,11 @@ class TranslationService:
         Raises:
             TranslationError: If the API request fails.
         """
-        url = f"{self._endpoint}/detect"
-        params = {"api-version": "3.0"}
-        body = [{"text": text}]
-
-        timeout = aiohttp.ClientTimeout(total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS)
-
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                url,
-                headers=self._get_headers(),
-                params=params,
-                json=body,
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise TranslationError(
-                        f"Language detection API error (status {response.status}): {error_text}"
-                    )
-                return await response.json()
+        return await self._post(
+            url=f"{self._endpoint}/detect",
+            params={"api-version": "3.0"},
+            body=[{"text": text}],
+        )
 
     async def translate_text(
         self,
