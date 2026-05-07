@@ -85,6 +85,10 @@ def log_action(
                 action,
                 db_exc,
             )
+            try:
+                session.rollback()
+            except Exception:
+                pass
     except Exception as exc:
         _logger.error(
             "audit_service: unexpected error in log_action (action=%s): %s",
