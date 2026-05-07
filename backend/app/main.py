@@ -16,6 +16,7 @@ from app.core.database import AsyncSessionLocal
 from app.core.db import engine
 from app.services.document_service import mark_stuck_documents_failed
 from app.services.portfolio_service import generate_recurring_transactions
+from app.services.scheduler_service import record_job_run
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +74,18 @@ async def _run_recurring_generation() -> None:
     try:
         with Session(engine) as session:
             count = generate_recurring_transactions(session)
-        logger.info("Recurring transactions generated: %d", count)
-    except Exception:
+        if count == 0:
+            logger.warning(
+                "recurring_generation produced 0 transactions — "
+                "verify that recurring portfolio entries exist"
+            )
+        else:
+            logger.info("Recurring transactions generated: %d", count)
+    except Exception as exc:
+        sentry_sdk.capture_exception(exc)
         logger.exception("Recurring transaction generation failed")
+    finally:
+        record_job_run("recurring_generation")
 
 
 async def _run_stuck_document_cleanup() -> None:
@@ -87,6 +97,8 @@ async def _run_stuck_document_cleanup() -> None:
             logger.info("Stuck document cleanup: marked %d as failed", count)
     except Exception:
         logger.exception("Stuck document cleanup failed")
+    finally:
+        record_job_run("stuck_document_cleanup")
 
 
 @asynccontextmanager
