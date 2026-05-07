@@ -30,9 +30,9 @@ def test_writes_audit_log_to_db() -> None:
     )
 
     session.add.assert_called_once()
-    session.commit.assert_called_once()
+    session.flush.assert_called_once()
 
-    row: AuditLog = session.add.call_args[0][0]
+    row: AuditLog = session.add.call_args.args[0]
     assert isinstance(row, AuditLog)
     assert row.action == ACTION_DOCUMENT_UPLOAD
     assert str(row.user_id) == str(user_id)
@@ -65,7 +65,7 @@ def test_extracts_ip_from_request() -> None:
     )
 
     session.add.assert_called_once()
-    row: AuditLog = session.add.call_args[0][0]
+    row: AuditLog = session.add.call_args.args[0]
     assert row.ip_address == "1.2.3.4"
     assert row.request_id == "test-uuid-123"
 
@@ -82,5 +82,20 @@ def test_handles_none_user_id() -> None:
     )
 
     session.add.assert_called_once()
-    row: AuditLog = session.add.call_args[0][0]
+    row: AuditLog = session.add.call_args.args[0]
     assert row.user_id is None
+
+
+def test_metadata_stored_in_extra_data() -> None:
+    """metadata kwarg is forwarded to the extra_data column on the AuditLog row."""
+    session = _mock_session()
+
+    log_action(
+        session,
+        action=ACTION_DOCUMENT_UPLOAD,
+        metadata={"tier": "premium", "pages": 5},
+    )
+
+    session.add.assert_called_once()
+    row: AuditLog = session.add.call_args.args[0]
+    assert row.extra_data == {"tier": "premium", "pages": 5}

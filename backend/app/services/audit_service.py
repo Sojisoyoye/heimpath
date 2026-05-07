@@ -6,7 +6,7 @@ infrastructure from disrupting user-facing requests.
 """
 
 import logging
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from sqlmodel import Session
@@ -38,7 +38,7 @@ def log_action(
     user_id: UUID | None = None,
     resource_type: str | None = None,
     resource_id: str | None = None,
-    status: str = "success",
+    status: Literal["success", "failure"] = "success",
     metadata: dict[str, Any] | None = None,
     request: Request | None = None,
 ) -> None:
@@ -78,17 +78,13 @@ def log_action(
         )
         try:
             session.add(row)
-            session.commit()
+            session.flush()
         except Exception as db_exc:
             _logger.error(
                 "audit_service: DB error writing audit log (action=%s): %s",
                 action,
                 db_exc,
             )
-            try:
-                session.rollback()
-            except Exception:
-                pass
     except Exception as exc:
         _logger.error(
             "audit_service: unexpected error in log_action (action=%s): %s",
