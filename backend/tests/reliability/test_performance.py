@@ -305,6 +305,86 @@ class TestDegradationBehaviour:
                 )
 
     @pytest.mark.asyncio
+    async def test_anthropic_circuit_open_returns_none_for_kaufvertrag(self) -> None:
+        """Open Anthropic circuit breaker surfaces None — Kaufvertrag analysis degrades."""
+        import pybreaker
+
+        from app.services.clause_analyzer_service import analyze_kaufvertrag
+
+        pages = [{"page_number": 1, "original_text": "Kaufpreis EUR 500.000"}]
+
+        with patch(
+            "app.services.clause_analyzer_service._breaker_async_call",
+            side_effect=pybreaker.CircuitBreakerError(),
+        ):
+            with patch(
+                "app.services.clause_analyzer_service._get_anthropic_client",
+                return_value=MagicMock(),
+            ):
+                result = await analyze_kaufvertrag(pages, "kaufvertrag")
+
+        assert result is None
+        # Test passes — no unhandled exception crashed the process
+
+    @pytest.mark.asyncio
+    async def test_anthropic_circuit_open_returns_heuristics_for_clause_risks(
+        self,
+    ) -> None:
+        """Open Anthropic circuit breaker for clause risk — heuristic fallback served."""
+        import pybreaker
+
+        from app.services.clause_risk_analyzer_service import analyze_clause_risks
+
+        clauses = [
+            {
+                "clause_type": "purchase_price",
+                "original_text": "Kaufpreis EUR 500.000",
+                "translated_text": "",
+                "page_number": 1,
+                "risk_level": "high",
+            }
+        ]
+
+        with patch(
+            "app.services.clause_risk_analyzer_service._breaker_async_call",
+            side_effect=pybreaker.CircuitBreakerError(),
+        ):
+            with patch(
+                "app.services.clause_risk_analyzer_service._get_anthropic_client",
+                return_value=MagicMock(),
+            ):
+                result = await analyze_clause_risks(clauses)
+
+        # Heuristic fallback must return exactly the same number of clauses
+        assert len(result) == 1
+        assert "confidence_level" in result[0]
+        assert "confidence_score" in result[0]
+
+    @pytest.mark.asyncio
+    async def test_anthropic_circuit_open_returns_none_for_document_type(
+        self,
+    ) -> None:
+        """Open Anthropic circuit breaker — document type analysis returns None gracefully."""
+        import pybreaker
+
+        from app.services.document_type_analyzer_service import analyze_document_type
+
+        pages = [{"page_number": 1, "original_text": "Grundbuchauszug Inhalt"}]
+
+        with patch(
+            "app.services.document_type_analyzer_service._breaker_async_call",
+            side_effect=pybreaker.CircuitBreakerError(),
+        ):
+            with patch(
+                "app.services.document_type_analyzer_service._get_anthropic_client",
+                return_value=MagicMock(),
+            ):
+                result = await analyze_document_type(pages, "grundbuchauszug")
+
+        assert result is None
+        # Test passes — no unhandled exception crashed the process
+
+    @pytest.mark.asyncio
     async def test_retry_does_not_hammer_api_immediately(self) -> None:
         """On first 503 failure the retry logic tries again — exactly one retry."""
         from tenacity import retry, retry_if_exception, stop_after_attempt, wait_none
