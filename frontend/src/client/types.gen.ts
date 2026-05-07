@@ -3873,3 +3873,5 @@ export type UtilsTestEmailData = {
 export type UtilsTestEmailResponse = (Message);
 
 export type UtilsHealthCheckResponse = (boolean);
+
+export type UtilsRedisHealthCheckResponse = (boolean);
