@@ -47,3 +47,10 @@ repos:
         pass_filenames: false
         language: unsupported
         files: ^backend/.*$|^scripts/generate-client\.sh$
+
+      - id: check-migration-safety
+        name: check migration safety
+        entry: uv run python backend/scripts/check_migration_safety.py
+        language: system
+        files: ^backend/app/alembic/versions/.*\.py$
+        pass_filenames: true
