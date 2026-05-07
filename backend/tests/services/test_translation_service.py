@@ -572,3 +572,76 @@ class TestReliability:
                 )
 
         assert "mismatch" in str(exc_info.value).lower()
+
+    @pytest.mark.asyncio
+    async def test_batch_partial_mode_maps_received_and_marks_missing(
+        self, translation_service: TranslationService
+    ) -> None:
+        """partial=True: first 3 translations mapped, texts 4 and 5 marked translation_failed."""
+        mock_response = [
+            {
+                "detectedLanguage": {"language": "de", "score": 0.98},
+                "translations": [{"text": f"Translation {i}", "to": "en"}],
+            }
+            for i in range(3)
+        ]
+
+        with patch.object(
+            translation_service, "_make_batch_request", new_callable=AsyncMock
+        ) as mock_batch:
+            mock_batch.return_value = mock_response
+
+            result = await translation_service.batch_translate(
+                texts=["Text 1", "Text 2", "Text 3", "Text 4", "Text 5"],
+                source_language=SupportedLanguage.GERMAN,
+                target_language=SupportedLanguage.ENGLISH,
+                partial=True,
+            )
+
+        assert len(result.translations) == 5
+        # First 3 are normal translations
+        for i in range(3):
+            assert (
+                result.translations[i].translation.translated_text == f"Translation {i}"
+            )
+        # Last 2 are failure placeholders
+        for i in range(3, 5):
+            assert (
+                result.translations[i].translation.translated_text
+                == "translation_failed"
+            )
+            assert result.translations[i].translation.confidence == 0.0
+            assert result.translations[i].requires_review is True
+
+    @pytest.mark.asyncio
+    async def test_batch_debug_log_emitted(
+        self, translation_service: TranslationService
+    ) -> None:
+        """batch_translate calls logger.debug with sent/received counts."""
+        mock_response = [
+            {
+                "detectedLanguage": {"language": "de", "score": 0.98},
+                "translations": [{"text": f"T{i}", "to": "en"}],
+            }
+            for i in range(2)
+        ]
+
+        with (
+            patch.object(
+                translation_service, "_make_batch_request", new_callable=AsyncMock
+            ) as mock_batch,
+            patch("app.services.translation_service.logger") as mock_logger,
+        ):
+            mock_batch.return_value = mock_response
+            await translation_service.batch_translate(
+                texts=["A", "B"],
+                source_language=SupportedLanguage.GERMAN,
+                target_language=SupportedLanguage.ENGLISH,
+            )
+
+        # Two debug calls: one before the request (sent count) and one after (received count)
+        assert mock_logger.debug.call_count >= 2
+        all_debug_args = " ".join(
+            str(args) for args, _ in mock_logger.debug.call_args_list
+        )
+        assert "2" in all_debug_args

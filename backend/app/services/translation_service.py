@@ -4,6 +4,7 @@ Provides document translation for German real estate documents using
 Microsoft Azure Translator API (free tier: 2M chars/month).
 """
 
+import logging
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -26,6 +27,8 @@ from app.schemas.translation import (
 from app.schemas.translation import (
     TranslationResult as TranslationResultSchema,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TranslationError(Exception):
@@ -528,6 +531,7 @@ class TranslationService:
         source_language: SupportedLanguage,
         target_language: SupportedLanguage,
         include_legal_warnings: bool = True,
+        partial: bool = False,
     ) -> BatchTranslationResponse:
         """Translate multiple texts in a single request.
 
@@ -536,12 +540,17 @@ class TranslationService:
             source_language: Source language.
             target_language: Target language.
             include_legal_warnings: Whether to include legal term warnings.
+            partial: If True, accept partial responses from Azure — texts with
+                no corresponding response entry are marked with
+                ``translated_text="translation_failed"`` and ``requires_review=True``.
+                If False (default), a count mismatch raises TranslationError.
 
         Returns:
             BatchTranslationResponse with all translations.
 
         Raises:
-            TranslationError: If translation fails.
+            TranslationError: If translation fails or response count mismatches
+                and ``partial=False``.
         """
         if not texts:
             return BatchTranslationResponse(
@@ -549,6 +558,9 @@ class TranslationService:
             )
 
         try:
+            logger.debug(
+                "batch_translate: sending %d texts to Azure Translator", len(texts)
+            )
             response = await _breaker_async_call(
                 translator_breaker,
                 self._make_batch_request,
@@ -556,18 +568,29 @@ class TranslationService:
                 source_language=source_language.value,
                 target_language=target_language.value,
             )
+            logger.debug(
+                "batch_translate: received %d responses for %d texts",
+                len(response),
+                len(texts),
+            )
 
             if len(response) != len(texts):
-                raise TranslationError(
-                    f"Batch response mismatch: sent {len(texts)}, received {len(response)}"
+                if not partial:
+                    raise TranslationError(
+                        f"Batch response mismatch: sent {len(texts)}, received {len(response)}"
+                    )
+                logger.warning(
+                    "batch_translate partial response: sent %d, received %d — "
+                    "unmapped texts will be marked as translation_failed",
+                    len(texts),
+                    len(response),
                 )
 
             translations: list[TranslationResponse] = []
             total_chars = 0
             total_warnings = 0
 
-            for i, result in enumerate(response):
-                original_text = texts[i]
+            for original_text, result in zip(texts, response, strict=False):
                 translated = result.get("translations", [{}])[0]
                 detected = result.get("detectedLanguage", {})
 
@@ -597,6 +620,25 @@ class TranslationService:
                         translation=translation_result,
                         legal_warnings=legal_warnings,
                         requires_review=requires_review,
+                        character_count=char_count,
+                    )
+                )
+
+            # Fill placeholders for any texts beyond the received response count.
+            for missing_text in texts[len(response) :]:
+                char_count = len(missing_text)
+                total_chars += char_count
+                translations.append(
+                    TranslationResponse(
+                        translation=TranslationResultSchema(
+                            original_text=missing_text,
+                            translated_text="translation_failed",
+                            source_language=source_language.value,
+                            target_language=target_language.value,
+                            confidence=0.0,
+                        ),
+                        legal_warnings=[],
+                        requires_review=True,
                         character_count=char_count,
                     )
                 )
