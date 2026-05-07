@@ -3881,3 +3881,9 @@ export type UtilsTestEmailResponse = (Message);
 export type UtilsHealthCheckResponse = (boolean);
 
 export type UtilsRedisHealthCheckResponse = (boolean);
+
+export type UtilsCircuitBreakerHealthCheckResponse = ({
+    [key: string]: {
+        [key: string]: (number | string);
+    };
+});
