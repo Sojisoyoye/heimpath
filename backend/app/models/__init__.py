@@ -82,6 +82,7 @@ from app.models.portfolio import (
     PortfolioTransaction,
     TransactionType,
 )
+from app.models.processed_webhook_event import ProcessedWebhookEvent
 from app.models.professional import (
     ContactInquiry,
     Professional,
@@ -130,6 +131,7 @@ __all__ = [
     "OwnershipComparison",
     "PortfolioProperty",
     "PortfolioTransaction",
+    "ProcessedWebhookEvent",
     "TransactionType",
     "ContractAnalysis",
     "ContactInquiry",
