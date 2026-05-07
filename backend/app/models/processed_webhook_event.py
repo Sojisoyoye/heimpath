@@ -36,7 +36,6 @@ class ProcessedWebhookEvent(Base):
         String(255),
         unique=True,
         nullable=False,
-        index=True,
     )
     event_type = Column(String(100), nullable=True)
     processed_at = Column(

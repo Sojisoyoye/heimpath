@@ -4,10 +4,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session
+from sqlmodel import select as sql_select
 
 from app import crud
 from app.core.config import settings
-from app.models import SubscriptionTier, User, UserCreate
+from app.models import ProcessedWebhookEvent, SubscriptionTier, User, UserCreate
 from app.services.payment_service import (
     CheckoutSessionError,
     CheckoutSessionResult,
@@ -732,9 +733,6 @@ def test_webhook_duplicate_event_skips_state_change(
     client: TestClient, db: Session
 ) -> None:
     """A duplicate Stripe event returns 200 without modifying subscription state."""
-
-    from app.models.processed_webhook_event import ProcessedWebhookEvent
-
     user, _username, _password = _create_premium_user_with_stripe(db)
     shared_event_id = f"evt_{random_lower_string()}"
 
@@ -778,6 +776,8 @@ def test_webhook_duplicate_event_skips_state_change(
 
     assert r.status_code == 200
     assert r.json()["received"] is True
+    # Handler returns before parsing when a duplicate is detected
+    mock_service.parse_webhook_event.assert_not_called()
     # Tier must NOT be downgraded — the event was a duplicate
     db.refresh(user)
     assert user.subscription_tier == SubscriptionTier.PREMIUM
@@ -788,10 +788,6 @@ def test_webhook_event_recorded_after_processing(
     client: TestClient, db: Session
 ) -> None:
     """Successfully processed event is stored in processed_webhook_event table."""
-    from sqlmodel import select as sql_select
-
-    from app.models.processed_webhook_event import ProcessedWebhookEvent
-
     user, _username, _password = _create_premium_user_with_stripe(db)
     unique_event_id = f"evt_{random_lower_string()}"
 
@@ -838,10 +834,6 @@ def test_webhook_first_delivery_updates_tier_and_records_event(
     client: TestClient, db: Session
 ) -> None:
     """First delivery updates subscription tier and records the event atomically."""
-    from sqlmodel import select as sql_select
-
-    from app.models.processed_webhook_event import ProcessedWebhookEvent
-
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)

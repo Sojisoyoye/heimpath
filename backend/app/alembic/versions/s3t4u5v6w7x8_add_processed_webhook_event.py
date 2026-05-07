@@ -36,12 +36,6 @@ def upgrade() -> None:
         ),
     )
     op.create_index(
-        "ix_processed_webhook_event_stripe_event_id",
-        "processed_webhook_event",
-        ["stripe_event_id"],
-        unique=True,
-    )
-    op.create_index(
         "ix_processed_webhook_event_processed_at",
         "processed_webhook_event",
         ["processed_at"],
@@ -51,10 +45,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index(
         "ix_processed_webhook_event_processed_at",
-        table_name="processed_webhook_event",
-    )
-    op.drop_index(
-        "ix_processed_webhook_event_stripe_event_id",
         table_name="processed_webhook_event",
     )
     op.drop_table("processed_webhook_event")
