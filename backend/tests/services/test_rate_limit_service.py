@@ -6,16 +6,25 @@ import fakeredis
 import pytest
 
 from app.services.rate_limit_service import (
+    CONTRACT_ANALYSIS_HOURLY_MAX,
+    TRANSLATION_HOURLY_MAX,
+    UPLOAD_BURST_MAX,
+    UPLOAD_HOURLY_MAX,
     RateLimitInfo,
     get_status,
     is_locked,
     is_password_reset_locked,
     is_register_locked,
+    record_contract_analysis,
+    record_document_upload_burst,
+    record_document_upload_hourly,
     record_failed_attempt,
     record_password_reset_attempt,
     record_register_attempt,
     record_successful_login,
+    record_translation_request,
     reset,
+    retry_after_seconds,
 )
 
 
@@ -206,3 +215,130 @@ class TestPasswordResetRateLimit:
             record_password_reset_attempt(email)
         assert is_password_reset_locked(email) is True
         assert is_locked(email) is False
+
+
+# ── Document upload rate limiting ─────────────────────────────────────────────
+
+
+class TestDocumentUploadRateLimit:
+    def test_hourly_not_locked_initially(self) -> None:
+        info = record_document_upload_hourly("user-1")
+        assert info.is_locked is False
+        assert info.attempts_remaining == UPLOAD_HOURLY_MAX - 1
+
+    def test_hourly_lockout_after_max_uploads(self) -> None:
+        user = "user-hourly-lockout"
+        for i in range(UPLOAD_HOURLY_MAX - 1):
+            info = record_document_upload_hourly(user)
+            assert info.is_locked is False, f"Locked unexpectedly on attempt {i + 1}"
+        info = record_document_upload_hourly(user)
+        assert info.is_locked is True
+        assert info.attempts_remaining == 0
+        assert info.lockout_expires_at is not None
+
+    def test_burst_not_locked_initially(self) -> None:
+        info = record_document_upload_burst("user-2")
+        assert info.is_locked is False
+        assert info.attempts_remaining == UPLOAD_BURST_MAX - 1
+
+    def test_burst_lockout_after_max_uploads(self) -> None:
+        user = "user-burst-lockout"
+        for i in range(UPLOAD_BURST_MAX - 1):
+            info = record_document_upload_burst(user)
+            assert info.is_locked is False, f"Locked unexpectedly on attempt {i + 1}"
+        info = record_document_upload_burst(user)
+        assert info.is_locked is True
+        assert info.lockout_expires_at is not None
+
+    def test_hourly_and_burst_tracked_independently(self) -> None:
+        user = "user-independent"
+        # Exhaust burst
+        for _ in range(UPLOAD_BURST_MAX):
+            record_document_upload_burst(user)
+        # Hourly should still have remaining attempts
+        hourly = record_document_upload_hourly(user)
+        assert hourly.is_locked is False
+
+    def test_different_users_tracked_separately(self) -> None:
+        for _ in range(UPLOAD_HOURLY_MAX):
+            record_document_upload_hourly("user-a")
+        info_b = record_document_upload_hourly("user-b")
+        assert info_b.is_locked is False
+
+
+# ── Translation rate limiting ──────────────────────────────────────────────────
+
+
+class TestTranslationRateLimit:
+    def test_not_locked_initially(self) -> None:
+        info = record_translation_request("user-t1")
+        assert info.is_locked is False
+        assert info.attempts_remaining == TRANSLATION_HOURLY_MAX - 1
+
+    def test_lockout_after_max_requests(self) -> None:
+        user = "user-t-lockout"
+        for i in range(TRANSLATION_HOURLY_MAX - 1):
+            info = record_translation_request(user)
+            assert info.is_locked is False, f"Locked unexpectedly on attempt {i + 1}"
+        info = record_translation_request(user)
+        assert info.is_locked is True
+        assert info.lockout_expires_at is not None
+
+    def test_different_users_tracked_separately(self) -> None:
+        for _ in range(TRANSLATION_HOURLY_MAX):
+            record_translation_request("user-t-a")
+        info_b = record_translation_request("user-t-b")
+        assert info_b.is_locked is False
+
+
+# ── Contract analysis rate limiting ───────────────────────────────────────────
+
+
+class TestContractAnalysisRateLimit:
+    def test_not_locked_initially(self) -> None:
+        info = record_contract_analysis("user-c1")
+        assert info.is_locked is False
+        assert info.attempts_remaining == CONTRACT_ANALYSIS_HOURLY_MAX - 1
+
+    def test_lockout_after_max_analyses(self) -> None:
+        user = "user-c-lockout"
+        for i in range(CONTRACT_ANALYSIS_HOURLY_MAX - 1):
+            info = record_contract_analysis(user)
+            assert info.is_locked is False, f"Locked unexpectedly on attempt {i + 1}"
+        info = record_contract_analysis(user)
+        assert info.is_locked is True
+        assert info.lockout_expires_at is not None
+
+    def test_contract_and_translation_limits_independent(self) -> None:
+        user = "user-c-indep"
+        for _ in range(CONTRACT_ANALYSIS_HOURLY_MAX):
+            record_contract_analysis(user)
+        info = record_translation_request(user)
+        assert info.is_locked is False
+
+
+# ── retry_after_seconds helper ────────────────────────────────────────────────
+
+
+class TestRetryAfterSeconds:
+    def test_returns_remaining_seconds_from_lockout_expires_at(self) -> None:
+        expires = datetime.now(timezone.utc) + timedelta(seconds=120)
+        info = RateLimitInfo(
+            is_locked=True, attempts_remaining=0, lockout_expires_at=expires
+        )
+        result = retry_after_seconds(info)
+        assert 119 <= result <= 120
+
+    def test_returns_fallback_when_no_lockout_expires_at(self) -> None:
+        info = RateLimitInfo(
+            is_locked=True, attempts_remaining=0, lockout_expires_at=None
+        )
+        assert retry_after_seconds(info, fallback=999) == 999
+
+    def test_minimum_is_one_second(self) -> None:
+        # lockout_expires_at in the past — clamp to 1
+        expires = datetime.now(timezone.utc) - timedelta(seconds=5)
+        info = RateLimitInfo(
+            is_locked=True, attempts_remaining=0, lockout_expires_at=expires
+        )
+        assert retry_after_seconds(info) == 1

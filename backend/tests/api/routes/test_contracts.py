@@ -2,6 +2,7 @@
 
 import io
 import uuid
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
@@ -10,6 +11,7 @@ from sqlmodel import Session
 from app import crud
 from app.core.config import settings
 from app.models import UserCreate
+from app.services.rate_limit_service import RateLimitInfo
 from tests.utils.utils import random_email, random_lower_string
 
 # Minimal PDF bytes (1-page PDF with no text content)
@@ -389,3 +391,33 @@ def test_analyze_contract_accepts_valid_pdf_regardless_of_content_type(
             headers=headers,
         )
     assert r.status_code == 201
+
+
+# ── Rate limiting tests ────────────────────────────────────────────────────────
+
+_LOCKED_RATE_LIMIT = RateLimitInfo(
+    is_locked=True,
+    attempts_remaining=0,
+    lockout_expires_at=datetime.now(timezone.utc) + timedelta(seconds=3600),
+)
+
+
+def test_analyze_contract_returns_429_when_rate_limited(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+) -> None:
+    """Returns 429 with Retry-After when the contract analysis hourly limit is hit."""
+    with patch(
+        "app.api.routes.contracts.rate_limit_service.record_contract_analysis",
+        return_value=_LOCKED_RATE_LIMIT,
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze",
+            headers=normal_user_token_headers,
+            files={
+                "file": ("contract.pdf", io.BytesIO(_MINIMAL_PDF), "application/pdf")
+            },
+        )
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
+    assert int(r.headers["Retry-After"]) >= 1

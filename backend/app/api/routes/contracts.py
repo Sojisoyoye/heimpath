@@ -1,5 +1,6 @@
 """Contract explainer API endpoints."""
 
+import logging
 import uuid
 from typing import Annotated
 
@@ -16,8 +17,10 @@ from app.schemas.contract import (
     ContractSharedPreviewResponse,
     NotaryQuestion,
 )
-from app.services import contract_service
+from app.services import contract_service, rate_limit_service
 from app.services.document_service import validate_pdf_bytes
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
 
@@ -122,7 +125,24 @@ async def analyze_contract(
     """Upload a PDF Kaufvertrag and receive an AI clause-by-clause analysis.
 
     Premium users see all clauses. Free users see the first 3 only.
+
+    **Rate limits:**
+    - 5 analyses per hour per user
     """
+    limit_info = rate_limit_service.record_contract_analysis(str(current_user.id))
+    if limit_info.is_locked:
+        retry_after = rate_limit_service.retry_after_seconds(
+            limit_info, rate_limit_service.CONTRACT_ANALYSIS_HOURLY_LOCKOUT
+        )
+        logger.warning(
+            "Contract analysis hourly limit exceeded for user %s", current_user.id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Analysis limit reached. You can run up to {rate_limit_service.CONTRACT_ANALYSIS_HOURLY_MAX} contract analyses per hour.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

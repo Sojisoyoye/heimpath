@@ -31,7 +31,7 @@ from app.schemas.document import (
     DocumentUploadResponse,
     DocumentUsageResponse,
 )
-from app.services import document_service
+from app.services import document_service, rate_limit_service
 from app.tasks.document_tasks import process_document_task
 
 logger = logging.getLogger(__name__)
@@ -99,7 +99,43 @@ async def upload_document(
     **Page limits:**
     - Free tier: 10 pages
     - Premium/Enterprise: 20 pages
+
+    **Rate limits:**
+    - 3 uploads per minute (burst)
+    - 10 uploads per hour
     """
+    user_id_str = str(current_user.id)
+
+    # Burst check first (tighter constraint — 3/minute)
+    burst_info = rate_limit_service.record_document_upload_burst(user_id_str)
+    if burst_info.is_locked:
+        retry_after = rate_limit_service.retry_after_seconds(
+            burst_info, rate_limit_service.UPLOAD_BURST_LOCKOUT
+        )
+        logger.warning(
+            "Document upload burst limit exceeded for user %s", current_user.id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many uploads. Wait a minute before trying again.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+    # Hourly check (10/hour)
+    hourly_info = rate_limit_service.record_document_upload_hourly(user_id_str)
+    if hourly_info.is_locked:
+        retry_after = rate_limit_service.retry_after_seconds(
+            hourly_info, rate_limit_service.UPLOAD_HOURLY_LOCKOUT
+        )
+        logger.warning(
+            "Document upload hourly limit exceeded for user %s", current_user.id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Upload limit reached. You can upload up to {rate_limit_service.UPLOAD_HOURLY_MAX} documents per hour.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     if file.content_type != "application/pdf":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
