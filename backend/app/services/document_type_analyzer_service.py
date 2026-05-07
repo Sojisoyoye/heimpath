@@ -13,7 +13,12 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
+import pybreaker
+
+from app.core.circuit_breakers import anthropic_breaker
+from app.core.circuit_breakers import async_call as _breaker_async_call
 from app.core.config import settings
+from app.core.reliability import anthropic_retry
 
 if TYPE_CHECKING:
     import anthropic
@@ -145,6 +150,7 @@ def _build_document_text(pages: list[dict]) -> str:
     return "\n\n".join(parts)
 
 
+@anthropic_retry
 def _call_claude(client: anthropic.Anthropic, document_type: str, text: str) -> str:
     """Make a synchronous API call to Claude for document type analysis."""
     message = client.messages.create(
@@ -211,8 +217,21 @@ async def analyze_document_type(pages: list[dict], document_type: str) -> dict |
         return None
 
     try:
-        raw = await asyncio.to_thread(_call_claude, client, document_type, text)
+        raw = await _breaker_async_call(
+            anthropic_breaker,
+            asyncio.to_thread,
+            _call_claude,
+            client,
+            document_type,
+            text,
+        )
         return _parse_response(raw, _REQUIRED_KEYS[document_type])
+    except pybreaker.CircuitBreakerError:
+        logger.warning(
+            "Anthropic circuit breaker open — skipping document type analysis for %s",
+            document_type,
+        )
+        return None
     except Exception:
         logger.exception("Document type analysis failed for %s", document_type)
         return None

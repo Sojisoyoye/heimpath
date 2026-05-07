@@ -13,7 +13,12 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
+import pybreaker
+
+from app.core.circuit_breakers import anthropic_breaker
+from app.core.circuit_breakers import async_call as _breaker_async_call
 from app.core.config import settings
+from app.core.reliability import anthropic_retry
 
 if TYPE_CHECKING:
     import anthropic
@@ -69,6 +74,7 @@ def _build_contract_text(pages: list[dict]) -> str:
     return "\n\n".join(parts)
 
 
+@anthropic_retry
 def _call_claude(client: anthropic.Anthropic, contract_text: str) -> str:
     """Make a synchronous API call to Claude for contract analysis."""
     message = client.messages.create(
@@ -142,8 +148,13 @@ async def analyze_kaufvertrag(pages: list[dict], document_type: str) -> dict | N
         return None
 
     try:
-        raw_response = await asyncio.to_thread(_call_claude, client, contract_text)
+        raw_response = await _breaker_async_call(
+            anthropic_breaker, asyncio.to_thread, _call_claude, client, contract_text
+        )
         return _parse_analysis_response(raw_response)
+    except pybreaker.CircuitBreakerError:
+        logger.warning("Anthropic circuit breaker open — skipping Kaufvertrag analysis")
+        return None
     except Exception:
         logger.exception("Kaufvertrag AI analysis failed")
         return None

@@ -14,7 +14,12 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
+import pybreaker
+
+from app.core.circuit_breakers import anthropic_breaker
+from app.core.circuit_breakers import async_call as _breaker_async_call
 from app.core.config import settings
+from app.core.reliability import anthropic_retry
 
 if TYPE_CHECKING:
     import anthropic
@@ -123,6 +128,7 @@ def _build_clauses_text(clauses: list[dict]) -> str:
     return "\n\n".join(parts)
 
 
+@anthropic_retry
 def _call_claude(client: anthropic.Anthropic, clauses_text: str) -> str:
     """Make a synchronous API call to Claude for clause risk annotation."""
     message = client.messages.create(
@@ -215,8 +221,13 @@ async def analyze_clause_risks(clauses: list[dict]) -> list[dict]:
     clauses_text = _build_clauses_text(batch)
 
     try:
-        raw = await asyncio.to_thread(_call_claude, client, clauses_text)
+        raw = await _breaker_async_call(
+            anthropic_breaker, asyncio.to_thread, _call_claude, client, clauses_text
+        )
         annotations = _parse_risk_response(raw, len(batch))
+    except pybreaker.CircuitBreakerError:
+        logger.warning("Anthropic circuit breaker open — using heuristic clause risks")
+        return _add_defaults(clauses)
     except Exception:
         logger.exception("Clause risk AI analysis failed")
         return _add_defaults(clauses)

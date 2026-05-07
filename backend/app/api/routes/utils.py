@@ -1,5 +1,6 @@
 from typing import Annotated
 
+import pybreaker
 import redis as redis_lib
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic.networks import EmailStr
@@ -7,6 +8,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, text
 
 from app.api.deps import get_current_active_superuser, get_db
+from app.core.circuit_breakers import (
+    anthropic_breaker,
+    stripe_breaker,
+    translator_breaker,
+)
 from app.models import Message
 from app.services.redis_client import get_redis
 from app.utils import generate_test_email, send_email
@@ -57,3 +63,24 @@ def redis_health_check() -> bool:
         return True
     except (redis_lib.RedisError, RuntimeError) as exc:
         raise HTTPException(status_code=503, detail="Redis unavailable") from exc
+
+
+@router.get(
+    "/health-check/circuit-breakers/",
+    dependencies=[Depends(get_current_active_superuser)],
+)
+def circuit_breaker_health_check() -> dict[str, dict[str, int | str]]:
+    """Return the current state of all circuit breakers. Superuser-only."""
+
+    def _state(cb: pybreaker.CircuitBreaker) -> dict[str, int | str]:
+        return {
+            "state": cb.current_state,
+            "fail_counter": cb.fail_counter,
+            "fail_max": cb.fail_max,
+        }
+
+    return {
+        "stripe": _state(stripe_breaker),
+        "translator": _state(translator_breaker),
+        "anthropic": _state(anthropic_breaker),
+    }
