@@ -34,7 +34,9 @@ class HiddenCostCalculationCreate(BaseModel):
     """Request to save a hidden cost calculation."""
 
     name: str | None = Field(None, max_length=255)
-    property_price: float = Field(..., gt=0, description="Property price in EUR")
+    property_price: float = Field(
+        ..., gt=0, le=100_000_000, description="Property price in EUR"
+    )
     state_code: str = Field(
         ..., min_length=2, max_length=2, description="German state code"
     )

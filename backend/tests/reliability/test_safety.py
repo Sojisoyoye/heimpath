@@ -10,7 +10,6 @@ Verifies that fail-safe mechanisms engage correctly:
 - Rate limits enforce upload and translation quotas
 """
 
-import io
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -411,84 +410,9 @@ class TestRequestIdUniqueness:
 class TestRateLimitSafety:
     """Upload and translation endpoints enforce per-user rate limits."""
 
-    def test_rate_limited_upload_returns_429(
-        self, client: object, normal_user_token_headers: dict
-    ) -> None:
-        """11th document upload within 1 hour returns HTTP 429."""
-        from app.services.rate_limit_service import RateLimitInfo
-
-        locked_info = RateLimitInfo(
-            is_locked=True,
-            attempts_remaining=0,
-            lockout_expires_at=None,
-        )
-
-        with patch(
-            "app.api.routes.documents.rate_limit_service._check_limit",
-            return_value=locked_info,
-        ):
-            _MINIMAL_PDF = b"%PDF-1.4\n%%EOF"
-            response = client.post(  # type: ignore[attr-defined]
-                "/api/v1/documents/upload",
-                headers=normal_user_token_headers,
-                files={
-                    "file": ("test.pdf", io.BytesIO(_MINIMAL_PDF), "application/pdf")
-                },
-            )
-
-        assert response.status_code == 429
-        assert "rate limit" in response.json()["detail"].lower()
-
-    def test_upload_within_limit_is_not_blocked(
-        self, client: object, normal_user_token_headers: dict
-    ) -> None:
-        """Uploads within the 10/hour limit are not rejected by the rate limiter."""
-        from app.models.document import DocumentStatus, DocumentType
-        from app.services.rate_limit_service import RateLimitInfo
-
-        allowed_info = RateLimitInfo(
-            is_locked=False,
-            attempts_remaining=5,
-            lockout_expires_at=None,
-        )
-        mock_doc = MagicMock()
-        mock_doc.id = uuid.uuid4()
-        mock_doc.original_filename = "test.pdf"
-        mock_doc.file_size_bytes = 100
-        mock_doc.page_count = 1
-        mock_doc.document_type = DocumentType.UNKNOWN.value
-        mock_doc.status = DocumentStatus.UPLOADED.value
-        mock_doc.journey_step_id = None
-
-        with (
-            patch(
-                "app.api.routes.documents.rate_limit_service._check_limit",
-                return_value=allowed_info,
-            ),
-            patch(
-                "app.api.routes.documents.document_service.save_upload",
-                new_callable=AsyncMock,
-                return_value=mock_doc,
-            ),
-            patch(
-                "app.api.routes.documents.document_service.process_document",
-                new_callable=AsyncMock,
-            ),
-            patch(
-                "app.api.routes.documents.rate_limit_service._record_attempt",
-            ),
-            patch("app.api.routes.documents.audit_service.log_action"),
-        ):
-            _MINIMAL_PDF = b"%PDF-1.4\n%%EOF"
-            response = client.post(  # type: ignore[attr-defined]
-                "/api/v1/documents/upload",
-                headers=normal_user_token_headers,
-                files={
-                    "file": ("test.pdf", io.BytesIO(_MINIMAL_PDF), "application/pdf")
-                },
-            )
-
-        assert response.status_code == 201
+    # NOTE: API-level 429 tests (burst/hourly) live in
+    # tests/api/routes/test_documents.py::TestDocumentUploadRateLimit
+    # where the full app + DB fixtures are properly available.
 
     def test_different_users_have_independent_rate_limit_counters(self) -> None:
         """Each user has their own rate-limit bucket; one user locked ≠ all locked."""
