@@ -10,7 +10,7 @@ import os
 import re
 import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import HTTPException, status
@@ -717,6 +717,31 @@ async def get_documents_by_step_id(
         .order_by(Document.created_at.desc())
     )
     return list(result.scalars().all())
+
+
+async def mark_stuck_documents_failed(
+    session: AsyncSession, timeout_minutes: int = 10
+) -> int:
+    """Mark PROCESSING documents older than timeout_minutes as FAILED.
+
+    Called by APScheduler every 5 minutes to recover stuck documents.
+    Returns count of documents marked failed.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=timeout_minutes)
+    result = await session.execute(
+        select(Document).where(
+            Document.status == DocumentStatus.PROCESSING.value,
+            Document.updated_at < cutoff,
+        )
+    )
+    stuck = result.scalars().all()
+    for doc in stuck:
+        doc.status = DocumentStatus.FAILED.value
+        doc.error_message = "Processing timeout — please retry"
+        logger.warning("Marking stuck document %s as failed", doc.id)
+    if stuck:
+        await session.commit()
+    return len(stuck)
 
 
 async def count_user_documents(

@@ -64,6 +64,8 @@ class TestDocumentUpload:
         self, client: TestClient, normal_user_token_headers: dict[str, str]
     ) -> None:
         mock_doc = _mock_document()
+        mock_task = MagicMock()
+        mock_task.id = "celery-task-id-abc"
         with (
             patch(
                 "app.api.routes.documents.document_service.save_upload",
@@ -71,8 +73,8 @@ class TestDocumentUpload:
                 return_value=mock_doc,
             ),
             patch(
-                "app.api.routes.documents.document_service.process_document",
-                new_callable=AsyncMock,
+                "app.tasks.document_tasks.process_document_task.delay",
+                return_value=mock_task,
             ),
         ):
             r = client.post(
@@ -109,3 +111,78 @@ class TestDocumentUpload:
             )
         assert r.status_code == 400
         assert "valid PDF" in r.json()["detail"]
+
+
+class TestRetryDocumentProcessing:
+    def _make_failed_document(self, processing_attempt: int = 0) -> MagicMock:
+        doc = MagicMock()
+        doc.id = uuid.uuid4()
+        doc.status = DocumentStatus.FAILED.value
+        doc.error_message = "Some error"
+        doc.page_count = 1
+        doc.processing_attempt = processing_attempt
+        doc.celery_task_id = None
+        return doc
+
+    def test_retry_endpoint_requeues_failed_document(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        """Returns 202 and re-queues a FAILED document."""
+        doc = self._make_failed_document(processing_attempt=0)
+        mock_task = MagicMock()
+        mock_task.id = "new-celery-task-id"
+
+        with (
+            patch(
+                "app.api.routes.documents.document_service.get_document",
+                new_callable=AsyncMock,
+                return_value=doc,
+            ),
+            patch(
+                "app.tasks.document_tasks.process_document_task.delay",
+                return_value=mock_task,
+            ),
+        ):
+            r = client.post(
+                f"{BASE}/{doc.id}/retry",
+                headers=normal_user_token_headers,
+            )
+        assert r.status_code == 202
+
+    def test_retry_endpoint_409_when_not_failed(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        """Returns 409 when the document status is not FAILED."""
+        doc = MagicMock()
+        doc.id = uuid.uuid4()
+        doc.status = DocumentStatus.PROCESSING.value
+
+        with patch(
+            "app.api.routes.documents.document_service.get_document",
+            new_callable=AsyncMock,
+            return_value=doc,
+        ):
+            r = client.post(
+                f"{BASE}/{doc.id}/retry",
+                headers=normal_user_token_headers,
+            )
+        assert r.status_code == 409
+        assert "failed" in r.json()["detail"].lower()
+
+    def test_retry_endpoint_429_when_max_retries_reached(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        """Returns 429 when processing_attempt >= 3."""
+        doc = self._make_failed_document(processing_attempt=3)
+
+        with patch(
+            "app.api.routes.documents.document_service.get_document",
+            new_callable=AsyncMock,
+            return_value=doc,
+        ):
+            r = client.post(
+                f"{BASE}/{doc.id}/retry",
+                headers=normal_user_token_headers,
+            )
+        assert r.status_code == 429
+        assert "retry" in r.json()["detail"].lower()

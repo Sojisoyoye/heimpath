@@ -9,7 +9,6 @@ import uuid
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     HTTPException,
     Query,
     UploadFile,
@@ -19,7 +18,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.core.config import settings
-from app.core.database import AsyncSessionLocal
 from app.models import SubscriptionTier
 from app.models.document import Document, DocumentStatus, DocumentType
 from app.schemas.document import (
@@ -79,7 +77,6 @@ def _build_detail_response(document: Document) -> DocumentDetailResponse:
 )
 async def upload_document(
     file: UploadFile,
-    background_tasks: BackgroundTasks,
     current_user: CurrentUser,
     session: AsyncSessionDep,
     journey_step_id: uuid.UUID | None = Query(default=None),
@@ -135,12 +132,16 @@ async def upload_document(
             )
         raise
 
-    # Queue background processing
-    background_tasks.add_task(
-        document_service.process_document,
-        document_id=document.id,
-        session_factory=AsyncSessionLocal,
-    )
+    # Queue processing via Celery
+    from app.tasks.document_tasks import process_document_task
+
+    task = process_document_task.delay(str(document.id))
+    # Store celery task ID (best-effort; not critical to the response)
+    try:
+        document.celery_task_id = task.id
+        await session.commit()
+    except Exception:
+        pass
 
     return DocumentUploadResponse(
         id=str(document.id),
@@ -416,6 +417,46 @@ async def get_document_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document not found",
         )
+
+    return DocumentStatusResponse(
+        id=str(document.id),
+        status=document.status,
+        error_message=document.error_message,
+        page_count=document.page_count,
+    )
+
+
+@router.post(
+    "/{document_id}/retry", response_model=DocumentStatusResponse, status_code=202
+)
+async def retry_document_processing(
+    document_id: str,
+    current_user: CurrentUser,
+    session: AsyncSessionDep,
+) -> DocumentStatusResponse:
+    """Re-queue a FAILED document for processing. Maximum 3 user retries."""
+    from app.tasks.document_tasks import process_document_task
+
+    document = await document_service.get_document(
+        session=session, document_id=document_id, user_id=current_user.id
+    )
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if document.status != DocumentStatus.FAILED.value:
+        raise HTTPException(
+            status_code=409, detail="Only failed documents can be retried"
+        )
+    if document.processing_attempt >= 3:
+        raise HTTPException(status_code=429, detail="Maximum retry limit (3) reached")
+
+    document.status = DocumentStatus.UPLOADED.value
+    document.error_message = None
+    document.processing_attempt += 1
+    await session.commit()
+
+    task = process_document_task.delay(str(document.id))
+    document.celery_task_id = task.id
+    await session.commit()
 
     return DocumentStatusResponse(
         id=str(document.id),

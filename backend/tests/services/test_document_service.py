@@ -16,6 +16,7 @@ from app.services.document_service import (
     _detect_clauses,
     _detect_document_type,
     get_documents_by_step_id,
+    mark_stuck_documents_failed,
     validate_pdf_bytes,
 )
 
@@ -376,3 +377,87 @@ class TestProcessDocumentNotifications:
         ):
             # Should not raise — notification errors are swallowed
             await document_service.process_document(document_id, session_factory)
+
+
+# ── mark_stuck_documents_failed ───────────────────────────────────────────────
+
+
+def _make_doc_with_status(
+    doc_status: str,
+    updated_at: datetime,
+) -> Document:
+    """Create a minimal Document with the given status and updated_at."""
+    doc = Document(
+        id=uuid.uuid4(),
+        user_id=uuid.uuid4(),
+        original_filename="stuck.pdf",
+        stored_filename="stuck.pdf",
+        file_path="/tmp/stuck.pdf",
+        file_size_bytes=512,
+        page_count=1,
+        document_type=DocumentType.UNKNOWN.value,
+        status=doc_status,
+    )
+    doc.updated_at = updated_at
+    return doc
+
+
+class TestMarkStuckDocumentsFailed:
+    @pytest.mark.asyncio
+    async def test_marks_old_processing_docs_as_failed(self) -> None:
+        """PROCESSING docs older than timeout_minutes should be marked FAILED."""
+        old_updated_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        stuck_doc = _make_doc_with_status(
+            DocumentStatus.PROCESSING.value, old_updated_at
+        )
+
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = [stuck_doc]
+        mock_session = AsyncMock()
+        mock_session.execute.return_value = mock_result
+
+        count = await mark_stuck_documents_failed(mock_session, timeout_minutes=10)
+
+        assert count == 1
+        assert stuck_doc.status == DocumentStatus.FAILED.value
+        assert stuck_doc.error_message == "Processing timeout — please retry"
+        mock_session.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_ignores_recent_processing_docs(self) -> None:
+        """PROCESSING docs updated recently should NOT be marked failed."""
+        recent_updated_at = datetime.now(timezone.utc)
+        recent_doc = _make_doc_with_status(
+            DocumentStatus.PROCESSING.value, recent_updated_at
+        )
+
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_session = AsyncMock()
+        mock_session.execute.return_value = mock_result
+
+        count = await mark_stuck_documents_failed(mock_session, timeout_minutes=10)
+
+        # No docs returned — the query filter excluded the recent doc
+        assert count == 0
+        assert recent_doc.status == DocumentStatus.PROCESSING.value
+        mock_session.commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_ignores_non_processing_docs(self) -> None:
+        """COMPLETED/FAILED/UPLOADED docs should never be touched."""
+        old_updated_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        completed_doc = _make_doc_with_status(
+            DocumentStatus.COMPLETED.value, old_updated_at
+        )
+
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_session = AsyncMock()
+        mock_session.execute.return_value = mock_result
+
+        count = await mark_stuck_documents_failed(mock_session, timeout_minutes=10)
+
+        assert count == 0
+        assert completed_doc.status == DocumentStatus.COMPLETED.value
+        mock_session.commit.assert_not_called()

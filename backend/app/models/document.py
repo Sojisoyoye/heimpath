@@ -112,6 +112,10 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     error_message = Column(Text, nullable=True)
 
+    # Celery task tracking
+    celery_task_id = Column(String(255), nullable=True)
+    processing_attempt = Column(Integer, nullable=False, default=0, server_default="0")
+
     # Sharing
     share_id = Column(String(12), unique=True, index=True, nullable=True)
 

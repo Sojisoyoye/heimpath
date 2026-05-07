@@ -86,6 +86,20 @@ services:
       SMTP_TLS: "false"
       EMAILS_FROM_EMAIL: "noreply@example.com"
 
+  celery-worker:
+    restart: "no"
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: celery -A app.worker.celery_app worker --loglevel=debug --concurrency=1
+    volumes:
+      - ./backend:/app/backend
+    environment:
+      SMTP_HOST: "mailcatcher"
+      SMTP_PORT: "1025"
+      SMTP_TLS: "false"
+      EMAILS_FROM_EMAIL: "noreply@example.com"
+
   mailcatcher:
     image: schickling/mailcatcher
     ports:
