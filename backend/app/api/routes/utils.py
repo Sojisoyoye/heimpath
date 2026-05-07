@@ -1,5 +1,6 @@
 from typing import Annotated
 
+import redis as redis_lib
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic.networks import EmailStr
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,6 +8,7 @@ from sqlmodel import Session, text
 
 from app.api.deps import get_current_active_superuser, get_db
 from app.models import Message
+from app.services.redis_client import get_redis
 from app.utils import generate_test_email, send_email
 
 router = APIRouter(prefix="/utils", tags=["utils"])
@@ -40,3 +42,14 @@ def health_check(db: Annotated[Session, Depends(get_db)]) -> bool:
         return True
     except SQLAlchemyError as exc:
         raise HTTPException(status_code=503, detail="Database unavailable") from exc
+
+
+@router.get("/health-check/redis/")
+def redis_health_check() -> bool:
+    """Verify Redis connectivity. Returns 503 if Redis is unreachable."""
+    try:
+        client = get_redis()
+        client.ping()
+        return True
+    except (redis_lib.RedisError, RuntimeError, OSError) as exc:
+        raise HTTPException(status_code=503, detail="Redis unavailable") from exc

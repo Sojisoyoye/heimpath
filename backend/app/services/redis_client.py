@@ -1,9 +1,11 @@
-"""Shared Redis client with in-memory fallback.
+"""Shared Redis client with fail-fast semantics for staging/production.
 
-Returns a real Redis connection when available, or a ``fakeredis``
-in-memory implementation when Redis is unreachable.  This allows
-staging environments (where Redis may not be provisioned) to function
-with degraded — but not broken — auth flows.
+Returns a real Redis connection when available.  In ``local`` environments only,
+falls back to an in-memory ``fakeredis`` implementation when Redis is
+unreachable.  In staging/production, a missing Redis connection raises
+``RuntimeError`` immediately — using per-process in-memory state in
+multi-replica deployments would silently break token blacklisting and rate
+limiting.
 """
 
 import logging
@@ -19,7 +21,7 @@ _client: redis_lib.Redis | None = None
 
 
 def get_redis() -> redis_lib.Redis:
-    """Return a Redis-compatible client, falling back to in-memory."""
+    """Return a Redis-compatible client; raise RuntimeError in non-local envs if unreachable."""
     global _client
     if _client is not None:
         return _client
@@ -28,7 +30,14 @@ def get_redis() -> redis_lib.Redis:
         client = redis_lib.from_url(settings.REDIS_URL, decode_responses=True)
         client.ping()
         _client = client
-    except (redis_lib.RedisError, OSError):
+    except (redis_lib.RedisError, OSError) as exc:
+        if settings.ENVIRONMENT != "local":
+            raise RuntimeError(
+                f"Redis unavailable at {settings.REDIS_URL} in "
+                f"{settings.ENVIRONMENT} environment. "
+                "Token blacklisting and rate limiting require Redis in "
+                "multi-replica deployments."
+            ) from exc
         logger.warning(
             "Redis unavailable at %s — using in-memory fallback. "
             "Rate limits and tokens will not survive restarts.",
