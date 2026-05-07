@@ -1,5 +1,6 @@
 """Schemas for city/area comparison endpoints."""
 
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel
@@ -39,6 +40,15 @@ class ComparisonMetrics(BaseModel):
     has_mietspiegel: bool
 
 
+class DataFreshness(BaseModel):
+    """Staleness metadata for static market data."""
+
+    last_updated: date
+    age_days: int
+    is_stale: bool
+    max_age_days: int
+
+
 class AreaListResponse(BaseModel):
     """Response for the area listing endpoint."""
 
@@ -49,3 +59,4 @@ class ComparisonResponse(BaseModel):
     """Response for the area comparison endpoint."""
 
     areas: list[ComparisonMetrics]
+    data_freshness: DataFreshness

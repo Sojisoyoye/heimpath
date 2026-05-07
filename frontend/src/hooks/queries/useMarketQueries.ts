@@ -16,7 +16,11 @@ export function useAreas() {
   })
 }
 
-/** Fetch comparison metrics for selected area keys. Enabled when 2+ keys. */
+/**
+ * Fetch comparison metrics for selected area keys.
+ * Returns the full ComparisonResponse (areas + data_freshness).
+ * Enabled when 2+ keys are selected.
+ */
 export function useCityComparison(keys: string[]) {
   return useQuery({
     queryKey: queryKeys.market.cityComparison(keys),

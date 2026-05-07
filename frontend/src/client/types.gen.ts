@@ -437,6 +437,7 @@ export type ComparisonMetrics = {
  */
 export type ComparisonResponse = {
     areas: Array<ComparisonMetrics>;
+    data_freshness: DataFreshness;
 };
 
 /**
@@ -595,6 +596,16 @@ export type DashboardOverviewResponse = {
     documents_translated_this_month: number;
     total_calculations: number;
     total_bookmarks: number;
+};
+
+/**
+ * Staleness metadata for static market data.
+ */
+export type DataFreshness = {
+    last_updated: string;
+    age_days: number;
+    is_stale: boolean;
+    max_age_days: number;
 };
 
 /**
@@ -2306,6 +2317,7 @@ export type RentEstimateResponse = {
     city?: (string | null);
     state_code?: (string | null);
     monthly_rent?: (number | null);
+    data_freshness?: (DataFreshness | null);
 };
 
 export type confidence = 'high' | 'medium' | 'low';

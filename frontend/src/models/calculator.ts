@@ -3,6 +3,8 @@
  * TypeScript interfaces for hidden cost and ROI calculations
  */
 
+import type { DataFreshness } from "@/models/marketComparison"
+
 export interface StateRate {
   stateCode: string
   stateName: string
@@ -162,6 +164,7 @@ export interface RentEstimate {
   city: string | null
   stateCode: string | null
   monthlyRent: number | null
+  dataFreshness: DataFreshness | null
 }
 
 // ---------------------------------------------------------------------------

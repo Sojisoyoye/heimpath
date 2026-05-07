@@ -320,12 +320,22 @@ function MarketRentSection(props: Readonly<IProps>) {
 
       {/* Disclaimer */}
       <div className="lg:col-span-2">
-        <Card className="border-dashed bg-muted/40">
+        <Card
+          className={
+            estimate?.dataFreshness?.isStale
+              ? "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+              : "border-dashed bg-muted/40"
+          }
+        >
           <CardContent className="py-4">
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              <span className="font-medium">Data note:</span> Estimates are
-              based on Mietspiegel 2024 averages and state-level data. Actual
-              rents vary by neighbourhood, furnishing, and condition. For
+            <p
+              className={`text-xs leading-relaxed ${estimate?.dataFreshness?.isStale ? "text-amber-800 dark:text-amber-300" : "text-muted-foreground"}`}
+            >
+              <span className="font-medium">Data note:</span>{" "}
+              {estimate?.dataFreshness
+                ? `Estimates are based on Mietspiegel data last updated on ${estimate.dataFreshness.lastUpdated} (${estimate.dataFreshness.ageDays} days ago).`
+                : "Estimates are based on Mietspiegel averages and state-level data."}{" "}
+              Actual rents vary by neighbourhood, furnishing, and condition. For
               investment decisions, always cross-check with current listings on
               Immoscout24 or similar portals.
             </p>

@@ -50,7 +50,10 @@ async def get_rent_estimate(
         size_sqm=size_sqm,
         building_year=building_year,
     )
-    return RentEstimateResponse(**result)
+    return RentEstimateResponse(
+        **result,
+        data_freshness=market_comparison_service.compute_data_freshness(),
+    )
 
 
 @router.get("/areas")
@@ -83,4 +86,7 @@ async def compare_areas(
             detail="Provide between 2 and 4 area keys.",
         )
     areas = market_comparison_service.compare_areas(keys)
-    return ComparisonResponse(areas=areas)
+    return ComparisonResponse(
+        areas=areas,
+        data_freshness=market_comparison_service.compute_data_freshness(),
+    )
