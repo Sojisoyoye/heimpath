@@ -24,4 +24,4 @@ class RentEstimateResponse(BaseModel):
     city: str | None = None
     state_code: str | None = None
     monthly_rent: float | None = None
-    data_freshness: DataFreshness | None = None
+    data_freshness: DataFreshness

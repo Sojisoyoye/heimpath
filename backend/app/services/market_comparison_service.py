@@ -23,7 +23,7 @@ from app.services.rent_estimate_service import CITY_MIETSPIEGEL
 def compute_data_freshness() -> DataFreshness:
     """Compute staleness metadata for the static market data."""
     today = date.today()
-    age_days = (today - MARKET_DATA_LAST_UPDATED).days
+    age_days = max(0, (today - MARKET_DATA_LAST_UPDATED).days)
     return DataFreshness(
         last_updated=MARKET_DATA_LAST_UPDATED,
         age_days=age_days,

@@ -31,6 +31,7 @@ export interface ComparisonMetrics {
 }
 
 export interface DataFreshness {
+  /** ISO date string, e.g. "2025-01-15" */
   lastUpdated: string
   ageDays: number
   isStale: boolean

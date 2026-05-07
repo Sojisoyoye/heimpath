@@ -1,8 +1,15 @@
 """Tests for market_comparison_service."""
 
+from datetime import date
+from unittest.mock import patch
+
 import pytest
 
-from app.services.market_comparison_service import compare_areas, list_areas
+from app.services.market_comparison_service import (
+    compare_areas,
+    compute_data_freshness,
+    list_areas,
+)
 from app.services.market_data import CITY_MARKET_DATA
 
 
@@ -110,6 +117,68 @@ class TestCompareStates:
         assert by.name == "Bayern"
         assert by.avg_rent_per_sqm is not None
         assert by.has_mietspiegel is True
+
+
+class TestComputeDataFreshness:
+    """compute_data_freshness returns correct staleness metadata."""
+
+    def test_fresh_data_is_not_stale(self) -> None:
+        # 10 days after last update — well within the 30-day threshold
+        with patch("app.services.market_comparison_service.date") as mock_date:
+            mock_date.today.return_value = date(2025, 1, 25)
+            freshness = compute_data_freshness()
+
+        assert freshness.is_stale is False
+        assert freshness.age_days == 10
+
+    def test_stale_data_is_stale(self) -> None:
+        # 365 days after last update — well past the 30-day threshold
+        with patch("app.services.market_comparison_service.date") as mock_date:
+            mock_date.today.return_value = date(2026, 1, 15)
+            freshness = compute_data_freshness()
+
+        assert freshness.is_stale is True
+        assert freshness.age_days == 365
+
+    def test_age_days_equals_expected_delta(self) -> None:
+        with patch("app.services.market_comparison_service.date") as mock_date:
+            mock_date.today.return_value = date(2025, 2, 14)  # 30 days after 2025-01-15
+            freshness = compute_data_freshness()
+
+        assert freshness.age_days == 30
+        # exactly at the boundary: 30 > 30 is False
+        assert freshness.is_stale is False
+
+    def test_one_day_over_threshold_is_stale(self) -> None:
+        with patch("app.services.market_comparison_service.date") as mock_date:
+            mock_date.today.return_value = date(2025, 2, 15)  # 31 days after 2025-01-15
+            freshness = compute_data_freshness()
+
+        assert freshness.age_days == 31
+        assert freshness.is_stale is True
+
+    def test_future_last_updated_does_not_yield_negative_age(self) -> None:
+        # If MARKET_DATA_LAST_UPDATED is accidentally set to a future date,
+        # age_days should be clamped to 0, not negative.
+        with (
+            patch(
+                "app.services.market_comparison_service.MARKET_DATA_LAST_UPDATED",
+                date(2099, 12, 31),
+            ),
+            patch("app.services.market_comparison_service.date") as mock_date,
+        ):
+            mock_date.today.return_value = date(2026, 1, 1)
+            freshness = compute_data_freshness()
+
+        assert freshness.age_days == 0
+        assert freshness.is_stale is False
+
+    def test_schema_fields_and_types(self) -> None:
+        freshness = compute_data_freshness()
+        assert isinstance(freshness.age_days, int)
+        assert isinstance(freshness.is_stale, bool)
+        assert isinstance(freshness.max_age_days, int)
+        assert freshness.age_days >= 0
 
 
 class TestGrossYieldCalculation:

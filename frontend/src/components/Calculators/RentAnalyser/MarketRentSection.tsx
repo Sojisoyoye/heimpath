@@ -329,7 +329,12 @@ function MarketRentSection(props: Readonly<IProps>) {
         >
           <CardContent className="py-4">
             <p
-              className={`text-xs leading-relaxed ${estimate?.dataFreshness?.isStale ? "text-amber-800 dark:text-amber-300" : "text-muted-foreground"}`}
+              className={cn(
+                "text-xs leading-relaxed",
+                estimate?.dataFreshness?.isStale
+                  ? "text-amber-800 dark:text-amber-300"
+                  : "text-muted-foreground",
+              )}
             >
               <span className="font-medium">Data note:</span>{" "}
               {estimate?.dataFreshness

@@ -2317,7 +2317,7 @@ export type RentEstimateResponse = {
     city?: (string | null);
     state_code?: (string | null);
     monthly_rent?: (number | null);
-    data_freshness?: (DataFreshness | null);
+    data_freshness: DataFreshness;
 };
 
 export type confidence = 'high' | 'medium' | 'low';

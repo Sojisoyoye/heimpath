@@ -9401,18 +9401,11 @@ export const RentEstimateResponseSchema = {
             title: 'Monthly Rent'
         },
         data_freshness: {
-            anyOf: [
-                {
-                    '$ref': '#/components/schemas/DataFreshness'
-                },
-                {
-                    type: 'null'
-                }
-            ]
+            '$ref': '#/components/schemas/DataFreshness'
         }
     },
     type: 'object',
-    required: ['confidence'],
+    required: ['confidence', 'data_freshness'],
     title: 'RentEstimateResponse',
     description: 'Response for a rent estimate query.'
 } as const;
