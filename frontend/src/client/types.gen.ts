@@ -2911,6 +2911,20 @@ export type YearProjection = {
     property_value: number;
 };
 
+export type AdminSchedulerHealthResponse = ({
+    [key: string]: {
+        [key: string]: unknown;
+    };
+});
+
+export type AdminTriggerJobData = {
+    jobName: string;
+};
+
+export type AdminTriggerJobResponse = ({
+    [key: string]: (string);
+});
+
 export type ArticlesListArticlesData = {
     category?: (ArticleCategory | null);
     difficultyLevel?: (DifficultyLevel | null);
