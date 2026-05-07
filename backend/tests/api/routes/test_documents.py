@@ -2,12 +2,14 @@
 
 import io
 import uuid
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
 from app.models.document import DocumentStatus, DocumentType
+from app.services.rate_limit_service import RateLimitInfo
 
 BASE = f"{settings.API_V1_STR}/documents"
 
@@ -35,6 +37,22 @@ def _mock_document() -> MagicMock:
     return doc
 
 
+_UNLOCKED_RATE_LIMIT = RateLimitInfo(
+    is_locked=False, attempts_remaining=9, lockout_expires_at=None
+)
+
+# Named patches — used by upload tests that are NOT testing rate limiting, to
+# prevent shared Redis state from triggering limits mid-suite.
+_patch_upload_burst = patch(
+    "app.api.routes.documents.rate_limit_service.record_document_upload_burst",
+    return_value=_UNLOCKED_RATE_LIMIT,
+)
+_patch_upload_hourly = patch(
+    "app.api.routes.documents.rate_limit_service.record_document_upload_hourly",
+    return_value=_UNLOCKED_RATE_LIMIT,
+)
+
+
 class TestDocumentUpload:
     def test_upload_unauthenticated_returns_401(self, client: TestClient) -> None:
         r = client.post(
@@ -46,17 +64,18 @@ class TestDocumentUpload:
     def test_upload_non_pdf_returns_400(
         self, client: TestClient, normal_user_token_headers: dict[str, str]
     ) -> None:
-        r = client.post(
-            f"{BASE}/upload",
-            headers=normal_user_token_headers,
-            files={
-                "file": (
-                    "evil.html",
-                    io.BytesIO(b"<html>not a pdf</html>"),
-                    "text/html",
-                )
-            },
-        )
+        with _patch_upload_burst, _patch_upload_hourly:
+            r = client.post(
+                f"{BASE}/upload",
+                headers=normal_user_token_headers,
+                files={
+                    "file": (
+                        "evil.html",
+                        io.BytesIO(b"<html>not a pdf</html>"),
+                        "text/html",
+                    )
+                },
+            )
         assert r.status_code == 400
         assert "PDF" in r.json()["detail"]
 
@@ -67,6 +86,8 @@ class TestDocumentUpload:
         mock_task = MagicMock()
         mock_task.id = "celery-task-id-abc"
         with (
+            _patch_upload_burst,
+            _patch_upload_hourly,
             patch(
                 "app.api.routes.documents.document_service.save_upload",
                 new_callable=AsyncMock,
@@ -93,10 +114,14 @@ class TestDocumentUpload:
         self, client: TestClient, normal_user_token_headers: dict[str, str]
     ) -> None:
         """save_upload raises ValueError for bad PDF bytes → 400."""
-        with patch(
-            "app.api.routes.documents.document_service.save_upload",
-            new_callable=AsyncMock,
-            side_effect=ValueError("does not appear to be a valid PDF"),
+        with (
+            _patch_upload_burst,
+            _patch_upload_hourly,
+            patch(
+                "app.api.routes.documents.document_service.save_upload",
+                new_callable=AsyncMock,
+                side_effect=ValueError("does not appear to be a valid PDF"),
+            ),
         ):
             r = client.post(
                 f"{BASE}/upload",
@@ -186,3 +211,63 @@ class TestRetryDocumentProcessing:
             )
         assert r.status_code == 429
         assert "retry" in r.json()["detail"].lower()
+
+
+class TestDocumentUploadRateLimit:
+    _LOCKED_INFO = RateLimitInfo(
+        is_locked=True,
+        attempts_remaining=0,
+        lockout_expires_at=datetime.now(timezone.utc) + timedelta(seconds=60),
+    )
+
+    def test_upload_returns_429_on_burst_limit(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        """Returns 429 with Retry-After when the per-minute burst limit is hit."""
+        with patch(
+            "app.api.routes.documents.rate_limit_service.record_document_upload_burst",
+            return_value=self._LOCKED_INFO,
+        ):
+            r = client.post(
+                f"{BASE}/upload",
+                headers=normal_user_token_headers,
+                files={
+                    "file": ("test.pdf", io.BytesIO(_MINIMAL_PDF), "application/pdf")
+                },
+            )
+        assert r.status_code == 429
+        assert "Retry-After" in r.headers
+        assert int(r.headers["Retry-After"]) >= 1
+
+    def test_upload_returns_429_on_hourly_limit(
+        self, client: TestClient, normal_user_token_headers: dict[str, str]
+    ) -> None:
+        """Returns 429 with Retry-After when the hourly upload limit is hit."""
+        _unlocked = RateLimitInfo(
+            is_locked=False, attempts_remaining=2, lockout_expires_at=None
+        )
+        _locked_hourly = RateLimitInfo(
+            is_locked=True,
+            attempts_remaining=0,
+            lockout_expires_at=datetime.now(timezone.utc) + timedelta(seconds=3600),
+        )
+        with (
+            patch(
+                "app.api.routes.documents.rate_limit_service.record_document_upload_burst",
+                return_value=_unlocked,
+            ),
+            patch(
+                "app.api.routes.documents.rate_limit_service.record_document_upload_hourly",
+                return_value=_locked_hourly,
+            ),
+        ):
+            r = client.post(
+                f"{BASE}/upload",
+                headers=normal_user_token_headers,
+                files={
+                    "file": ("test.pdf", io.BytesIO(_MINIMAL_PDF), "application/pdf")
+                },
+            )
+        assert r.status_code == 429
+        assert "Retry-After" in r.headers
+        assert int(r.headers["Retry-After"]) >= 1

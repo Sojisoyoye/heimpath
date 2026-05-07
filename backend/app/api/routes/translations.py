@@ -4,6 +4,8 @@ Provides translation services for German real estate documents using
 Microsoft Azure Translator API with legal term detection and warnings.
 """
 
+import logging
+
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
@@ -17,12 +19,15 @@ from app.schemas.translation import (
     TranslationRequest,
     TranslationResponse,
 )
+from app.services import rate_limit_service
 from app.services.translation_service import (
     TranslationError,
     get_translation_service,
 )
 
 router = APIRouter(prefix="/translations", tags=["translations"])
+
+logger = logging.getLogger(__name__)
 
 
 # Response schemas specific to this router
@@ -62,7 +67,7 @@ LANGUAGE_NAMES = {
 @router.post("/translate", response_model=TranslationResponse)
 async def translate_text(
     request: TranslationRequest,
-    current_user: CurrentUser,  # noqa: ARG001
+    current_user: CurrentUser,
 ) -> TranslationResponse:
     """
     Translate text from source to target language.
@@ -82,9 +87,22 @@ async def translate_text(
     - Plus French, Spanish, Italian, Polish, Turkish, Russian, Arabic, Chinese
 
     **Rate Limits:**
-    - Free tier: 2 million characters/month
+    - 50 translation requests per hour per user
+    - Free tier: 2 million characters/month via Azure Translator
     - Character count included in response for tracking
     """
+    limit_info = rate_limit_service.record_translation_request(str(current_user.id))
+    if limit_info.is_locked:
+        retry_after = rate_limit_service.retry_after_seconds(
+            limit_info, rate_limit_service.TRANSLATION_HOURLY_LOCKOUT
+        )
+        logger.warning("Translation hourly limit exceeded for user %s", current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Translation limit reached. You can make up to {rate_limit_service.TRANSLATION_HOURLY_MAX} translation requests per hour.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     translation_service = get_translation_service()
     if translation_service is None:
         raise HTTPException(
@@ -109,7 +127,7 @@ async def translate_text(
 @router.post("/detect", response_model=LanguageDetectionResponse)
 async def detect_language(
     request: LanguageDetectionRequest,
-    current_user: CurrentUser,  # noqa: ARG001
+    current_user: CurrentUser,  # noqa: ARG001 — auth only, no rate limit (detection is cheap)
 ) -> LanguageDetectionResponse:
     """
     Detect the language of given text.
@@ -142,7 +160,7 @@ async def detect_language(
 @router.post("/batch", response_model=BatchTranslationResponse)
 async def batch_translate(
     request: BatchTranslationRequest,
-    current_user: CurrentUser,  # noqa: ARG001
+    current_user: CurrentUser,
 ) -> BatchTranslationResponse:
     """
     Translate multiple texts in a single request.
@@ -153,7 +171,24 @@ async def batch_translate(
     **Limits:**
     - Maximum 100 texts per request
     - Each text limited to 50,000 characters
+
+    **Rate Limits:**
+    - 50 translation requests per hour per user (shared with /translate)
     """
+    limit_info = rate_limit_service.record_translation_request(str(current_user.id))
+    if limit_info.is_locked:
+        retry_after = rate_limit_service.retry_after_seconds(
+            limit_info, rate_limit_service.TRANSLATION_HOURLY_LOCKOUT
+        )
+        logger.warning(
+            "Translation hourly limit exceeded for user %s (batch)", current_user.id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Translation limit reached. You can make up to {rate_limit_service.TRANSLATION_HOURLY_MAX} translation requests per hour.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     translation_service = get_translation_service()
     if translation_service is None:
         raise HTTPException(

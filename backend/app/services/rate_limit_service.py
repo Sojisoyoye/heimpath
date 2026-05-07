@@ -7,6 +7,7 @@ so limits survive server restarts and work correctly across
 horizontally-scaled instances.
 """
 
+import math
 from datetime import datetime, timedelta, timezone
 from typing import NamedTuple
 
@@ -392,3 +393,99 @@ def record_ip_resend_verification(ip: str) -> RateLimitInfo:
         IP_RESEND_VERIFICATION_WINDOW_SECONDS,
         IP_RESEND_VERIFICATION_LOCKOUT_SECONDS,
     )
+
+
+# ── Document upload rate limiting ─────────────────────────────────────────────
+# Per-user hourly limit: protects Azure Translator + Anthropic from bulk abuse.
+UPLOAD_HOURLY_MAX: int = 10
+UPLOAD_HOURLY_WINDOW: int = 3600  # 1 hour
+UPLOAD_HOURLY_LOCKOUT: int = 3600  # 1 hour
+
+# Per-user burst limit: prevents rapid hammering of the upload endpoint.
+UPLOAD_BURST_MAX: int = 3
+UPLOAD_BURST_WINDOW: int = 60  # 1 minute
+UPLOAD_BURST_LOCKOUT: int = 60  # 1 minute
+
+_UPLOAD_HOURLY_ATTEMPTS_PREFIX = "api:ratelimit:doc_upload:hourly:attempts:"
+_UPLOAD_HOURLY_LOCKOUT_PREFIX = "api:ratelimit:doc_upload:hourly:lockout:"
+_UPLOAD_BURST_ATTEMPTS_PREFIX = "api:ratelimit:doc_upload:burst:attempts:"
+_UPLOAD_BURST_LOCKOUT_PREFIX = "api:ratelimit:doc_upload:burst:lockout:"
+
+
+def record_document_upload_hourly(user_id: str) -> RateLimitInfo:
+    """Record a document upload for the hourly limit (10 uploads/hour per user)."""
+    return _record_attempt(
+        user_id,
+        _UPLOAD_HOURLY_ATTEMPTS_PREFIX,
+        _UPLOAD_HOURLY_LOCKOUT_PREFIX,
+        UPLOAD_HOURLY_MAX,
+        UPLOAD_HOURLY_WINDOW,
+        UPLOAD_HOURLY_LOCKOUT,
+    )
+
+
+def record_document_upload_burst(user_id: str) -> RateLimitInfo:
+    """Record a document upload for the burst limit (3 uploads/minute per user)."""
+    return _record_attempt(
+        user_id,
+        _UPLOAD_BURST_ATTEMPTS_PREFIX,
+        _UPLOAD_BURST_LOCKOUT_PREFIX,
+        UPLOAD_BURST_MAX,
+        UPLOAD_BURST_WINDOW,
+        UPLOAD_BURST_LOCKOUT,
+    )
+
+
+# ── Translation rate limiting ──────────────────────────────────────────────────
+# Per-user hourly limit: protects Azure Translator monthly character quota.
+TRANSLATION_HOURLY_MAX: int = 50
+TRANSLATION_HOURLY_WINDOW: int = 3600  # 1 hour
+TRANSLATION_HOURLY_LOCKOUT: int = 3600  # 1 hour
+
+_TRANSLATION_ATTEMPTS_PREFIX = "api:ratelimit:translation:hourly:attempts:"
+_TRANSLATION_LOCKOUT_PREFIX = "api:ratelimit:translation:hourly:lockout:"
+
+
+def record_translation_request(user_id: str) -> RateLimitInfo:
+    """Record a translation request for the hourly limit (50 requests/hour per user)."""
+    return _record_attempt(
+        user_id,
+        _TRANSLATION_ATTEMPTS_PREFIX,
+        _TRANSLATION_LOCKOUT_PREFIX,
+        TRANSLATION_HOURLY_MAX,
+        TRANSLATION_HOURLY_WINDOW,
+        TRANSLATION_HOURLY_LOCKOUT,
+    )
+
+
+# ── Contract analysis rate limiting ───────────────────────────────────────────
+# Per-user hourly limit: each analysis invokes Anthropic Claude — highest cost.
+CONTRACT_ANALYSIS_HOURLY_MAX: int = 5
+CONTRACT_ANALYSIS_HOURLY_WINDOW: int = 3600  # 1 hour
+CONTRACT_ANALYSIS_HOURLY_LOCKOUT: int = 3600  # 1 hour
+
+_CONTRACT_ANALYSIS_ATTEMPTS_PREFIX = "api:ratelimit:contract_analysis:attempts:"
+_CONTRACT_ANALYSIS_LOCKOUT_PREFIX = "api:ratelimit:contract_analysis:lockout:"
+
+
+def record_contract_analysis(user_id: str) -> RateLimitInfo:
+    """Record a contract analysis request (5 analyses/hour per user)."""
+    return _record_attempt(
+        user_id,
+        _CONTRACT_ANALYSIS_ATTEMPTS_PREFIX,
+        _CONTRACT_ANALYSIS_LOCKOUT_PREFIX,
+        CONTRACT_ANALYSIS_HOURLY_MAX,
+        CONTRACT_ANALYSIS_HOURLY_WINDOW,
+        CONTRACT_ANALYSIS_HOURLY_LOCKOUT,
+    )
+
+
+# ── Shared helper ──────────────────────────────────────────────────────────────
+
+
+def retry_after_seconds(info: RateLimitInfo, fallback: int = 3600) -> int:
+    """Return seconds until the rate limit resets, for use in Retry-After headers."""
+    if info.lockout_expires_at:
+        delta = (info.lockout_expires_at - datetime.now(timezone.utc)).total_seconds()
+        return max(1, math.ceil(delta))
+    return fallback

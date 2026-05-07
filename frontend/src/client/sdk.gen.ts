@@ -1006,6 +1006,9 @@ export class ContractsService {
      * Upload a PDF Kaufvertrag and receive an AI clause-by-clause analysis.
      *
      * Premium users see all clauses. Free users see the first 3 only.
+     *
+     * **Rate limits:**
+     * - 5 analyses per hour per user
      * @param data The data for the request.
      * @param data.formData
      * @returns ContractAnalysisResponse Successful Response
@@ -1116,6 +1119,10 @@ export class DocumentsService {
      * **Page limits:**
      * - Free tier: 10 pages
      * - Premium/Enterprise: 20 pages
+     *
+     * **Rate limits:**
+     * - 3 uploads per minute (burst)
+     * - 10 uploads per hour
      * @param data The data for the request.
      * @param data.formData
      * @param data.journeyStepId
@@ -3201,7 +3208,8 @@ export class TranslationsService {
      * - Plus French, Spanish, Italian, Polish, Turkish, Russian, Arabic, Chinese
      *
      * **Rate Limits:**
-     * - Free tier: 2 million characters/month
+     * - 50 translation requests per hour per user
+     * - Free tier: 2 million characters/month via Azure Translator
      * - Character count included in response for tracking
      * @param data The data for the request.
      * @param data.requestBody
@@ -3253,6 +3261,9 @@ export class TranslationsService {
      * **Limits:**
      * - Maximum 100 texts per request
      * - Each text limited to 50,000 characters
+     *
+     * **Rate Limits:**
+     * - 50 translation requests per hour per user (shared with /translate)
      * @param data The data for the request.
      * @param data.requestBody
      * @returns BatchTranslationResponse Successful Response
