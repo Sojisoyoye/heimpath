@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("document", sa.Column("celery_task_id", sa.String(255), nullable=True))
+    op.add_column("document", sa.Column("celery_task_id", sa.String(50), nullable=True))
     op.add_column(
         "document",
         sa.Column(

@@ -5,6 +5,7 @@ processing status, and retrieving translations with clause detection
 and risk warnings.
 """
 
+import logging
 import uuid
 
 from fastapi import (
@@ -31,9 +32,16 @@ from app.schemas.document import (
     DocumentUsageResponse,
 )
 from app.services import document_service
+from app.tasks.document_tasks import process_document_task
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
+# Maximum number of user-initiated retries for a failed document.
+# Note: Celery's own auto-retry limit (_CELERY_MAX_RETRIES in document_tasks.py)
+# is separate — it controls automatic retries on transient errors, not user retries.
+MAX_USER_RETRIES = 3
 
 _DOCUMENT_UPGRADE_CTA = "Sign up to see the full translation — all pages, detected clauses, and risk warnings."
 
@@ -133,15 +141,17 @@ async def upload_document(
         raise
 
     # Queue processing via Celery
-    from app.tasks.document_tasks import process_document_task
-
     task = process_document_task.delay(str(document.id))
     # Store celery task ID (best-effort; not critical to the response)
     try:
         document.celery_task_id = task.id
         await session.commit()
     except Exception:
-        pass
+        logger.warning(
+            "Failed to persist celery_task_id for document %s",
+            document.id,
+            exc_info=True,
+        )
 
     return DocumentUploadResponse(
         id=str(document.id),
@@ -427,7 +437,16 @@ async def get_document_status(
 
 
 @router.post(
-    "/{document_id}/retry", response_model=DocumentStatusResponse, status_code=202
+    "/{document_id}/retry",
+    response_model=DocumentStatusResponse,
+    status_code=202,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Document not found"},
+        status.HTTP_409_CONFLICT: {"description": "Document is not in failed state"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "description": "Maximum retry limit reached"
+        },
+    },
 )
 async def retry_document_processing(
     document_id: str,
@@ -435,25 +454,29 @@ async def retry_document_processing(
     session: AsyncSessionDep,
 ) -> DocumentStatusResponse:
     """Re-queue a FAILED document for processing. Maximum 3 user retries."""
-    from app.tasks.document_tasks import process_document_task
-
     document = await document_service.get_document(
         session=session, document_id=document_id, user_id=current_user.id
     )
     if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
+        )
     if document.status != DocumentStatus.FAILED.value:
         raise HTTPException(
-            status_code=409, detail="Only failed documents can be retried"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only failed documents can be retried",
         )
-    if document.processing_attempt >= 3:
-        raise HTTPException(status_code=429, detail="Maximum retry limit (3) reached")
+    if document.processing_attempt >= MAX_USER_RETRIES:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Maximum retry limit ({MAX_USER_RETRIES}) reached",
+        )
 
+    # Mutate state and dispatch the Celery task in a single transaction so the
+    # worker never starts against an uncommitted status transition.
     document.status = DocumentStatus.UPLOADED.value
     document.error_message = None
     document.processing_attempt += 1
-    await session.commit()
-
     task = process_document_task.delay(str(document.id))
     document.celery_task_id = task.id
     await session.commit()

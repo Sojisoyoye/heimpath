@@ -1357,7 +1357,10 @@ export class DocumentsService {
                 document_id: data.documentId
             },
             errors: {
-                422: 'Validation Error'
+                404: 'Document not found',
+                409: 'Document is not in failed state',
+                422: 'Validation Error',
+                429: 'Maximum retry limit reached'
             }
         });
     }
