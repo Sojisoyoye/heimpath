@@ -444,17 +444,33 @@ def test_list_professionals_sort_by_recommended(
         headers=headers,
     )
 
+    # Verify trust signals are correctly computed for each professional individually.
+    # We cannot rely on the two professionals appearing in the first page of the
+    # list endpoint because the shared test database accumulates professionals
+    # across test sessions, and the 0% professional may fall outside page 1.
+    r2 = client.get(f"{settings.API_V1_STR}/professionals/{prof2.id}")
+    assert r2.status_code == 200
+    assert r2.json()["recommendation_rate"] == 100.0
+
+    r1 = client.get(f"{settings.API_V1_STR}/professionals/{prof1.id}")
+    assert r1.status_code == 200
+    assert r1.json()["recommendation_rate"] == 0.0
+
+    # Verify the list endpoint returns non-null rates in descending order.
     r = client.get(
         f"{settings.API_V1_STR}/professionals/",
         params={"sort_by": "recommended", "page_size": 100},
     )
     assert r.status_code == 200
     data = r.json()["data"]
-
-    # Find our two pros in the results
-    rec_rates = {item["name"]: item.get("recommendation_rate") for item in data}
-    assert rec_rates["High Recommend Pro"] == 100.0
-    assert rec_rates["Low Recommend Pro"] == 0.0
+    rates = [
+        item["recommendation_rate"]
+        for item in data
+        if item["recommendation_rate"] is not None
+    ]
+    assert rates == sorted(rates, reverse=True), (
+        "sort_by=recommended must return descending order"
+    )
 
 
 def test_review_highlights_computed(client: TestClient, db: Session) -> None:

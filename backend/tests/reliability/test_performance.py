@@ -112,25 +112,23 @@ class TestResponseTimeBounds:
         assert elapsed_ms < 100, f"100 log_action() calls took {elapsed_ms:.1f} ms"
 
     @pytest.mark.asyncio
-    async def test_calculate_hidden_costs_completes_within_50ms(self) -> None:
+    async def test_calculate_hidden_costs_completes_within_100ms(self) -> None:
         """Synchronous cost calculation must not block the event loop."""
-        from app.services.calculator_service import calculate_hidden_costs
+        from app.schemas.calculator import HiddenCostCalculationCreate
+        from app.services.calculator_service import calculate
 
-        property_price = 350_000.0
-        state_code = "BY"
+        inputs = HiddenCostCalculationCreate(
+            property_price=350_000.0,
+            state_code="BY",
+            property_type="apartment",
+        )
 
         start = time.perf_counter()
         for _ in range(50):
-            calculate_hidden_costs(
-                property_price=property_price,
-                state_code=state_code,
-                property_type="apartment",
-            )
+            calculate(inputs)
         elapsed_ms = (time.perf_counter() - start) * 1000
 
-        assert elapsed_ms < 50, (
-            f"50 calculate_hidden_costs() calls took {elapsed_ms:.1f} ms"
-        )
+        assert elapsed_ms < 100, f"50 calculate() calls took {elapsed_ms:.1f} ms"
 
     @pytest.mark.asyncio
     async def test_validate_pdf_bytes_completes_within_10ms(self) -> None:

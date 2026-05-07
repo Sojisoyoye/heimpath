@@ -176,6 +176,21 @@ def validate_pdf_bytes(content: bytes) -> None:
         raise ValueError("File does not appear to be a valid PDF")
 
 
+_CONFIDENCE_THRESHOLD = 0.70  # translations below this require human review
+
+
+def _compute_requires_review(translations: list) -> bool:  # type: ignore[type-arg]
+    """Return True if any translation has a confidence score below the threshold."""
+    return any(tr.translation.confidence < _CONFIDENCE_THRESHOLD for tr in translations)
+
+
+def _compute_avg_confidence(translations: list) -> float | None:  # type: ignore[type-arg]
+    """Return the mean confidence score, or None for an empty list."""
+    if not translations:
+        return None
+    return sum(tr.translation.confidence for tr in translations) / len(translations)
+
+
 def _detect_document_type(text: str) -> DocumentType:
     """Detect document type based on keyword frequency in extracted text."""
     text_lower = text.lower()
