@@ -375,7 +375,7 @@ class TestRedisFailureModes:
         import fakeredis
         import redis as redis_lib
 
-        monkeypatch.setattr("app.services.redis_client._client", None)
+        monkeypatch.setattr("app.services.redis_client._redis_client", None)
         monkeypatch.setattr("app.core.config.settings.ENVIRONMENT", "local")
 
         with patch("redis.from_url", side_effect=redis_lib.ConnectionError("refused")):
@@ -391,7 +391,7 @@ class TestRedisFailureModes:
         """Redis unavailable in staging environment → RuntimeError (fail-fast)."""
         import redis as redis_lib
 
-        monkeypatch.setattr("app.services.redis_client._client", None)
+        monkeypatch.setattr("app.services.redis_client._redis_client", None)
         monkeypatch.setattr("app.core.config.settings.ENVIRONMENT", "staging")
 
         with patch("redis.from_url", side_effect=redis_lib.ConnectionError("refused")):
@@ -406,7 +406,7 @@ class TestRedisFailureModes:
         """Redis unavailable in production environment → RuntimeError (fail-fast)."""
         import redis as redis_lib
 
-        monkeypatch.setattr("app.services.redis_client._client", None)
+        monkeypatch.setattr("app.services.redis_client._redis_client", None)
         monkeypatch.setattr("app.core.config.settings.ENVIRONMENT", "production")
 
         with patch("redis.from_url", side_effect=redis_lib.ConnectionError("refused")):

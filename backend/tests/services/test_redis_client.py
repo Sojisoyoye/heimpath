@@ -10,7 +10,7 @@ from app.services import redis_client
 @pytest.fixture(autouse=True)
 def _reset_client(monkeypatch: pytest.MonkeyPatch) -> None:
     """Reset the module-level cached client before each test."""
-    monkeypatch.setattr(redis_client, "_client", None)
+    monkeypatch.setattr(redis_client, "_redis_client", None)
 
 
 class TestGetRedis:
@@ -19,10 +19,11 @@ class TestGetRedis:
     def test_returns_fakeredis_when_connection_fails(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """When Redis is unreachable, get_redis returns a FakeRedis instance."""
+        """When Redis is unreachable in local env, get_redis returns a FakeRedis instance."""
         monkeypatch.setattr(
             redis_client.settings, "REDIS_URL", "redis://unreachable-host:6379"
         )
+        monkeypatch.setattr(redis_client.settings, "ENVIRONMENT", "local")
         client = redis_client.get_redis()
         assert isinstance(client, fakeredis.FakeRedis)
 
@@ -33,6 +34,7 @@ class TestGetRedis:
         monkeypatch.setattr(
             redis_client.settings, "REDIS_URL", "redis://unreachable-host:6379"
         )
+        monkeypatch.setattr(redis_client.settings, "ENVIRONMENT", "local")
         client = redis_client.get_redis()
         client.set("key", "value")
         assert client.get("key") == "value"
@@ -46,6 +48,7 @@ class TestGetRedis:
         monkeypatch.setattr(
             redis_client.settings, "REDIS_URL", "redis://unreachable-host:6379"
         )
+        monkeypatch.setattr(redis_client.settings, "ENVIRONMENT", "local")
         first = redis_client.get_redis()
         second = redis_client.get_redis()
         assert first is second
@@ -64,7 +67,8 @@ class TestGetRedis:
     def test_catches_redis_error_subclasses(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """All RedisError subclasses (auth, timeout, etc.) trigger fallback."""
+        """All RedisError subclasses (auth, timeout, etc.) trigger fallback in local env."""
+        monkeypatch.setattr(redis_client.settings, "ENVIRONMENT", "local")
 
         def bad_from_url(*_args: object, **_kwargs: object) -> redis_lib.Redis:
             client = fakeredis.FakeRedis(decode_responses=True)
