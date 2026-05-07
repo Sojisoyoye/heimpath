@@ -3455,6 +3455,7 @@ export const HiddenCostCalculationCreateSchema = {
         },
         property_price: {
             type: 'number',
+            maximum: 100000000,
             exclusiveMinimum: 0,
             title: 'Property Price',
             description: 'Property price in EUR'

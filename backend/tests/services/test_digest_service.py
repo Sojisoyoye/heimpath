@@ -108,6 +108,7 @@ class TestSendWeeklyDigest:
     @patch("app.services.digest_service._send_digest_email")
     @patch("app.services.digest_service._build_digest_data")
     @patch("app.services.digest_service._is_digest_enabled")
+    @patch("app.services.digest_service.settings.NOTIFICATION_EMAILS_ENABLED", True)
     def test_sends_to_users_with_activity(
         self, mock_enabled, mock_build, mock_send, mock_session
     ) -> None:
@@ -175,6 +176,7 @@ class TestSendWeeklyDigest:
     @patch("app.services.digest_service._send_digest_email")
     @patch("app.services.digest_service._build_digest_data")
     @patch("app.services.digest_service._is_digest_enabled")
+    @patch("app.services.digest_service.settings.NOTIFICATION_EMAILS_ENABLED", True)
     def test_continues_on_send_failure(
         self, mock_enabled, mock_build, mock_send, mock_session
     ) -> None:
