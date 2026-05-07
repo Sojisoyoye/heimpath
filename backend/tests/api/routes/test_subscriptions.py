@@ -329,12 +329,19 @@ def test_checkout_already_subscribed_to_same_tier(
 
 
 def _make_webhook_event(
-    event_type: str, data_object: dict, metadata: dict
+    event_type: str,
+    data_object: dict,
+    metadata: dict,
+    event_id: str | None = None,
 ) -> tuple[MagicMock, WebhookEvent]:
     """Build a MagicMock that quacks like a stripe.Event for webhook tests."""
+    eid = event_id or f"evt_{random_lower_string()}"
     raw_event: MagicMock = MagicMock()
     raw_event.__getitem__ = MagicMock(
-        side_effect=lambda k: {"data": {"object": data_object}}.get(k, MagicMock())
+        side_effect=lambda k: {
+            "id": eid,
+            "data": {"object": data_object},
+        }.get(k, MagicMock())
     )
 
     parsed = WebhookEvent(
@@ -460,7 +467,10 @@ def test_webhook_subscription_deleted_downgrades_user(
     )
     raw_event = MagicMock()
     raw_event.__getitem__ = MagicMock(
-        side_effect=lambda k: {"data": {"object": {}}}.get(k, MagicMock())
+        side_effect=lambda k: {
+            "id": f"evt_{random_lower_string()}",
+            "data": {"object": {}},
+        }.get(k, MagicMock())
     )
 
     mock_service = MagicMock()
@@ -499,7 +509,10 @@ def test_webhook_subscription_updated_changes_tier(
     )
     raw_event = MagicMock()
     raw_event.__getitem__ = MagicMock(
-        side_effect=lambda k: {"data": {"object": {}}}.get(k, MagicMock())
+        side_effect=lambda k: {
+            "id": f"evt_{random_lower_string()}",
+            "data": {"object": {}},
+        }.get(k, MagicMock())
     )
 
     mock_service = MagicMock()
@@ -710,3 +723,166 @@ def test_cancel_subscription_stripe_error(client: TestClient, db: Session) -> No
         )
         assert r.status_code == 502
         assert "Failed to cancel subscription" in r.json()["detail"]
+
+
+# ── Webhook idempotency ───────────────────────────────────────────────────────
+
+
+def test_webhook_duplicate_event_skips_state_change(
+    client: TestClient, db: Session
+) -> None:
+    """A duplicate Stripe event returns 200 without modifying subscription state."""
+
+    from app.models.processed_webhook_event import ProcessedWebhookEvent
+
+    user, _username, _password = _create_premium_user_with_stripe(db)
+    shared_event_id = f"evt_{random_lower_string()}"
+
+    # Pre-insert the event as already processed
+    db.add(
+        ProcessedWebhookEvent(
+            stripe_event_id=shared_event_id,
+            event_type=WebhookEventType.SUBSCRIPTION_DELETED.value,
+        )
+    )
+    db.commit()
+
+    # Build a deletion event that would downgrade tier — but event_id is duplicate
+    parsed_event = WebhookEvent(
+        event_type=WebhookEventType.SUBSCRIPTION_DELETED.value,
+        customer_id=user.stripe_customer_id,
+        subscription_id=user.stripe_subscription_id,
+        price_id=None,
+        status="canceled",
+        metadata={},
+    )
+    raw_event = MagicMock()
+    raw_event.__getitem__ = MagicMock(
+        side_effect=lambda k: {
+            "id": shared_event_id,
+            "data": {"object": {}},
+        }.get(k, MagicMock())
+    )
+    mock_service = MagicMock()
+    mock_service.verify_webhook_signature.return_value = raw_event
+    mock_service.parse_webhook_event.return_value = parsed_event
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/webhook",
+            content=b"{}",
+            headers={"Stripe-Signature": "sig"},
+        )
+
+    assert r.status_code == 200
+    assert r.json()["received"] is True
+    # Tier must NOT be downgraded — the event was a duplicate
+    db.refresh(user)
+    assert user.subscription_tier == SubscriptionTier.PREMIUM
+    assert user.stripe_subscription_id is not None
+
+
+def test_webhook_event_recorded_after_processing(
+    client: TestClient, db: Session
+) -> None:
+    """Successfully processed event is stored in processed_webhook_event table."""
+    from sqlmodel import select as sql_select
+
+    from app.models.processed_webhook_event import ProcessedWebhookEvent
+
+    user, _username, _password = _create_premium_user_with_stripe(db)
+    unique_event_id = f"evt_{random_lower_string()}"
+
+    parsed_event = WebhookEvent(
+        event_type=WebhookEventType.SUBSCRIPTION_DELETED.value,
+        customer_id=user.stripe_customer_id,
+        subscription_id=None,
+        price_id=None,
+        status="canceled",
+        metadata={},
+    )
+    raw_event = MagicMock()
+    raw_event.__getitem__ = MagicMock(
+        side_effect=lambda k: {
+            "id": unique_event_id,
+            "data": {"object": {}},
+        }.get(k, MagicMock())
+    )
+    mock_service = MagicMock()
+    mock_service.verify_webhook_signature.return_value = raw_event
+    mock_service.parse_webhook_event.return_value = parsed_event
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/webhook",
+            content=b"{}",
+            headers={"Stripe-Signature": "sig"},
+        )
+
+    assert r.status_code == 200
+    db.expire_all()
+    record = db.exec(
+        sql_select(ProcessedWebhookEvent).where(
+            ProcessedWebhookEvent.stripe_event_id == unique_event_id
+        )
+    ).first()
+    assert record is not None
+    assert record.event_type == WebhookEventType.SUBSCRIPTION_DELETED.value
+
+
+def test_webhook_first_delivery_updates_tier_and_records_event(
+    client: TestClient, db: Session
+) -> None:
+    """First delivery updates subscription tier and records the event atomically."""
+    from sqlmodel import select as sql_select
+
+    from app.models.processed_webhook_event import ProcessedWebhookEvent
+
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    user = crud.create_user(session=db, user_create=user_in)
+    db.commit()
+
+    unique_event_id = f"evt_{random_lower_string()}"
+    session_obj = {
+        "id": "cs_idempotent",
+        "customer": "cus_idem",
+        "subscription": "sub_idem",
+    }
+    raw_event, parsed_event = _make_webhook_event(
+        WebhookEventType.CHECKOUT_COMPLETED.value,
+        session_obj,
+        {"user_id": str(user.id)},
+        event_id=unique_event_id,
+    )
+
+    mock_service = MagicMock()
+    mock_service.verify_webhook_signature.return_value = raw_event
+    mock_service.parse_webhook_event.return_value = parsed_event
+    mock_service.get_checkout_price_id.return_value = "price_premium"
+    mock_service.get_tier_for_price.return_value = SubscriptionTier.PREMIUM
+
+    with patch(
+        "app.api.routes.subscriptions.get_payment_service", return_value=mock_service
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/subscriptions/webhook",
+            content=b"{}",
+            headers={"Stripe-Signature": "sig"},
+        )
+
+    assert r.status_code == 200
+    db.expire_all()
+    db.refresh(user)
+    assert user.subscription_tier == SubscriptionTier.PREMIUM
+    record = db.exec(
+        sql_select(ProcessedWebhookEvent).where(
+            ProcessedWebhookEvent.stripe_event_id == unique_event_id
+        )
+    ).first()
+    assert record is not None

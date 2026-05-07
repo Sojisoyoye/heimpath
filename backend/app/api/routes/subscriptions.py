@@ -11,10 +11,11 @@ import uuid as _uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, HttpUrl
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.api.deps import CurrentUser, get_db
-from app.models import SubscriptionTier, User
+from app.models import ProcessedWebhookEvent, SubscriptionTier, User
 from app.services.payment_service import (
     CheckoutSessionError,
     CustomerNotFoundError,
@@ -214,10 +215,25 @@ async def handle_webhook(
             detail=str(e),
         )
 
+    # Idempotency: Stripe retries webhooks that do not receive a timely 2xx.
+    # We deduplicate on the Stripe event ID so that a retried delivery never
+    # applies the same state transition twice.
+    stripe_event_id = str(event["id"])
+    existing = session.exec(
+        select(ProcessedWebhookEvent).where(
+            ProcessedWebhookEvent.stripe_event_id == stripe_event_id
+        )
+    ).first()
+    if existing:
+        logger.info("duplicate stripe event %s — skipping", stripe_event_id)
+        return WebhookResponse(received=True)
+
     # Parse the event
     webhook_event = payment_service.parse_webhook_event(event)
 
-    # Handle different event types
+    # Handle different event types.
+    # Note: session.commit() is intentionally deferred to the single atomic
+    # commit below, which records both the state change and the event ID together.
     if webhook_event.event_type == WebhookEventType.CHECKOUT_COMPLETED.value:
         # Subscription purchased — derive tier from price_id, not metadata,
         # to prevent tier elevation via attacker-controlled metadata values.
@@ -259,7 +275,6 @@ async def handle_webhook(
                 user.stripe_customer_id = webhook_event.customer_id
                 user.stripe_subscription_id = webhook_event.subscription_id
                 session.add(user)
-                session.commit()
 
     elif webhook_event.event_type == WebhookEventType.SUBSCRIPTION_UPDATED.value:
         # Subscription plan changed — update tier and subscription ID from the new price_id.
@@ -274,7 +289,6 @@ async def handle_webhook(
                 if webhook_event.subscription_id:
                     user.stripe_subscription_id = webhook_event.subscription_id
                 session.add(user)
-                session.commit()
 
     elif webhook_event.event_type == WebhookEventType.SUBSCRIPTION_DELETED.value:
         # Subscription ended — downgrade to FREE.
@@ -287,7 +301,24 @@ async def handle_webhook(
                 user.subscription_tier = SubscriptionTier.FREE
                 user.stripe_subscription_id = None
                 session.add(user)
-                session.commit()
+
+    # Atomically record the processed event alongside any state changes.
+    # If a concurrent delivery commits first the unique constraint raises
+    # IntegrityError — we catch it and return 200 so Stripe stops retrying.
+    session.add(
+        ProcessedWebhookEvent(
+            stripe_event_id=stripe_event_id,
+            event_type=webhook_event.event_type,
+        )
+    )
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        logger.info(
+            "concurrent duplicate stripe event %s — already processed",
+            stripe_event_id,
+        )
 
     return WebhookResponse(received=True)
 
