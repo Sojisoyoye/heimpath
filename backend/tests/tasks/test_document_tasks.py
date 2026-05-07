@@ -4,6 +4,9 @@ import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from celery.exceptions import Retry
+
+from app.tasks.document_tasks import process_document_task
 
 
 class TestProcessDocumentTask:
@@ -16,8 +19,6 @@ class TestProcessDocumentTask:
             new_callable=AsyncMock,
             return_value=None,
         ) as mock_process:
-            from app.tasks.document_tasks import process_document_task
-
             # apply() runs the task synchronously, exercising asyncio.run() for real.
             process_document_task.apply(args=[str(document_id)])
 
@@ -26,8 +27,6 @@ class TestProcessDocumentTask:
 
     def test_process_document_task_retries_on_exception(self) -> None:
         """Task triggers Celery retry when process_document raises a transient exception."""
-        from celery.exceptions import Retry
-
         document_id_str = str(uuid.uuid4())
 
         with (
@@ -38,21 +37,14 @@ class TestProcessDocumentTask:
             ),
             pytest.raises(Retry),
         ):
-            from app.tasks.document_tasks import process_document_task
-
             process_document_task.apply(args=[document_id_str], throw=True)
 
     def test_process_document_task_does_not_retry_on_value_error(self) -> None:
         """ValueError (e.g. bad UUID) must NOT trigger Celery retry."""
-
-        with (
-            patch(
-                "app.tasks.document_tasks.document_service.process_document",
-                new_callable=AsyncMock,
-                side_effect=ValueError("bad uuid format"),
-            ),
+        with patch(
+            "app.tasks.document_tasks.document_service.process_document",
+            new_callable=AsyncMock,
+            side_effect=ValueError("bad uuid format"),
         ):
-            from app.tasks.document_tasks import process_document_task
-
             with pytest.raises(ValueError):
                 process_document_task.apply(args=[str(uuid.uuid4())], throw=True)

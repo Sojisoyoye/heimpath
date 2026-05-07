@@ -439,7 +439,7 @@ async def get_document_status(
 @router.post(
     "/{document_id}/retry",
     response_model=DocumentStatusResponse,
-    status_code=202,
+    status_code=status.HTTP_202_ACCEPTED,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Document not found"},
         status.HTTP_409_CONFLICT: {"description": "Document is not in failed state"},
@@ -472,14 +472,25 @@ async def retry_document_processing(
             detail=f"Maximum retry limit ({MAX_USER_RETRIES}) reached",
         )
 
-    # Mutate state and dispatch the Celery task in a single transaction so the
-    # worker never starts against an uncommitted status transition.
+    # Commit status transition BEFORE dispatching the task so the worker never
+    # reads a document that is still in FAILED state due to a Redis-vs-Postgres
+    # race (a fast broker can pick up the task before the commit lands).
     document.status = DocumentStatus.UPLOADED.value
     document.error_message = None
     document.processing_attempt += 1
-    task = process_document_task.delay(str(document.id))
-    document.celery_task_id = task.id
     await session.commit()
+
+    task = process_document_task.delay(str(document.id))
+    # Store task ID best-effort; failure here does not affect processing.
+    try:
+        document.celery_task_id = task.id
+        await session.commit()
+    except Exception:
+        logger.warning(
+            "Failed to persist celery_task_id for document %s",
+            document.id,
+            exc_info=True,
+        )
 
     return DocumentStatusResponse(
         id=str(document.id),
