@@ -180,6 +180,7 @@ class Settings(BaseSettings):
     AZURE_TRANSLATOR_TIMEOUT_SECONDS: int = 60
     MAX_JSON_BODY_SIZE_BYTES: int = 1_048_576  # 1 MB
     DB_STATEMENT_TIMEOUT_MS: int = 10_000  # 10 seconds
+    MARKET_DATA_MAX_AGE_DAYS: int = 30
 
     # Email settings
     # Set NOTIFICATION_EMAILS_ENABLED=false to suppress all non-essential emails

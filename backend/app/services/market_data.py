@@ -7,8 +7,16 @@ type, and budget.  The data mirrors the constants used in the frontend
 backend and frontend are always in sync.
 """
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
+
+# ---------------------------------------------------------------------------
+# Data provenance
+# ---------------------------------------------------------------------------
+
+# Date the static market data was last reviewed and updated.
+# Used by compute_data_freshness() to warn consumers when data is aging.
+MARKET_DATA_LAST_UPDATED: date = date(2025, 1, 15)
 
 # ---------------------------------------------------------------------------
 # Static data: German states

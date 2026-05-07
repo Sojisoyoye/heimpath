@@ -7,13 +7,29 @@ data comes from static constants.
 
 from __future__ import annotations
 
-from app.schemas.market_comparison import AreaSummary, ComparisonMetrics
+from datetime import date
+
+from app.core.config import settings
+from app.schemas.market_comparison import AreaSummary, ComparisonMetrics, DataFreshness
 from app.services.market_data import (
     CITY_MARKET_DATA,
     GERMAN_STATES,
     MARKET_DATA_BY_STATE,
+    MARKET_DATA_LAST_UPDATED,
 )
 from app.services.rent_estimate_service import CITY_MIETSPIEGEL
+
+
+def compute_data_freshness() -> DataFreshness:
+    """Compute staleness metadata for the static market data."""
+    today = date.today()
+    age_days = max(0, (today - MARKET_DATA_LAST_UPDATED).days)
+    return DataFreshness(
+        last_updated=MARKET_DATA_LAST_UPDATED,
+        age_days=age_days,
+        is_stale=age_days > settings.MARKET_DATA_MAX_AGE_DAYS,
+        max_age_days=settings.MARKET_DATA_MAX_AGE_DAYS,
+    )
 
 
 def _find_mietspiegel(city_name: str, state_code: str) -> dict | None:

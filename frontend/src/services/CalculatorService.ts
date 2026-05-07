@@ -21,7 +21,7 @@ import type {
   StateComparisonResponse,
   StateRatesResponse,
 } from "@/models/calculator"
-import type { AreaSummary, ComparisonMetrics } from "@/models/marketComparison"
+import type { AreaSummary, ComparisonResponse } from "@/models/marketComparison"
 import type {
   OwnershipComparisonInput,
   OwnershipComparisonResult,
@@ -448,7 +448,7 @@ class CalculatorServiceClass {
   }
 
   /** Compare 2–4 areas side by side (no auth required) */
-  async compareCities(keys: string[]): Promise<ComparisonMetrics[]> {
+  async compareCities(keys: string[]): Promise<ComparisonResponse> {
     const params = new URLSearchParams()
     for (const key of keys) {
       params.append("keys", key)
@@ -457,8 +457,7 @@ class CalculatorServiceClass {
       method: "GET",
       url: `${PATHS.MARKET.COMPARE}?${params.toString()}`,
     })
-    const data = transformKeys<{ areas: ComparisonMetrics[] }>(response)
-    return data.areas
+    return transformKeys<ComparisonResponse>(response)
   }
 
   // -------------------------------------------------------------------------
