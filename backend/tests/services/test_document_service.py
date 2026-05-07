@@ -16,6 +16,7 @@ from app.services.document_service import (
     _detect_clauses,
     _detect_document_type,
     get_documents_by_step_id,
+    mark_stuck_documents_failed,
     validate_pdf_bytes,
 )
 
@@ -376,3 +377,53 @@ class TestProcessDocumentNotifications:
         ):
             # Should not raise — notification errors are swallowed
             await document_service.process_document(document_id, session_factory)
+
+
+# ── mark_stuck_documents_failed ───────────────────────────────────────────────
+
+
+class TestMarkStuckDocumentsFailed:
+    @pytest.mark.asyncio
+    async def test_marks_old_processing_docs_as_failed(self) -> None:
+        """Bulk UPDATE returns affected IDs; count and commit are correct."""
+        affected_id = uuid.uuid4()
+
+        mock_result = MagicMock()
+        # Bulk UPDATE RETURNING yields the IDs of updated rows
+        mock_result.scalars.return_value.all.return_value = [affected_id]
+        mock_session = AsyncMock()
+        mock_session.execute.return_value = mock_result
+
+        count = await mark_stuck_documents_failed(mock_session, timeout_minutes=10)
+
+        assert count == 1
+        mock_session.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_ignores_recent_processing_docs(self) -> None:
+        """When the bulk UPDATE matches no rows, count is 0 and no commit is issued."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_session = AsyncMock()
+        mock_session.execute.return_value = mock_result
+
+        count = await mark_stuck_documents_failed(mock_session, timeout_minutes=10)
+
+        assert count == 0
+        mock_session.commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_where_clause_filters_by_status_and_updated_at(self) -> None:
+        """The executed UPDATE statement must include status and updated_at filters."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_session = AsyncMock()
+        mock_session.execute.return_value = mock_result
+
+        await mark_stuck_documents_failed(mock_session, timeout_minutes=10)
+
+        mock_session.execute.assert_called_once()
+        stmt = mock_session.execute.call_args[0][0]
+        compiled = str(stmt.compile(compile_kwargs={"literal_binds": False}))
+        assert "document.status" in compiled
+        assert "document.updated_at" in compiled

@@ -5,11 +5,11 @@ processing status, and retrieving translations with clause detection
 and risk warnings.
 """
 
+import logging
 import uuid
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     HTTPException,
     Query,
     UploadFile,
@@ -19,7 +19,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.core.config import settings
-from app.core.database import AsyncSessionLocal
 from app.models import SubscriptionTier
 from app.models.document import Document, DocumentStatus, DocumentType
 from app.schemas.document import (
@@ -33,9 +32,16 @@ from app.schemas.document import (
     DocumentUsageResponse,
 )
 from app.services import document_service
+from app.tasks.document_tasks import process_document_task
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
+# Maximum number of user-initiated retries for a failed document.
+# Note: Celery's own auto-retry limit (_CELERY_MAX_RETRIES in document_tasks.py)
+# is separate — it controls automatic retries on transient errors, not user retries.
+MAX_USER_RETRIES = 3
 
 _DOCUMENT_UPGRADE_CTA = "Sign up to see the full translation — all pages, detected clauses, and risk warnings."
 
@@ -79,7 +85,6 @@ def _build_detail_response(document: Document) -> DocumentDetailResponse:
 )
 async def upload_document(
     file: UploadFile,
-    background_tasks: BackgroundTasks,
     current_user: CurrentUser,
     session: AsyncSessionDep,
     journey_step_id: uuid.UUID | None = Query(default=None),
@@ -135,12 +140,18 @@ async def upload_document(
             )
         raise
 
-    # Queue background processing
-    background_tasks.add_task(
-        document_service.process_document,
-        document_id=document.id,
-        session_factory=AsyncSessionLocal,
-    )
+    # Queue processing via Celery
+    task = process_document_task.delay(str(document.id))
+    # Store celery task ID (best-effort; not critical to the response)
+    try:
+        document.celery_task_id = task.id
+        await session.commit()
+    except Exception:
+        logger.warning(
+            "Failed to persist celery_task_id for document %s",
+            document.id,
+            exc_info=True,
+        )
 
     return DocumentUploadResponse(
         id=str(document.id),
@@ -415,6 +426,70 @@ async def get_document_status(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document not found",
+        )
+
+    return DocumentStatusResponse(
+        id=str(document.id),
+        status=document.status,
+        error_message=document.error_message,
+        page_count=document.page_count,
+    )
+
+
+@router.post(
+    "/{document_id}/retry",
+    response_model=DocumentStatusResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Document not found"},
+        status.HTTP_409_CONFLICT: {"description": "Document is not in failed state"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "description": "Maximum retry limit reached"
+        },
+    },
+)
+async def retry_document_processing(
+    document_id: str,
+    current_user: CurrentUser,
+    session: AsyncSessionDep,
+) -> DocumentStatusResponse:
+    """Re-queue a FAILED document for processing. Maximum 3 user retries."""
+    document = await document_service.get_document(
+        session=session, document_id=document_id, user_id=current_user.id
+    )
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
+        )
+    if document.status != DocumentStatus.FAILED.value:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only failed documents can be retried",
+        )
+    if document.processing_attempt >= MAX_USER_RETRIES:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Maximum retry limit ({MAX_USER_RETRIES}) reached",
+        )
+
+    # Commit status transition BEFORE dispatching the task so the worker never
+    # reads a document that is still in FAILED state due to a Redis-vs-Postgres
+    # race (a fast broker can pick up the task before the commit lands).
+    document.status = DocumentStatus.UPLOADED.value
+    document.error_message = None
+    document.processing_attempt += 1
+    await session.commit()
+
+    task = process_document_task.delay(str(document.id))
+    # Store task ID best-effort; failure here does not affect processing.
+    try:
+        document.celery_task_id = task.id
+        await session.commit()
+    except Exception:
+        logger.warning(
+            "Failed to persist celery_task_id for document %s",
+            document.id,
+            exc_info=True,
         )
 
     return DocumentStatusResponse(

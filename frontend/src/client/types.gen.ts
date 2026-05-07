@@ -3274,6 +3274,12 @@ export type DocumentsGetDocumentStatusData = {
 
 export type DocumentsGetDocumentStatusResponse = (DocumentStatusResponse);
 
+export type DocumentsRetryDocumentProcessingData = {
+    documentId: string;
+};
+
+export type DocumentsRetryDocumentProcessingResponse = (DocumentStatusResponse);
+
 export type FeedbackSubmitFeedbackData = {
     requestBody: FeedbackCreate;
 };
