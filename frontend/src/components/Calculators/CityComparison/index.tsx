@@ -3,7 +3,7 @@
  * Allows users to select 2–4 cities/areas and compare metrics side by side
  */
 
-import { Building2, X } from "lucide-react"
+import { AlertTriangle, Building2, X } from "lucide-react"
 import { useState } from "react"
 
 import { cn } from "@/common/utils"
@@ -116,9 +116,22 @@ function CityComparison(props: Readonly<IProps>) {
         </CardContent>
       </Card>
 
+      {/* Staleness banner */}
+      {comparison?.dataFreshness?.isStale && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>
+            Market data was last updated on{" "}
+            <strong>{comparison.dataFreshness.lastUpdated}</strong> (
+            {comparison.dataFreshness.ageDays} days ago). Figures may not
+            reflect current market conditions.
+          </span>
+        </div>
+      )}
+
       {/* Comparison table */}
-      {comparison && comparison.length >= MIN_SELECTIONS && (
-        <ComparisonTable data={comparison} />
+      {comparison && comparison.areas.length >= MIN_SELECTIONS && (
+        <ComparisonTable data={comparison.areas} />
       )}
 
       {selectedKeys.length >= MIN_SELECTIONS && comparisonLoading && (

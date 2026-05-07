@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.schemas.market_comparison import DataFreshness
+
 
 class RentRange(BaseModel):
     """Min/max rent per sqm range."""
@@ -22,3 +24,4 @@ class RentEstimateResponse(BaseModel):
     city: str | None = None
     state_code: str | None = None
     monthly_rent: float | None = None
+    data_freshness: DataFreshness

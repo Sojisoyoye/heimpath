@@ -29,3 +29,16 @@ export interface ComparisonMetrics {
   trend: string | null
   hasMietspiegel: boolean
 }
+
+export interface DataFreshness {
+  /** ISO date string, e.g. "2025-01-15" */
+  lastUpdated: string
+  ageDays: number
+  isStale: boolean
+  maxAgeDays: number
+}
+
+export interface ComparisonResponse {
+  areas: ComparisonMetrics[]
+  dataFreshness: DataFreshness
+}

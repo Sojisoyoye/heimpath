@@ -1434,10 +1434,13 @@ export const ComparisonResponseSchema = {
             },
             type: 'array',
             title: 'Areas'
+        },
+        data_freshness: {
+            '$ref': '#/components/schemas/DataFreshness'
         }
     },
     type: 'object',
-    required: ['areas'],
+    required: ['areas', 'data_freshness'],
     title: 'ComparisonResponse',
     description: 'Response for the area comparison endpoint.'
 } as const;
@@ -2074,6 +2077,32 @@ export const DashboardOverviewResponseSchema = {
     required: ['has_journey', 'recent_documents', 'recent_calculations', 'bookmarked_laws', 'recent_activity', 'documents_translated_this_month', 'total_calculations', 'total_bookmarks'],
     title: 'DashboardOverviewResponse',
     description: 'Aggregated dashboard data for the authenticated user.'
+} as const;
+
+export const DataFreshnessSchema = {
+    properties: {
+        last_updated: {
+            type: 'string',
+            format: 'date',
+            title: 'Last Updated'
+        },
+        age_days: {
+            type: 'integer',
+            title: 'Age Days'
+        },
+        is_stale: {
+            type: 'boolean',
+            title: 'Is Stale'
+        },
+        max_age_days: {
+            type: 'integer',
+            title: 'Max Age Days'
+        }
+    },
+    type: 'object',
+    required: ['last_updated', 'age_days', 'is_stale', 'max_age_days'],
+    title: 'DataFreshness',
+    description: 'Staleness metadata for static market data.'
 } as const;
 
 export const DetectedClauseSchema = {
@@ -9370,10 +9399,13 @@ export const RentEstimateResponseSchema = {
                 }
             ],
             title: 'Monthly Rent'
+        },
+        data_freshness: {
+            '$ref': '#/components/schemas/DataFreshness'
         }
     },
     type: 'object',
-    required: ['confidence'],
+    required: ['confidence', 'data_freshness'],
     title: 'RentEstimateResponse',
     description: 'Response for a rent estimate query.'
 } as const;

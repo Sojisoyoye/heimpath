@@ -66,5 +66,61 @@ class TestRentEstimateEndpoint:
             "city",
             "state_code",
             "monthly_rent",
+            "data_freshness",
         }
         assert set(body.keys()) == expected_keys
+
+    def test_data_freshness_fields_present(self, client: TestClient) -> None:
+        r = client.get(f"{BASE}/rent-estimate", params={"postcode": "10115"})
+        assert r.status_code == 200
+        freshness = r.json()["data_freshness"]
+        assert {"last_updated", "age_days", "is_stale", "max_age_days"} == set(
+            freshness.keys()
+        )
+        assert freshness["age_days"] >= 0
+        assert isinstance(freshness["is_stale"], bool)
+
+
+class TestCompareEndpoint:
+    """GET /api/v1/market/compare"""
+
+    def test_valid_comparison_returns_200(self, client: TestClient) -> None:
+        r = client.get(
+            f"{BASE}/compare",
+            params={"keys": ["BY/Munich", "HE/Frankfurt"]},
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert "areas" in body
+        assert "data_freshness" in body
+        assert len(body["areas"]) == 2
+
+    def test_comparison_data_freshness_shape(self, client: TestClient) -> None:
+        r = client.get(
+            f"{BASE}/compare",
+            params={"keys": ["BY/Munich", "HE/Frankfurt"]},
+        )
+        assert r.status_code == 200
+        freshness = r.json()["data_freshness"]
+        assert {"last_updated", "age_days", "is_stale", "max_age_days"} == set(
+            freshness.keys()
+        )
+
+    def test_too_few_keys_returns_400(self, client: TestClient) -> None:
+        r = client.get(f"{BASE}/compare", params={"keys": ["BY/Munich"]})
+        assert r.status_code == 400
+
+    def test_too_many_keys_returns_400(self, client: TestClient) -> None:
+        r = client.get(
+            f"{BASE}/compare",
+            params={
+                "keys": [
+                    "BY/Munich",
+                    "HE/Frankfurt",
+                    "HH/Eimsbüttel",
+                    "BW/Stuttgart",
+                    "NW/Cologne",
+                ]
+            },
+        )
+        assert r.status_code == 400
