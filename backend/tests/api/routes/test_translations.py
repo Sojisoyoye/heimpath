@@ -1,5 +1,6 @@
 """Tests for Translation API endpoints."""
 
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
@@ -11,6 +12,7 @@ from app.schemas.translation import (
     TranslationResponse,
     TranslationResult,
 )
+from app.services.rate_limit_service import RateLimitInfo
 from app.services.translation_service import TranslationError
 
 
@@ -322,3 +324,55 @@ def test_get_supported_languages(
     lang_codes = [lang["code"] for lang in data["languages"]]
     assert "de" in lang_codes
     assert "en" in lang_codes
+
+
+# ── Rate limiting tests ────────────────────────────────────────────────────────
+
+_LOCKED_RATE_LIMIT = RateLimitInfo(
+    is_locked=True,
+    attempts_remaining=0,
+    lockout_expires_at=datetime.now(timezone.utc) + timedelta(seconds=3600),
+)
+
+
+def test_translate_returns_429_when_rate_limited(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Returns 429 with Retry-After when the translation hourly limit is hit."""
+    with patch(
+        "app.api.routes.translations.rate_limit_service.record_translation_request",
+        return_value=_LOCKED_RATE_LIMIT,
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/translations/translate",
+            headers=normal_user_token_headers,
+            json={
+                "text": "Der Kaufvertrag",
+                "source_language": "de",
+                "target_language": "en",
+            },
+        )
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
+    assert int(r.headers["Retry-After"]) >= 1
+
+
+def test_batch_translate_returns_429_when_rate_limited(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """Returns 429 with Retry-After when the batch translation hourly limit is hit."""
+    with patch(
+        "app.api.routes.translations.rate_limit_service.record_translation_request",
+        return_value=_LOCKED_RATE_LIMIT,
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/translations/batch",
+            headers=normal_user_token_headers,
+            json={
+                "texts": ["Der Kaufvertrag"],
+                "source_language": "de",
+                "target_language": "en",
+            },
+        )
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
