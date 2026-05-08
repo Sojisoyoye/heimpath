@@ -1,10 +1,14 @@
 import logging
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import sentry_sdk
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import HTTPException, RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from sqlmodel import Session
 from starlette.middleware.cors import CORSMiddleware
@@ -150,3 +154,54 @@ if settings.ENVIRONMENT != "local":
     app.add_middleware(_ContainerAppsProxyMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Catch-all handler for unhandled exceptions.
+
+    Logs the full traceback, captures to Sentry with request context, and
+    returns a safe 500 response with a unique request_id for correlation.
+    """
+    request_id = str(uuid.uuid4())
+    logger.exception(
+        "Unhandled exception request_id=%s method=%s url=%s",
+        request_id,
+        request.method,
+        str(request.url),
+    )
+    with sentry_sdk.new_scope() as scope:
+        scope.set_tag("request_id", request_id)
+        scope.set_context(
+            "request",
+            {"url": str(request.url), "method": request.method},
+        )
+        sentry_sdk.capture_exception(exc)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "An unexpected error occurred. Our team has been notified.",
+            "request_id": request_id,
+        },
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(_request: Request, exc: HTTPException) -> JSONResponse:
+    """Consistent JSON format for all HTTPExceptions."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=exc.headers,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    _request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Consistent JSON format for request validation errors (422)."""
+    return JSONResponse(
+        status_code=422,
+        content={"detail": jsonable_encoder(exc.errors())},
+    )
