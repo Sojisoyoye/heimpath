@@ -71,7 +71,6 @@ const useAuth = (redirectTo?: string) => {
     } catch {
       // Ignore errors — proceed with client-side cleanup regardless
     }
-    broadcastLogout() // notify other open tabs to log out simultaneously
     queryClient.clear()
     localStorage.removeItem("heimpath-wizard-state")
     localStorage.removeItem("heimpath-wizard-step")
@@ -81,6 +80,8 @@ const useAuth = (redirectTo?: string) => {
         localStorage.removeItem(key)
       }
     }
+    // Notify other open tabs only after local cleanup is complete.
+    broadcastLogout()
     navigate({ to: "/login" })
   }
 
