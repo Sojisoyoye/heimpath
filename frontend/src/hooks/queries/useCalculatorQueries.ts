@@ -15,7 +15,7 @@ export function useStateRates() {
   return useQuery({
     queryKey: queryKeys.calculators.stateRates(),
     queryFn: () => CalculatorService.getStateRates(),
-    staleTime: 30 * 60 * 1000, // Rates rarely change
+    staleTime: 30 * 60 * 1000, // rates change when German states update Grunderwerbsteuer; finite staleTime ensures eventual refresh
   })
 }
 

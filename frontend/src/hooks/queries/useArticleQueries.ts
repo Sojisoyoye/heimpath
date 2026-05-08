@@ -49,6 +49,7 @@ export function useArticleCategories() {
   return useQuery({
     queryKey: queryKeys.articles.categories(),
     queryFn: () => ArticleService.getCategories(),
-    staleTime: Infinity, // categories are seeded static data and never change at runtime
+    staleTime: Infinity, // seeded static data — never changes at runtime
+    gcTime: Infinity, // keep in cache for the lifetime of the session
   })
 }

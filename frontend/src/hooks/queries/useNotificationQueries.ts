@@ -8,7 +8,7 @@ export function useNotifications(limit = 20, offset = 0, unreadOnly = false) {
     queryKey: queryKeys.notifications.list(limit, offset, unreadOnly),
     queryFn: () =>
       NotificationService.getNotifications(limit, offset, unreadOnly),
-    staleTime: 30 * 1000, // notifications are polled every 30s; don't consider cached data stale sooner
+    staleTime: 30 * 1000, // matches refetchInterval — prevents spurious background refetch on window focus between polling ticks
     refetchInterval: 30000,
     retry: false,
     throwOnError: false,

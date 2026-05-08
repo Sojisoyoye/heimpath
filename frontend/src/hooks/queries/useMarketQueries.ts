@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import { queryKeys } from "@/query/queryKeys"
 import { CalculatorService } from "@/services/CalculatorService"
 
-/** Fetch all available areas for comparison. Static data — long stale time. */
+/** Fetch all available areas for comparison. Long stale time — new areas are added infrequently but not seeded. */
 export function useAreas() {
   return useQuery({
     queryKey: queryKeys.market.areas(),
