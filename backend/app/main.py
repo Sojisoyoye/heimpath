@@ -25,6 +25,54 @@ from app.services.scheduler_service import record_job_run
 logger = logging.getLogger(__name__)
 
 
+class _JsonBodySizeLimitMiddleware:
+    """Rejects non-multipart requests whose body exceeds MAX_JSON_BODY_SIZE_BYTES.
+
+    Inspects the Content-Length header before any body bytes are read, preventing
+    memory pressure from oversized JSON payloads. Multipart requests (file uploads)
+    are exempt because those endpoints enforce their own limit via MAX_FILE_SIZE_MB.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            headers = dict(scope["headers"])
+            content_type = headers.get(b"content-type", b"").decode("latin1")
+            content_length_raw = headers.get(b"content-length")
+
+            if (
+                "multipart/form-data" not in content_type
+                and content_length_raw is not None
+            ):
+                try:
+                    content_length = int(content_length_raw.decode("latin1"))
+                except (ValueError, TypeError):
+                    content_length = 0
+
+                if content_length > settings.MAX_JSON_BODY_SIZE_BYTES:
+                    client_addr = scope.get("client") or ("unknown", 0)
+                    client_ip = client_addr[0]
+                    logger.warning(
+                        "Request body too large: %d bytes from %s (max %d) "
+                        "method=%s path=%s",
+                        content_length,
+                        client_ip,
+                        settings.MAX_JSON_BODY_SIZE_BYTES,
+                        scope.get("method", ""),
+                        scope.get("path", ""),
+                    )
+                    response = JSONResponse(
+                        status_code=413,
+                        content={"detail": "Request body too large."},
+                    )
+                    await response(scope, receive, send)
+                    return
+
+        await self.app(scope, receive, send)
+
+
 class _ContainerAppsProxyMiddleware:
     """Proxy header middleware for Azure Container Apps.
 
@@ -152,6 +200,9 @@ if settings.all_cors_origins:
 # Extract real client IP from X-Forwarded-For set by Azure Container Apps ingress.
 if settings.ENVIRONMENT != "local":
     app.add_middleware(_ContainerAppsProxyMiddleware)
+
+# Reject oversized JSON bodies before any body bytes are read.
+app.add_middleware(_JsonBodySizeLimitMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
