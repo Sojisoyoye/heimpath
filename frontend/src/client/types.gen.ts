@@ -3920,3 +3920,7 @@ export type UtilsCircuitBreakerHealthCheckResponse = ({
         [key: string]: (number | string);
     };
 });
+
+export type UtilsDbPoolStatsResponse = ({
+    [key: string]: (number);
+});

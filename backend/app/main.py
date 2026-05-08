@@ -16,7 +16,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
-from app.core.db import engine
+from app.core.db import engine, get_pool_stats
 from app.services.document_service import mark_stuck_documents_failed
 from app.services.portfolio_service import generate_recurring_transactions
 from app.services.scheduler_service import record_job_run
@@ -155,6 +155,13 @@ async def _run_stuck_document_cleanup() -> None:
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("SECRET_KEY loaded, length=%d", len(settings.SECRET_KEY))
+    _stats = get_pool_stats()
+    logger.info(
+        "DB pool ready: size=%d, max_overflow=%d, effective_max=%d per worker",
+        _stats["pool_size"],
+        _stats["max_overflow"],
+        _stats["effective_max_per_worker"],
+    )
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         _run_recurring_generation,

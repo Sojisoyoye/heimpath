@@ -121,3 +121,32 @@ def test_circuit_breaker_health_check_requires_authentication(
     """Circuit breaker health check returns 401 without authentication."""
     response = client.get(f"{settings.API_V1_STR}/utils/health-check/circuit-breakers/")
     assert response.status_code == 401
+
+
+def test_db_pool_stats_returns_pool_info(
+    client: TestClient, superuser_token_headers: dict
+) -> None:
+    """DB pool stats endpoint returns the expected integer fields."""
+    response = client.get(
+        f"{settings.API_V1_STR}/utils/db-pool-stats/",
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert set(body.keys()) == {
+        "pool_size",
+        "max_overflow",
+        "effective_max_per_worker",
+        "checked_out",
+        "checked_in",
+        "overflow",
+    }
+    for key, value in body.items():
+        assert isinstance(value, int), f"{key} should be int, got {type(value)}"
+    assert body["effective_max_per_worker"] == body["pool_size"] + body["max_overflow"]
+
+
+def test_db_pool_stats_requires_authentication(client: TestClient) -> None:
+    """DB pool stats endpoint returns 401 without authentication."""
+    response = client.get(f"{settings.API_V1_STR}/utils/db-pool-stats/")
+    assert response.status_code == 401
