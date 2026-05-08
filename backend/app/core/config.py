@@ -178,6 +178,9 @@ class Settings(BaseSettings):
     # Reliability settings
     TRANSLATION_CONFIDENCE_THRESHOLD: float = 0.70
     AZURE_TRANSLATOR_TIMEOUT_SECONDS: int = 60
+    # Quota: default 1,900,000 leaves a 5% buffer below the 2M free-tier limit.
+    AZURE_TRANSLATOR_QUOTA_LIMIT: int = 1_900_000
+    AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD: float = 0.80
     MAX_JSON_BODY_SIZE_BYTES: int = 1_048_576  # 1 MB
     DB_STATEMENT_TIMEOUT_MS: int = 10_000  # 10 seconds
     MARKET_DATA_MAX_AGE_DAYS: int = 30

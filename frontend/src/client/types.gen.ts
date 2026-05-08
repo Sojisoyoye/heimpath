@@ -2927,6 +2927,10 @@ export type AdminTriggerJobResponse = ({
     [key: string]: (string);
 });
 
+export type AdminTranslatorUsageResponse = ({
+    [key: string]: unknown;
+});
+
 export type ArticlesListArticlesData = {
     category?: (ArticleCategory | null);
     difficultyLevel?: (DifficultyLevel | null);

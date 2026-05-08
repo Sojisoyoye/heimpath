@@ -102,3 +102,14 @@ async def trigger_job(job_name: str) -> dict[str, str]:
         raise HTTPException(
             status_code=500, detail=f"Job '{job_name}' failed during manual trigger"
         ) from exc
+
+
+@router.get(
+    "/usage/translator",
+    dependencies=[Depends(get_current_active_superuser)],
+)
+def translator_usage() -> dict:
+    """Return current-month Azure Translator character usage. Superuser-only."""
+    from app.services.quota_service import get_usage_stats
+
+    return get_usage_stats()
