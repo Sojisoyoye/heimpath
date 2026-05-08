@@ -2,10 +2,13 @@
 
 import uuid
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import fakeredis
 import jwt
+import pybreaker
 import pytest
+import redis as redis_lib
 
 from app.services.auth_service import (
     ALGORITHM,
@@ -301,3 +304,55 @@ class TestLogout:
         logout(refresh)
         # logout uses blacklist_token (no grace key) so refresh is immediately rejected
         assert refresh_access_token(refresh) is None
+
+
+# ── Redis circuit breaker behavior ────────────────────────────────────────────
+
+
+class TestRedisCircuitBreakerBehavior:
+    """Verify fail-safe / fail-open behavior when the Redis circuit is open."""
+
+    def test_blacklist_token_does_not_raise_when_circuit_open(self) -> None:
+        with patch("app.services.auth_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            # Must not raise — logout should still succeed
+            blacklist_token("test-jti", datetime.now(timezone.utc) + timedelta(hours=1))
+
+    def test_blacklist_token_logs_warning_when_circuit_open(self) -> None:
+        with patch("app.services.auth_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            with patch("app.services.auth_service._logger") as mock_logger:
+                blacklist_token(
+                    "test-jti", datetime.now(timezone.utc) + timedelta(hours=1)
+                )
+            mock_logger.warning.assert_called_once()
+
+    def test_is_token_blacklisted_returns_false_when_circuit_open(self) -> None:
+        with patch("app.services.auth_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            assert is_token_blacklisted("some-jti") is False
+
+    def test_is_token_in_grace_period_returns_false_when_circuit_open(self) -> None:
+        with patch("app.services.auth_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            assert is_token_in_grace_period("some-jti") is False
+
+    def test_blacklist_token_does_not_raise_on_redis_error(self) -> None:
+        with patch("app.services.auth_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = redis_lib.RedisError("connection refused")
+            blacklist_token(
+                "test-jti", datetime.now(timezone.utc) + timedelta(hours=1)
+            )  # must not raise
+
+    def test_rotate_refresh_token_logs_warning_when_grace_setex_fails(self) -> None:
+        from app.services.auth_service import _rotate_refresh_token
+
+        with patch("app.services.auth_service.redis_breaker") as mock_breaker:
+            # First call (blacklist_token) succeeds; second call (grace setex) fails
+            mock_breaker.call.side_effect = [None, pybreaker.CircuitBreakerError()]
+            with patch("app.services.auth_service._logger") as mock_logger:
+                _rotate_refresh_token(
+                    "test-jti", datetime.now(timezone.utc) + timedelta(hours=1)
+                )
+            mock_logger.warning.assert_called_once()
+            assert "grace window" in mock_logger.warning.call_args.args[0]
