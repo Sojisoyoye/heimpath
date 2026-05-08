@@ -12,7 +12,7 @@ function extractErrorMessage(err: Error): string {
   if (err instanceof ApiError) {
     const errDetail = (err.body as Record<string, unknown>)?.detail
     if (Array.isArray(errDetail) && errDetail.length > 0) {
-      return errDetail[0]?.msg ?? "Validation failed"
+      return errDetail[0]?.message ?? "Validation failed"
     }
     if (typeof errDetail === "string" && errDetail) {
       return errDetail

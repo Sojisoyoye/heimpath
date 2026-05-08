@@ -149,3 +149,80 @@ def test_validation_error_body_has_detail_list(client: TestClient) -> None:
     assert "detail" in body
     assert isinstance(body["detail"], list)
     assert len(body["detail"]) > 0
+
+
+def test_validation_error_items_have_field_and_message_keys(client: TestClient) -> None:
+    """Each error item in the 422 detail list has 'field' and 'message' keys."""
+    response = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={},
+    )
+    errors = response.json()["detail"]
+    for err in errors:
+        assert "field" in err, f"'field' key missing from error: {err}"
+        assert "message" in err, f"'message' key missing from error: {err}"
+
+
+def test_validation_error_items_do_not_expose_internal_pydantic_fields(
+    client: TestClient,
+) -> None:
+    """Internal Pydantic fields (loc, input, url, type) are stripped from 422 responses."""
+    response = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={},
+    )
+    errors = response.json()["detail"]
+    for err in errors:
+        assert "loc" not in err
+        assert "input" not in err
+        assert "url" not in err
+        assert "type" not in err
+
+
+def test_validation_error_sanitizes_hashed_password_field() -> None:
+    """hashed_password is remapped to 'password' to hide the internal field name."""
+    from app.main import _sanitize_validation_errors
+
+    raw = [
+        {"loc": ("body", "hashed_password"), "msg": "Field required", "type": "missing"}
+    ]
+    result = _sanitize_validation_errors(raw)
+    assert result == [{"field": "password", "message": "Field required"}]
+
+
+def test_validation_error_omits_stripe_internal_fields() -> None:
+    """stripe_customer_id and stripe_subscription_id are omitted from error output."""
+    from app.main import _sanitize_validation_errors
+
+    raw = [
+        {
+            "loc": ("body", "stripe_customer_id"),
+            "msg": "Field required",
+            "type": "missing",
+        },
+        {
+            "loc": ("body", "stripe_subscription_id"),
+            "msg": "Field required",
+            "type": "missing",
+        },
+        {
+            "loc": ("body", "email"),
+            "msg": "value is not a valid email address",
+            "type": "value_error",
+        },
+    ]
+    result = _sanitize_validation_errors(raw)
+    assert len(result) == 1
+    assert result[0]["field"] == "email"
+    assert result[0]["message"] == "value is not a valid email address"
+
+
+def test_validation_error_multiple_errors_all_returned(client: TestClient) -> None:
+    """All validation errors are returned, not just the first."""
+    # Login endpoint requires both username and password — both missing triggers two errors.
+    response = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={},
+    )
+    errors = response.json()["detail"]
+    assert len(errors) >= 2

@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 import sentry_sdk
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
@@ -247,12 +246,59 @@ async def http_exception_handler(_request: Request, exc: HTTPException) -> JSONR
     )
 
 
+# Mapping from internal DB/model field names to safe public equivalents.
+# None means the field is server-managed and should be omitted entirely.
+_INTERNAL_FIELD_MAP: dict[str, str | None] = {
+    "hashed_password": "password",
+    "stripe_customer_id": None,
+    "stripe_subscription_id": None,
+    "email_verified": None,
+}
+
+
+def _sanitize_validation_errors(
+    errors: list[dict],
+) -> list[dict[str, str]]:
+    """Strip internal field paths from Pydantic validation errors.
+
+    Converts raw Pydantic error dicts to a safe public format that removes
+    loc path details exposing schema structure, input values that may contain
+    PII, and maps/omits known internal field names.
+    """
+    sanitized = []
+    for err in errors:
+        loc: tuple = err.get("loc", ())
+        # Strip the transport-layer prefix ("body", "query", "path") and take
+        # the last meaningful segment as the user-facing field identifier.
+        field_parts = [str(p) for p in loc if p not in ("body", "query", "path")]
+        raw_field = field_parts[-1] if field_parts else "field"
+
+        if raw_field in _INTERNAL_FIELD_MAP:
+            mapped = _INTERNAL_FIELD_MAP[raw_field]
+            if mapped is None:
+                # Omit server-managed fields — they should never appear in
+                # client requests and exposing their names leaks schema details.
+                continue
+            field_name = mapped
+        else:
+            field_name = raw_field
+
+        sanitized.append(
+            {"field": field_name, "message": err.get("msg", "Invalid value")}
+        )
+    return sanitized
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     _request: Request, exc: RequestValidationError
 ) -> JSONResponse:
-    """Consistent JSON format for request validation errors (422)."""
+    """Consistent, sanitized JSON format for request validation errors (422).
+
+    Strips internal field paths, input values, and server-managed field names
+    to avoid leaking database schema details to API clients.
+    """
     return JSONResponse(
         status_code=422,
-        content={"detail": jsonable_encoder(exc.errors())},
+        content={"detail": _sanitize_validation_errors(exc.errors())},
     )
