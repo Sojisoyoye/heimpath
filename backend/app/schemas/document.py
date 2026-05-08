@@ -177,6 +177,7 @@ class DocumentTranslationResponse(BaseModel):
     processing_completed_at: datetime | None = None
     requires_manual_review: bool = False
     translation_confidence_score: float | None = None
+    partial_translation_coverage: float | None = None
 
 
 class DocumentDetailResponse(BaseModel):

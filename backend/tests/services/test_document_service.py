@@ -586,3 +586,216 @@ class TestTranslationConfidenceThreshold:
 
         added = mock_session.add.call_args[0][0]
         assert added.translation_confidence_score == pytest.approx(expected_avg)
+
+
+# ── Translation coverage gate tests ──────────────────────────────────────────
+
+
+class TestTranslationCoverageGate:
+    """Tests for partial translation coverage gate (Task #211)."""
+
+    def _make_setup_with_coverage(
+        self,
+        document_id: uuid.UUID,
+        user_id: uuid.UUID,
+        total_pages: int,
+        returned_translations: int,
+    ) -> tuple[MagicMock, object, MagicMock, list[dict], AsyncMock]:
+        """Setup where Azure returns fewer translations than pages sent."""
+        mock_session, session_factory = _make_process_document_mocks(
+            document_id, user_id
+        )
+        mock_sync_cm = _make_sync_session_mock()
+
+        pages = [
+            {
+                "page_number": i + 1,
+                "original_text": f"Text page {i + 1}",
+                "translated_text": "",
+            }
+            for i in range(total_pages)
+        ]
+
+        confidences = [0.95] * returned_translations
+        batch_result = _make_batch_result_mock(confidences)
+
+        mock_svc = AsyncMock()
+        mock_svc.batch_translate = AsyncMock(return_value=batch_result)
+
+        return mock_session, session_factory, mock_sync_cm, pages, mock_svc
+
+    async def _run(
+        self,
+        document_id: uuid.UUID,
+        session_factory: object,
+        pages: list[dict],
+        mock_svc: AsyncMock,
+        mock_sync_cm: MagicMock,
+    ) -> None:
+        with (
+            patch(
+                "app.services.document_service._extract_pages_sync",
+                return_value=pages,
+            ),
+            patch(
+                "app.services.document_service.get_translation_service",
+                return_value=mock_svc,
+            ),
+            patch(
+                "app.services.document_service.analyze_clause_risks",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch(
+                "app.services.document_service.analyze_kaufvertrag",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "app.services.document_service.analyze_document_type",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "app.services.document_service.link_glossary_terms",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch("sqlmodel.Session", return_value=mock_sync_cm),
+            patch("app.services.notification_service.create_notification"),
+        ):
+            await document_service.process_document(document_id, session_factory)
+
+    @pytest.mark.asyncio
+    async def test_fails_document_when_page_coverage_below_threshold(self) -> None:
+        """Document is marked FAILED when Azure returns < 95% of submitted pages."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        # 5 pages sent, only 4 returned → 80% coverage < 95% threshold
+        mock_session, session_factory, mock_sync_cm, pages, mock_svc = (
+            self._make_setup_with_coverage(document_id, user_id, 5, 4)
+        )
+        await self._run(document_id, session_factory, pages, mock_svc, mock_sync_cm)
+
+        # DocumentTranslation must NOT be added to session
+        assert mock_session.add.call_count == 0
+        # Document must be re-fetched and marked FAILED
+        doc = mock_session.execute.return_value.scalar_one_or_none.return_value
+        assert doc.status == "failed"
+        assert "coverage" in doc.error_message.lower()
+
+    @pytest.mark.asyncio
+    async def test_succeeds_when_page_coverage_meets_threshold(self) -> None:
+        """Document is marked COMPLETED when coverage exactly meets 95% threshold."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        # 20 pages sent, 19 returned → 95% coverage == threshold
+        mock_session, session_factory, mock_sync_cm, pages, mock_svc = (
+            self._make_setup_with_coverage(document_id, user_id, 20, 19)
+        )
+        await self._run(document_id, session_factory, pages, mock_svc, mock_sync_cm)
+
+        # DocumentTranslation was added
+        assert mock_session.add.call_count == 1
+        added = mock_session.add.call_args[0][0]
+        assert added.partial_translation_coverage == pytest.approx(19 / 20)
+
+    @pytest.mark.asyncio
+    async def test_partial_translation_coverage_is_1_for_full_translation(
+        self,
+    ) -> None:
+        """partial_translation_coverage equals 1.0 when all pages are returned."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        # 3 pages sent, 3 returned → coverage = 1.0
+        mock_session, session_factory, mock_sync_cm, pages, mock_svc = (
+            self._make_setup_with_coverage(document_id, user_id, 3, 3)
+        )
+        await self._run(document_id, session_factory, pages, mock_svc, mock_sync_cm)
+
+        added = mock_session.add.call_args[0][0]
+        assert added.partial_translation_coverage == pytest.approx(1.0)
+
+    @pytest.mark.asyncio
+    async def test_fails_document_when_clause_coverage_below_threshold(self) -> None:
+        """Document is marked FAILED when Azure returns < 95% of submitted clauses."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+
+        mock_session, session_factory = _make_process_document_mocks(
+            document_id, user_id
+        )
+        mock_sync_cm = _make_sync_session_mock()
+
+        # Pages translate successfully (full coverage)
+        pages = [
+            {
+                "page_number": 1,
+                "original_text": "Der Kaufpreis beträgt EUR 350.000",
+                "translated_text": "",
+            }
+        ]
+        full_page_batch = _make_batch_result_mock([0.95])
+        # Clauses: 5 sent, only 4 returned → 80% < 95%
+        partial_clause_batch = MagicMock()
+        partial_clause_batch.translations = [
+            _make_translation_mock(0.95) for _ in range(4)
+        ]
+
+        call_count = 0
+
+        async def _side_effect(**_kwargs: object) -> MagicMock:
+            nonlocal call_count
+            call_count += 1
+            return full_page_batch if call_count == 1 else partial_clause_batch
+
+        mock_svc = AsyncMock()
+        mock_svc.batch_translate = AsyncMock(side_effect=_side_effect)
+
+        # Patch _detect_clauses to return 5 clauses so clause_texts has 5 entries
+        five_clauses = [
+            {
+                "clause_type": "purchase_price",
+                "original_text": f"Kaufpreis {i}",
+                "translated_text": "",
+                "page_number": 1,
+                "risk_level": "high",
+            }
+            for i in range(5)
+        ]
+
+        with (
+            patch(
+                "app.services.document_service._extract_pages_sync",
+                return_value=pages,
+            ),
+            patch(
+                "app.services.document_service.get_translation_service",
+                return_value=mock_svc,
+            ),
+            patch(
+                "app.services.document_service._detect_clauses",
+                return_value=five_clauses,
+            ),
+            patch(
+                "app.services.document_service.analyze_clause_risks",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch(
+                "app.services.document_service.analyze_kaufvertrag",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "app.services.document_service.analyze_document_type",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "app.services.document_service.link_glossary_terms",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch("sqlmodel.Session", return_value=mock_sync_cm),
+            patch("app.services.notification_service.create_notification"),
+        ):
+            await document_service.process_document(document_id, session_factory)
+
+        # DocumentTranslation must NOT be added
+        assert mock_session.add.call_count == 0
+        doc = mock_session.execute.return_value.scalar_one_or_none.return_value
+        assert doc.status == "failed"
+        assert "coverage" in doc.error_message.lower()

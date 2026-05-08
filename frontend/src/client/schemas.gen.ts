@@ -2558,6 +2558,17 @@ export const DocumentTranslationResponseSchema = {
                 }
             ],
             title: 'Translation Confidence Score'
+        },
+        partial_translation_coverage: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Partial Translation Coverage'
         }
     },
     type: 'object',
