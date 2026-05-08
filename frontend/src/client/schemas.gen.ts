@@ -2542,6 +2542,22 @@ export const DocumentTranslationResponseSchema = {
                 }
             ],
             title: 'Processing Completed At'
+        },
+        requires_manual_review: {
+            type: 'boolean',
+            title: 'Requires Manual Review',
+            default: false
+        },
+        translation_confidence_score: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Translation Confidence Score'
         }
     },
     type: 'object',

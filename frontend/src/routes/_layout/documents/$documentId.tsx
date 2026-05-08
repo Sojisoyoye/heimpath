@@ -4,7 +4,13 @@
  */
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { ArrowLeft, FileText, Share2, Trash2 } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowLeft,
+  FileText,
+  Share2,
+  Trash2,
+} from "lucide-react"
 import { useCallback, useState } from "react"
 import ErrorBoundary from "@/components/Common/ErrorBoundary"
 import {
@@ -176,50 +182,68 @@ function DocumentDetailPage() {
 
       {/* Translation content (only when completed) */}
       {isCompleted && translation && (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="translation">Translation</TabsTrigger>
-            <TabsTrigger value="clauses">
-              Clauses ({translation.clausesDetected.length})
-            </TabsTrigger>
-            <TabsTrigger value="warnings">
-              Warnings ({translation.riskWarnings.length})
-            </TabsTrigger>
-            {(translation.kaufvertragAnalysis || translation.typeAnalysis) && (
-              <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
-            )}
-          </TabsList>
-
-          <TabsContent value="translation" className="mt-4">
-            <TranslationViewer
-              pages={translation.translatedPages}
-              glossaryLinks={translation.glossaryLinks}
-            />
-          </TabsContent>
-
-          <TabsContent value="clauses" className="mt-4">
-            <ClauseHighlights clauses={translation.clausesDetected} />
-          </TabsContent>
-
-          <TabsContent value="warnings" className="mt-4">
-            <RiskWarnings warnings={translation.riskWarnings} />
-          </TabsContent>
-
-          {(translation.kaufvertragAnalysis || translation.typeAnalysis) && (
-            <TabsContent value="analysis" className="mt-4">
-              {translation.kaufvertragAnalysis ? (
-                <ClauseAnalysis analysis={translation.kaufvertragAnalysis} />
-              ) : (
-                translation.typeAnalysis && (
-                  <TypeAnalysis
-                    documentType={doc.documentType}
-                    typeAnalysis={translation.typeAnalysis}
-                  />
-                )
-              )}
-            </TabsContent>
+        <>
+          {translation.requiresManualReview && (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+              <div>
+                <p className="font-semibold">Manual review recommended</p>
+                <p className="mt-1 text-amber-800">
+                  The translation confidence for this document is below our
+                  quality threshold. Key clauses may not be accurately
+                  translated. We recommend having a qualified translator or
+                  legal professional review the original German document before
+                  making any decisions.
+                </p>
+              </div>
+            </div>
           )}
-        </Tabs>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="translation">Translation</TabsTrigger>
+              <TabsTrigger value="clauses">
+                Clauses ({translation.clausesDetected.length})
+              </TabsTrigger>
+              <TabsTrigger value="warnings">
+                Warnings ({translation.riskWarnings.length})
+              </TabsTrigger>
+              {(translation.kaufvertragAnalysis ||
+                translation.typeAnalysis) && (
+                <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
+              )}
+            </TabsList>
+
+            <TabsContent value="translation" className="mt-4">
+              <TranslationViewer
+                pages={translation.translatedPages}
+                glossaryLinks={translation.glossaryLinks}
+              />
+            </TabsContent>
+
+            <TabsContent value="clauses" className="mt-4">
+              <ClauseHighlights clauses={translation.clausesDetected} />
+            </TabsContent>
+
+            <TabsContent value="warnings" className="mt-4">
+              <RiskWarnings warnings={translation.riskWarnings} />
+            </TabsContent>
+
+            {(translation.kaufvertragAnalysis || translation.typeAnalysis) && (
+              <TabsContent value="analysis" className="mt-4">
+                {translation.kaufvertragAnalysis ? (
+                  <ClauseAnalysis analysis={translation.kaufvertragAnalysis} />
+                ) : (
+                  translation.typeAnalysis && (
+                    <TypeAnalysis
+                      documentType={doc.documentType}
+                      typeAnalysis={translation.typeAnalysis}
+                    />
+                  )
+                )}
+              </TabsContent>
+            )}
+          </Tabs>
+        </>
       )}
     </div>
   )

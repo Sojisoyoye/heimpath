@@ -176,21 +176,6 @@ def validate_pdf_bytes(content: bytes) -> None:
         raise ValueError("File does not appear to be a valid PDF")
 
 
-_CONFIDENCE_THRESHOLD = 0.70  # translations below this require human review
-
-
-def _compute_requires_review(translations: list) -> bool:  # type: ignore[type-arg]
-    """Return True if any translation has a confidence score below the threshold."""
-    return any(tr.translation.confidence < _CONFIDENCE_THRESHOLD for tr in translations)
-
-
-def _compute_avg_confidence(translations: list) -> float | None:  # type: ignore[type-arg]
-    """Return the mean confidence score, or None for an empty list."""
-    if not translations:
-        return None
-    return sum(tr.translation.confidence for tr in translations) / len(translations)
-
-
 def _detect_document_type(text: str) -> DocumentType:
     """Detect document type based on keyword frequency in extracted text."""
     text_lower = text.lower()
@@ -361,6 +346,8 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
             # Translate pages using Azure Translator
             translation_service = get_translation_service()
             all_risk_warnings: list[dict] = []
+            requires_manual_review: bool = False
+            avg_confidence: float | None = None
 
             if translation_service:
                 # Translate page texts
@@ -396,6 +383,34 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                                     }
                                 )
                             text_idx += 1
+
+                    # Compute translation confidence metrics from page batch
+                    page_confidences: list[float] = [
+                        t.translation.confidence for t in batch_result.translations
+                    ]
+                    avg_confidence = (
+                        sum(page_confidences) / len(page_confidences)
+                        if page_confidences
+                        else 1.0
+                    )
+                    low_count = sum(
+                        1
+                        for c in page_confidences
+                        if c < settings.TRANSLATION_CONFIDENCE_THRESHOLD
+                    )
+                    requires_manual_review = (
+                        low_count / len(page_confidences) > 0.20
+                        if page_confidences
+                        else False
+                    )
+                    if requires_manual_review:
+                        logger.warning(
+                            "Document %s: %d/%d pages below confidence threshold (avg=%.2f)",
+                            document_id,
+                            low_count,
+                            len(page_confidences),
+                            avg_confidence,
+                        )
 
                 # Translate clause contexts
                 clause_texts = [
@@ -461,6 +476,8 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                 glossary_links=glossary_links_data or None,
                 processing_started_at=processing_started_at,
                 processing_completed_at=datetime.now(timezone.utc),
+                requires_manual_review=requires_manual_review,
+                translation_confidence_score=avg_confidence,
             )
             session.add(translation)
 

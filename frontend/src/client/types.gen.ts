@@ -748,6 +748,8 @@ export type DocumentTranslationResponse = {
     glossary_links?: Array<GlossaryLink>;
     processing_started_at?: (string | null);
     processing_completed_at?: (string | null);
+    requires_manual_review?: boolean;
+    translation_confidence_score?: (number | null);
 };
 
 /**

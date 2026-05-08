@@ -175,6 +175,8 @@ class DocumentTranslationResponse(BaseModel):
     glossary_links: list[GlossaryLink] = Field(default_factory=list)
     processing_started_at: datetime | None = None
     processing_completed_at: datetime | None = None
+    requires_manual_review: bool = False
+    translation_confidence_score: float | None = None
 
 
 class DocumentDetailResponse(BaseModel):
