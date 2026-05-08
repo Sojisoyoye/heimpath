@@ -427,3 +427,162 @@ class TestMarkStuckDocumentsFailed:
         compiled = str(stmt.compile(compile_kwargs={"literal_binds": False}))
         assert "document.status" in compiled
         assert "document.updated_at" in compiled
+
+
+# ── Translation confidence threshold tests ────────────────────────────────────
+
+
+def _make_translation_mock(confidence: float) -> MagicMock:
+    """Create a mock translation result with the given confidence score."""
+    tr = MagicMock()
+    tr.translation.translated_text = "translated text"
+    tr.translation.confidence = confidence
+    tr.legal_warnings = []
+    return tr
+
+
+def _make_batch_result_mock(confidences: list[float]) -> MagicMock:
+    """Create a mock batch translation result with per-page confidence scores."""
+    batch = MagicMock()
+    batch.translations = [_make_translation_mock(c) for c in confidences]
+    return batch
+
+
+class TestTranslationConfidenceThreshold:
+    """Tests for requires_manual_review and translation_confidence_score logic."""
+
+    def _make_setup(
+        self,
+        document_id: uuid.UUID,
+        user_id: uuid.UUID,
+        batch_confidences: list[float],
+    ) -> tuple[MagicMock, object, MagicMock, list[dict], AsyncMock]:
+        """Return (mock_session, session_factory, mock_sync_cm, pages, mock_svc)."""
+        mock_session, session_factory = _make_process_document_mocks(
+            document_id, user_id
+        )
+        mock_sync_cm = _make_sync_session_mock()
+
+        pages = [
+            {
+                "page_number": i + 1,
+                "original_text": f"Text page {i + 1}",
+                "translated_text": "",
+            }
+            for i in range(len(batch_confidences))
+        ]
+
+        mock_svc = AsyncMock()
+        mock_svc.batch_translate = AsyncMock(
+            return_value=_make_batch_result_mock(batch_confidences)
+        )
+
+        return mock_session, session_factory, mock_sync_cm, pages, mock_svc
+
+    async def _run(
+        self,
+        document_id: uuid.UUID,
+        session_factory: object,
+        pages: list[dict],
+        mock_svc: AsyncMock,
+        mock_sync_cm: MagicMock,
+    ) -> None:
+        """Run process_document with all heavyweight dependencies stubbed out."""
+        with (
+            patch(
+                "app.services.document_service._extract_pages_sync",
+                return_value=pages,
+            ),
+            patch(
+                "app.services.document_service.get_translation_service",
+                return_value=mock_svc,
+            ),
+            patch(
+                "app.services.document_service.analyze_clause_risks",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch(
+                "app.services.document_service.analyze_kaufvertrag",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "app.services.document_service.analyze_document_type",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "app.services.document_service.link_glossary_terms",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch("sqlmodel.Session", return_value=mock_sync_cm),
+            patch("app.services.notification_service.create_notification"),
+        ):
+            await document_service.process_document(document_id, session_factory)
+
+    @pytest.mark.asyncio
+    async def test_requires_manual_review_false_when_all_pages_high_confidence(
+        self,
+    ) -> None:
+        """No flag when all pages are above the confidence threshold."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        confidences = [0.95, 0.95, 0.95]
+
+        mock_session, session_factory, mock_sync_cm, pages, mock_svc = self._make_setup(
+            document_id, user_id, confidences
+        )
+        await self._run(document_id, session_factory, pages, mock_svc, mock_sync_cm)
+
+        added = mock_session.add.call_args[0][0]
+        assert added.requires_manual_review is False
+
+    @pytest.mark.asyncio
+    async def test_requires_manual_review_true_when_majority_low_confidence(
+        self,
+    ) -> None:
+        """Flag is set when more than 20% of pages are below the threshold."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        # 3/3 pages below 0.70 → 100% > 20% → requires_manual_review=True
+        confidences = [0.50, 0.50, 0.50]
+
+        mock_session, session_factory, mock_sync_cm, pages, mock_svc = self._make_setup(
+            document_id, user_id, confidences
+        )
+        await self._run(document_id, session_factory, pages, mock_svc, mock_sync_cm)
+
+        added = mock_session.add.call_args[0][0]
+        assert added.requires_manual_review is True
+
+    @pytest.mark.asyncio
+    async def test_requires_manual_review_false_when_minority_low_confidence(
+        self,
+    ) -> None:
+        """No flag when exactly 20% of pages are below the threshold (not >20%)."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        # 1/5 pages below 0.70 → 20% which is NOT >20% → requires_manual_review=False
+        confidences = [0.50, 0.95, 0.95, 0.95, 0.95]
+
+        mock_session, session_factory, mock_sync_cm, pages, mock_svc = self._make_setup(
+            document_id, user_id, confidences
+        )
+        await self._run(document_id, session_factory, pages, mock_svc, mock_sync_cm)
+
+        added = mock_session.add.call_args[0][0]
+        assert added.requires_manual_review is False
+
+    @pytest.mark.asyncio
+    async def test_translation_confidence_score_is_average(self) -> None:
+        """translation_confidence_score equals the mean of all page confidence values."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        confidences = [0.80, 0.90, 0.70]
+        expected_avg = sum(confidences) / len(confidences)
+
+        mock_session, session_factory, mock_sync_cm, pages, mock_svc = self._make_setup(
+            document_id, user_id, confidences
+        )
+        await self._run(document_id, session_factory, pages, mock_svc, mock_sync_cm)
+
+        added = mock_session.add.call_args[0][0]
+        assert added.translation_confidence_score == pytest.approx(expected_avg)

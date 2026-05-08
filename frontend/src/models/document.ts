@@ -214,6 +214,8 @@ export interface DocumentTranslation {
   glossaryLinks?: GlossaryLink[]
   processingStartedAt: string | null
   processingCompletedAt: string | null
+  requiresManualReview: boolean
+  translationConfidenceScore: number | null
 }
 
 export interface DocumentDetail {
