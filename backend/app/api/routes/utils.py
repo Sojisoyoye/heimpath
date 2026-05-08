@@ -14,6 +14,7 @@ from app.core.circuit_breakers import (
     stripe_breaker,
     translator_breaker,
 )
+from app.core.db import get_pool_stats
 from app.models import Message
 from app.services.redis_client import get_redis
 from app.utils import generate_test_email, send_email
@@ -86,3 +87,16 @@ def circuit_breaker_health_check() -> dict[str, dict[str, int | str]]:
         "anthropic": _state(anthropic_breaker),
         "redis": _state(redis_breaker),
     }
+
+
+@router.get(
+    "/db-pool-stats/",
+    dependencies=[Depends(get_current_active_superuser)],
+)
+def db_pool_stats() -> dict[str, int]:
+    """Current DB connection pool statistics. Superuser-only.
+
+    Use to detect pool pressure in real time — high checked_out relative to
+    effective_max_per_worker indicates the pool is near exhaustion.
+    """
+    return get_pool_stats()
