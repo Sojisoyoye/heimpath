@@ -750,6 +750,7 @@ export type DocumentTranslationResponse = {
     processing_completed_at?: (string | null);
     requires_manual_review?: boolean;
     translation_confidence_score?: (number | null);
+    partial_translation_coverage?: (number | null);
 };
 
 /**

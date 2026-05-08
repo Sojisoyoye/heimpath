@@ -178,6 +178,13 @@ class DocumentTranslation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     translation_confidence_score = Column(Float, nullable=True)
 
+    # Coverage — fraction of pages actually translated (0.0–1.0). Values < 1.0
+    # indicate Azure returned fewer results than submitted (placeholder pages).
+    # Documents with coverage below TRANSLATION_COVERAGE_THRESHOLD are marked
+    # FAILED rather than COMPLETED, so this field is always >= the threshold
+    # on successfully completed documents.
+    partial_translation_coverage = Column(Float, nullable=True)
+
     # Timing
     processing_started_at = Column(DateTime(timezone=True), nullable=True)
     processing_completed_at = Column(DateTime(timezone=True), nullable=True)
