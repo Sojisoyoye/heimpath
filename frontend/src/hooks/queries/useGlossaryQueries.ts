@@ -49,6 +49,6 @@ export function useGlossaryCategories() {
   return useQuery({
     queryKey: queryKeys.glossary.categories(),
     queryFn: () => GlossaryService.getCategories(),
-    staleTime: 30 * 60 * 1000,
+    staleTime: Infinity, // categories are seeded static data and never change at runtime
   })
 }

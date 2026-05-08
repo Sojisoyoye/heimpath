@@ -49,7 +49,7 @@ export function useLawCategories() {
   return useQuery({
     queryKey: queryKeys.laws.categories(),
     queryFn: () => LegalService.getCategories(),
-    staleTime: 30 * 60 * 1000, // Categories rarely change
+    staleTime: Infinity, // categories are seeded static data and never change at runtime
   })
 }
 

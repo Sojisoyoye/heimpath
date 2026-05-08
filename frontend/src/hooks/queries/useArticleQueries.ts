@@ -49,6 +49,6 @@ export function useArticleCategories() {
   return useQuery({
     queryKey: queryKeys.articles.categories(),
     queryFn: () => ArticleService.getCategories(),
-    staleTime: 30 * 60 * 1000,
+    staleTime: Infinity, // categories are seeded static data and never change at runtime
   })
 }
