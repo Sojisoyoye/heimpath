@@ -1,19 +1,24 @@
+import logging
 from collections.abc import AsyncGenerator, Generator
 from typing import Annotated
 
 import jwt
+import sentry_sdk
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
+from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session
 
 from app.core import security
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
-from app.core.db import engine
+from app.core.db import engine, get_pool_stats
 from app.models import TokenPayload, User
+
+logger = logging.getLogger(__name__)
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -25,9 +30,35 @@ reusable_oauth2_optional = OAuth2PasswordBearer(
 )
 
 
+def _raise_pool_exhausted(stats: dict[str, int]) -> None:
+    """Log pool exhaustion to Sentry and raise HTTP 503 with Retry-After."""
+    logger.warning(
+        "DB pool exhausted: checked_out=%d/%d",
+        stats["checked_out"],
+        stats["effective_max_per_worker"],
+    )
+    with sentry_sdk.new_scope() as scope:
+        scope.set_context("pool", stats)
+        sentry_sdk.capture_message("DB pool exhausted", level="warning")
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail="Service temporarily unavailable — please retry in a moment",
+        headers={"Retry-After": str(settings.POOL_EXHAUSTION_BACKOFF_SECONDS)},
+    )
+
+
 def get_db() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
+    # Pre-check: fail immediately when pool is at capacity rather than
+    # queuing for up to pool_timeout (30 s) waiting for a slot to free up.
+    stats = get_pool_stats()
+    if stats["checked_out"] >= stats["effective_max_per_worker"]:
+        _raise_pool_exhausted(stats)
+    try:
+        with Session(engine) as session:
+            yield session
+    except PoolTimeoutError:
+        # Fallback for the race between pre-check and session acquisition.
+        _raise_pool_exhausted(get_pool_stats())
 
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
