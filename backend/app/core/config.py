@@ -177,6 +177,11 @@ class Settings(BaseSettings):
 
     # Reliability settings
     TRANSLATION_CONFIDENCE_THRESHOLD: float = 0.70
+    # Minimum fraction of pages/clauses that must be translated before the document
+    # is allowed to reach COMPLETED status. If Azure Translator returns fewer
+    # results than submitted, the document is marked FAILED rather than silently
+    # accepted as complete with missing pages.
+    TRANSLATION_COVERAGE_THRESHOLD: float = 0.95
     AZURE_TRANSLATOR_TIMEOUT_SECONDS: int = 60
     # Quota: default 1,900,000 leaves a 5% buffer below the 2M free-tier limit.
     AZURE_TRANSLATOR_QUOTA_LIMIT: int = 1_900_000

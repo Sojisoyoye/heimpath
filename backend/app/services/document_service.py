@@ -348,6 +348,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
             all_risk_warnings: list[dict] = []
             requires_manual_review: bool = False
             avg_confidence: float | None = None
+            page_coverage: float = 1.0
 
             if translation_service:
                 # Translate page texts
@@ -412,6 +413,16 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                             avg_confidence,
                         )
 
+                    # Coverage gate — fail if Azure returned too few translations
+                    page_coverage = len(batch_result.translations) / len(page_texts)
+                    if page_coverage < settings.TRANSLATION_COVERAGE_THRESHOLD:
+                        raise RuntimeError(
+                            f"Incomplete page translation: "
+                            f"{len(batch_result.translations)}/{len(page_texts)} pages translated "
+                            f"(coverage={page_coverage:.1%}, "
+                            f"minimum={settings.TRANSLATION_COVERAGE_THRESHOLD:.0%})"
+                        )
+
                 # Translate clause contexts
                 clause_texts = [
                     c["original_text"]
@@ -425,6 +436,14 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                         target_language=SupportedLanguage.ENGLISH,
                         include_legal_warnings=False,
                     )
+                    clause_coverage = len(clause_batch.translations) / len(clause_texts)
+                    if clause_coverage < settings.TRANSLATION_COVERAGE_THRESHOLD:
+                        raise RuntimeError(
+                            f"Incomplete clause translation: "
+                            f"{len(clause_batch.translations)}/{len(clause_texts)} clauses translated "
+                            f"(coverage={clause_coverage:.1%}, "
+                            f"minimum={settings.TRANSLATION_COVERAGE_THRESHOLD:.0%})"
+                        )
                     text_idx = 0
                     for clause in all_clauses:
                         if clause["original_text"].strip() and text_idx < len(
@@ -478,6 +497,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                 processing_completed_at=datetime.now(timezone.utc),
                 requires_manual_review=requires_manual_review,
                 translation_confidence_score=avg_confidence,
+                partial_translation_coverage=page_coverage,
             )
             session.add(translation)
 
