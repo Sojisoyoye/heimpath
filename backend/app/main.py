@@ -270,7 +270,10 @@ def _sanitize_validation_errors(
         loc: tuple = err.get("loc", ())
         # Strip the transport-layer prefix ("body", "query", "path") and take
         # the last meaningful segment as the user-facing field identifier.
-        field_parts = [str(p) for p in loc if p not in ("body", "query", "path")]
+        # The first element is the transport-layer source ("body", "query", "path").
+        # Slice it off unconditionally so field names that happen to equal those
+        # strings are preserved correctly.
+        field_parts = [str(p) for p in loc[1:]]
         raw_field = field_parts[-1] if field_parts else "field"
 
         if raw_field in _INTERNAL_FIELD_MAP:

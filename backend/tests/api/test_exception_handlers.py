@@ -11,7 +11,7 @@ from sqlmodel import Session
 
 from app.api.deps import get_db
 from app.core.config import settings
-from app.main import app
+from app.main import _sanitize_validation_errors, app
 
 
 @pytest.fixture
@@ -181,8 +181,6 @@ def test_validation_error_items_do_not_expose_internal_pydantic_fields(
 
 def test_validation_error_sanitizes_hashed_password_field() -> None:
     """hashed_password is remapped to 'password' to hide the internal field name."""
-    from app.main import _sanitize_validation_errors
-
     raw = [
         {"loc": ("body", "hashed_password"), "msg": "Field required", "type": "missing"}
     ]
@@ -192,8 +190,6 @@ def test_validation_error_sanitizes_hashed_password_field() -> None:
 
 def test_validation_error_omits_stripe_internal_fields() -> None:
     """stripe_customer_id and stripe_subscription_id are omitted from error output."""
-    from app.main import _sanitize_validation_errors
-
     raw = [
         {
             "loc": ("body", "stripe_customer_id"),
