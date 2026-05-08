@@ -7,6 +7,7 @@ import pybreaker
 from app.core.circuit_breakers import (
     _LoggingListener,
     anthropic_breaker,
+    redis_breaker,
     stripe_breaker,
     translator_breaker,
 )
@@ -46,6 +47,18 @@ class TestCircuitBreakerConfiguration:
         for breaker in (stripe_breaker, translator_breaker, anthropic_breaker):
             assert breaker.current_state == "closed"
 
+    def test_redis_breaker_fail_max(self) -> None:
+        assert redis_breaker.fail_max == 10
+
+    def test_redis_breaker_reset_timeout(self) -> None:
+        assert redis_breaker.reset_timeout == 15
+
+    def test_redis_breaker_name(self) -> None:
+        assert redis_breaker.name == "redis"
+
+    def test_redis_breaker_starts_closed(self) -> None:
+        assert redis_breaker.current_state == "closed"
+
 
 class TestCircuitBreakerSingletons:
     """Singletons must be distinct objects sharing the same listener."""
@@ -54,16 +67,29 @@ class TestCircuitBreakerSingletons:
         assert stripe_breaker is not translator_breaker
         assert translator_breaker is not anthropic_breaker
         assert stripe_breaker is not anthropic_breaker
+        assert redis_breaker is not stripe_breaker
+        assert redis_breaker is not translator_breaker
+        assert redis_breaker is not anthropic_breaker
 
     def test_each_breaker_has_listener(self) -> None:
-        for breaker in (stripe_breaker, translator_breaker, anthropic_breaker):
+        for breaker in (
+            stripe_breaker,
+            translator_breaker,
+            anthropic_breaker,
+            redis_breaker,
+        ):
             assert len(breaker.listeners) == 1
             assert isinstance(breaker.listeners[0], _LoggingListener)
 
     def test_all_breakers_share_same_listener_instance(self) -> None:
         listener_ids = {
             id(b.listeners[0])
-            for b in (stripe_breaker, translator_breaker, anthropic_breaker)
+            for b in (
+                stripe_breaker,
+                translator_breaker,
+                anthropic_breaker,
+                redis_breaker,
+            )
         }
         assert len(listener_ids) == 1, (
             "All breakers should share the same _LoggingListener"

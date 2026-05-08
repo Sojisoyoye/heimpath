@@ -34,7 +34,12 @@ def get_redis() -> redis_lib.Redis:
         return _redis_client
 
     try:
-        client = redis_lib.from_url(settings.REDIS_URL, decode_responses=True)
+        client = redis_lib.from_url(
+            settings.REDIS_URL,
+            decode_responses=True,
+            socket_timeout=0.5,
+            socket_connect_timeout=0.5,
+        )
         # ping() forces the first actual connection attempt so we fail fast at
         # initialisation time rather than on the first Redis operation.
         client.ping()

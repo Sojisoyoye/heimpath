@@ -5,16 +5,19 @@ The token blacklist is backed by Redis for persistence across restarts and
 horizontal scaling.
 """
 
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
 import jwt
+import pybreaker
 import redis as redis_lib
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
+from app.core.circuit_breakers import redis_breaker
 from app.core.config import settings
 from app.services.redis_client import get_redis
 
@@ -22,6 +25,8 @@ ALGORITHM = "HS256"
 _BLACKLIST_PREFIX = "auth:blacklist:"
 _GRACE_PREFIX = "auth:refresh_grace:"
 REFRESH_ROTATION_GRACE_SECONDS = 30
+
+_logger = logging.getLogger(__name__)
 
 # Module-level Redis client (connection pool, created lazily)
 _redis_client: redis_lib.Redis | None = None
@@ -184,17 +189,33 @@ def blacklist_token(jti: str, expires_at: datetime) -> None:
     The Redis key TTL matches the remaining token lifetime so the blacklist
     entry is automatically evicted when the token would have expired anyway.
 
+    Fail-safe: if Redis is unavailable (circuit open or ``RedisError``), a
+    warning is logged and the operation is skipped.  The caller (logout) still
+    succeeds — the token will expire on its own.
+
     Args:
         jti: Unique token identifier (``jti`` claim).
         expires_at: Token expiry timestamp (used to compute TTL).
     """
     ttl = max(int((expires_at - datetime.now(timezone.utc)).total_seconds()), 1)
-    _redis().setex(f"{_BLACKLIST_PREFIX}{jti}", ttl, "1")
+    try:
+        redis_breaker.call(_redis().setex, f"{_BLACKLIST_PREFIX}{jti}", ttl, "1")
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        _logger.warning(
+            "Redis unavailable — token %s could not be blacklisted (logout proceeds)",
+            jti,
+        )
 
 
 def is_token_blacklisted(jti: str) -> bool:
-    """Return *True* if the JTI is present in the Redis blacklist."""
-    return bool(_redis().exists(f"{_BLACKLIST_PREFIX}{jti}"))
+    """Return *True* if the JTI is present in the Redis blacklist.
+
+    Fail-open: returns *False* (token accepted) when Redis is unavailable.
+    """
+    try:
+        return bool(redis_breaker.call(_redis().exists, f"{_BLACKLIST_PREFIX}{jti}"))
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def is_token_in_grace_period(jti: str) -> bool:
@@ -202,8 +223,13 @@ def is_token_in_grace_period(jti: str) -> bool:
 
     After refresh token rotation the old JTI is blacklisted but a short
     grace key is set so concurrent in-flight refresh requests still succeed.
+
+    Fail-open: returns *False* when Redis is unavailable.
     """
-    return bool(_redis().exists(f"{_GRACE_PREFIX}{jti}"))
+    try:
+        return bool(redis_breaker.call(_redis().exists, f"{_GRACE_PREFIX}{jti}"))
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def _rotate_refresh_token(jti: str, expires_at: datetime) -> None:
@@ -214,7 +240,15 @@ def _rotate_refresh_token(jti: str, expires_at: datetime) -> None:
     :data:`REFRESH_ROTATION_GRACE_SECONDS` window.
     """
     blacklist_token(jti, expires_at)
-    _redis().setex(f"{_GRACE_PREFIX}{jti}", REFRESH_ROTATION_GRACE_SECONDS, "1")
+    try:
+        redis_breaker.call(
+            _redis().setex, f"{_GRACE_PREFIX}{jti}", REFRESH_ROTATION_GRACE_SECONDS, "1"
+        )
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        _logger.warning(
+            "Redis unavailable — refresh grace window for token %s not set",
+            jti,
+        )
 
 
 # ── higher-level operations ───────────────────────────────────────────────────

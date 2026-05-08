@@ -100,15 +100,15 @@ def test_redis_health_check_requires_authentication(client: TestClient) -> None:
 def test_circuit_breaker_health_check_returns_all_breakers(
     client: TestClient, superuser_token_headers: dict
 ) -> None:
-    """Circuit breaker health check returns state for all three breakers."""
+    """Circuit breaker health check returns state for all four breakers."""
     response = client.get(
         f"{settings.API_V1_STR}/utils/health-check/circuit-breakers/",
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
     body = response.json()
-    assert set(body.keys()) == {"stripe", "translator", "anthropic"}
-    for name in ("stripe", "translator", "anthropic"):
+    assert set(body.keys()) == {"stripe", "translator", "anthropic", "redis"}
+    for name in ("stripe", "translator", "anthropic", "redis"):
         assert "state" in body[name]
         assert "fail_counter" in body[name]
         assert "fail_max" in body[name]

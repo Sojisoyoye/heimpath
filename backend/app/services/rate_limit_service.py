@@ -7,12 +7,15 @@ so limits survive server restarts and work correctly across
 horizontally-scaled instances.
 """
 
+import logging
 import math
 from datetime import datetime, timedelta, timezone
 from typing import NamedTuple
 
+import pybreaker
 import redis as redis_lib
 
+from app.core.circuit_breakers import redis_breaker
 from app.services.redis_client import get_redis
 
 # Login rate limit constants
@@ -101,6 +104,8 @@ CLICK_LOCKOUT_SECONDS: int = 60  # 1 minute
 _CLICK_ATTEMPTS_PREFIX = "api:ratelimit:click:attempts:"
 _CLICK_LOCKOUT_PREFIX = "api:ratelimit:click:lockout:"
 
+_logger = logging.getLogger(__name__)
+
 # Module-level Redis client (connection pool, lazily initialised)
 _redis_client: redis_lib.Redis | None = None
 
@@ -122,8 +127,14 @@ def _redis() -> redis_lib.Redis:
 
 # ── Generic helpers ──────────────────────────────────────────────────────────
 
+# Returned when Redis is unavailable — fail-open: treat every identifier as
+# having no lockout and unlimited remaining attempts.
+_REDIS_OPEN_INFO = RateLimitInfo(
+    is_locked=False, attempts_remaining=999, lockout_expires_at=None
+)
 
-def _check_limit(
+
+def _check_limit_core(
     identifier: str,
     attempts_prefix: str,
     lockout_prefix: str,
@@ -149,7 +160,31 @@ def _check_limit(
     )
 
 
-def _record_attempt(
+def _check_limit(
+    identifier: str,
+    attempts_prefix: str,
+    lockout_prefix: str,
+    max_attempts: int,
+    window_seconds: int,
+) -> RateLimitInfo:
+    """Circuit-breaker wrapper for _check_limit_core; fails open on Redis errors."""
+    try:
+        return redis_breaker.call(
+            _check_limit_core,
+            identifier,
+            attempts_prefix,
+            lockout_prefix,
+            max_attempts,
+            window_seconds,
+        )
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        _logger.warning(
+            "Redis circuit open — rate-limit check failed open for %s", identifier
+        )
+        return _REDIS_OPEN_INFO
+
+
+def _record_attempt_core(
     identifier: str,
     attempts_prefix: str,
     lockout_prefix: str,
@@ -196,11 +231,47 @@ def _record_attempt(
     )
 
 
-def _clear(identifier: str, attempts_prefix: str, lockout_prefix: str) -> None:
+def _record_attempt(
+    identifier: str,
+    attempts_prefix: str,
+    lockout_prefix: str,
+    max_attempts: int,
+    window_seconds: int,
+    lockout_seconds: int,
+) -> RateLimitInfo:
+    """Circuit-breaker wrapper for _record_attempt_core; fails open on Redis errors."""
+    try:
+        return redis_breaker.call(
+            _record_attempt_core,
+            identifier,
+            attempts_prefix,
+            lockout_prefix,
+            max_attempts,
+            window_seconds,
+            lockout_seconds,
+        )
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        _logger.warning(
+            "Redis circuit open — failed attempt not recorded for %s", identifier
+        )
+        return _REDIS_OPEN_INFO
+
+
+def _clear_core(identifier: str, attempts_prefix: str, lockout_prefix: str) -> None:
     """Clear all rate-limit state for an identifier."""
     r = _redis()
     r.delete(f"{attempts_prefix}{identifier}")
     r.delete(f"{lockout_prefix}{identifier}")
+
+
+def _clear(identifier: str, attempts_prefix: str, lockout_prefix: str) -> None:
+    """Circuit-breaker wrapper for _clear_core; logs and skips on Redis errors."""
+    try:
+        redis_breaker.call(_clear_core, identifier, attempts_prefix, lockout_prefix)
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        _logger.warning(
+            "Redis circuit open — rate-limit state not cleared for %s", identifier
+        )
 
 
 # ── Login rate limiting ──────────────────────────────────────────────────────
@@ -208,7 +279,11 @@ def _clear(identifier: str, attempts_prefix: str, lockout_prefix: str) -> None:
 
 def is_locked(identifier: str) -> bool:
     """Return *True* if the identifier is currently locked out."""
-    return _redis().ttl(f"{_LOCKOUT_PREFIX}{identifier}") > 0
+    try:
+        ttl = redis_breaker.call(_redis().ttl, f"{_LOCKOUT_PREFIX}{identifier}")
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def get_status(identifier: str) -> RateLimitInfo:
@@ -245,7 +320,13 @@ def reset(identifier: str) -> None:
 
 def is_register_locked(identifier: str) -> bool:
     """Return *True* if the identifier is locked for registration."""
-    return _redis().ttl(f"{_REGISTER_LOCKOUT_PREFIX}{identifier}") > 0
+    try:
+        ttl = redis_breaker.call(
+            _redis().ttl, f"{_REGISTER_LOCKOUT_PREFIX}{identifier}"
+        )
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def record_register_attempt(identifier: str) -> RateLimitInfo:
@@ -265,7 +346,13 @@ def record_register_attempt(identifier: str) -> RateLimitInfo:
 
 def is_password_reset_locked(identifier: str) -> bool:
     """Return *True* if the identifier is locked for password resets."""
-    return _redis().ttl(f"{_PASSWORD_RESET_LOCKOUT_PREFIX}{identifier}") > 0
+    try:
+        ttl = redis_breaker.call(
+            _redis().ttl, f"{_PASSWORD_RESET_LOCKOUT_PREFIX}{identifier}"
+        )
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def record_password_reset_attempt(identifier: str) -> RateLimitInfo:
@@ -285,7 +372,13 @@ def record_password_reset_attempt(identifier: str) -> RateLimitInfo:
 
 def is_resend_verification_locked(identifier: str) -> bool:
     """Return *True* if the identifier is locked for resend verification."""
-    return _redis().ttl(f"{_RESEND_VERIFICATION_LOCKOUT_PREFIX}{identifier}") > 0
+    try:
+        ttl = redis_breaker.call(
+            _redis().ttl, f"{_RESEND_VERIFICATION_LOCKOUT_PREFIX}{identifier}"
+        )
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def record_resend_verification_attempt(identifier: str) -> RateLimitInfo:
@@ -320,7 +413,11 @@ def record_click_attempt(identifier: str) -> RateLimitInfo:
 
 def is_ip_blocked(ip: str) -> bool:
     """Return *True* if the IP is currently locked due to too many failed logins."""
-    return _redis().ttl(f"{_IP_FAILED_LOCKOUT_PREFIX}{ip}") > 0
+    try:
+        ttl = redis_breaker.call(_redis().ttl, f"{_IP_FAILED_LOCKOUT_PREFIX}{ip}")
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def record_ip_failed(ip: str) -> RateLimitInfo:
@@ -340,7 +437,11 @@ def record_ip_failed(ip: str) -> RateLimitInfo:
 
 def is_ip_register_locked(ip: str) -> bool:
     """Return *True* if the IP is locked for new account registrations."""
-    return _redis().ttl(f"{_IP_REGISTER_LOCKOUT_PREFIX}{ip}") > 0
+    try:
+        ttl = redis_breaker.call(_redis().ttl, f"{_IP_REGISTER_LOCKOUT_PREFIX}{ip}")
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def record_ip_register(ip: str) -> RateLimitInfo:
@@ -360,7 +461,13 @@ def record_ip_register(ip: str) -> RateLimitInfo:
 
 def is_ip_password_reset_locked(ip: str) -> bool:
     """Return *True* if the IP is locked for password reset requests."""
-    return _redis().ttl(f"{_IP_PASSWORD_RESET_LOCKOUT_PREFIX}{ip}") > 0
+    try:
+        ttl = redis_breaker.call(
+            _redis().ttl, f"{_IP_PASSWORD_RESET_LOCKOUT_PREFIX}{ip}"
+        )
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def record_ip_password_reset(ip: str) -> RateLimitInfo:
@@ -380,7 +487,13 @@ def record_ip_password_reset(ip: str) -> RateLimitInfo:
 
 def is_ip_resend_verification_locked(ip: str) -> bool:
     """Return *True* if the IP is locked for resend-verification requests."""
-    return _redis().ttl(f"{_IP_RESEND_VERIFICATION_LOCKOUT_PREFIX}{ip}") > 0
+    try:
+        ttl = redis_breaker.call(
+            _redis().ttl, f"{_IP_RESEND_VERIFICATION_LOCKOUT_PREFIX}{ip}"
+        )
+        return ttl > 0
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        return False
 
 
 def record_ip_resend_verification(ip: str) -> RateLimitInfo:
