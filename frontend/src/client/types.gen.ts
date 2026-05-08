@@ -2774,6 +2774,20 @@ export type TranslationResult = {
 };
 
 /**
+ * Current-month Azure Translator character usage statistics.
+ */
+export type TranslatorUsageResponse = {
+    month: string;
+    characters_used: number;
+    quota_limit: number;
+    percentage_used: number;
+    alert_threshold_pct: number;
+    quota_reached: boolean;
+    alert_active: boolean;
+    redis_available: boolean;
+};
+
+/**
  * Request body for email unsubscribe.
  */
 export type UnsubscribeRequest = {
@@ -2926,6 +2940,8 @@ export type AdminTriggerJobData = {
 export type AdminTriggerJobResponse = ({
     [key: string]: (string);
 });
+
+export type AdminTranslatorUsageResponse = (TranslatorUsageResponse);
 
 export type ArticlesListArticlesData = {
     category?: (ArticleCategory | null);

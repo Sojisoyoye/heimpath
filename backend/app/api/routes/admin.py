@@ -10,8 +10,10 @@ from sqlmodel import Session
 from app.api.deps import get_current_active_superuser
 from app.core.database import AsyncSessionLocal
 from app.core.db import engine
+from app.schemas.admin import TranslatorUsageResponse
 from app.services.document_service import mark_stuck_documents_failed
 from app.services.portfolio_service import generate_recurring_transactions
+from app.services.quota_service import get_usage_stats
 from app.services.scheduler_service import get_last_run, record_job_run
 
 logger = logging.getLogger(__name__)
@@ -102,3 +104,12 @@ async def trigger_job(job_name: str) -> dict[str, str]:
         raise HTTPException(
             status_code=500, detail=f"Job '{job_name}' failed during manual trigger"
         ) from exc
+
+
+@router.get(
+    "/usage/translator",
+    dependencies=[Depends(get_current_active_superuser)],
+)
+def translator_usage() -> TranslatorUsageResponse:
+    """Return current-month Azure Translator character usage. Superuser-only."""
+    return TranslatorUsageResponse(**get_usage_stats())

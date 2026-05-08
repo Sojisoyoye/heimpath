@@ -374,8 +374,13 @@ class TranslationService:
             TranslationResult with translated text and metadata.
 
         Raises:
+            HTTPException(429): If the monthly character quota is exhausted.
             TranslationError: If translation fails.
         """
+        from app.services.quota_service import check_quota, record_usage
+
+        check_quota(len(text))
+
         try:
             response = await _breaker_async_call(
                 translator_breaker,
@@ -396,6 +401,8 @@ class TranslationService:
             detected = result.get("detectedLanguage", {})
             confidence = detected.get("score", 1.0)
             detected_lang = detected.get("language", source_language.value)
+
+            record_usage(len(text))
 
             return TranslationResult(
                 original_text=text,
@@ -561,6 +568,11 @@ class TranslationService:
                 translations=[], total_character_count=0, total_warnings=0
             )
 
+        from app.services.quota_service import check_quota, record_usage
+
+        total_char_count = sum(len(t) for t in texts)
+        check_quota(total_char_count)
+
         try:
             logger.debug(
                 "batch_translate: sending %d texts to Azure Translator", len(texts)
@@ -591,6 +603,9 @@ class TranslationService:
                 )
 
             translations: list[TranslationResponse] = []
+            # actual_chars: chars sent to Azure and successfully returned (quota billing).
+            # total_chars: all chars including partial-response placeholders (response metadata).
+            actual_chars = 0
             total_chars = 0
             total_warnings = 0
 
@@ -617,6 +632,7 @@ class TranslationService:
                     total_warnings += len(legal_warnings)
 
                 char_count = len(original_text)
+                actual_chars += char_count
                 total_chars += char_count
 
                 translations.append(
@@ -646,6 +662,8 @@ class TranslationService:
                         character_count=char_count,
                     )
                 )
+
+            record_usage(actual_chars)
 
             return BatchTranslationResponse(
                 translations=translations,
