@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useDashboardOverview } from "@/hooks/queries/useDashboardQueries"
 import { isLoggedIn } from "@/hooks/useAuth"
+import { useAuthSync } from "@/hooks/useAuthSync"
 import useCustomToast from "@/hooks/useCustomToast"
 import type { ActivityItem, ActivityType } from "@/models/dashboard"
 import { handleError } from "@/utils"
@@ -293,6 +294,7 @@ function UnverifiedEmailBanner(
 
 /** Default component. App shell with sidebar, header, and content area. */
 function Layout() {
+  useAuthSync()
   const { isUnverified, resendMutation } = useEmailVerification()
   const [dismissed, setDismissed] = useState(isBannerDismissed)
 

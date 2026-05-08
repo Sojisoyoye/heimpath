@@ -11,6 +11,7 @@ import {
 } from "@/client"
 import { queryClient } from "@/query/client"
 import { handleError } from "@/utils"
+import { broadcastLogout } from "./useAuthSync"
 import useCustomToast from "./useCustomToast"
 
 /**
@@ -70,6 +71,7 @@ const useAuth = (redirectTo?: string) => {
     } catch {
       // Ignore errors — proceed with client-side cleanup regardless
     }
+    broadcastLogout() // notify other open tabs to log out simultaneously
     queryClient.clear()
     localStorage.removeItem("heimpath-wizard-state")
     localStorage.removeItem("heimpath-wizard-step")
