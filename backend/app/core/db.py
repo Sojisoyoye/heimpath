@@ -8,10 +8,14 @@ from app.models import User, UserCreate
 from app.seed_glossary import seed_glossary
 from app.seed_laws import seed_laws
 
-# Pool sizing: max_connections per replica = (_POOL_SIZE + _POOL_MAX_OVERFLOW) * WEB_CONCURRENCY
-# With WEB_CONCURRENCY=2 and prod max_replicas=2: (_POOL_SIZE + _POOL_MAX_OVERFLOW) * 2 * 2
-# DB is Neon (pgBouncer-style pooler in session mode by default). In transaction-pooling mode
-# the held-connection ceiling is lower; confirm mode in Neon dashboard before scaling replicas.
+# Pool sizing assumptions (verify in Neon dashboard before scaling):
+#   - Neon pgBouncer mode: session pooling (Neon default for Direct connections).
+#     In session mode each SQLAlchemy connection maps 1:1 to a pgBouncer slot.
+#     In transaction mode the ceiling would be lower — switch to transaction mode
+#     for higher concurrency, but PreparedStatement support is disabled.
+#   - Neon Starter tier: 100 max connections via pgBouncer.
+#   - Effective max per deployment = (_POOL_SIZE + _POOL_MAX_OVERFLOW) * WEB_CONCURRENCY * max_replicas
+#     With WEB_CONCURRENCY=2 and max_replicas=2: (3+5)*2*2 = 32 connections (32% of Starter limit).
 _POOL_SIZE = 3
 _POOL_MAX_OVERFLOW = 5
 _POOL_TIMEOUT_SECONDS = 30
@@ -60,3 +64,20 @@ def init_db(session: Session) -> None:
     seed_professionals(session)
     seed_reviews(session)
     seed_glossary(session)
+
+
+def get_pool_stats() -> dict[str, int]:
+    """Return current DB connection pool statistics.
+
+    Use in admin endpoints and startup logging to surface pool pressure
+    before it becomes a service-degrading pool exhaustion event.
+    """
+    pool = engine.pool
+    return {
+        "pool_size": pool.size(),
+        "max_overflow": _POOL_MAX_OVERFLOW,
+        "effective_max_per_worker": _POOL_SIZE + _POOL_MAX_OVERFLOW,
+        "checked_out": pool.checkedout(),
+        "checked_in": pool.checkedin(),
+        "overflow": pool.overflow(),
+    }
