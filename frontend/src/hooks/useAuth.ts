@@ -11,6 +11,7 @@ import {
 } from "@/client"
 import { queryClient } from "@/query/client"
 import { handleError } from "@/utils"
+import { broadcastLogout } from "./useAuthSync"
 import useCustomToast from "./useCustomToast"
 
 /**
@@ -79,6 +80,8 @@ const useAuth = (redirectTo?: string) => {
         localStorage.removeItem(key)
       }
     }
+    // Notify other open tabs only after local cleanup is complete.
+    broadcastLogout()
     navigate({ to: "/login" })
   }
 
