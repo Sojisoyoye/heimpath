@@ -9,7 +9,6 @@ import fakeredis
 import pytest
 from fastapi import HTTPException
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -35,7 +34,7 @@ class TestMonthlyKey:
         key = _monthly_key()
         # e.g. "translator:chars:2026-05"
         assert key.startswith("translator:chars:")
-        suffix = key[len("translator:chars:"):]
+        suffix = key[len("translator:chars:") :]
         year, month = suffix.split("-")
         assert int(year) >= 2026
         assert 1 <= int(month) <= 12
@@ -112,9 +111,7 @@ class TestCheckQuota:
     def test_raises_429_when_at_limit(self, monkeypatch):
         from app.services import quota_service
 
-        monkeypatch.setattr(
-            quota_service, "get_current_usage", lambda: 1_900_000
-        )
+        monkeypatch.setattr(quota_service, "get_current_usage", lambda: 1_900_000)
         with pytest.raises(HTTPException) as exc_info:
             quota_service.check_quota(1)
         assert exc_info.value.status_code == 429
@@ -123,9 +120,7 @@ class TestCheckQuota:
     def test_raises_429_when_over_limit(self, monkeypatch):
         from app.services import quota_service
 
-        monkeypatch.setattr(
-            quota_service, "get_current_usage", lambda: 2_000_000
-        )
+        monkeypatch.setattr(quota_service, "get_current_usage", lambda: 2_000_000)
         with pytest.raises(HTTPException) as exc_info:
             quota_service.check_quota(1)
         assert exc_info.value.status_code == 429
@@ -139,7 +134,10 @@ class TestCheckQuota:
         monkeypatch.setattr(quota_service, "get_current_usage", lambda: 1_520_000)
         with caplog.at_level(logging.WARNING, logger="app.services.quota_service"):
             quota_service.check_quota(1)
-        assert any("quota" in r.message.lower() for r in caplog.records)
+        assert any(
+            "quota" in r.message.lower() and "chars used this month" in r.message
+            for r in caplog.records
+        )
 
     def test_passes_when_redis_unavailable(self, monkeypatch):
         from app.services import quota_service
@@ -196,8 +194,8 @@ class TestRecordUsage:
     def test_logs_warning_when_crossing_alert_threshold(self, caplog):
         import logging
 
-        from app.services.quota_service import _monthly_key, record_usage
         from app.core.config import settings
+        from app.services.quota_service import _monthly_key, record_usage
 
         # Seed so that after recording we cross the 80% threshold.
         alert_limit = int(
@@ -243,10 +241,23 @@ class TestGetUsageStats:
         assert "alert_threshold_pct" in stats
         assert "quota_reached" in stats
         assert "alert_active" in stats
+        assert "redis_available" in stats
+
+    def test_redis_available_false_when_redis_down(self, monkeypatch):
+        import redis as redis_lib
+
+        from app.services import quota_service
+
+        monkeypatch.setattr(quota_service, "get_current_usage", lambda: 0)
+        broken = MagicMock()
+        broken.ping.side_effect = redis_lib.RedisError("down")
+        with patch("app.services.quota_service.get_redis", return_value=broken):
+            stats = quota_service.get_usage_stats()
+        assert stats["redis_available"] is False
 
     def test_values(self, monkeypatch):
-        from app.services import quota_service
         from app.core.config import settings
+        from app.services import quota_service
 
         monkeypatch.setattr(quota_service, "get_current_usage", lambda: 950_000)
         stats = quota_service.get_usage_stats()
@@ -257,8 +268,8 @@ class TestGetUsageStats:
         assert stats["alert_active"] is False
 
     def test_quota_reached_flag(self, monkeypatch):
-        from app.services import quota_service
         from app.core.config import settings
+        from app.services import quota_service
 
         monkeypatch.setattr(
             quota_service,
@@ -269,8 +280,8 @@ class TestGetUsageStats:
         assert stats["quota_reached"] is True
 
     def test_alert_active_flag(self, monkeypatch):
-        from app.services import quota_service
         from app.core.config import settings
+        from app.services import quota_service
 
         alert_limit = int(
             settings.AZURE_TRANSLATOR_QUOTA_LIMIT

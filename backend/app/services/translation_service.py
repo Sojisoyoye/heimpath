@@ -603,6 +603,9 @@ class TranslationService:
                 )
 
             translations: list[TranslationResponse] = []
+            # actual_chars: chars sent to Azure and successfully returned (quota billing).
+            # total_chars: all chars including partial-response placeholders (response metadata).
+            actual_chars = 0
             total_chars = 0
             total_warnings = 0
 
@@ -629,6 +632,7 @@ class TranslationService:
                     total_warnings += len(legal_warnings)
 
                 char_count = len(original_text)
+                actual_chars += char_count
                 total_chars += char_count
 
                 translations.append(
@@ -659,7 +663,7 @@ class TranslationService:
                     )
                 )
 
-            record_usage(total_chars)
+            record_usage(actual_chars)
 
             return BatchTranslationResponse(
                 translations=translations,

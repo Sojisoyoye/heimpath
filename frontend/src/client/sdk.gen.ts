@@ -50,7 +50,7 @@ export class AdminService {
     /**
      * Translator Usage
      * Return current-month Azure Translator character usage. Superuser-only.
-     * @returns unknown Successful Response
+     * @returns TranslatorUsageResponse Successful Response
      * @throws ApiError
      */
     public static translatorUsage(): CancelablePromise<AdminTranslatorUsageResponse> {

@@ -10286,6 +10286,47 @@ export const TranslationResultSchema = {
     }
 } as const;
 
+export const TranslatorUsageResponseSchema = {
+    properties: {
+        month: {
+            type: 'string',
+            title: 'Month'
+        },
+        characters_used: {
+            type: 'integer',
+            title: 'Characters Used'
+        },
+        quota_limit: {
+            type: 'integer',
+            title: 'Quota Limit'
+        },
+        percentage_used: {
+            type: 'number',
+            title: 'Percentage Used'
+        },
+        alert_threshold_pct: {
+            type: 'integer',
+            title: 'Alert Threshold Pct'
+        },
+        quota_reached: {
+            type: 'boolean',
+            title: 'Quota Reached'
+        },
+        alert_active: {
+            type: 'boolean',
+            title: 'Alert Active'
+        },
+        redis_available: {
+            type: 'boolean',
+            title: 'Redis Available'
+        }
+    },
+    type: 'object',
+    required: ['month', 'characters_used', 'quota_limit', 'percentage_used', 'alert_threshold_pct', 'quota_reached', 'alert_active', 'redis_available'],
+    title: 'TranslatorUsageResponse',
+    description: 'Current-month Azure Translator character usage statistics.'
+} as const;
+
 export const UnsubscribeRequestSchema = {
     properties: {
         token: {

@@ -60,13 +60,12 @@ def get_current_usage() -> int:
         return 0
 
 
-def check_quota(char_count: int) -> None:  # noqa: ARG001  (kept for future use)
+def check_quota(_char_count: int) -> None:
     """Raise HTTP 429 when the current monthly usage has reached the limit.
 
-    The ``char_count`` argument is accepted for interface symmetry and future
-    pre-check use but the gate fires on the *current* stored total, not on
-    current + char_count, because the limit already includes a 5 % safety
-    buffer.
+    The ``_char_count`` argument is reserved for future pre-check use; the gate
+    fires on the *current* stored total because the limit already includes a 5 %
+    safety buffer to absorb race conditions between the check and the record.
 
     Raises:
         HTTPException(429): When monthly quota is exhausted.
@@ -130,9 +129,7 @@ def record_usage(char_count: int) -> None:
                 settings.AZURE_TRANSLATOR_QUOTA_LIMIT,
             )
     except (redis_lib.RedisError, RuntimeError):
-        logger.warning(
-            "quota_service: failed to record %d chars in Redis", char_count
-        )
+        logger.warning("quota_service: failed to record %d chars in Redis", char_count)
 
 
 def get_usage_stats() -> dict:
@@ -140,8 +137,14 @@ def get_usage_stats() -> dict:
 
     Returns:
         Dict with keys: month, characters_used, quota_limit, percentage_used,
-        alert_threshold_pct, quota_reached, alert_active.
+        alert_threshold_pct, quota_reached, alert_active, redis_available.
     """
+    redis_available = True
+    try:
+        get_redis().ping()
+    except (redis_lib.RedisError, RuntimeError):
+        redis_available = False
+
     current = get_current_usage()
     limit = settings.AZURE_TRANSLATOR_QUOTA_LIMIT
     alert_threshold = settings.AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD
@@ -154,4 +157,5 @@ def get_usage_stats() -> dict:
         "alert_threshold_pct": int(alert_threshold * 100),
         "quota_reached": current >= limit,
         "alert_active": current >= int(limit * alert_threshold),
+        "redis_available": redis_available,
     }
