@@ -10,6 +10,7 @@ from sqlmodel import Session, text
 from app.api.deps import get_current_active_superuser, get_db
 from app.core.circuit_breakers import (
     anthropic_breaker,
+    redis_breaker,
     stripe_breaker,
     translator_breaker,
 )
@@ -83,4 +84,5 @@ def circuit_breaker_health_check() -> dict[str, dict[str, int | str]]:
         "stripe": _state(stripe_breaker),
         "translator": _state(translator_breaker),
         "anthropic": _state(anthropic_breaker),
+        "redis": _state(redis_breaker),
     }

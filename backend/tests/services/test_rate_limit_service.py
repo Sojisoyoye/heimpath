@@ -1,11 +1,14 @@
 """Tests for rate limit service module-level functions."""
 
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import fakeredis
+import pybreaker
 import pytest
 
 from app.services.rate_limit_service import (
+    _REDIS_OPEN_INFO,
     CONTRACT_ANALYSIS_HOURLY_MAX,
     TRANSLATION_HOURLY_MAX,
     UPLOAD_BURST_MAX,
@@ -342,3 +345,49 @@ class TestRetryAfterSeconds:
             is_locked=True, attempts_remaining=0, lockout_expires_at=expires
         )
         assert retry_after_seconds(info) == 1
+
+
+# ── Redis circuit breaker behavior ────────────────────────────────────────────
+
+
+class TestRedisCircuitBreakerBehavior:
+    """Verify fail-open behavior when the Redis circuit breaker is open."""
+
+    def test_is_locked_returns_false_when_circuit_open(self) -> None:
+        with patch("app.services.rate_limit_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            assert is_locked("test@example.com") is False
+
+    def test_is_register_locked_returns_false_when_circuit_open(self) -> None:
+        with patch("app.services.rate_limit_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            assert is_register_locked("test@example.com") is False
+
+    def test_is_password_reset_locked_returns_false_when_circuit_open(self) -> None:
+        with patch("app.services.rate_limit_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            assert is_password_reset_locked("test@example.com") is False
+
+    def test_record_failed_attempt_returns_open_info_when_circuit_open(self) -> None:
+        with patch("app.services.rate_limit_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            info = record_failed_attempt("test@example.com")
+            assert info == _REDIS_OPEN_INFO
+            assert info.is_locked is False
+            assert info.attempts_remaining == 999
+
+    def test_get_status_returns_open_info_when_circuit_open(self) -> None:
+        with patch("app.services.rate_limit_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            info = get_status("test@example.com")
+            assert info == _REDIS_OPEN_INFO
+
+    def test_record_successful_login_does_not_raise_when_circuit_open(self) -> None:
+        with patch("app.services.rate_limit_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = pybreaker.CircuitBreakerError()
+            record_successful_login("test@example.com")  # must not raise
+
+    def test_redis_open_info_sentinel_values(self) -> None:
+        assert _REDIS_OPEN_INFO.is_locked is False
+        assert _REDIS_OPEN_INFO.attempts_remaining == 999
+        assert _REDIS_OPEN_INFO.lockout_expires_at is None

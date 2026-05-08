@@ -4,6 +4,7 @@ Each breaker protects one external integration:
 - stripe_breaker     — Stripe API (sync calls)
 - translator_breaker — Azure Translator API (async calls)
 - anthropic_breaker  — Anthropic Claude API (async calls)
+- redis_breaker      — Redis (sync calls; fail_max=10, reset_timeout=15)
 
 Usage at call sites::
 
@@ -78,6 +79,17 @@ anthropic_breaker = pybreaker.CircuitBreaker(
     fail_max=5,
     reset_timeout=60,
     name="anthropic",
+    listeners=[_listener],
+)
+
+# Redis has a higher fail_max (10) and shorter reset_timeout (15 s) because:
+# - Redis calls are very frequent (every auth + rate-limit check)
+# - Redis recovers quickly and we want to resume protection ASAP
+# - fail-open is already implemented in callers, so a short window is safe
+redis_breaker = pybreaker.CircuitBreaker(
+    fail_max=10,
+    reset_timeout=15,
+    name="redis",
     listeners=[_listener],
 )
 
