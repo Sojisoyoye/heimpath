@@ -591,17 +591,6 @@ class TestTranslationConfidenceThreshold:
 # ── Translation coverage gate tests ──────────────────────────────────────────
 
 
-def _make_partial_batch_result_mock(
-    confidences: list[float], total_sent: int
-) -> MagicMock:
-    """Create a mock batch result returning only len(confidences) of total_sent items."""
-    batch = MagicMock()
-    batch.translations = [_make_translation_mock(c) for c in confidences]
-    # total_sent is used to set up the pages fixture with more pages than responses
-    _ = total_sent  # referenced by caller to size pages list
-    return batch
-
-
 class TestTranslationCoverageGate:
     """Tests for partial translation coverage gate (Task #211)."""
 

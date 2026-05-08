@@ -363,6 +363,16 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                         include_legal_warnings=True,
                     )
 
+                    # Coverage gate — fail fast before mapping if Azure returned too few
+                    page_coverage = len(batch_result.translations) / len(page_texts)
+                    if page_coverage < settings.TRANSLATION_COVERAGE_THRESHOLD:
+                        raise RuntimeError(
+                            f"Incomplete page translation: "
+                            f"{len(batch_result.translations)}/{len(page_texts)} pages translated "
+                            f"(coverage={page_coverage:.1%}, "
+                            f"minimum={settings.TRANSLATION_COVERAGE_THRESHOLD:.0%})"
+                        )
+
                     # Map translations back to pages
                     text_idx = 0
                     for page in pages:
@@ -411,16 +421,6 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                             low_count,
                             len(page_confidences),
                             avg_confidence,
-                        )
-
-                    # Coverage gate — fail if Azure returned too few translations
-                    page_coverage = len(batch_result.translations) / len(page_texts)
-                    if page_coverage < settings.TRANSLATION_COVERAGE_THRESHOLD:
-                        raise RuntimeError(
-                            f"Incomplete page translation: "
-                            f"{len(batch_result.translations)}/{len(page_texts)} pages translated "
-                            f"(coverage={page_coverage:.1%}, "
-                            f"minimum={settings.TRANSLATION_COVERAGE_THRESHOLD:.0%})"
                         )
 
                 # Translate clause contexts
