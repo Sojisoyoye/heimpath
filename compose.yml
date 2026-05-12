@@ -160,10 +160,40 @@ services:
       - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
       - REDIS_URL=redis://:${REDIS_PASSWORD?Variable not set}@redis:6379
+      - SENTRY_DSN=${SENTRY_DSN}
       - AZURE_TRANSLATOR_KEY=${AZURE_TRANSLATOR_KEY}
       - AZURE_TRANSLATOR_REGION=${AZURE_TRANSLATOR_REGION}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - UPLOAD_DIR=${UPLOAD_DIR:-./uploads/documents}
+
+  celery-beat:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    restart: always
+    networks:
+      - default
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      prestart:
+        condition: service_completed_successfully
+    command: celery -A app.worker.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - REDIS_URL=redis://:${REDIS_PASSWORD?Variable not set}@redis:6379
+      - SENTRY_DSN=${SENTRY_DSN}
 
   frontend:
     image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
