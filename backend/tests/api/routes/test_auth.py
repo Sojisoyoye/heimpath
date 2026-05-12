@@ -576,3 +576,29 @@ def test_ip_rate_limit_not_cleared_on_success(client: TestClient, db: Session) -
         f"{AUTH}/login", json={"email": random_email(), "password": "WrongPass1"}
     )
     assert r.status_code == 429
+
+
+# ── refresh token lock (race condition guard) ─────────────────────────────────
+
+
+def test_refresh_returns_429_on_lock_contention(
+    client: TestClient, db: Session
+) -> None:
+    """POST /auth/refresh must return 429 when a concurrent rotation is in progress."""
+    from unittest.mock import patch
+
+    from app.services.auth_service import TokenRefreshConflictError
+
+    tokens = _register_and_login(client, db)
+
+    with patch(
+        "app.api.routes.auth.auth_service.refresh_access_token",
+        side_effect=TokenRefreshConflictError("test-jti"),
+    ):
+        r = client.post(
+            f"{AUTH}/refresh",
+            json={"refresh_token": tokens["refresh_token"]},
+        )
+
+    assert r.status_code == 429
+    assert r.json()["detail"] == "Token refresh in progress, please retry"

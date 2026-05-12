@@ -13,6 +13,7 @@ import redis as redis_lib
 from app.services.auth_service import (
     ALGORITHM,
     TokenData,
+    TokenRefreshConflictError,
     TokenType,
     blacklist_token,
     create_access_token,
@@ -356,3 +357,66 @@ class TestRedisCircuitBreakerBehavior:
                 )
             mock_logger.warning.assert_called_once()
             assert "grace window" in mock_logger.warning.call_args.args[0]
+
+
+# ── refresh token lock (race condition guard) ─────────────────────────────────
+
+
+class TestRefreshTokenLock:
+    """Distributed lock prevents two concurrent rotations of the same token."""
+
+    def test_raises_conflict_when_lock_already_held(
+        self, fake_redis_client: fakeredis.FakeRedis
+    ) -> None:
+        """If another process holds the rotation lock, raise TokenRefreshConflictError."""
+        refresh = create_refresh_token(subject=str(uuid.uuid4()))
+        payload = decode_token(refresh)
+        assert payload is not None
+        jti = payload["jti"]
+
+        # Simulate a concurrent process holding the lock
+        fake_redis_client.set(f"auth:refresh_lock:{jti}", "1", ex=35)
+
+        with pytest.raises(TokenRefreshConflictError):
+            refresh_access_token(refresh)
+
+    def test_lock_released_after_successful_refresh(
+        self, fake_redis_client: fakeredis.FakeRedis
+    ) -> None:
+        """Lock key must not persist in Redis after a successful rotation."""
+        refresh = create_refresh_token(subject=str(uuid.uuid4()))
+        payload = decode_token(refresh)
+        assert payload is not None
+        jti = payload["jti"]
+
+        result = refresh_access_token(refresh)
+
+        assert result is not None
+        assert not fake_redis_client.exists(f"auth:refresh_lock:{jti}")
+
+    def test_lock_released_after_failed_validation(
+        self, fake_redis_client: fakeredis.FakeRedis
+    ) -> None:
+        """Lock must be released even when the token is invalid after lock acquisition."""
+        # A hard-blacklisted token (no grace key) causes verify_token to return None
+        refresh = create_refresh_token(subject=str(uuid.uuid4()))
+        payload = decode_token(refresh)
+        assert payload is not None
+        jti = payload["jti"]
+        blacklist_token(jti, datetime.fromtimestamp(payload["exp"], tz=timezone.utc))
+
+        result = refresh_access_token(refresh)
+
+        assert result is None
+        assert not fake_redis_client.exists(f"auth:refresh_lock:{jti}")
+
+    def test_fail_open_when_redis_unavailable(self) -> None:
+        """When Redis cannot be reached, allow refresh to proceed without locking."""
+        refresh = create_refresh_token(subject=str(uuid.uuid4()))
+
+        with patch("app.services.auth_service.redis_breaker") as mock_breaker:
+            mock_breaker.call.side_effect = redis_lib.RedisError("unavailable")
+            # Should succeed (fail-open) rather than raising
+            result = refresh_access_token(refresh)
+
+        assert result is not None

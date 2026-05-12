@@ -34,6 +34,7 @@ from app.schemas.auth import (
     VerifyEmailResponse,
 )
 from app.services import auth_service, rate_limit_service
+from app.services.auth_service import TokenRefreshConflictError
 from app.services.email_verification_service import (
     TOKEN_EXPIRY_HOURS as EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
 )
@@ -339,7 +340,13 @@ async def refresh_token(
             detail="Invalid or expired refresh token",
         )
 
-    result = auth_service.refresh_access_token(token)
+    try:
+        result = auth_service.refresh_access_token(token)
+    except TokenRefreshConflictError:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Token refresh in progress, please retry",
+        )
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
