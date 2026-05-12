@@ -186,8 +186,13 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     scheduler.shutdown(wait=False)
 
 
-if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
-    sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
+if settings.SENTRY_DSN and settings.ENVIRONMENT in ("staging", "production"):
+    sentry_sdk.init(
+        dsn=str(settings.SENTRY_DSN),
+        environment=settings.ENVIRONMENT,
+        enable_tracing=True,
+        traces_sample_rate=1.0 if settings.ENVIRONMENT == "staging" else 0.1,
+    )
 
 IS_LOCAL_ENV = settings.ENVIRONMENT == "local"
 app = FastAPI(
