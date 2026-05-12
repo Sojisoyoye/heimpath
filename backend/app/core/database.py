@@ -6,9 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.core.config import settings
 
-_async_connect_args: dict[str, object] = (
-    {"ssl": True} if settings.ENVIRONMENT != "local" else {}
-)
+# asyncpg accepts server-side GUC overrides via server_settings.
+# statement_timeout is in milliseconds (same unit as DB_STATEMENT_TIMEOUT_MS).
+_async_connect_args: dict[str, object] = {
+    "server_settings": {"statement_timeout": str(settings.DB_STATEMENT_TIMEOUT_MS)},
+}
+if settings.ENVIRONMENT != "local":
+    _async_connect_args["ssl"] = True
 
 async_engine = create_async_engine(
     str(settings.ASYNC_DATABASE_URI),
