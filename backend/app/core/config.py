@@ -189,6 +189,8 @@ class Settings(BaseSettings):
     MAX_JSON_BODY_SIZE_BYTES: int = 1_048_576  # 1 MB
     DB_STATEMENT_TIMEOUT_MS: int = 10_000  # 10 seconds
     POOL_EXHAUSTION_BACKOFF_SECONDS: int = 5
+    REQUEST_TIMEOUT_SECONDS: int = 30  # default per-request wall-clock limit
+    DOCUMENT_REQUEST_TIMEOUT_SECONDS: int = 120  # extended limit for upload/translation
     MARKET_DATA_MAX_AGE_DAYS: int = 30
 
     # Email settings
