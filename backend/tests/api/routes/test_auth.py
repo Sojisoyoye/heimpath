@@ -8,6 +8,8 @@ Uses a real database (following project test patterns) and fakeredis to
 isolate Redis state between tests without requiring a running Redis instance.
 """
 
+from unittest.mock import patch
+
 import fakeredis
 import pytest
 from fastapi.testclient import TestClient
@@ -16,6 +18,7 @@ from sqlmodel import Session
 from app.core.config import settings
 from app.core.security import verify_password
 from app.crud import get_user_by_email
+from app.services.auth_service import TokenRefreshConflictError
 from app.services.email_verification_service import get_email_verification_service
 from app.services.password_reset_service import get_password_reset_service
 from app.services.rate_limit_service import IP_FAILED_LOCKOUT_SECONDS, IP_FAILED_MAX
@@ -585,10 +588,6 @@ def test_refresh_returns_429_on_lock_contention(
     client: TestClient, db: Session
 ) -> None:
     """POST /auth/refresh must return 429 when a concurrent rotation is in progress."""
-    from unittest.mock import patch
-
-    from app.services.auth_service import TokenRefreshConflictError
-
     tokens = _register_and_login(client, db)
 
     with patch(
