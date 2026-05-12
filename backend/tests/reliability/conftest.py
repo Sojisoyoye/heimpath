@@ -5,6 +5,8 @@ A minimal FastAPI app is provided for middleware-level tests so they
 are fully isolated from the real application database.
 """
 
+import asyncio
+
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -105,8 +107,6 @@ _MEDIUM_SLEEP = 0.2  # between the two: times out on default, passes on document
 @pytest.fixture(scope="module")
 def timeout_app() -> FastAPI:
     """Minimal FastAPI app wrapped with RequestTimeoutMiddleware for isolation."""
-    import asyncio
-
     from app.core.middleware import RequestTimeoutMiddleware
 
     app = FastAPI()

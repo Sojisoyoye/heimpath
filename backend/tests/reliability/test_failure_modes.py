@@ -702,6 +702,11 @@ class TestRequestTimeoutMiddleware:
         response = timeout_client.get("/slow")  # type: ignore[attr-defined]
         assert "timed out" in response.json()["detail"].lower()
 
+    def test_504_response_is_json(self, timeout_client: object) -> None:
+        """504 timeout response carries Content-Type: application/json."""
+        response = timeout_client.get("/slow")  # type: ignore[attr-defined]
+        assert "application/json" in response.headers.get("content-type", "")
+
     def test_fast_endpoint_passes_through(self, timeout_client: object) -> None:
         """Fast endpoints complete normally — middleware does not interfere."""
         response = timeout_client.get("/fast")  # type: ignore[attr-defined]

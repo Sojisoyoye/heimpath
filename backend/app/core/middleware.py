@@ -121,9 +121,10 @@ class ContentSizeLimitMiddleware:
 
 
 # Route path prefixes that require the extended document-processing timeout.
+# Derived from settings so they stay in sync if API_V1_STR is ever changed.
 _LONG_TIMEOUT_PREFIXES: tuple[str, ...] = (
-    "/api/v1/documents",
-    "/api/v1/translations",
+    f"{settings.API_V1_STR}/documents",
+    f"{settings.API_V1_STR}/translations",
 )
 
 _TIMEOUT_BODY = json.dumps(
