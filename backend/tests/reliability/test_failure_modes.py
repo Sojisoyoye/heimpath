@@ -5,6 +5,8 @@ database unavailability, AI service timeouts, invalid API responses,
 circuit breaker activation, and Redis outages.
 """
 
+import logging
+import os
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -462,3 +464,63 @@ class TestMiddlewareFailureModes:
         """GET requests with no body are never blocked by the size limiter."""
         response = middleware_client.get("/ping")  # type: ignore[attr-defined]
         assert response.status_code == 200
+
+
+# ── Startup configuration ─────────────────────────────────────────────────────
+
+_FAKE_POOL_STATS = {
+    "pool_size": 3,
+    "max_overflow": 5,
+    "effective_max_per_worker": 8,
+    "checked_out": 0,
+    "checked_in": 3,
+    "overflow": 0,
+}
+
+
+class TestStartupConfiguration:
+    """Startup logs must surface critical process configuration on every boot."""
+
+    @pytest.mark.asyncio
+    async def test_lifespan_logs_default_web_concurrency(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """When WEB_CONCURRENCY is not set, startup logs the safe default of 2."""
+        from app.main import app as fastapi_app
+        from app.main import lifespan
+
+        env_without_concurrency = {
+            k: v for k, v in os.environ.items() if k != "WEB_CONCURRENCY"
+        }
+
+        with (
+            patch.dict(os.environ, env_without_concurrency, clear=True),
+            patch("app.main.get_pool_stats", return_value=_FAKE_POOL_STATS),
+            patch("app.main.AsyncIOScheduler") as mock_sched_cls,
+        ):
+            mock_sched_cls.return_value = MagicMock()
+            with caplog.at_level(logging.INFO, logger="app.main"):
+                async with lifespan(fastapi_app):
+                    pass
+
+        assert any("WEB_CONCURRENCY=2" in r.message for r in caplog.records)
+
+    @pytest.mark.asyncio
+    async def test_lifespan_logs_configured_web_concurrency(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """When WEB_CONCURRENCY is set, startup logs the configured value."""
+        from app.main import app as fastapi_app
+        from app.main import lifespan
+
+        with (
+            patch.dict(os.environ, {"WEB_CONCURRENCY": "4"}),
+            patch("app.main.get_pool_stats", return_value=_FAKE_POOL_STATS),
+            patch("app.main.AsyncIOScheduler") as mock_sched_cls,
+        ):
+            mock_sched_cls.return_value = MagicMock()
+            with caplog.at_level(logging.INFO, logger="app.main"):
+                async with lifespan(fastapi_app):
+                    pass
+
+        assert any("WEB_CONCURRENCY=4" in r.message for r in caplog.records)

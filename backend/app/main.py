@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -155,6 +156,10 @@ async def _run_stuck_document_cleanup() -> None:
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("SECRET_KEY loaded, length=%d", len(settings.SECRET_KEY))
+    logger.info(
+        "Starting with WEB_CONCURRENCY=%s workers",
+        os.environ.get("WEB_CONCURRENCY", "2"),
+    )
     _stats = get_pool_stats()
     logger.info(
         "DB pool ready: size=%d, max_overflow=%d, effective_max=%d per worker",
