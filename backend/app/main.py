@@ -18,6 +18,7 @@ from app.api.main import api_router
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.core.db import engine, get_pool_stats
+from app.core.middleware import RequestTimeoutMiddleware
 from app.services.document_service import mark_stuck_documents_failed
 from app.services.portfolio_service import generate_recurring_transactions
 from app.services.scheduler_service import record_job_run
@@ -214,6 +215,10 @@ if settings.ENVIRONMENT != "local":
 
 # Reject oversized JSON bodies before any body bytes are read.
 app.add_middleware(_JsonBodySizeLimitMiddleware)
+
+# Cancel requests that exceed per-route wall-clock limits (default 30 s,
+# document/translation routes 120 s).  Must be outermost to wrap all others.
+app.add_middleware(RequestTimeoutMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
