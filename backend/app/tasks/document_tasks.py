@@ -118,11 +118,12 @@ async def _retry_failed_notifications_async() -> int:
                         _MAX_NOTIFICATION_RETRIES,
                     )
                     sentry_sdk.capture_message(
-                        f"Document notification permanently failed after {_MAX_NOTIFICATION_RETRIES} retries",
+                        "Document notification permanently failed",
                         level="error",
-                        extra={
+                        extras={
                             "document_id": str(document.id),
                             "user_id": str(document.user_id),
+                            "max_retries": _MAX_NOTIFICATION_RETRIES,
                         },
                     )
                     document.notification_retry_at = None
@@ -133,7 +134,13 @@ async def _retry_failed_notifications_async() -> int:
                         document.notification_failure_count,
                     )
                     document.notification_retry_at = now + timedelta(minutes=5)
-                await session.commit()
+                try:
+                    await session.commit()
+                except Exception:
+                    logger.exception(
+                        "Failed to persist retry tracking for document %s",
+                        document.id,
+                    )
 
     return attempted
 

@@ -18,19 +18,23 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlmodel import Session as SyncSession
 
 from app.core.config import settings
+from app.core.db import engine as sync_engine
 from app.models.document import (
     Document,
     DocumentStatus,
     DocumentTranslation,
     DocumentType,
 )
+from app.models.notification import NotificationType
 from app.schemas.translation import SupportedLanguage
 from app.services.clause_analyzer_service import analyze_kaufvertrag
 from app.services.clause_risk_analyzer_service import analyze_clause_risks
 from app.services.document_type_analyzer_service import analyze_document_type
 from app.services.glossary_linker_service import link_glossary_terms
+from app.services.notification_service import create_notification
 from app.services.translation_service import get_translation_service
 
 logger = logging.getLogger(__name__)
@@ -511,14 +515,8 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
 
             # Send notification about completed translation
             try:
-                from sqlmodel import Session as SyncSession
-
-                from app.core.db import engine as sync_engine
-                from app.models.notification import NotificationType
-                from app.services import notification_service
-
                 with SyncSession(sync_engine) as sync_session:
-                    notification_service.create_notification(
+                    create_notification(
                         sync_session,
                         user_id=document.user_id,
                         type=NotificationType.DOCUMENT_TRANSLATED,
@@ -528,7 +526,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                     )
             except Exception:
                 sentry_sdk.capture_exception(
-                    extra={
+                    extras={
                         "document_id": str(document_id),
                         "user_id": str(document.user_id),
                     }
@@ -563,14 +561,8 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
 
                     # Notify user that translation failed
                     try:
-                        from sqlmodel import Session as SyncSession
-
-                        from app.core.db import engine as sync_engine
-                        from app.models.notification import NotificationType
-                        from app.services import notification_service
-
                         with SyncSession(sync_engine) as sync_session:
-                            notification_service.create_notification(
+                            create_notification(
                                 sync_session,
                                 user_id=document.user_id,
                                 type=NotificationType.TRANSLATION_FAILED,
@@ -580,7 +572,7 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                             )
                     except Exception:
                         sentry_sdk.capture_exception(
-                            extra={
+                            extras={
                                 "document_id": str(document_id),
                                 "user_id": str(document.user_id),
                             }

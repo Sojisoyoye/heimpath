@@ -343,9 +343,7 @@ class TestProcessDocumentNotifications:
 
         with (
             patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
-            patch(
-                "app.services.notification_service.create_notification"
-            ) as mock_create,
+            patch("app.services.document_service.create_notification") as mock_create,
             patch("sqlmodel.Session", return_value=mock_sync_cm),
         ):
             await document_service.process_document(document_id, session_factory)
@@ -370,7 +368,7 @@ class TestProcessDocumentNotifications:
         with (
             patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
             patch(
-                "app.services.notification_service.create_notification",
+                "app.services.document_service.create_notification",
                 side_effect=Exception("notification DB unavailable"),
             ),
             patch("sqlmodel.Session", return_value=mock_sync_cm),
@@ -392,7 +390,7 @@ class TestProcessDocumentNotifications:
         with (
             patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
             patch(
-                "app.services.notification_service.create_notification",
+                "app.services.document_service.create_notification",
                 side_effect=Exception("SMTP unavailable"),
             ),
             patch("sqlmodel.Session", return_value=mock_sync_cm),
@@ -417,7 +415,7 @@ class TestProcessDocumentNotifications:
         with (
             patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
             patch(
-                "app.services.notification_service.create_notification",
+                "app.services.document_service.create_notification",
                 side_effect=Exception("SMTP unavailable"),
             ),
             patch("sqlmodel.Session", return_value=mock_sync_cm),
@@ -567,7 +565,7 @@ class TestTranslationConfidenceThreshold:
                 new=AsyncMock(return_value=[]),
             ),
             patch("sqlmodel.Session", return_value=mock_sync_cm),
-            patch("app.services.notification_service.create_notification"),
+            patch("app.services.document_service.create_notification"),
         ):
             await document_service.process_document(document_id, session_factory)
 
@@ -711,7 +709,7 @@ class TestTranslationCoverageGate:
                 new=AsyncMock(return_value=[]),
             ),
             patch("sqlmodel.Session", return_value=mock_sync_cm),
-            patch("app.services.notification_service.create_notification"),
+            patch("app.services.document_service.create_notification"),
         ):
             await document_service.process_document(document_id, session_factory)
 
@@ -843,7 +841,7 @@ class TestTranslationCoverageGate:
                 new=AsyncMock(return_value=[]),
             ),
             patch("sqlmodel.Session", return_value=mock_sync_cm),
-            patch("app.services.notification_service.create_notification"),
+            patch("app.services.document_service.create_notification"),
         ):
             await document_service.process_document(document_id, session_factory)
 

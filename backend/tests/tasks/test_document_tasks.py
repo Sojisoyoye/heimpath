@@ -151,6 +151,13 @@ class TestRetryFailedNotifications:
 
         mock_notify.assert_not_called()
 
+        # Verify the executed query filters on both notification tracking columns
+        mock_session.execute.assert_called_once()
+        stmt = mock_session.execute.call_args[0][0]
+        compiled = str(stmt.compile(compile_kwargs={"literal_binds": False}))
+        assert "notification_failure_count" in compiled
+        assert "notification_retry_at" in compiled
+
     @pytest.mark.asyncio
     async def test_increments_failure_count_and_reschedules_on_failure(self) -> None:
         """When retry still fails the count increments and retry_at is pushed forward."""
