@@ -155,6 +155,24 @@ def test_db_pool_stats_requires_authentication(client: TestClient) -> None:
 
 # ── Pool exhaustion graceful degradation ─────────────────────────────────────
 
+_SATURATED_POOL_STATS = {
+    "pool_size": 3,
+    "max_overflow": 5,
+    "effective_max_per_worker": 8,
+    "checked_out": 8,
+    "checked_in": 0,
+    "overflow": 5,
+}
+
+_HEALTHY_POOL_STATS = {
+    "pool_size": 3,
+    "max_overflow": 5,
+    "effective_max_per_worker": 8,
+    "checked_out": 0,
+    "checked_in": 3,
+    "overflow": 0,
+}
+
 
 def test_health_check_returns_503_with_retry_after_when_pool_exhausted(
     client: TestClient,
@@ -185,15 +203,7 @@ def test_health_check_returns_503_immediately_when_pool_stats_show_exhaustion(
     client: TestClient,
 ) -> None:
     """Health check fast-fails 503 when pool pre-check shows all slots occupied."""
-    saturated = {
-        "pool_size": 3,
-        "max_overflow": 5,
-        "effective_max_per_worker": 8,
-        "checked_out": 8,
-        "checked_in": 0,
-        "overflow": 5,
-    }
-    with patch("app.api.deps.get_pool_stats", return_value=saturated):
+    with patch("app.api.deps.get_pool_stats", return_value=_SATURATED_POOL_STATS):
         response = client.get(f"{settings.API_V1_STR}/utils/health-check/")
 
     assert response.status_code == 503
@@ -206,15 +216,33 @@ def test_health_check_503_detail_message_on_pool_exhaustion(
     client: TestClient,
 ) -> None:
     """503 from pool exhaustion includes a user-friendly detail message."""
-    saturated = {
-        "pool_size": 3,
-        "max_overflow": 5,
-        "effective_max_per_worker": 8,
-        "checked_out": 8,
-        "checked_in": 0,
-        "overflow": 5,
-    }
-    with patch("app.api.deps.get_pool_stats", return_value=saturated):
+    with patch("app.api.deps.get_pool_stats", return_value=_SATURATED_POOL_STATS):
         response = client.get(f"{settings.API_V1_STR}/utils/health-check/")
 
     assert "retry" in response.json()["detail"].lower()
+
+
+def test_get_db_returns_503_on_pool_timeout_error(client: TestClient) -> None:
+    """get_db catches PoolTimeoutError raised during session acquisition and returns 503."""
+    from sqlalchemy.exc import TimeoutError as PoolTimeoutError
+
+    class _TimeoutSession:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def __enter__(self) -> None:
+            raise PoolTimeoutError("pool timed out")
+
+        def __exit__(self, *args: object) -> bool:
+            return False
+
+    with (
+        patch("app.api.deps.get_pool_stats", return_value=_HEALTHY_POOL_STATS),
+        patch("app.api.deps.Session", _TimeoutSession),
+    ):
+        response = client.get(f"{settings.API_V1_STR}/utils/health-check/")
+
+    assert response.status_code == 503
+    assert response.headers.get("retry-after") == str(
+        settings.POOL_EXHAUSTION_BACKOFF_SECONDS
+    )

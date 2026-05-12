@@ -1,6 +1,6 @@
 import logging
 from collections.abc import AsyncGenerator, Generator
-from typing import Annotated
+from typing import Annotated, NoReturn
 
 import jwt
 import sentry_sdk
@@ -30,7 +30,7 @@ reusable_oauth2_optional = OAuth2PasswordBearer(
 )
 
 
-def _raise_pool_exhausted(stats: dict[str, int]) -> None:
+def _raise_pool_exhausted(stats: dict[str, int]) -> NoReturn:
     """Log pool exhaustion to Sentry and raise HTTP 503 with Retry-After."""
     logger.warning(
         "DB pool exhausted: checked_out=%d/%d",
@@ -63,11 +63,18 @@ def get_db() -> Generator[Session, None, None]:
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     """Provide async database session dependency."""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+    try:
+        async with AsyncSessionLocal() as session:
+            try:
+                yield session
+            finally:
+                await session.close()
+    except PoolTimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service temporarily unavailable — please retry in a moment",
+            headers={"Retry-After": str(settings.POOL_EXHAUSTION_BACKOFF_SECONDS)},
+        )
 
 
 SessionDep = Annotated[Session, Depends(get_db)]
