@@ -24,7 +24,20 @@ from app.services.redis_client import get_redis
 ALGORITHM = "HS256"
 _BLACKLIST_PREFIX = "auth:blacklist:"
 _GRACE_PREFIX = "auth:refresh_grace:"
+_REFRESH_LOCK_PREFIX = "auth:refresh_lock:"
 REFRESH_ROTATION_GRACE_SECONDS = 30
+# Lock TTL is slightly longer than the grace window so a lock set just before
+# the TTL check can never expire before the grace window is established.
+_REFRESH_LOCK_TTL_SECONDS = REFRESH_ROTATION_GRACE_SECONDS + 5
+
+
+class TokenRefreshConflictError(Exception):
+    """Raised when a concurrent rotation is already in progress for the token."""
+
+    def __init__(self, jti: str) -> None:
+        super().__init__(f"Refresh rotation already in progress for JTI {jti}")
+        self.jti = jti
+
 
 _logger = logging.getLogger(__name__)
 
@@ -232,6 +245,41 @@ def is_token_in_grace_period(jti: str) -> bool:
         return False
 
 
+def _acquire_refresh_lock(jti: str) -> bool:
+    """Acquire a distributed lock for refresh token rotation.
+
+    Uses Redis SET NX EX to atomically create the lock key only when it does
+    not already exist.  Returns *True* when the lock was acquired, *False*
+    when another process already holds it.
+
+    Fail-open: returns *True* (allow refresh) when Redis is unavailable so
+    that a Redis outage does not prevent users from refreshing their tokens.
+    """
+    key = f"{_REFRESH_LOCK_PREFIX}{jti}"
+    try:
+        return bool(
+            redis_breaker.call(
+                _redis().set, key, "1", nx=True, ex=_REFRESH_LOCK_TTL_SECONDS
+            )
+        )
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        _logger.warning(
+            "Redis unavailable — proceeding with refresh for JTI %s without lock",
+            jti,
+        )
+        return True
+
+
+def _release_refresh_lock(jti: str) -> None:
+    """Release the distributed rotation lock for *jti*."""
+    key = f"{_REFRESH_LOCK_PREFIX}{jti}"
+    try:
+        redis_breaker.call(_redis().delete, key)
+    except (pybreaker.CircuitBreakerError, redis_lib.RedisError):
+        # The TTL will clean up the key automatically; this is not fatal.
+        pass
+
+
 def _rotate_refresh_token(jti: str, expires_at: datetime) -> None:
     """Blacklist *jti* and set a short grace window for concurrent requests.
 
@@ -261,6 +309,10 @@ def refresh_access_token(refresh_token: str) -> tuple[str, str] | None:
     :data:`REFRESH_ROTATION_GRACE_SECONDS` grace window is set to handle
     concurrent requests that arrive with the same old token.
 
+    A distributed Redis lock (keyed on the token JTI) is held for the
+    duration of the rotation so that two truly simultaneous requests cannot
+    both issue new token pairs from the same old token.
+
     Args:
         refresh_token: A refresh token previously issued by
             :func:`create_refresh_token`.
@@ -268,22 +320,38 @@ def refresh_access_token(refresh_token: str) -> tuple[str, str] | None:
     Returns:
         ``(new_access_token, new_refresh_token)`` tuple, or *None* if the
         refresh token is invalid, expired, or past its grace window.
+
+    Raises:
+        TokenRefreshConflictError: When a concurrent rotation is already in
+            progress for the same token JTI.
     """
-    token_data = verify_token(refresh_token)
-    if token_data is None:
+    # Decode first (cheap) to obtain the JTI before acquiring the lock.
+    payload = decode_token(refresh_token)
+    if payload is None:
         return None
-    if token_data.type != TokenType.REFRESH:
+    jti = payload.get("jti")
+    if jti is None:
+        # Refresh tokens always carry a jti; reject if somehow missing.
         return None
-    if token_data.jti is None:
-        # Refresh tokens always carry a jti; reject if somehow missing
-        return None
-    _rotate_refresh_token(token_data.jti, token_data.exp)
-    new_access = create_access_token(subject=token_data.sub)
-    # New refresh token uses the default lifetime. The remember_me extended
-    # lifetime applies only to the initial login token; subsequent rotations
-    # issue standard 7-day tokens (users remain active via silent refresh).
-    new_refresh = create_refresh_token(subject=token_data.sub)
-    return new_access, new_refresh
+
+    if not _acquire_refresh_lock(jti):
+        raise TokenRefreshConflictError(jti)
+
+    try:
+        token_data = verify_token(refresh_token)
+        if token_data is None:
+            return None
+        if token_data.type != TokenType.REFRESH:
+            return None
+        _rotate_refresh_token(jti, token_data.exp)
+        new_access = create_access_token(subject=token_data.sub)
+        # New refresh token uses the default lifetime. The remember_me extended
+        # lifetime applies only to the initial login token; subsequent rotations
+        # issue standard 7-day tokens (users remain active via silent refresh).
+        new_refresh = create_refresh_token(subject=token_data.sub)
+        return new_access, new_refresh
+    finally:
+        _release_refresh_lock(jti)
 
 
 def logout(refresh_token: str) -> bool:
