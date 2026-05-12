@@ -36,7 +36,7 @@ def _raise_statement_timeout(exc: OperationalError) -> NoReturn:
     logger.warning("DB statement timeout: %s", exc)
     with sentry_sdk.new_scope() as scope:
         scope.set_tag("error_type", "statement_timeout")
-        sentry_sdk.capture_message("DB statement timeout", level="warning")
+        sentry_sdk.capture_exception(exc)
     raise HTTPException(
         status_code=status.HTTP_504_GATEWAY_TIMEOUT,
         detail="Database query timed out. Please try again later.",

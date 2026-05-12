@@ -633,3 +633,54 @@ class TestStatementTimeoutDegradation:
                 await gen.athrow(exc)
 
         assert exc_info.value.status_code == 504
+
+    @pytest.mark.asyncio
+    async def test_get_async_db_504_detail_includes_timed_out(self) -> None:
+        """504 from async statement timeout has a user-friendly detail message."""
+        from fastapi import HTTPException
+        from sqlalchemy.exc import OperationalError
+
+        from app.api.deps import get_async_db
+
+        mock_session = AsyncMock()
+        mock_ctx = AsyncMock()
+        mock_ctx.__aenter__.return_value = mock_session
+        mock_ctx.__aexit__.return_value = False
+
+        with patch("app.api.deps.AsyncSessionLocal", return_value=mock_ctx):
+            gen = get_async_db()
+            await gen.__anext__()
+
+            exc = OperationalError(
+                "statement",
+                None,
+                Exception("canceling statement due to statement timeout"),
+            )
+            with pytest.raises(HTTPException) as exc_info:
+                await gen.athrow(exc)
+
+        assert "timed out" in exc_info.value.detail.lower()
+
+    @pytest.mark.asyncio
+    async def test_get_async_db_reraises_non_timeout_operational_errors(self) -> None:
+        """get_async_db re-raises OperationalError not caused by statement timeout."""
+        from sqlalchemy.exc import OperationalError
+
+        from app.api.deps import get_async_db
+
+        mock_session = AsyncMock()
+        mock_ctx = AsyncMock()
+        mock_ctx.__aenter__.return_value = mock_session
+        mock_ctx.__aexit__.return_value = False
+
+        with patch("app.api.deps.AsyncSessionLocal", return_value=mock_ctx):
+            gen = get_async_db()
+            await gen.__anext__()
+
+            exc = OperationalError(
+                "connection lost",
+                None,
+                Exception("server closed the connection unexpectedly"),
+            )
+            with pytest.raises(OperationalError):
+                await gen.athrow(exc)
