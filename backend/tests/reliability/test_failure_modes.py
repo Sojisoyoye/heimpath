@@ -684,3 +684,44 @@ class TestStatementTimeoutDegradation:
             )
             with pytest.raises(OperationalError):
                 await gen.athrow(exc)
+
+
+# ── Request timeout middleware ────────────────────────────────────────────────
+
+
+class TestRequestTimeoutMiddleware:
+    """Requests exceeding their timeout ceiling must return HTTP 504."""
+
+    def test_slow_endpoint_returns_504(self, timeout_client: object) -> None:
+        """Endpoint that hangs indefinitely returns 504 after default timeout."""
+        response = timeout_client.get("/slow")  # type: ignore[attr-defined]
+        assert response.status_code == 504
+
+    def test_504_detail_message(self, timeout_client: object) -> None:
+        """504 response body includes a user-friendly 'timed out' message."""
+        response = timeout_client.get("/slow")  # type: ignore[attr-defined]
+        assert "timed out" in response.json()["detail"].lower()
+
+    def test_504_response_is_json(self, timeout_client: object) -> None:
+        """504 timeout response carries Content-Type: application/json."""
+        response = timeout_client.get("/slow")  # type: ignore[attr-defined]
+        assert "application/json" in response.headers.get("content-type", "")
+
+    def test_fast_endpoint_passes_through(self, timeout_client: object) -> None:
+        """Fast endpoints complete normally — middleware does not interfere."""
+        response = timeout_client.get("/fast")  # type: ignore[attr-defined]
+        assert response.status_code == 200
+
+    def test_document_route_uses_longer_timeout(self, timeout_client: object) -> None:
+        """Document routes stay alive beyond the default timeout ceiling."""
+        # /api/v1/documents/slow sleeps _MEDIUM_SLEEP (0.2s), which exceeds the
+        # default timeout (0.05s) but fits within the document timeout (0.5s).
+        response = timeout_client.get("/api/v1/documents/slow")  # type: ignore[attr-defined]
+        assert response.status_code == 200
+
+    def test_standard_route_with_medium_sleep_returns_504(
+        self, timeout_client: object
+    ) -> None:
+        """Same sleep on a non-document route exceeds the default timeout → 504."""
+        response = timeout_client.get("/medium")  # type: ignore[attr-defined]
+        assert response.status_code == 504

@@ -5,6 +5,8 @@ A minimal FastAPI app is provided for middleware-level tests so they
 are fully isolated from the real application database.
 """
 
+import asyncio
+
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -91,4 +93,53 @@ def exception_handler_app() -> FastAPI:
 @pytest.fixture(scope="module")
 def exception_client(exception_handler_app: FastAPI) -> TestClient:
     with TestClient(exception_handler_app, raise_server_exceptions=False) as c:
+        yield c  # type: ignore[misc]
+
+
+# ── Request timeout middleware app ───────────────────────────────────────────
+
+# Short timeouts used in tests to keep the suite fast.
+_TEST_DEFAULT_TIMEOUT = 0.05  # 50 ms — fast enough for CI
+_TEST_DOCUMENT_TIMEOUT = 0.5  # 500 ms — longer for the doc-route tests
+_MEDIUM_SLEEP = 0.2  # between the two: times out on default, passes on document
+
+
+@pytest.fixture(scope="module")
+def timeout_app() -> FastAPI:
+    """Minimal FastAPI app wrapped with RequestTimeoutMiddleware for isolation."""
+    from app.core.middleware import RequestTimeoutMiddleware
+
+    app = FastAPI()
+    app.add_middleware(
+        RequestTimeoutMiddleware,
+        default_timeout=_TEST_DEFAULT_TIMEOUT,
+        document_timeout=_TEST_DOCUMENT_TIMEOUT,
+    )
+
+    @app.get("/fast")
+    async def fast() -> dict:
+        return {"ok": True}
+
+    @app.get("/slow")
+    async def slow() -> dict:
+        await asyncio.sleep(60)
+        return {"ok": True}  # pragma: no cover
+
+    @app.get("/api/v1/documents/slow")
+    async def doc_slow() -> dict:
+        await asyncio.sleep(_MEDIUM_SLEEP)
+        return {"ok": True}
+
+    @app.get("/medium")
+    async def medium() -> dict:
+        await asyncio.sleep(_MEDIUM_SLEEP)
+        return {"ok": True}  # pragma: no cover
+
+    return app
+
+
+@pytest.fixture(scope="module")
+def timeout_client(timeout_app: FastAPI) -> TestClient:
+    """TestClient wrapping the timeout-middleware test app."""
+    with TestClient(timeout_app, raise_server_exceptions=False) as c:
         yield c  # type: ignore[misc]
