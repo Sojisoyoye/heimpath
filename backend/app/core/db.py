@@ -28,6 +28,13 @@ engine = create_engine(
     pool_timeout=_POOL_TIMEOUT_SECONDS,
     pool_pre_ping=True,  # validates connections before use; recovers after DB restarts
     pool_recycle=_POOL_RECYCLE_SECONDS,  # evict connections every 30 min before Azure drops them
+    # Enforce a per-statement wall-clock limit so runaway queries cannot hold a
+    # pool slot indefinitely.  PostgreSQL cancels the query and raises
+    # QueryCanceled; SQLAlchemy surfaces this as OperationalError which deps.py
+    # converts to HTTP 504.
+    connect_args={
+        "options": f"-c statement_timeout={settings.DB_STATEMENT_TIMEOUT_MS}"
+    },
 )
 
 
