@@ -9,7 +9,7 @@ celery_app = Celery(
     "heimpath",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.tasks.document_tasks"],
+    include=["app.tasks.document_tasks", "app.tasks.scheduled_tasks"],
 )
 celery_app.conf.update(
     task_serializer="json",
@@ -26,6 +26,14 @@ celery_app.conf.update(
         "retry-failed-notifications": {
             "task": "app.tasks.document_tasks.retry_failed_notifications",
             "schedule": crontab(minute="*/10"),  # every 10 minutes
+        },
+        "generate-recurring-transactions": {
+            "task": "app.tasks.scheduled_tasks.generate_recurring_transactions",
+            "schedule": crontab(day_of_week=1, hour=2, minute=0),  # Monday 02:00 UTC
+        },
+        "cleanup-stuck-documents": {
+            "task": "app.tasks.scheduled_tasks.cleanup_stuck_documents",
+            "schedule": crontab(minute="*/5"),  # every 5 minutes
         },
     },
 )

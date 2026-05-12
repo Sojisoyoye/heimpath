@@ -496,9 +496,7 @@ class TestStartupConfiguration:
         with (
             patch.dict(os.environ, env_without_concurrency, clear=True),
             patch("app.main.get_pool_stats", return_value=_FAKE_POOL_STATS),
-            patch("app.main.AsyncIOScheduler") as mock_sched_cls,
         ):
-            mock_sched_cls.return_value = MagicMock()
             with caplog.at_level(logging.INFO, logger="app.main"):
                 async with lifespan(fastapi_app):
                     pass
@@ -516,9 +514,7 @@ class TestStartupConfiguration:
         with (
             patch.dict(os.environ, {"WEB_CONCURRENCY": "4"}),
             patch("app.main.get_pool_stats", return_value=_FAKE_POOL_STATS),
-            patch("app.main.AsyncIOScheduler") as mock_sched_cls,
         ):
-            mock_sched_cls.return_value = MagicMock()
             with caplog.at_level(logging.INFO, logger="app.main"):
                 async with lifespan(fastapi_app):
                     pass

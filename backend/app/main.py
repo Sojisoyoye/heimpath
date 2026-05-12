@@ -5,23 +5,17 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
-from sqlmodel import Session
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.api.main import api_router
 from app.core.config import settings
-from app.core.database import AsyncSessionLocal
-from app.core.db import engine, get_pool_stats
+from app.core.db import get_pool_stats
 from app.core.middleware import RequestTimeoutMiddleware
-from app.services.document_service import mark_stuck_documents_failed
-from app.services.portfolio_service import generate_recurring_transactions
-from app.services.scheduler_service import record_job_run
 
 logger = logging.getLogger(__name__)
 
@@ -122,38 +116,6 @@ def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
 
-async def _run_recurring_generation() -> None:
-    """Scheduler job: open a DB session and generate recurring transactions."""
-    try:
-        with Session(engine) as session:
-            count = generate_recurring_transactions(session)
-        if count == 0:
-            logger.warning(
-                "recurring_generation produced 0 transactions — "
-                "verify that recurring portfolio entries exist"
-            )
-        else:
-            logger.info("Recurring transactions generated: %d", count)
-    except Exception as exc:
-        sentry_sdk.capture_exception(exc)
-        logger.exception("Recurring transaction generation failed")
-    finally:
-        record_job_run("recurring_generation")
-
-
-async def _run_stuck_document_cleanup() -> None:
-    """Scheduler job: mark stuck PROCESSING documents as FAILED."""
-    try:
-        async with AsyncSessionLocal() as session:
-            count = await mark_stuck_documents_failed(session)
-        if count:
-            logger.info("Stuck document cleanup: marked %d as failed", count)
-    except Exception:
-        logger.exception("Stuck document cleanup failed")
-    finally:
-        record_job_run("stuck_document_cleanup")
-
-
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info("SECRET_KEY loaded, length=%d", len(settings.SECRET_KEY))
@@ -168,22 +130,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         _stats["max_overflow"],
         _stats["effective_max_per_worker"],
     )
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        _run_recurring_generation,
-        trigger="cron",
-        day_of_week="mon",
-        hour=2,
-        timezone="UTC",
-    )
-    scheduler.add_job(
-        _run_stuck_document_cleanup,
-        trigger="interval",
-        minutes=5,
-    )
-    scheduler.start()
     yield
-    scheduler.shutdown(wait=False)
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT in ("staging", "production"):
