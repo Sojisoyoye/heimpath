@@ -59,7 +59,10 @@ class ROICalculationCreate(BaseModel):
     @model_validator(mode="after")
     def _down_payment_within_purchase_price(self) -> Self:
         if self.down_payment > self.purchase_price:
-            raise ValueError("down_payment cannot exceed purchase_price")
+            raise ValueError(
+                f"down_payment ({self.down_payment}) cannot exceed "
+                f"purchase_price ({self.purchase_price})"
+            )
         return self
 
 
