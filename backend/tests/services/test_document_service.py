@@ -378,6 +378,57 @@ class TestProcessDocumentNotifications:
             # Should not raise — notification errors are swallowed
             await document_service.process_document(document_id, session_factory)
 
+    @pytest.mark.asyncio
+    async def test_notification_failure_captures_to_sentry(self) -> None:
+        """On notification failure sentry_sdk.capture_exception is called with context."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+
+        mock_session, session_factory = _make_process_document_mocks(
+            document_id, user_id
+        )
+        mock_sync_cm = _make_sync_session_mock()
+
+        with (
+            patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
+            patch(
+                "app.services.notification_service.create_notification",
+                side_effect=Exception("SMTP unavailable"),
+            ),
+            patch("sqlmodel.Session", return_value=mock_sync_cm),
+            patch("app.services.document_service.sentry_sdk") as mock_sentry,
+        ):
+            await document_service.process_document(document_id, session_factory)
+
+        mock_sentry.capture_exception.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_notification_failure_sets_retry_fields(self) -> None:
+        """On notification failure notification_failure_count and notification_retry_at
+        are persisted on the document so the retry task can pick it up."""
+        document_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+
+        mock_session, session_factory = _make_process_document_mocks(
+            document_id, user_id
+        )
+        mock_sync_cm = _make_sync_session_mock()
+
+        with (
+            patch("asyncio.to_thread", side_effect=RuntimeError("disk error")),
+            patch(
+                "app.services.notification_service.create_notification",
+                side_effect=Exception("SMTP unavailable"),
+            ),
+            patch("sqlmodel.Session", return_value=mock_sync_cm),
+            patch("app.services.document_service.sentry_sdk"),
+        ):
+            await document_service.process_document(document_id, session_factory)
+
+        # The mock session should have been committed at least twice:
+        # once for FAILED status, once for notification retry tracking.
+        assert mock_session.commit.await_count >= 2
+
 
 # ── mark_stuck_documents_failed ───────────────────────────────────────────────
 
