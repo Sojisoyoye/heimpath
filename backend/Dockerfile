@@ -42,4 +42,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 WORKDIR /app/backend/
 
-CMD ["sh", "-c", "fastapi run --workers ${WEB_CONCURRENCY:-1} app/main.py"]
+CMD ["sh", "-c", "fastapi run --workers ${WEB_CONCURRENCY:-2} app/main.py"]
