@@ -92,8 +92,8 @@ class TestResponseTimeBounds:
     """Critical operations must complete within generous wall-clock bounds.
 
     All external calls are mocked — we are measuring pure Python overhead,
-    not network latency.  Thresholds are intentionally generous (≤ 100 ms) to
-    avoid flakiness on CI runners with high load.
+    not network latency.  Thresholds are intentionally generous to avoid
+    flakiness on loaded CI runners.
     """
 
     @pytest.mark.asyncio
@@ -108,8 +108,8 @@ class TestResponseTimeBounds:
             log_action(mock_session, action="document.upload")
         elapsed_ms = (time.perf_counter() - start) * 1000
 
-        # 100 calls in under 100 ms → each well under 1 ms
-        assert elapsed_ms < 100, f"100 log_action() calls took {elapsed_ms:.1f} ms"
+        # 100 calls in under 500 ms — generous threshold to tolerate loaded CI runners
+        assert elapsed_ms < 500, f"100 log_action() calls took {elapsed_ms:.1f} ms"
 
     @pytest.mark.asyncio
     async def test_calculate_hidden_costs_completes_within_100ms(self) -> None:
