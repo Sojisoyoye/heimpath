@@ -116,6 +116,12 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     celery_task_id = Column(String(50), nullable=True)  # Celery UUIDs are 36 chars
     processing_attempt = Column(Integer, nullable=False, default=0, server_default="0")
 
+    # Notification delivery tracking (for retry on failure)
+    notification_failure_count = Column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    notification_retry_at = Column(DateTime(timezone=True), nullable=True)
+
     # Sharing
     share_id = Column(String(12), unique=True, index=True, nullable=True)
 

@@ -13,26 +13,33 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import sentry_sdk
 from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlmodel import Session as SyncSession
 
 from app.core.config import settings
+from app.core.db import engine as sync_engine
 from app.models.document import (
     Document,
     DocumentStatus,
     DocumentTranslation,
     DocumentType,
 )
+from app.models.notification import NotificationType
 from app.schemas.translation import SupportedLanguage
 from app.services.clause_analyzer_service import analyze_kaufvertrag
 from app.services.clause_risk_analyzer_service import analyze_clause_risks
 from app.services.document_type_analyzer_service import analyze_document_type
 from app.services.glossary_linker_service import link_glossary_terms
+from app.services.notification_service import create_notification
 from app.services.translation_service import get_translation_service
 
 logger = logging.getLogger(__name__)
+
+_MAX_NOTIFICATION_RETRIES = 3
 
 
 # Regex patterns for German legal clause detection
@@ -508,14 +515,8 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
 
             # Send notification about completed translation
             try:
-                from sqlmodel import Session as SyncSession
-
-                from app.core.db import engine as sync_engine
-                from app.models.notification import NotificationType
-                from app.services import notification_service
-
                 with SyncSession(sync_engine) as sync_session:
-                    notification_service.create_notification(
+                    create_notification(
                         sync_session,
                         user_id=document.user_id,
                         type=NotificationType.DOCUMENT_TRANSLATED,
@@ -524,7 +525,26 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                         action_url=f"/documents/{document_id}",
                     )
             except Exception:
+                sentry_sdk.capture_exception(
+                    extras={
+                        "document_id": str(document_id),
+                        "user_id": str(document.user_id),
+                    }
+                )
                 logger.exception("Failed to send document translation notification")
+                try:
+                    document.notification_failure_count = (
+                        document.notification_failure_count or 0
+                    ) + 1
+                    document.notification_retry_at = datetime.now(
+                        timezone.utc
+                    ) + timedelta(minutes=5)
+                    await session.commit()
+                except Exception:
+                    logger.exception(
+                        "Failed to persist notification retry fields for document %s",
+                        document_id,
+                    )
 
         except Exception as e:
             logger.exception("Failed to process document %s", document_id)
@@ -541,14 +561,8 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
 
                     # Notify user that translation failed
                     try:
-                        from sqlmodel import Session as SyncSession
-
-                        from app.core.db import engine as sync_engine
-                        from app.models.notification import NotificationType
-                        from app.services import notification_service
-
                         with SyncSession(sync_engine) as sync_session:
-                            notification_service.create_notification(
+                            create_notification(
                                 sync_session,
                                 user_id=document.user_id,
                                 type=NotificationType.TRANSLATION_FAILED,
@@ -557,9 +571,28 @@ async def process_document(document_id: uuid.UUID, session_factory) -> None:  # 
                                 action_url=f"/documents/{document_id}",
                             )
                     except Exception:
+                        sentry_sdk.capture_exception(
+                            extras={
+                                "document_id": str(document_id),
+                                "user_id": str(document.user_id),
+                            }
+                        )
                         logger.exception(
                             "Failed to send translation failure notification"
                         )
+                        try:
+                            document.notification_failure_count = (
+                                document.notification_failure_count or 0
+                            ) + 1
+                            document.notification_retry_at = datetime.now(
+                                timezone.utc
+                            ) + timedelta(minutes=5)
+                            await session.commit()
+                        except Exception:
+                            logger.exception(
+                                "Failed to persist notification retry fields for document %s",
+                                document_id,
+                            )
             except Exception:
                 logger.exception("Failed to update document status to failed")
 
