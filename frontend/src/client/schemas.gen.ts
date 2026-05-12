@@ -7770,11 +7770,13 @@ export const PropertyEvaluationCalculateRequestSchema = {
         },
         square_meters: {
             type: 'number',
+            maximum: 10000,
             title: 'Square Meters',
             default: 0
         },
         purchase_price: {
             type: 'number',
+            maximum: 100000000,
             title: 'Purchase Price',
             default: 0
         },
@@ -8800,24 +8802,28 @@ export const ROICalculationCreateSchema = {
         },
         purchase_price: {
             type: 'number',
+            maximum: 100000000,
             exclusiveMinimum: 0,
             title: 'Purchase Price',
             description: 'Property purchase price in EUR'
         },
         down_payment: {
             type: 'number',
+            maximum: 100000000,
             minimum: 0,
             title: 'Down Payment',
             description: 'Down payment in EUR'
         },
         monthly_rent: {
             type: 'number',
+            maximum: 100000,
             exclusiveMinimum: 0,
             title: 'Monthly Rent',
             description: 'Monthly rental income in EUR'
         },
         monthly_expenses: {
             type: 'number',
+            maximum: 50000,
             minimum: 0,
             title: 'Monthly Expenses',
             description: 'Monthly operating expenses in EUR'
@@ -8838,7 +8844,7 @@ export const ROICalculationCreateSchema = {
         },
         mortgage_rate: {
             type: 'number',
-            maximum: 100,
+            maximum: 30,
             minimum: 0,
             title: 'Mortgage Rate',
             description: 'Annual mortgage interest rate %'

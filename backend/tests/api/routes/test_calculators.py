@@ -129,3 +129,128 @@ class TestCalculateEndpoint:
             json=_calculate_payload(purchase_price=-50_000),
         )
         assert r.status_code == 400
+
+    def test_rejects_purchase_price_above_max(self, client: TestClient) -> None:
+        """Test that purchase_price above 100M EUR returns 422."""
+        r = client.post(
+            f"{BASE}/calculate",
+            json=_calculate_payload(purchase_price=100_000_001.0),
+        )
+        assert r.status_code == 422
+
+    def test_purchase_price_at_max_boundary_returns_200(
+        self, client: TestClient
+    ) -> None:
+        """Test that purchase_price exactly at 100M EUR is accepted."""
+        r = client.post(
+            f"{BASE}/calculate",
+            json=_calculate_payload(purchase_price=100_000_000.0, square_meters=50.0),
+        )
+        assert r.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# ROI calculator range validation
+# ---------------------------------------------------------------------------
+
+ROI_BASE = f"{settings.API_V1_STR}/calculators/roi"
+
+
+def _roi_scenario(**overrides) -> dict:
+    """Return a valid ROICalculationCreate payload dict."""
+    base: dict = {
+        "purchase_price": 200_000.0,
+        "down_payment": 50_000.0,
+        "monthly_rent": 1_000.0,
+        "monthly_expenses": 200.0,
+        "annual_appreciation": 2.0,
+        "vacancy_rate": 5.0,
+        "mortgage_rate": 4.0,
+        "mortgage_term": 25,
+    }
+    base.update(overrides)
+    return base
+
+
+def _roi_compare_payload(scenario_overrides: dict | None = None) -> dict:
+    """Return a valid ROI compare request with two scenarios.
+
+    Overrides are applied only to the first scenario so a single-field
+    change is isolated and the second scenario stays valid.
+    """
+    s1 = _roi_scenario(**(scenario_overrides or {}))
+    s2 = _roi_scenario(purchase_price=300_000.0, down_payment=60_000.0)
+    return {"scenarios": [s1, s2]}
+
+
+class TestROIRangeValidation:
+    """Server-side range validation for ROI calculator inputs."""
+
+    def test_purchase_price_above_max_returns_422(self, client: TestClient) -> None:
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload({"purchase_price": 100_000_001.0}),
+        )
+        assert r.status_code == 422
+
+    def test_purchase_price_at_max_boundary_returns_200(
+        self, client: TestClient
+    ) -> None:
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload(
+                {"purchase_price": 100_000_000.0, "down_payment": 10_000_000.0}
+            ),
+        )
+        assert r.status_code == 200
+
+    def test_monthly_rent_above_max_returns_422(self, client: TestClient) -> None:
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload({"monthly_rent": 100_001.0}),
+        )
+        assert r.status_code == 422
+
+    def test_monthly_rent_at_max_boundary_returns_200(self, client: TestClient) -> None:
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload({"monthly_rent": 100_000.0}),
+        )
+        assert r.status_code == 200
+
+    def test_mortgage_rate_above_30_returns_422(self, client: TestClient) -> None:
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload({"mortgage_rate": 30.01}),
+        )
+        assert r.status_code == 422
+
+    def test_mortgage_rate_at_30_boundary_returns_200(self, client: TestClient) -> None:
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload({"mortgage_rate": 30.0}),
+        )
+        assert r.status_code == 200
+
+    def test_down_payment_exceeds_purchase_price_returns_422(
+        self, client: TestClient
+    ) -> None:
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload(
+                {"purchase_price": 100_000.0, "down_payment": 100_001.0}
+            ),
+        )
+        assert r.status_code == 422
+
+    def test_down_payment_equal_to_purchase_price_returns_200(
+        self, client: TestClient
+    ) -> None:
+        """100% cash purchase (down_payment == purchase_price) is valid."""
+        r = client.post(
+            f"{ROI_BASE}/compare",
+            json=_roi_compare_payload(
+                {"purchase_price": 200_000.0, "down_payment": 200_000.0}
+            ),
+        )
+        assert r.status_code == 200

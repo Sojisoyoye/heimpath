@@ -3,7 +3,15 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from typing_extensions import Self
+
+from app.constants.calculator import (
+    INTEREST_RATE_MAX_PERCENT,
+    MONTHLY_EXPENSES_MAX_EUR,
+    MONTHLY_RENT_MAX_EUR,
+    PROPERTY_PRICE_MAX_EUR,
+)
 
 
 class ROICalculationCreate(BaseModel):
@@ -11,12 +19,28 @@ class ROICalculationCreate(BaseModel):
 
     name: str | None = Field(None, max_length=255)
     purchase_price: float = Field(
-        ..., gt=0, description="Property purchase price in EUR"
+        ...,
+        gt=0,
+        le=PROPERTY_PRICE_MAX_EUR,
+        description="Property purchase price in EUR",
     )
-    down_payment: float = Field(..., ge=0, description="Down payment in EUR")
-    monthly_rent: float = Field(..., gt=0, description="Monthly rental income in EUR")
+    down_payment: float = Field(
+        ...,
+        ge=0,
+        le=PROPERTY_PRICE_MAX_EUR,
+        description="Down payment in EUR",
+    )
+    monthly_rent: float = Field(
+        ...,
+        gt=0,
+        le=MONTHLY_RENT_MAX_EUR,
+        description="Monthly rental income in EUR",
+    )
     monthly_expenses: float = Field(
-        ..., ge=0, description="Monthly operating expenses in EUR"
+        ...,
+        ge=0,
+        le=MONTHLY_EXPENSES_MAX_EUR,
+        description="Monthly operating expenses in EUR",
     )
     annual_appreciation: float = Field(
         ..., ge=0, le=100, description="Expected annual appreciation %"
@@ -25,9 +49,21 @@ class ROICalculationCreate(BaseModel):
         ..., ge=0, le=100, description="Expected vacancy rate %"
     )
     mortgage_rate: float = Field(
-        ..., ge=0, le=100, description="Annual mortgage interest rate %"
+        ...,
+        ge=0,
+        le=INTEREST_RATE_MAX_PERCENT,
+        description="Annual mortgage interest rate %",
     )
     mortgage_term: int = Field(..., ge=5, le=40, description="Mortgage term in years")
+
+    @model_validator(mode="after")
+    def _down_payment_within_purchase_price(self) -> Self:
+        if self.down_payment > self.purchase_price:
+            raise ValueError(
+                f"down_payment ({self.down_payment}) cannot exceed "
+                f"purchase_price ({self.purchase_price})"
+            )
+        return self
 
 
 class ProjectionYear(BaseModel):

@@ -7,6 +7,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
+from app.constants.calculator import PROPERTY_PRICE_MAX_EUR, SQUARE_METERS_MAX
 from app.services.property_evaluation_calculator import (
     AnnualCashflowRow,
     EvaluationResult,
@@ -71,8 +72,8 @@ class PropertyEvaluationCalculateRequest(BaseModel):
 
     # Property details
     address: str = ""
-    square_meters: float = 0.0
-    purchase_price: float = 0.0
+    square_meters: float = Field(default=0.0, le=SQUARE_METERS_MAX)
+    purchase_price: float = Field(default=0.0, le=PROPERTY_PRICE_MAX_EUR)
     rent_per_m2: float = 0.0
     parking_space_rent: float = 0.0
 
