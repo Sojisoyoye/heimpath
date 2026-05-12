@@ -76,6 +76,8 @@ def get_pool_stats() -> dict[str, int]:
     return {
         "pool_size": pool.size(),
         "max_overflow": _POOL_MAX_OVERFLOW,
+        # Per-process cap: pool_size + max_overflow per worker process.
+        # pool.checkedout() tracks this process's connections against the same limit.
         "effective_max_per_worker": _POOL_SIZE + _POOL_MAX_OVERFLOW,
         "checked_out": pool.checkedout(),
         "checked_in": pool.checkedin(),

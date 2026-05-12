@@ -46,7 +46,14 @@ jobs:
         run: bun install --frozen-lockfile
         working-directory: frontend
       - name: Run bun audit
-        run: bun audit --audit-level=high
+        # GHSA-rmmr-r34h-pfm5 affects @tanstack/history 1.161.9 & 1.161.12 only (malware).
+        # Our lockfile pins 1.161.6 which predates those versions. The npm advisory range
+        # is overly broad (>=0). Filter this known false positive.
+        # TODO: remove filter once https://github.com/advisories/GHSA-rmmr-r34h-pfm5 is corrected.
+        run: |
+          output=$(bun audit --audit-level=high 2>&1 || true)
+          printf '%s\n' "$output"
+          echo "$output" | grep -v "GHSA-rmmr-r34h-pfm5" | grep -qE "critical:|high:" && exit 1 || exit 0
         working-directory: frontend
 
   container-scan:
