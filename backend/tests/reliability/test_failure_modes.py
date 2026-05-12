@@ -524,3 +524,112 @@ class TestStartupConfiguration:
                     pass
 
         assert any("WEB_CONCURRENCY=4" in r.message for r in caplog.records)
+
+
+# ── Statement timeout degradation ────────────────────────────────────────────
+
+
+class TestStatementTimeoutDegradation:
+    """DB statement timeouts must surface as HTTP 504 Gateway Timeout."""
+
+    def test_get_db_converts_statement_timeout_to_504(self) -> None:
+        """get_db converts OperationalError('statement timeout') to HTTP 504."""
+        from fastapi import HTTPException
+        from sqlalchemy.exc import OperationalError
+
+        from app.api.deps import get_db
+
+        with patch("app.api.deps.get_pool_stats", return_value=_FAKE_POOL_STATS):
+            mock_ctx = MagicMock()
+            mock_ctx.__enter__.return_value = MagicMock()
+            mock_ctx.__exit__.return_value = False
+
+            with patch("app.api.deps.Session", return_value=mock_ctx):
+                gen = get_db()
+                next(gen)
+
+                exc = OperationalError(
+                    "statement",
+                    None,
+                    Exception("canceling statement due to statement timeout"),
+                )
+                with pytest.raises(HTTPException) as exc_info:
+                    gen.throw(exc)
+
+        assert exc_info.value.status_code == 504
+
+    def test_get_db_504_detail_includes_timed_out(self) -> None:
+        """504 from statement timeout has a user-friendly detail message."""
+        from fastapi import HTTPException
+        from sqlalchemy.exc import OperationalError
+
+        from app.api.deps import get_db
+
+        with patch("app.api.deps.get_pool_stats", return_value=_FAKE_POOL_STATS):
+            mock_ctx = MagicMock()
+            mock_ctx.__enter__.return_value = MagicMock()
+            mock_ctx.__exit__.return_value = False
+
+            with patch("app.api.deps.Session", return_value=mock_ctx):
+                gen = get_db()
+                next(gen)
+
+                exc = OperationalError(
+                    "statement",
+                    None,
+                    Exception("canceling statement due to statement timeout"),
+                )
+                with pytest.raises(HTTPException) as exc_info:
+                    gen.throw(exc)
+
+        assert "timed out" in exc_info.value.detail.lower()
+
+    def test_get_db_reraises_non_timeout_operational_errors(self) -> None:
+        """get_db re-raises OperationalError not caused by statement timeout."""
+        from sqlalchemy.exc import OperationalError
+
+        from app.api.deps import get_db
+
+        with patch("app.api.deps.get_pool_stats", return_value=_FAKE_POOL_STATS):
+            mock_ctx = MagicMock()
+            mock_ctx.__enter__.return_value = MagicMock()
+            mock_ctx.__exit__.return_value = False
+
+            with patch("app.api.deps.Session", return_value=mock_ctx):
+                gen = get_db()
+                next(gen)
+
+                exc = OperationalError(
+                    "connection lost",
+                    None,
+                    Exception("server closed the connection unexpectedly"),
+                )
+                with pytest.raises(OperationalError):
+                    gen.throw(exc)
+
+    @pytest.mark.asyncio
+    async def test_get_async_db_converts_statement_timeout_to_504(self) -> None:
+        """get_async_db converts OperationalError('statement timeout') to HTTP 504."""
+        from fastapi import HTTPException
+        from sqlalchemy.exc import OperationalError
+
+        from app.api.deps import get_async_db
+
+        mock_session = AsyncMock()
+        mock_ctx = AsyncMock()
+        mock_ctx.__aenter__.return_value = mock_session
+        mock_ctx.__aexit__.return_value = False
+
+        with patch("app.api.deps.AsyncSessionLocal", return_value=mock_ctx):
+            gen = get_async_db()
+            await gen.__anext__()
+
+            exc = OperationalError(
+                "statement",
+                None,
+                Exception("canceling statement due to statement timeout"),
+            )
+            with pytest.raises(HTTPException) as exc_info:
+                await gen.athrow(exc)
+
+        assert exc_info.value.status_code == 504

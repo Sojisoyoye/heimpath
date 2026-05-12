@@ -8,6 +8,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session
@@ -28,6 +29,18 @@ reusable_oauth2_optional = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token",
     auto_error=False,
 )
+
+
+def _raise_statement_timeout(exc: OperationalError) -> NoReturn:
+    """Log DB statement timeout to Sentry at WARNING and raise HTTP 504."""
+    logger.warning("DB statement timeout: %s", exc)
+    with sentry_sdk.new_scope() as scope:
+        scope.set_tag("error_type", "statement_timeout")
+        sentry_sdk.capture_message("DB statement timeout", level="warning")
+    raise HTTPException(
+        status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+        detail="Database query timed out. Please try again later.",
+    ) from exc
 
 
 def _raise_pool_exhausted(stats: dict[str, int]) -> NoReturn:
@@ -55,7 +68,12 @@ def get_db() -> Generator[Session, None, None]:
         _raise_pool_exhausted(stats)
     try:
         with Session(engine) as session:
-            yield session
+            try:
+                yield session
+            except OperationalError as exc:
+                if "statement timeout" in str(exc).lower():
+                    _raise_statement_timeout(exc)
+                raise
     except PoolTimeoutError:
         # Fallback for the race between pre-check and session acquisition.
         _raise_pool_exhausted(get_pool_stats())
@@ -67,6 +85,10 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
         async with AsyncSessionLocal() as session:
             try:
                 yield session
+            except OperationalError as exc:
+                if "statement timeout" in str(exc).lower():
+                    _raise_statement_timeout(exc)
+                raise
             finally:
                 await session.close()
     except PoolTimeoutError:
