@@ -425,8 +425,10 @@ class TestProcessDocumentNotifications:
         ):
             await document_service.process_document(document_id, session_factory)
 
-        # The mock session should have been committed at least twice:
-        # once for FAILED status, once for notification retry tracking.
+        doc = mock_session.execute.return_value.scalar_one_or_none.return_value
+        assert doc.notification_failure_count == 1
+        assert doc.notification_retry_at is not None
+        # committed at least twice: once for FAILED status, once for retry tracking
         assert mock_session.commit.await_count >= 2
 
 

@@ -10,9 +10,11 @@ from sqlalchemy import select
 from sqlmodel import Session as SyncSession
 
 from app.core.database import AsyncSessionLocal
+from app.core.db import engine as sync_engine
 from app.models.document import Document, DocumentStatus
 from app.models.notification import NotificationType
 from app.services import document_service, notification_service
+from app.services.document_service import _MAX_NOTIFICATION_RETRIES
 from app.worker import celery_app
 
 logger = logging.getLogger(__name__)
@@ -20,9 +22,6 @@ logger = logging.getLogger(__name__)
 # Maximum automated retries by the Celery worker (separate from user-initiated retries
 # controlled by MAX_USER_RETRIES in documents.py).
 _CELERY_MAX_RETRIES = 3
-
-# Maximum notification delivery retries before giving up and alerting Sentry.
-_MAX_NOTIFICATION_RETRIES = 3
 
 # Non-transient errors that must NOT be retried — they indicate a caller or data bug.
 _NON_RETRYABLE = (ValueError, TypeError)
@@ -79,8 +78,6 @@ async def _retry_failed_notifications_async() -> int:
         for document in documents:
             attempted += 1
             try:
-                from app.core.db import engine as sync_engine
-
                 notif_type = (
                     NotificationType.DOCUMENT_TRANSLATED
                     if document.status == DocumentStatus.COMPLETED.value
@@ -123,13 +120,18 @@ async def _retry_failed_notifications_async() -> int:
                     sentry_sdk.capture_message(
                         f"Document notification permanently failed after {_MAX_NOTIFICATION_RETRIES} retries",
                         level="error",
-                        extras={
+                        extra={
                             "document_id": str(document.id),
                             "user_id": str(document.user_id),
                         },
                     )
                     document.notification_retry_at = None
                 else:
+                    logger.exception(
+                        "Notification retry failed for document %s (attempt %d), rescheduling",
+                        document.id,
+                        document.notification_failure_count,
+                    )
                     document.notification_retry_at = now + timedelta(minutes=5)
                 await session.commit()
 
