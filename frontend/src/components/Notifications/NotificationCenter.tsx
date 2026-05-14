@@ -16,7 +16,11 @@ import {
 } from "@/hooks/mutations/useNotificationMutations"
 import { useNotifications } from "@/hooks/queries/useNotificationQueries"
 import type { Notification } from "@/models/notification"
-import { getRelativeTime, NOTIFICATION_ICONS } from "./notificationUtils"
+import {
+  getRelativeTime,
+  NOTIFICATION_ICONS,
+  navigateToActionUrl,
+} from "./notificationUtils"
 
 /******************************************************************************
                               Constants
@@ -45,7 +49,7 @@ function NotificationRow({ notification }: INotificationRowProps) {
       markRead.mutate(notification.id)
     }
     if (notification.actionUrl) {
-      navigate({ to: notification.actionUrl })
+      navigateToActionUrl(navigate, notification.actionUrl)
     }
   }
 
