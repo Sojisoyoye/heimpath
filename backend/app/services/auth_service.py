@@ -65,7 +65,13 @@ def _redis() -> redis_lib.Redis:
     """Return the shared Redis client (lazily initialised)."""
     global _redis_client
     if _redis_client is None:
-        _redis_client = get_redis()
+        try:
+            _redis_client = get_redis()
+        except RuntimeError as exc:
+            # Redis unavailable at startup (non-local env).  Convert to
+            # RedisError so all callers' existing except-clauses fail-open
+            # rather than propagating an unhandled RuntimeError as HTTP 500.
+            raise redis_lib.ConnectionError(str(exc)) from exc
     return _redis_client
 
 

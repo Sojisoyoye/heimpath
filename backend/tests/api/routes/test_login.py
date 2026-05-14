@@ -293,6 +293,34 @@ def test_legacy_login_ip_rate_limit_blocks_after_max_failures(
 # ── L3: password-recovery-html-content enumeration fix ───────────────────────
 
 
+def test_login_succeeds_when_redis_unavailable_at_startup(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Login must return 200 (not 500) when Redis is unreachable on first use.
+
+    Regression test for the bug where get_redis() raises RuntimeError in
+    non-local environments and the uncaught exception propagated to the global
+    500 handler instead of failing-open on rate limiting.
+    """
+    # Force _redis_client to None so _redis() calls get_redis() on next use.
+    monkeypatch.setattr("app.services.rate_limit_service._redis_client", None)
+    # Simulate Redis being unreachable: get_redis() raises RuntimeError.
+    monkeypatch.setattr(
+        "app.services.rate_limit_service.get_redis",
+        lambda: (_ for _ in ()).throw(
+            RuntimeError("Redis unavailable at redis://... in staging environment.")
+        ),
+    )
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    # Rate limiting must fail-open — login must still succeed, not 500.
+    assert r.status_code == 200, f"Expected 200 but got {r.status_code}: {r.text}"
+    assert "access_token" in r.json()
+
+
 def test_password_recovery_html_unknown_email_returns_200(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
