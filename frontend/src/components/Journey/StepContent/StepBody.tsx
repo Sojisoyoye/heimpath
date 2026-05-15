@@ -107,13 +107,15 @@ const STEP_CONTENT_REGISTRY: Record<
                               Components
 ******************************************************************************/
 
-/** Inline task list with progress for a step, split by task category. */
-function StepTasks(props: {
+interface IStepTasksProps {
   tasks: JourneyTask[]
   stepId: string
   stepStatus: StepStatus
   onToggle?: (stepId: string, taskId: string, isCompleted: boolean) => void
-}) {
+}
+
+/** Inline task list with progress for a step, split by task category. */
+function StepTasks(props: Readonly<IStepTasksProps>) {
   const { tasks, stepId, stepStatus, onToggle } = props
 
   const actionTasks = tasks.filter((t) => t.task_category === "action")
