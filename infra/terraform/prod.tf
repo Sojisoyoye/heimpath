@@ -48,6 +48,11 @@ resource "azurerm_container_app" "prod_backend" {
   resource_group_name          = azurerm_resource_group.prod.name
   revision_mode                = "Single"
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.prod_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -64,9 +69,11 @@ resource "azurerm_container_app" "prod_backend" {
     value = var.prod_postgres_password
   }
 
+  # secret-key is now read from Key Vault at runtime
   secret {
-    name  = "secret-key"
-    value = var.prod_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.prod_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.prod_backend.id
   }
 
   secret {
@@ -92,6 +99,33 @@ resource "azurerm_container_app" "prod_backend" {
     content {
       name  = "smtp-password"
       value = var.prod_smtp_password
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.prod_stripe_secret_key != "" ? [1] : []
+    content {
+      name                = "stripe-secret-key"
+      key_vault_secret_id = azurerm_key_vault_secret.prod_stripe_secret_key[0].versionless_id
+      identity            = azurerm_user_assigned_identity.prod_backend.id
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.prod_anthropic_api_key != "" ? [1] : []
+    content {
+      name                = "anthropic-api-key"
+      key_vault_secret_id = azurerm_key_vault_secret.prod_anthropic_api_key[0].versionless_id
+      identity            = azurerm_user_assigned_identity.prod_backend.id
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.prod_azure_translator_key != "" ? [1] : []
+    content {
+      name                = "azure-translator-key"
+      key_vault_secret_id = azurerm_key_vault_secret.prod_azure_translator_key[0].versionless_id
+      identity            = azurerm_user_assigned_identity.prod_backend.id
     }
   }
 
@@ -225,6 +259,30 @@ resource "azurerm_container_app" "prod_backend" {
           value = var.prod_emails_from_email
         }
       }
+
+      dynamic "env" {
+        for_each = var.prod_stripe_secret_key != "" ? [1] : []
+        content {
+          name        = "STRIPE_SECRET_KEY"
+          secret_name = "stripe-secret-key"
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.prod_anthropic_api_key != "" ? [1] : []
+        content {
+          name        = "ANTHROPIC_API_KEY"
+          secret_name = "anthropic-api-key"
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.prod_azure_translator_key != "" ? [1] : []
+        content {
+          name        = "AZURE_TRANSLATOR_KEY"
+          secret_name = "azure-translator-key"
+        }
+      }
     }
   }
 
@@ -301,6 +359,11 @@ resource "azurerm_container_app_job" "prod_migration" {
     replica_completion_count = 1
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.prod_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -318,8 +381,9 @@ resource "azurerm_container_app_job" "prod_migration" {
   }
 
   secret {
-    name  = "secret-key"
-    value = var.prod_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.prod_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.prod_backend.id
   }
 
   secret {
@@ -410,6 +474,11 @@ resource "azurerm_container_app_job" "prod_weekly_digest" {
     replica_completion_count = 1
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.prod_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -427,8 +496,9 @@ resource "azurerm_container_app_job" "prod_weekly_digest" {
   }
 
   secret {
-    name  = "secret-key"
-    value = var.prod_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.prod_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.prod_backend.id
   }
 
   dynamic "secret" {
@@ -546,6 +616,11 @@ resource "azurerm_container_app_job" "prod_deadline_reminders" {
     replica_completion_count = 1
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.prod_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -563,8 +638,9 @@ resource "azurerm_container_app_job" "prod_deadline_reminders" {
   }
 
   secret {
-    name  = "secret-key"
-    value = var.prod_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.prod_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.prod_backend.id
   }
 
   dynamic "secret" {
