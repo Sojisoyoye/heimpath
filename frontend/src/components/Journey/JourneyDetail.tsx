@@ -1,6 +1,6 @@
 /**
  * Journey Detail Component
- * Full journey view with all steps and progress
+ * Full journey view with phase-first navigation and all steps
  */
 
 import { Link, useNavigate } from "@tanstack/react-router"
@@ -14,7 +14,7 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react"
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { ApiError } from "@/client"
 import {
   FINANCING_TYPES,
@@ -36,16 +36,11 @@ import type {
   JourneyPhase,
   JourneyProgress,
   JourneyPublic,
-  JourneyStep,
 } from "@/models/journey"
 import { JourneyCompletionCta } from "./JourneyCompletionCta"
 import { JourneyProvider } from "./JourneyContext"
-import { PhaseCompletionCta } from "./PhaseCompletionCta"
-import { PhaseIconNav } from "./PhaseIconNav"
 import { ProgressBar } from "./ProgressBar"
-import { StepCard } from "./StepCard"
 import { StepTabView } from "./StepTabView"
-import { type ViewMode, ViewModeToggle } from "./ViewModeToggle"
 
 interface IProps {
   journey?: JourneyPublic
@@ -55,6 +50,8 @@ interface IProps {
   onDelete?: () => void
   isLoading?: boolean
   className?: string
+  /** Pre-select a phase on mount (e.g. from ?phase= deep-link). */
+  initialPhase?: JourneyPhase
 }
 
 /******************************************************************************
@@ -157,47 +154,6 @@ function JourneyOverview(props: {
   )
 }
 
-/** Compact phase progress bar replacing the full phase stepper. */
-function PhaseProgressBar(props: { journey: JourneyPublic }) {
-  const { journey } = props
-
-  const activePhases = useMemo(
-    () =>
-      JOURNEY_PHASES.filter((p) =>
-        journey.steps.some((s) => s.phase === p.key),
-      ),
-    [journey.steps],
-  )
-
-  const currentIdx = activePhases.findIndex(
-    (p) => p.key === journey.current_phase,
-  )
-  // Clamp to 0 so "Phase X of N" never shows "Phase 0" for an unknown phase.
-  const displayIdx = currentIdx >= 0 ? currentIdx : 0
-  const currentPhaseLabel =
-    activePhases[displayIdx]?.label ?? journey.current_phase
-
-  return (
-    <div className="flex items-center gap-3">
-      <p className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
-        Phase {displayIdx + 1} of {activePhases.length}{" "}
-        <span className="font-medium text-foreground">{currentPhaseLabel}</span>
-      </p>
-      <div className="flex w-32 shrink-0 gap-0.5">
-        {activePhases.map((phase, i) => (
-          <div
-            key={phase.key}
-            className={cn(
-              "h-1 flex-1 rounded-full transition-colors",
-              i <= displayIdx ? "bg-primary" : "bg-muted",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /** Loading skeleton for journey detail. */
 function JourneyDetailSkeleton() {
   return (
@@ -211,169 +167,13 @@ function JourneyDetailSkeleton() {
       </div>
       <Skeleton className="h-12 w-full" />
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4 lg:col-span-2">
           {["overview", "phase", "steps"].map((k) => (
             <Skeleton key={k} className="h-48 w-full" />
           ))}
         </div>
         <Skeleton className="h-96 w-full" />
       </div>
-    </div>
-  )
-}
-
-/** List view with phase completion CTAs between phase groups. */
-function StepListView(props: {
-  steps: JourneyStep[]
-  activeStepNumber: number
-  onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
-  onStepOpen?: (stepId: string) => void
-  onAddToPortfolio?: () => void
-}) {
-  const {
-    steps,
-    activeStepNumber,
-    onTaskToggle,
-    onStepOpen,
-    onAddToPortfolio,
-  } = props
-  const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({})
-
-  const handleContinueToPhase = useCallback((nextPhase: JourneyPhase) => {
-    phaseRefs.current[nextPhase]?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    })
-  }, [])
-
-  // Group all steps by phase, then order groups by canonical JOURNEY_PHASES order.
-  // This merges non-consecutive steps of the same phase into a single section,
-  // preventing the same phase header from appearing multiple times in the list.
-  const phaseGroups = useMemo(() => {
-    const phaseMap = new Map<JourneyPhase, JourneyStep[]>()
-    for (const step of steps) {
-      const existing = phaseMap.get(step.phase) ?? []
-      existing.push(step)
-      phaseMap.set(step.phase, existing)
-    }
-    return JOURNEY_PHASES.filter((p) =>
-      phaseMap.has(p.key as JourneyPhase),
-    ).map((p) => ({
-      phase: p.key as JourneyPhase,
-      steps: (phaseMap.get(p.key as JourneyPhase) ?? []).sort(
-        (a, b) => a.step_number - b.step_number,
-      ),
-    }))
-  }, [steps])
-
-  const activePhase =
-    steps.find((s) => s.step_number === activeStepNumber)?.phase ??
-    phaseGroups[0]?.phase ??
-    "research"
-
-  const navPhases = useMemo(
-    () =>
-      phaseGroups.map((g) => ({
-        key: g.phase,
-        label: JOURNEY_PHASES.find((p) => p.key === g.phase)?.label ?? g.phase,
-        stepCount: g.steps.length,
-      })),
-    [phaseGroups],
-  )
-
-  return (
-    <div className="space-y-4">
-      {/* Phase icon nav — click to scroll to that phase */}
-      <PhaseIconNav
-        phases={navPhases}
-        activePhase={activePhase}
-        onPhaseClick={(key) => handleContinueToPhase(key as JourneyPhase)}
-      />
-
-      {phaseGroups.map((group, groupIndex) => {
-        const isComplete = group.steps.every(
-          (s) => s.status === "completed" || s.status === "skipped",
-        )
-        const phaseLabel =
-          JOURNEY_PHASES.find((p) => p.key === group.phase)?.label ??
-          group.phase
-
-        // Find the phase containing the first incomplete step that comes after
-        // the current phase (by step_number). This ensures the CTA navigates to
-        // the section with the user's actual next step, rather than the canonical
-        // successor — which can differ for rent_out journeys where some phases
-        // have lower step_numbers than earlier canonical phases.
-        const currentPhaseOrder = JOURNEY_PHASES.findIndex(
-          (p) => p.key === group.phase,
-        )
-        const phasesAfterCurrent = new Set(
-          JOURNEY_PHASES.slice(currentPhaseOrder + 1).map((p) => p.key),
-        )
-        const nextPhaseByStepOrder = steps
-          .filter(
-            (s) =>
-              phasesAfterCurrent.has(s.phase) &&
-              s.status !== "completed" &&
-              s.status !== "skipped",
-          )
-          .sort((a, b) => a.step_number - b.step_number)[0]?.phase as
-          | JourneyPhase
-          | undefined
-
-        // Don't show the CTA if the next phase (by step order) has already started.
-        // Falls back to canonical next phase group if no step-order next is found.
-        const nextPhaseStartedGroup = nextPhaseByStepOrder
-          ? (phaseGroups.find((g) => g.phase === nextPhaseByStepOrder) ??
-            phaseGroups[groupIndex + 1])
-          : phaseGroups[groupIndex + 1]
-        const nextPhaseStarted =
-          nextPhaseStartedGroup?.steps.some(
-            (s) => s.status !== "not_started",
-          ) ?? false
-
-        return (
-          <div
-            key={group.phase}
-            ref={(el) => {
-              phaseRefs.current[group.phase] = el
-            }}
-            className="space-y-2"
-          >
-            {/* Phase section header */}
-            <div className="flex items-center gap-2 px-1 pt-2">
-              <span
-                className={cn(
-                  "inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold",
-                  PHASE_COLORS[group.phase],
-                )}
-              >
-                {phaseLabel}
-              </span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
-
-            {group.steps.map((step) => (
-              <StepCard
-                key={step.id}
-                step={step}
-                isActive={step.step_number === activeStepNumber}
-                showPhaseBadge={false}
-                onTaskToggle={onTaskToggle}
-                onStepOpen={onStepOpen}
-              />
-            ))}
-            {isComplete && !nextPhaseStarted && (
-              <PhaseCompletionCta
-                currentPhase={group.phase}
-                activePhaseKeys={navPhases.map((p) => p.key)}
-                onContinue={handleContinueToPhase}
-                nextPhaseKey={nextPhaseByStepOrder}
-                onAddToPortfolio={onAddToPortfolio}
-              />
-            )}
-          </div>
-        )
-      })}
     </div>
   )
 }
@@ -416,22 +216,13 @@ function JourneyDetail(props: IProps) {
     onDelete,
     isLoading = false,
     className,
+    initialPhase,
   } = props
 
   const navigate = useNavigate()
   const createFromJourney = useCreatePropertyFromJourney()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const { data: portfolioData } = usePortfolioProperties()
-
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    const stored = localStorage.getItem("heimpath-journey-view-mode")
-    return stored === "list" ? "list" : "tab"
-  })
-
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode)
-    localStorage.setItem("heimpath-journey-view-mode", mode)
-  }
 
   const handleAddToPortfolio = useCallback(() => {
     if (!journey) return
@@ -477,6 +268,26 @@ function JourneyDetail(props: IProps) {
     [journey, portfolioData],
   )
 
+  // Resolve the initial phase: prop takes precedence, then journey's current phase.
+  // Validate that the resolved phase actually has steps in this journey.
+  const resolvedInitialPhase = useMemo((): JourneyPhase | undefined => {
+    if (!journey) return undefined
+    const candidate = initialPhase ?? journey.current_phase
+    const hasSteps = journey.steps.some((s) => s.phase === candidate)
+    return hasSteps ? (candidate as JourneyPhase) : undefined
+  }, [initialPhase, journey])
+
+  // Compact phase position indicator — phases that actually have steps.
+  const activePhases = useMemo(
+    () =>
+      journey
+        ? JOURNEY_PHASES.filter((p) =>
+            journey.steps.some((s) => s.phase === p.key),
+          )
+        : [],
+    [journey],
+  )
+
   if (isLoading || !journey) {
     return <JourneyDetailSkeleton />
   }
@@ -488,6 +299,13 @@ function JourneyDetail(props: IProps) {
     PROPERTY_TYPES.find((p) => p.value === journey.property_type)?.label?.split(
       " ",
     )[0] || journey.property_type
+
+  const currentPhaseIdx = activePhases.findIndex(
+    (p) => p.key === journey.current_phase,
+  )
+  const displayIdx = currentPhaseIdx >= 0 ? currentPhaseIdx : 0
+  const currentPhaseLabel =
+    activePhases[displayIdx]?.label ?? journey.current_phase
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -539,11 +357,11 @@ function JourneyDetail(props: IProps) {
         </div>
       </div>
 
-      {/* Phase progress + view toggle — single row */}
-      <div className="flex items-center justify-between gap-3">
-        <PhaseProgressBar journey={journey} />
-        <ViewModeToggle viewMode={viewMode} onChange={handleViewModeChange} />
-      </div>
+      {/* Compact phase position indicator */}
+      <p className="text-xs text-muted-foreground">
+        Phase {displayIdx + 1} of {activePhases.length} —{" "}
+        <span className="font-medium text-foreground">{currentPhaseLabel}</span>
+      </p>
 
       {/* Completion / Portfolio CTA */}
       {isOwnershipComplete &&
@@ -556,37 +374,24 @@ function JourneyDetail(props: IProps) {
       {/* Main content */}
       <JourneyProvider journey={journey}>
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Steps */}
-          <div className="lg:col-span-2 space-y-4">
-            {viewMode === "list" ? (
-              <StepListView
-                steps={journey.steps}
-                activeStepNumber={journey.current_step_number}
-                onTaskToggle={onTaskToggle}
-                onStepOpen={onStepOpen}
-                onAddToPortfolio={
-                  isOwnershipComplete && !linkedPortfolioProperty
-                    ? handleAddToPortfolio
-                    : undefined
-                }
-              />
-            ) : (
-              <StepTabView
-                steps={journey.steps}
-                activeStepNumber={journey.current_step_number}
-                onTaskToggle={onTaskToggle}
-                onStepOpen={onStepOpen}
-                onAddToPortfolio={
-                  isOwnershipComplete && !linkedPortfolioProperty
-                    ? handleAddToPortfolio
-                    : undefined
-                }
-              />
-            )}
+          {/* Steps — phase tab bar is the primary navigation */}
+          <div className="space-y-4 lg:col-span-2">
+            <StepTabView
+              steps={journey.steps}
+              activeStepNumber={journey.current_step_number}
+              onTaskToggle={onTaskToggle}
+              onStepOpen={onStepOpen}
+              initialPhase={resolvedInitialPhase}
+              onAddToPortfolio={
+                isOwnershipComplete && !linkedPortfolioProperty
+                  ? handleAddToPortfolio
+                  : undefined
+              }
+            />
           </div>
 
           {/* Sidebar — comes after steps on mobile, natural order on desktop */}
-          <div className="order-last lg:order-none space-y-6">
+          <div className="order-last space-y-6 lg:order-none">
             <JourneyOverview journey={journey} progress={progress} />
           </div>
         </div>

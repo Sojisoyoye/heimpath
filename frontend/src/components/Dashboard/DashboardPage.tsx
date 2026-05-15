@@ -136,6 +136,7 @@ function JourneyOverviewCard(props: { journey: JourneyOverview }) {
               <Link
                 to="/journeys/$journeyId"
                 params={{ journeyId: journey.id }}
+                search={{ phase: undefined }}
               >
                 Continue
                 <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -293,6 +294,7 @@ function QuickActions(props: { journeyId?: string }) {
             <Link
               to="/journeys/$journeyId"
               params={{ journeyId: props.journeyId }}
+              search={{ phase: undefined }}
             >
               <MapIcon className="h-4 w-4 text-blue-600" />
               Continue Journey

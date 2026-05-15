@@ -1,10 +1,10 @@
 /**
  * Step Tab View Component
- * Phase icon buttons to filter steps, then lists matching steps as cards
- * Alternative to the list view for viewing journey steps
+ * Phase tab bar filters the step list to one phase at a time.
+ * Primary view for journey steps — supports deep-link and auto-advance.
  */
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { JOURNEY_PHASES } from "@/common/constants"
 import type { JourneyPhase, JourneyStep } from "@/models/journey"
 import { PhaseCompletionCta } from "./PhaseCompletionCta"
@@ -17,6 +17,8 @@ interface IProps {
   onTaskToggle: (stepId: string, taskId: string, isCompleted: boolean) => void
   onStepOpen?: (stepId: string) => void
   onAddToPortfolio?: () => void
+  /** Pre-select a phase on mount (e.g. from ?phase= deep-link). */
+  initialPhase?: JourneyPhase
 }
 
 /******************************************************************************
@@ -30,12 +32,15 @@ function StepTabView(props: IProps) {
     onTaskToggle,
     onStepOpen,
     onAddToPortfolio,
+    initialPhase,
   } = props
 
   const activeStep = steps.find((s) => s.step_number === activeStepNumber)
-  const defaultPhase = activeStep?.phase ?? "research"
+  const defaultPhase = initialPhase ?? activeStep?.phase ?? "research"
 
-  const [selectedPhase, setSelectedPhase] = useState<JourneyPhase>(defaultPhase)
+  const [selectedPhase, setSelectedPhase] = useState<JourneyPhase>(
+    defaultPhase as JourneyPhase,
+  )
 
   const stepsByPhase: Record<JourneyPhase, JourneyStep[]> = {
     research: [],
@@ -94,19 +99,36 @@ function StepTabView(props: IProps) {
     ? stepsByPhase[nextPhaseByStepOrder].some((s) => s.status !== "not_started")
     : false
 
+  // Auto-advance to the next incomplete phase when the current one is fully
+  // complete and the next phase hasn't started yet.
+  useEffect(() => {
+    if (isPhaseComplete && nextPhaseByStepOrder && !nextPhaseStarted) {
+      setSelectedPhase(nextPhaseByStepOrder)
+    }
+  }, [isPhaseComplete, nextPhaseByStepOrder, nextPhaseStarted])
+
   const handleContinueToPhase = (nextPhase: JourneyPhase) => {
     setSelectedPhase(nextPhase)
   }
 
+  // Build nav items with per-phase completion stats for the tab bar.
+  const navPhases = visiblePhases.map((p) => {
+    const phaseStepsForNav = stepsByPhase[p.key as JourneyPhase]
+    return {
+      key: p.key,
+      label: p.label,
+      stepCount: phaseStepsForNav.length,
+      completedSteps: phaseStepsForNav.filter(
+        (s) => s.status === "completed" || s.status === "skipped",
+      ).length,
+    }
+  })
+
   return (
     <div className="space-y-4">
-      {/* Phase icon buttons */}
+      {/* Phase tab bar — click to filter steps */}
       <PhaseIconNav
-        phases={visiblePhases.map((p) => ({
-          key: p.key,
-          label: p.label,
-          stepCount: stepsByPhase[p.key as JourneyPhase].length,
-        }))}
+        phases={navPhases}
         activePhase={effectivePhase}
         onPhaseClick={(key) => setSelectedPhase(key as JourneyPhase)}
       />

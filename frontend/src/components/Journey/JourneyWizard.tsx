@@ -271,6 +271,7 @@ function JourneyWizard(props: IProps) {
     navigate({
       to: "/journeys/$journeyId",
       params: { journeyId: createdJourney.id },
+      search: { phase: undefined },
     })
   }
 
