@@ -133,12 +133,11 @@ function StepTabView(props: IProps) {
   }, [isPhaseComplete, nextPhaseByStepOrder, nextPhaseStarted])
 
   // Switch to the programmatically requested phase (from the Next-Step Widget).
+  // Invalid phase keys are handled by effectivePhase's fallback, so no guard needed.
   useEffect(() => {
     if (!requestedPhase) return
-    if (visiblePhases.some((p) => p.key === requestedPhase)) {
-      setSelectedPhase(requestedPhase)
-    }
-  }, [requestedPhase, visiblePhases])
+    setSelectedPhase(requestedPhase)
+  }, [requestedPhase])
 
   // Scroll to the active step when the user switches phases.
   const activeCardRef = useRef<HTMLDivElement>(null)

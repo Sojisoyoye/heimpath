@@ -59,11 +59,7 @@ function NextStepWidget(props: IProps) {
   const totalSteps = progress?.total_steps ?? journey.total_steps
 
   return (
-    <Card
-      className={cn(
-        "sticky top-16 z-10 border-l-[3px] border-l-primary shadow-sm",
-      )}
-    >
+    <Card className="sticky top-16 z-10 border-l-[3px] border-l-primary shadow-sm">
       <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
         {/* Phase icon */}
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
