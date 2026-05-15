@@ -194,6 +194,7 @@ class JourneyStepResponse(JourneyStepBase):
     content_key: str | None = None
     related_laws: list[str] | None = None
     estimated_costs: dict[str, Any] | None = None
+    is_personalised: bool = False
     tasks: list[JourneyTaskResponse] = []
 
 
@@ -208,6 +209,7 @@ class JourneyStepSummary(BaseModel):
     title: str
     status: StepStatus
     estimated_duration_days: int | None = None
+    is_personalised: bool = False
 
 
 # Journey schemas

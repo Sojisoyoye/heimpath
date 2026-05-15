@@ -1443,6 +1443,7 @@ def generate_journey(
             prerequisites=prerequisites,
             related_laws=template.related_laws,
             estimated_costs=step_estimated_costs,
+            is_personalised=template.conditions is not None,
         )
         session.add(step)
         session.flush()

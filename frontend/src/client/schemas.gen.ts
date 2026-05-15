@@ -4432,6 +4432,11 @@ export const JourneyStepResponseSchema = {
             ],
             title: 'Estimated Costs'
         },
+        is_personalised: {
+            type: 'boolean',
+            title: 'Is Personalised',
+            default: false
+        },
         tasks: {
             items: {
                 '$ref': '#/components/schemas/JourneyTaskResponse'
@@ -4478,6 +4483,11 @@ export const JourneyStepSummarySchema = {
                 }
             ],
             title: 'Estimated Duration Days'
+        },
+        is_personalised: {
+            type: 'boolean',
+            title: 'Is Personalised',
+            default: false
         }
     },
     type: 'object',
