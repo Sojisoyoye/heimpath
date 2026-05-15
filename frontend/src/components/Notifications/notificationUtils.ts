@@ -69,6 +69,7 @@ export function navigateToActionUrl(
     navigate({
       to: "/journeys/$journeyId",
       params: { journeyId: journeyMatch[1] },
+      search: { phase: undefined },
     })
     return
   }
