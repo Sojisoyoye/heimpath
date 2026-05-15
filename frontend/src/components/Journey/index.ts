@@ -15,6 +15,7 @@ export { JourneySummary } from "./JourneySummary"
 // Wizard components
 export { JourneyWizard } from "./JourneyWizard"
 export { LocationSelector } from "./LocationSelector"
+export { NextStepWidget } from "./NextStepWidget"
 export { PhaseIndicator } from "./PhaseIndicator"
 export { ProgressBar } from "./ProgressBar"
 export { PropertyTypeSelector } from "./PropertyTypeSelector"
