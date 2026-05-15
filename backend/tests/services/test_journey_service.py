@@ -2276,6 +2276,28 @@ class TestBuyingStepTemplatesV2:
         assert signing_step.prerequisites is not None
         assert len(signing_step.prerequisites) == 1
 
+    def test_v2_financing_type_none_skips_both_step4_branches(self) -> None:
+        """When financing_type is None, both step-4 branches are excluded.
+
+        Neither 'Secure Your Financing' nor 'Prepare Proof of Funds' should
+        appear, and downstream steps (notary, signing) must still generate.
+        """
+        answers = QuestionnaireAnswers(
+            property_type=PropertyType.APARTMENT,
+            property_location="BE",
+            financing_type=None,
+            is_first_time_buyer=True,
+            has_german_residency=True,
+        )
+        steps = _generate_steps(answers)
+        titles = [s.title for s in steps]
+        assert "Secure Your Financing" not in titles
+        assert "Prepare Proof of Funds" not in titles
+        assert "Secure Final Loan Commitment" not in titles
+        # Core buying steps must still be generated
+        assert "Notary Selection & Contract Review" in titles
+        assert "Sign at the Notary" in titles
+
     def test_v2_buying_costs_is_personalized(self) -> None:
         """_personalize_buying_costs() is applied to the buying_costs step in v2.
 

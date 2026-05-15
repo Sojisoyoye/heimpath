@@ -980,6 +980,7 @@ BUYING_STEP_TEMPLATES_V2: list[StepTemplate] = [
         ],
         related_laws=["BGB §488-505 (Darlehensvertrag)"],
     ),
+    # Mutually exclusive with "Secure Your Financing" above — only one step 4 is generated per journey.
     StepTemplate(
         step_number=4,
         phase=JourneyPhase.PREPARATION,
@@ -2110,6 +2111,10 @@ def generate_journey(
             continue
 
         current_step += 1
+        assert template.step_number not in step_number_map, (
+            f"Duplicate template step_number {template.step_number} — "
+            "only one branch should be included per journey"
+        )
         step_number_map[template.step_number] = current_step
 
         # Map prerequisites to new step numbers
