@@ -4,7 +4,7 @@
  * Primary view for journey steps — supports deep-link and auto-advance.
  */
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { JOURNEY_PHASES } from "@/common/constants"
 import type { JourneyPhase, JourneyStep } from "@/models/journey"
 import { PhaseCompletionCta } from "./PhaseCompletionCta"
@@ -39,6 +39,20 @@ function StepTabView(props: IProps) {
   const defaultPhase = initialPhase ?? activeStep?.phase ?? "research"
 
   const [selectedPhase, setSelectedPhase] = useState<JourneyPhase>(defaultPhase)
+
+  // Track which step cards are expanded. Start with just the active step open.
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() =>
+    activeStep ? new Set([activeStep.id]) : new Set(),
+  )
+
+  const toggleStep = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const stepsByPhase: Record<JourneyPhase, JourneyStep[]> = {
     research: [],
@@ -105,6 +119,45 @@ function StepTabView(props: IProps) {
     }
   }, [isPhaseComplete, nextPhaseByStepOrder, nextPhaseStarted])
 
+  // Scroll to the active step when the user switches phases.
+  const activeCardRef = useRef<HTMLDivElement>(null)
+  const isInitialPhaseMount = useRef(true)
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: effectivePhase is the intentional trigger
+  useEffect(() => {
+    if (isInitialPhaseMount.current) {
+      isInitialPhaseMount.current = false
+      return
+    }
+    const timer = setTimeout(() => {
+      activeCardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      })
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [effectivePhase])
+
+  // Expand-all / collapse-all for the currently visible phase steps.
+  const allExpanded =
+    phaseSteps.length > 0 && phaseSteps.every((s) => expandedIds.has(s.id))
+
+  const handleToggleAll = () => {
+    if (allExpanded) {
+      setExpandedIds((prev) => {
+        const next = new Set(prev)
+        for (const s of phaseSteps) next.delete(s.id)
+        return next
+      })
+    } else {
+      setExpandedIds((prev) => {
+        const next = new Set(prev)
+        for (const s of phaseSteps) next.add(s.id)
+        return next
+      })
+    }
+  }
+
   const handleContinueToPhase = (nextPhase: JourneyPhase) => {
     setSelectedPhase(nextPhase)
   }
@@ -131,17 +184,36 @@ function StepTabView(props: IProps) {
         onPhaseClick={(key) => setSelectedPhase(key as JourneyPhase)}
       />
 
+      {/* Expand / collapse all toggle */}
+      {phaseSteps.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleToggleAll}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            {allExpanded ? "Collapse all" : "Expand all"}
+          </button>
+        </div>
+      )}
+
       {/* Steps for selected phase */}
-      {phaseSteps.map((step) => (
-        <StepCard
-          key={step.id}
-          step={step}
-          isActive={step.step_number === activeStepNumber}
-          showPhaseBadge={false}
-          onTaskToggle={onTaskToggle}
-          onStepOpen={onStepOpen}
-        />
-      ))}
+      {phaseSteps.map((step) => {
+        const isActiveStep = step.step_number === activeStepNumber
+        return (
+          <div key={step.id} ref={isActiveStep ? activeCardRef : undefined}>
+            <StepCard
+              step={step}
+              isActive={isActiveStep}
+              isExpanded={expandedIds.has(step.id)}
+              onToggleExpanded={() => toggleStep(step.id)}
+              showPhaseBadge={false}
+              onTaskToggle={onTaskToggle}
+              onStepOpen={onStepOpen}
+            />
+          </div>
+        )
+      })}
 
       {/* Phase completion CTA */}
       {isPhaseComplete && !nextPhaseStarted && (
