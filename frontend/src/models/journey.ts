@@ -35,6 +35,8 @@ export type ResidencyStatus =
   | "non_eu_resident"
   | "non_resident"
 
+export type TaskCategory = "action" | "resource" | "warning"
+
 export interface JourneyTask {
   id: string
   order: number
@@ -45,6 +47,7 @@ export interface JourneyTask {
   completed_at?: string
   resource_url?: string
   resource_type?: string
+  task_category: TaskCategory
 }
 
 export interface JourneyStep {

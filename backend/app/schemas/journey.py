@@ -12,6 +12,7 @@ from app.models.journey import (
     JourneyType,
     PropertyType,
     StepStatus,
+    TaskCategory,
 )
 
 # Market Insights schema (generated after Step 1 completion)
@@ -129,6 +130,7 @@ class JourneyTaskBase(BaseModel):
     is_required: bool = True
     resource_url: str | None = Field(default=None, max_length=500)
     resource_type: str | None = Field(default=None, max_length=50)
+    task_category: TaskCategory = TaskCategory.ACTION
 
 
 class JourneyTaskCreate(JourneyTaskBase):

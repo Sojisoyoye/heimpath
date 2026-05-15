@@ -4555,6 +4555,10 @@ export const JourneyTaskResponseSchema = {
             ],
             title: 'Resource Type'
         },
+        task_category: {
+            '$ref': '#/components/schemas/TaskCategory',
+            default: 'action'
+        },
         id: {
             type: 'string',
             format: 'uuid',
@@ -10133,6 +10137,13 @@ export const SupportedLanguagesResponseSchema = {
     required: ['languages'],
     title: 'SupportedLanguagesResponse',
     description: 'Response with list of supported languages.'
+} as const;
+
+export const TaskCategorySchema = {
+    type: 'string',
+    enum: ['action', 'resource', 'warning'],
+    title: 'TaskCategory',
+    description: 'Category of a journey task.'
 } as const;
 
 export const TokenSchema = {

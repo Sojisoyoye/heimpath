@@ -16,7 +16,9 @@ import type {
 } from "@/models/journey"
 import { useJourneyContext } from "../JourneyContext"
 import { ProgressBar } from "../ProgressBar"
+import { ResourceCard } from "../ResourceCard"
 import { TaskCheckbox } from "../TaskCheckbox"
+import { WarningCallout } from "../WarningCallout"
 import { FinanceCheck } from "./FinanceCheck"
 import { MarketInsights } from "./MarketInsights"
 import { MortgageComparison } from "./MortgageComparison"
@@ -105,17 +107,23 @@ const STEP_CONTENT_REGISTRY: Record<
                               Components
 ******************************************************************************/
 
-/** Inline task list with progress for a step. */
-function StepTasks(props: {
+interface IStepTasksProps {
   tasks: JourneyTask[]
   stepId: string
   stepStatus: StepStatus
   onToggle?: (stepId: string, taskId: string, isCompleted: boolean) => void
-}) {
+}
+
+/** Inline task list with progress for a step, split by task category. */
+function StepTasks(props: Readonly<IStepTasksProps>) {
   const { tasks, stepId, stepStatus, onToggle } = props
 
-  const completedTasks = tasks.filter((t) => t.is_completed).length
-  const totalTasks = tasks.length
+  const actionTasks = tasks.filter((t) => t.task_category === "action")
+  const resourceTasks = tasks.filter((t) => t.task_category === "resource")
+  const warningTasks = tasks.filter((t) => t.task_category === "warning")
+
+  const completedTasks = actionTasks.filter((t) => t.is_completed).length
+  const totalTasks = actionTasks.length
   const progressPercent =
     totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
   const isDisabled = stepStatus === "skipped"
@@ -126,25 +134,44 @@ function StepTasks(props: {
 
   return (
     <div className="space-y-3">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-muted-foreground">Tasks</span>
-          <span className="text-sm text-muted-foreground">
-            {completedTasks} of {totalTasks}
-          </span>
+      {warningTasks.length > 0 && <WarningCallout tasks={warningTasks} />}
+
+      {actionTasks.length > 0 && (
+        <div className="space-y-2">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-muted-foreground">Tasks</span>
+              <span className="text-sm text-muted-foreground">
+                {completedTasks} of {totalTasks}
+              </span>
+            </div>
+            <ProgressBar value={progressPercent} size="sm" />
+          </div>
+          <div className="space-y-2">
+            {actionTasks.map((task) => (
+              <TaskCheckbox
+                key={task.id}
+                task={task}
+                onToggle={handleToggle}
+                disabled={isDisabled}
+              />
+            ))}
+          </div>
         </div>
-        <ProgressBar value={progressPercent} size="sm" />
-      </div>
-      <div className="space-y-2">
-        {tasks.map((task) => (
-          <TaskCheckbox
-            key={task.id}
-            task={task}
-            onToggle={handleToggle}
-            disabled={isDisabled}
-          />
-        ))}
-      </div>
+      )}
+
+      {resourceTasks.length > 0 && (
+        <div className="space-y-2">
+          <span className="text-sm font-medium text-muted-foreground">
+            Resources
+          </span>
+          <div className="space-y-1.5">
+            {resourceTasks.map((task) => (
+              <ResourceCard key={task.id} task={task} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
