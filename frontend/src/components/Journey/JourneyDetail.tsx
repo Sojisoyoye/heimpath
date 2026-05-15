@@ -352,7 +352,7 @@ function JourneyDetail(props: IProps) {
             </div>
           </div>
           <p className="text-sm text-muted-foreground sm:text-base">
-            Your personalized property buying journey
+            Your personalized real estate journey
           </p>
         </div>
       </div>

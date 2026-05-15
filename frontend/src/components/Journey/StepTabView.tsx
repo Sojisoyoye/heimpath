@@ -38,9 +38,7 @@ function StepTabView(props: IProps) {
   const activeStep = steps.find((s) => s.step_number === activeStepNumber)
   const defaultPhase = initialPhase ?? activeStep?.phase ?? "research"
 
-  const [selectedPhase, setSelectedPhase] = useState<JourneyPhase>(
-    defaultPhase as JourneyPhase,
-  )
+  const [selectedPhase, setSelectedPhase] = useState<JourneyPhase>(defaultPhase)
 
   const stepsByPhase: Record<JourneyPhase, JourneyStep[]> = {
     research: [],

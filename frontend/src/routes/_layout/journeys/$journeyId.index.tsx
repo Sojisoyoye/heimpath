@@ -5,7 +5,7 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
-
+import { JOURNEY_PHASES } from "@/common/constants"
 import { DeleteJourneyDialog, JourneyDetail } from "@/components/Journey"
 import {
   useDeleteJourney,
@@ -21,18 +21,7 @@ import type { JourneyPhase } from "@/models/journey"
                               Route
 ******************************************************************************/
 
-const VALID_PHASES = new Set<string>([
-  "research",
-  "preparation",
-  "buying",
-  "closing",
-  "ownership",
-  "rental_setup",
-  "rental_search",
-  "rental_application",
-  "rental_contract",
-  "rental_move_in",
-])
+const VALID_PHASES = new Set<string>(JOURNEY_PHASES.map((p) => p.key))
 
 export const Route = createFileRoute("/_layout/journeys/$journeyId/")({
   component: JourneyDetailPage,
