@@ -25,6 +25,7 @@ import { DueDiligenceAndOffer } from "./DueDiligenceAndOffer"
 import { FinanceCheck } from "./FinanceCheck"
 import { FindAndEvaluateGuide } from "./FindAndEvaluateGuide"
 import { LoanCommitmentGuide } from "./LoanCommitmentGuide"
+import { ManagementAndFinanceSetup } from "./ManagementAndFinanceSetup"
 import { MarketInsights } from "./MarketInsights"
 import { MortgageComparison } from "./MortgageComparison"
 import { MortgagePreapproval } from "./MortgagePreapproval"
@@ -38,7 +39,9 @@ import { OwnershipTransferGuide } from "./OwnershipTransferGuide"
 import { PaymentAndTransferTaxGuide } from "./PaymentAndTransferTaxGuide"
 import { ProofOfFundsGuide } from "./ProofOfFundsGuide"
 import { PropertyEvaluationSummary } from "./PropertyEvaluationSummary"
+import { PropertyGoalsAndMarket } from "./PropertyGoalsAndMarket"
 import { PropertyGoalsForm } from "./PropertyGoalsForm"
+import { RegistrationAndInsurance } from "./RegistrationAndInsurance"
 import { RentalApplicationGuide } from "./RentalApplicationGuide"
 import { RentalContractReview } from "./RentalContractReview"
 import { RentalLandlordLaw } from "./RentalLandlordLaw"
@@ -48,6 +51,7 @@ import { RentalPropertyManagement } from "./RentalPropertyManagement"
 import { RentalSearchGuide } from "./RentalSearchGuide"
 import { RentalTaxStrategy } from "./RentalTaxStrategy"
 import { RentalYieldAnalysis } from "./RentalYieldAnalysis"
+import { SecureFinancing } from "./SecureFinancing"
 import { StepDocumentReview } from "./StepDocumentReview"
 
 interface IProps {
@@ -70,10 +74,13 @@ interface IStepContentProps {
   marketInsights?: MarketInsightsData
 }
 
+// v1 legacy keys — kept for backwards compatibility with existing journeys
+// v2 merged keys use dedicated composite components
 const STEP_CONTENT_REGISTRY: Record<
   string,
   (props: IStepContentProps) => ReactNode
 > = {
+  // v1 individual step keys
   finance_check: (p) => <FinanceCheck step={p.step} />,
   mortgage_preapproval: (p) => <MortgagePreapproval step={p.step} />,
   mortgage_comparison: (p) => <MortgageComparison step={p.step} />,
@@ -111,40 +118,21 @@ const STEP_CONTENT_REGISTRY: Record<
   rental_application_documents: (p) => <RentalApplicationGuide step={p.step} />,
   rental_contract_review: (p) => <RentalContractReview step={p.step} />,
   rental_move_in_checklist: (p) => <RentalMoveInGuide step={p.step} />,
+  // v2 merged keys
   property_goals_and_market: (p) => (
-    <div className="space-y-4">
-      <PropertyGoalsForm
-        journeyId={p.journeyId}
-        initialGoals={p.propertyGoals}
-        propertyLocation={p.propertyLocation}
-      />
-      <MarketInsights
-        propertyLocation={p.propertyLocation}
-        propertyType={p.propertyType}
-        budgetEuros={p.budgetEuros}
-        propertyGoals={p.propertyGoals}
-        marketInsights={p.marketInsights}
-      />
-    </div>
+    <PropertyGoalsAndMarket
+      journeyId={p.journeyId}
+      propertyLocation={p.propertyLocation}
+      propertyType={p.propertyType}
+      budgetEuros={p.budgetEuros}
+      propertyGoals={p.propertyGoals}
+      marketInsights={p.marketInsights}
+    />
   ),
-  secure_financing: (p) => (
-    <div className="space-y-4">
-      <FinanceCheck step={p.step} />
-      <MortgagePreapproval step={p.step} />
-      <MortgageComparison step={p.step} />
-    </div>
-  ),
-  registration_and_insurance: (p) => (
-    <div className="space-y-4">
-      <OwnershipRegistration step={p.step} />
-      <OwnershipInsurance step={p.step} />
-    </div>
-  ),
+  secure_financing: (p) => <SecureFinancing step={p.step} />,
+  registration_and_insurance: (p) => <RegistrationAndInsurance step={p.step} />,
   management_and_finance_setup: (p) => (
-    <div className="space-y-4">
-      <OwnershipManagement step={p.step} />
-      <OwnershipTaxFinance step={p.step} />
-    </div>
+    <ManagementAndFinanceSetup step={p.step} />
   ),
   find_and_evaluate_property: (p) => (
     <FindAndEvaluateGuide journeyId={p.journeyId} stepId={p.step.id} />
