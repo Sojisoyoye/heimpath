@@ -26,8 +26,14 @@ access, developer machine) exposes every secret at once.
 
 Adopt **Azure Key Vault** (standard tier) with **User-Assigned Managed Identity** for
 secrets management. Secrets are stored in Key Vault and injected into Container Apps and
-Jobs at runtime via Key Vault references — the secret values never appear in Terraform
-state or Container App configuration after the initial write.
+Jobs at runtime via Key Vault references — secret values no longer appear in Container App
+inline configuration, reducing the blast radius of a compromised resource group.
+
+> **Note:** `azurerm_key_vault_secret` resources store the `value` attribute in Terraform
+> state (marked sensitive; not printed to CLI). The Terraform state file in
+> `heimpathtfstate` still holds plaintext values for KV-managed secrets. Phase 2 will
+> evaluate managing secrets out-of-band and using `data "azurerm_key_vault_secret"` to
+> eliminate values from state entirely.
 
 ### Architecture
 
@@ -107,7 +113,9 @@ This prevents a staging credential from being used against production.
   At HeimPath's current scale this is negligible (<$1/month).
 - **Bootstrap complexity** — the first `terraform apply` must write the secrets into
   Key Vault before the Container App can start; CI pipelines must supply all secret
-  variables on initial provisioning.
+  variables on initial provisioning. Azure RBAC propagation can take 1-2 minutes after
+  the role assignment is created; on a fresh deployment the secret write may fail with
+  an insufficient-privileges error on the first apply and succeed on a re-run.
 - **Soft-delete behaviour** — deleted Key Vault secrets enter a soft-delete state;
   reprovisioning with the same name requires purging the old secret first (or using
   a new name). This is managed by Terraform's `azurerm_key_vault_secret` lifecycle.
