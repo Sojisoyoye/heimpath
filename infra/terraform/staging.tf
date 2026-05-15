@@ -40,6 +40,11 @@ resource "azurerm_container_app" "staging_backend" {
   resource_group_name          = azurerm_resource_group.staging.name
   revision_mode                = "Single"
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.staging_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -56,9 +61,11 @@ resource "azurerm_container_app" "staging_backend" {
     value = var.staging_postgres_password
   }
 
+  # secret-key is now read from Key Vault at runtime
   secret {
-    name  = "secret-key"
-    value = var.staging_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.staging_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.staging_backend.id
   }
 
   secret {
@@ -84,6 +91,33 @@ resource "azurerm_container_app" "staging_backend" {
     content {
       name  = "smtp-password"
       value = var.staging_smtp_password
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.staging_stripe_secret_key != "" ? [1] : []
+    content {
+      name                = "stripe-secret-key"
+      key_vault_secret_id = azurerm_key_vault_secret.staging_stripe_secret_key[0].versionless_id
+      identity            = azurerm_user_assigned_identity.staging_backend.id
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.staging_anthropic_api_key != "" ? [1] : []
+    content {
+      name                = "anthropic-api-key"
+      key_vault_secret_id = azurerm_key_vault_secret.staging_anthropic_api_key[0].versionless_id
+      identity            = azurerm_user_assigned_identity.staging_backend.id
+    }
+  }
+
+  dynamic "secret" {
+    for_each = var.staging_azure_translator_key != "" ? [1] : []
+    content {
+      name                = "azure-translator-key"
+      key_vault_secret_id = azurerm_key_vault_secret.staging_azure_translator_key[0].versionless_id
+      identity            = azurerm_user_assigned_identity.staging_backend.id
     }
   }
 
@@ -217,6 +251,30 @@ resource "azurerm_container_app" "staging_backend" {
           value = var.staging_emails_from_email
         }
       }
+
+      dynamic "env" {
+        for_each = var.staging_stripe_secret_key != "" ? [1] : []
+        content {
+          name        = "STRIPE_SECRET_KEY"
+          secret_name = "stripe-secret-key"
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.staging_anthropic_api_key != "" ? [1] : []
+        content {
+          name        = "ANTHROPIC_API_KEY"
+          secret_name = "anthropic-api-key"
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.staging_azure_translator_key != "" ? [1] : []
+        content {
+          name        = "AZURE_TRANSLATOR_KEY"
+          secret_name = "azure-translator-key"
+        }
+      }
     }
   }
 
@@ -293,6 +351,11 @@ resource "azurerm_container_app_job" "staging_migration" {
     replica_completion_count = 1
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.staging_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -310,8 +373,9 @@ resource "azurerm_container_app_job" "staging_migration" {
   }
 
   secret {
-    name  = "secret-key"
-    value = var.staging_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.staging_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.staging_backend.id
   }
 
   secret {
@@ -402,6 +466,11 @@ resource "azurerm_container_app_job" "staging_weekly_digest" {
     replica_completion_count = 1
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.staging_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -419,8 +488,9 @@ resource "azurerm_container_app_job" "staging_weekly_digest" {
   }
 
   secret {
-    name  = "secret-key"
-    value = var.staging_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.staging_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.staging_backend.id
   }
 
   dynamic "secret" {
@@ -538,6 +608,11 @@ resource "azurerm_container_app_job" "staging_deadline_reminders" {
     replica_completion_count = 1
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.staging_backend.id]
+  }
+
   registry {
     server               = "ghcr.io"
     username             = var.ghcr_username
@@ -555,8 +630,9 @@ resource "azurerm_container_app_job" "staging_deadline_reminders" {
   }
 
   secret {
-    name  = "secret-key"
-    value = var.staging_secret_key
+    name                = "secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.staging_secret_key.versionless_id
+    identity            = azurerm_user_assigned_identity.staging_backend.id
   }
 
   dynamic "secret" {
