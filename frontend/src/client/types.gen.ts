@@ -1283,6 +1283,7 @@ export type JourneyStepResponse = {
     estimated_costs?: ({
     [key: string]: unknown;
 } | null);
+    is_personalised?: boolean;
     tasks?: Array<JourneyTaskResponse>;
 };
 
@@ -1296,6 +1297,7 @@ export type JourneyStepSummary = {
     title: string;
     status: StepStatus;
     estimated_duration_days?: (number | null);
+    is_personalised?: boolean;
 };
 
 /**

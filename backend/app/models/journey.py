@@ -217,6 +217,13 @@ class JourneyStep(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         MutableList.as_mutable(JSONB), nullable=True
     )  # JSON array of step numbers
 
+    # Personalisation flag — True when the step was conditionally generated
+    # based on the user's questionnaire answers (e.g. mortgage-only steps,
+    # non-resident document steps). Drives the "Tailored for you" badge.
+    is_personalised = Column(
+        Boolean, default=False, nullable=False, server_default="false"
+    )
+
     # Relationships
     journey = relationship("Journey", back_populates="steps")
     tasks = relationship(

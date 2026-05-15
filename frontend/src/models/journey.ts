@@ -60,6 +60,8 @@ export interface JourneyStep {
   content_key?: string
   related_laws?: string
   estimated_costs?: Record<string, string>
+  /** True when this step was conditionally generated from the user's questionnaire answers. */
+  is_personalised: boolean
   tasks: JourneyTask[]
 }
 

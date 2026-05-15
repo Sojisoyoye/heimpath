@@ -3,7 +3,7 @@
  * Collapsible journey step with status, dynamic content, and tasks
  */
 
-import { Check, ChevronRight, Circle, Clock } from "lucide-react"
+import { Check, ChevronRight, Circle, Clock, Sparkles } from "lucide-react"
 import { useState } from "react"
 
 import { JOURNEY_PHASES, PHASE_COLORS } from "@/common/constants"
@@ -16,6 +16,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { JourneyStep, StepStatus } from "@/models/journey"
 import { STEP_CONTENT_REGISTRY, StepBody } from "./StepContent/StepBody"
 
@@ -168,7 +173,20 @@ function StepCard(props: IProps) {
           <CardTitle className="min-w-0 truncate text-sm" title={step.title}>
             {step.title}
           </CardTitle>
-          <div className="ml-auto shrink-0">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            {step.is_personalised && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400">
+                    <Sparkles className="h-3 w-3" />
+                    For you
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" sideOffset={6}>
+                  This step was added based on your questionnaire answers
+                </TooltipContent>
+              </Tooltip>
+            )}
             <StatusBadge status={step.status} />
           </div>
         </div>
