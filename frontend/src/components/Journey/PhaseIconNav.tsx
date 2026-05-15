@@ -1,12 +1,14 @@
 /**
  * Phase Icon Navigation
- * Shared row of icon buttons for navigating between journey phases.
- * Used in both list view (scroll-to) and tab view (filter).
+ * Scrollable tab bar for navigating between journey phases.
+ * Each tab shows the phase icon, label, and completion status.
+ * Used as the primary phase navigation in the journey detail view.
  */
 
 import type { LucideIcon } from "lucide-react"
 import {
   BookOpen,
+  CheckCircle2,
   ClipboardList,
   DoorOpen,
   FileCheck,
@@ -19,16 +21,12 @@ import {
 } from "lucide-react"
 import { PHASE_COLORS } from "@/common/constants"
 import { cn } from "@/common/utils"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 interface IPhaseItem {
   key: string
   label: string
   stepCount: number
+  completedSteps: number
 }
 
 interface IProps {
@@ -62,38 +60,42 @@ function PhaseIconNav(props: IProps) {
   const { phases, activePhase, onPhaseClick } = props
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="-mx-1 flex gap-1.5 overflow-x-auto pb-1">
       {phases.map((phase) => {
         const Icon = PHASE_ICONS[phase.key] ?? BookOpen
         const isActive = activePhase === phase.key
+        const isComplete =
+          phase.stepCount > 0 && phase.completedSteps === phase.stepCount
 
         return (
-          <Tooltip key={phase.key}>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label={phase.label}
-                onClick={() => onPhaseClick(phase.key)}
-                className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-lg border transition-colors",
-                  isActive
-                    ? cn(
-                        PHASE_COLORS[phase.key] ?? "bg-muted text-foreground",
-                        "border-current/20",
-                      )
-                    : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={6}>
-              <span className="font-medium">{phase.label}</span>
-              <span className="ml-1.5 opacity-70">
-                · {phase.stepCount} {phase.stepCount === 1 ? "step" : "steps"}
+          <button
+            key={phase.key}
+            type="button"
+            aria-label={phase.label}
+            aria-pressed={isActive}
+            onClick={() => onPhaseClick(phase.key)}
+            className={cn(
+              "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm whitespace-nowrap transition-colors",
+              isActive
+                ? cn(
+                    PHASE_COLORS[phase.key] ?? "bg-muted text-foreground",
+                    "border-current/20 font-medium",
+                  )
+                : isComplete
+                  ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400"
+                  : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span>{phase.label}</span>
+            {isComplete ? (
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-amber-500 dark:text-amber-400" />
+            ) : phase.completedSteps > 0 ? (
+              <span className="text-xs opacity-60">
+                {phase.completedSteps}/{phase.stepCount}
               </span>
-            </TooltipContent>
-          </Tooltip>
+            ) : null}
+          </button>
         )
       })}
     </div>

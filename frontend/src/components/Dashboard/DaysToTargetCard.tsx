@@ -60,6 +60,7 @@ function SetDateCta(props: Readonly<{ journeyId: string }>) {
           <Link
             to="/journeys/$journeyId"
             params={{ journeyId: props.journeyId }}
+            search={{ phase: undefined }}
           >
             Set Target Date
             <ArrowRight className="ml-1.5 h-3.5 w-3.5" />

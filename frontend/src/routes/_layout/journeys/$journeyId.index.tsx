@@ -5,7 +5,7 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
-
+import { JOURNEY_PHASES } from "@/common/constants"
 import { DeleteJourneyDialog, JourneyDetail } from "@/components/Journey"
 import {
   useDeleteJourney,
@@ -15,13 +15,21 @@ import {
 import { useJourney, useJourneyProgress } from "@/hooks/queries"
 import { useCelebration } from "@/hooks/useCelebration"
 import useCustomToast from "@/hooks/useCustomToast"
+import type { JourneyPhase } from "@/models/journey"
 
 /******************************************************************************
                               Route
 ******************************************************************************/
 
+const VALID_PHASES = new Set<string>(JOURNEY_PHASES.map((p) => p.key))
+
 export const Route = createFileRoute("/_layout/journeys/$journeyId/")({
   component: JourneyDetailPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    phase: VALID_PHASES.has(String(search.phase ?? ""))
+      ? (search.phase as JourneyPhase)
+      : undefined,
+  }),
   head: () => ({
     meta: [{ title: "Journey Details - HeimPath" }],
   }),
@@ -34,6 +42,7 @@ export const Route = createFileRoute("/_layout/journeys/$journeyId/")({
 /** Default component. Journey detail page. */
 function JourneyDetailPage() {
   const { journeyId } = Route.useParams()
+  const { phase: initialPhase } = Route.useSearch()
   const navigate = useNavigate()
 
   const {
@@ -101,6 +110,7 @@ function JourneyDetailPage() {
         onTaskToggle={handleTaskToggle}
         onStepOpen={handleStepOpen}
         onDelete={() => setShowDeleteDialog(true)}
+        initialPhase={initialPhase}
       />
       <DeleteJourneyDialog
         open={showDeleteDialog}
