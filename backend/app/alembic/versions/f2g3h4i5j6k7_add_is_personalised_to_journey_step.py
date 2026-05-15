@@ -1,7 +1,7 @@
 """Add is_personalised to journey_step
 
-Revision ID: a3w4x5y6z7b8
-Revises: z2v3w4x5y6a7
+Revision ID: f2g3h4i5j6k7
+Revises: g3h4i5j6k7l8
 Create Date: 2026-05-15 10:00:00.000000
 
 """
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic
-revision = "a3w4x5y6z7b8"
-down_revision = "z2v3w4x5y6a7"
+revision = "f2g3h4i5j6k7"
+down_revision = "g3h4i5j6k7l8"
 branch_labels = None
 depends_on = None
 
