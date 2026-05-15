@@ -19,6 +19,13 @@ interface IProps {
   onAddToPortfolio?: () => void
   /** Pre-select a phase on mount (e.g. from ?phase= deep-link). */
   initialPhase?: JourneyPhase
+  /** Switch to this phase programmatically (e.g. from Next-Step Widget "Continue"). */
+  requestedPhase?: JourneyPhase
+  /**
+   * Increment to programmatically scroll to the active step card.
+   * Used together with requestedPhase to scroll after a phase switch.
+   */
+  scrollToActiveKey?: number
 }
 
 /******************************************************************************
@@ -33,6 +40,8 @@ function StepTabView(props: IProps) {
     onStepOpen,
     onAddToPortfolio,
     initialPhase,
+    requestedPhase,
+    scrollToActiveKey,
   } = props
 
   const activeStep = steps.find((s) => s.step_number === activeStepNumber)
@@ -123,6 +132,13 @@ function StepTabView(props: IProps) {
     }
   }, [isPhaseComplete, nextPhaseByStepOrder, nextPhaseStarted])
 
+  // Switch to the programmatically requested phase (from the Next-Step Widget).
+  // Invalid phase keys are handled by effectivePhase's fallback, so no guard needed.
+  useEffect(() => {
+    if (!requestedPhase) return
+    setSelectedPhase(requestedPhase)
+  }, [requestedPhase])
+
   // Scroll to the active step when the user switches phases.
   const activeCardRef = useRef<HTMLDivElement>(null)
   const isInitialPhaseMount = useRef(true)
@@ -141,6 +157,19 @@ function StepTabView(props: IProps) {
     }, 50)
     return () => clearTimeout(timer)
   }, [effectivePhase])
+
+  // Programmatic scroll triggered by Next-Step Widget "Continue" click.
+  // Uses a counter so it fires even when the requested phase hasn't changed.
+  useEffect(() => {
+    if (!scrollToActiveKey) return
+    const timer = setTimeout(() => {
+      activeCardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [scrollToActiveKey])
 
   // Expand-all / collapse-all for the currently visible phase steps.
   const allExpanded =

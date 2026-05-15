@@ -14,7 +14,7 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react"
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { ApiError } from "@/client"
 import {
   FINANCING_TYPES,
@@ -39,6 +39,7 @@ import type {
 } from "@/models/journey"
 import { JourneyCompletionCta } from "./JourneyCompletionCta"
 import { JourneyProvider } from "./JourneyContext"
+import { NextStepWidget } from "./NextStepWidget"
 import { ProgressBar } from "./ProgressBar"
 import { StepTabView } from "./StepTabView"
 
@@ -288,6 +289,19 @@ function JourneyDetail(props: IProps) {
     [journey],
   )
 
+  // State for programmatic phase switching from the Next-Step Widget "Continue" CTA.
+  // requestedPhase switches the StepTabView to the active step's phase.
+  // scrollToActiveKey is a counter that triggers scroll-to-active-step on each click.
+  const [requestedPhase, setRequestedPhase] = useState<
+    JourneyPhase | undefined
+  >()
+  const [scrollToActiveKey, setScrollToActiveKey] = useState(0)
+
+  const handleWidgetContinue = useCallback((phaseKey: JourneyPhase) => {
+    setRequestedPhase(phaseKey)
+    setScrollToActiveKey((k) => k + 1)
+  }, [])
+
   if (isLoading || !journey) {
     return <JourneyDetailSkeleton />
   }
@@ -363,6 +377,15 @@ function JourneyDetail(props: IProps) {
         <span className="font-medium text-foreground">{currentPhaseLabel}</span>
       </p>
 
+      {/* What to do today — hidden once the journey is complete */}
+      {!isOwnershipComplete && (
+        <NextStepWidget
+          journey={journey}
+          progress={progress}
+          onContinue={handleWidgetContinue}
+        />
+      )}
+
       {/* Completion / Portfolio CTA */}
       {isOwnershipComplete &&
         (linkedPortfolioProperty ? (
@@ -382,6 +405,8 @@ function JourneyDetail(props: IProps) {
               onTaskToggle={onTaskToggle}
               onStepOpen={onStepOpen}
               initialPhase={resolvedInitialPhase}
+              requestedPhase={requestedPhase}
+              scrollToActiveKey={scrollToActiveKey}
               onAddToPortfolio={
                 isOwnershipComplete && !linkedPortfolioProperty
                   ? handleAddToPortfolio
