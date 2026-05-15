@@ -22,6 +22,12 @@ import { STEP_CONTENT_REGISTRY, StepBody } from "./StepContent/StepBody"
 interface IProps {
   step: JourneyStep
   isActive?: boolean
+  /** Initial expanded state (uncontrolled). Ignored when isExpanded is provided. */
+  defaultExpanded?: boolean
+  /** Controlled expanded state. Takes precedence over internal state. */
+  isExpanded?: boolean
+  /** Controlled toggle callback. Required when isExpanded is provided. */
+  onToggleExpanded?: () => void
   showPhaseBadge?: boolean
   onTaskToggle?: (stepId: string, taskId: string, isCompleted: boolean) => void
   onStepOpen?: (stepId: string) => void
@@ -92,13 +98,18 @@ function StepCard(props: IProps) {
   const {
     step,
     isActive = false,
+    defaultExpanded = false,
+    isExpanded: isExpandedProp,
+    onToggleExpanded,
     showPhaseBadge = true,
     onTaskToggle,
     onStepOpen,
     className,
   } = props
 
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded)
+  const isExpanded =
+    isExpandedProp !== undefined ? isExpandedProp : internalExpanded
 
   const hasContentRenderer = step.content_key
     ? !!STEP_CONTENT_REGISTRY[step.content_key]
@@ -110,14 +121,19 @@ function StepCard(props: IProps) {
 
   const handleToggleExpanded = () => {
     if (!hasBody) return
-    setIsExpanded(!isExpanded)
+    if (onToggleExpanded) {
+      onToggleExpanded()
+    } else {
+      setInternalExpanded(!internalExpanded)
+    }
   }
 
   return (
     <Card
       className={cn(
         "gap-0 overflow-hidden py-0 transition-all",
-        isActive && "ring-2 ring-primary ring-offset-2",
+        isActive &&
+          "border-l-[3px] border-l-primary ring-2 ring-primary ring-offset-2",
         step.status === "completed" &&
           "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20",
         className,
