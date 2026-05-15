@@ -67,6 +67,14 @@ class FinancingType(str, PyEnum):
     MIXED = "mixed"
 
 
+class TaskCategory(str, PyEnum):
+    """Category of a journey task."""
+
+    ACTION = "action"
+    RESOURCE = "resource"
+    WARNING = "warning"
+
+
 # Define PostgreSQL enum types with create_type=False to prevent auto-creation
 # These will be created by Alembic migration
 _journey_type_enum = PgEnum(
@@ -102,6 +110,9 @@ _property_type_enum = PgEnum(
 )
 _financing_type_enum = PgEnum(
     "cash", "mortgage", "mixed", name="financingtype", create_type=False
+)
+_task_category_enum = PgEnum(
+    "action", "resource", "warning", name="taskcategory", create_type=False
 )
 
 
@@ -264,6 +275,14 @@ class JourneyTask(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # Optional link to external resource or document
     resource_url = Column(String(500), nullable=True)
     resource_type = Column(String(50), nullable=True)  # 'document', 'link', 'video'
+
+    # Task category — drives UI rendering in the frontend step card
+    task_category = Column(
+        _task_category_enum,
+        default=TaskCategory.ACTION.value,
+        nullable=False,
+        server_default="action",
+    )
 
     # Relationships
     step = relationship("JourneyStep", back_populates="tasks")

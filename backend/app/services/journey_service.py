@@ -18,6 +18,7 @@ from app.models.journey import (
     JourneyTask,
     JourneyType,
     StepStatus,
+    TaskCategory,
 )
 from app.schemas.journey import QuestionnaireAnswers
 from app.services.calculator_service import COST_DEFAULTS, STATE_RATES
@@ -1455,6 +1456,16 @@ def generate_journey(
                 task_data.get("conditions"), answers
             ):
                 continue
+            # Resolve task_category: explicit template value takes precedence,
+            # then resource_url presence implies resource, otherwise action.
+            explicit_category = task_data.get("task_category")
+            if explicit_category:
+                resolved_category = TaskCategory(explicit_category)
+            elif task_data.get("resource_url"):
+                resolved_category = TaskCategory.RESOURCE
+            else:
+                resolved_category = TaskCategory.ACTION
+
             task = JourneyTask(
                 step_id=step.id,
                 order=task_order,
@@ -1463,6 +1474,7 @@ def generate_journey(
                 description=task_data.get("description"),
                 resource_url=task_data.get("resource_url"),
                 resource_type=task_data.get("resource_type"),
+                task_category=resolved_category,
             )
             session.add(task)
             task_order += 1
@@ -1680,16 +1692,20 @@ def _sync_step_status_from_tasks(
     all_tasks_stmt = select(JourneyTask).where(JourneyTask.step_id == step.id)
     all_tasks = list(session.exec(all_tasks_stmt).all())
 
-    # Build completion map, using the in-memory state for the updated task
+    # Only action tasks count toward step completion — resource and warning
+    # tasks are informational and do not gate step progression.
+    action_tasks = [t for t in all_tasks if t.task_category == TaskCategory.ACTION]
+
+    # Build completion map using the in-memory state for the updated task.
     completed_count = 0
-    for t in all_tasks:
+    for t in action_tasks:
         is_done = (
             updated_task.is_completed if t.id == updated_task.id else t.is_completed
         )
         if is_done:
             completed_count += 1
 
-    total_tasks = len(all_tasks)
+    total_tasks = len(action_tasks)
     if total_tasks == 0:
         return
     all_complete = completed_count == total_tasks

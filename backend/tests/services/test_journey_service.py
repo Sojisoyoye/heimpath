@@ -14,6 +14,7 @@ from app.models.journey import (
     JourneyTask,
     PropertyType,
     StepStatus,
+    TaskCategory,
 )
 from app.schemas.journey import QuestionnaireAnswers
 from app.services.journey_service import (
@@ -836,7 +837,10 @@ class TestTailoredDocumentTasks:
 
 
 def _make_task(
-    step_id: uuid.UUID, is_completed: bool = False, task_id: uuid.UUID | None = None
+    step_id: uuid.UUID,
+    is_completed: bool = False,
+    task_id: uuid.UUID | None = None,
+    task_category: TaskCategory = TaskCategory.ACTION,
 ) -> MagicMock:
     """Create a mock JourneyTask."""
     task = MagicMock(spec=JourneyTask)
@@ -844,6 +848,7 @@ def _make_task(
     task.step_id = step_id
     task.is_completed = is_completed
     task.completed_at = datetime.now(timezone.utc) if is_completed else None
+    task.task_category = task_category
     return task
 
 
@@ -1109,6 +1114,114 @@ class TestUpdateTaskStatusSyncsStepStatus:
         )
 
         assert mock_step.status == StepStatus.NOT_STARTED
+
+
+class TestTaskCategoryGating:
+    """Tests that only action tasks count toward step completion.
+
+    Resource and warning tasks are informational — they must not gate step
+    progression regardless of their is_completed value.
+    """
+
+    def _make_step_and_journey(
+        self, step_id: uuid.UUID, step_number: int = 1
+    ) -> tuple[MagicMock, MagicMock]:
+        mock_step = MagicMock(spec=JourneyStep)
+        mock_step.id = step_id
+        mock_step.status = StepStatus.NOT_STARTED
+        mock_step.started_at = None
+        mock_step.step_number = step_number
+
+        mock_journey = MagicMock(spec=Journey)
+        mock_journey.id = uuid.uuid4()
+        mock_journey.current_step_number = step_number
+        mock_journey.completed_at = None
+
+        return mock_step, mock_journey
+
+    def _make_session(self, tasks: list[MagicMock]) -> MagicMock:
+        mock_session = MagicMock()
+        mock_session.exec.return_value.all.return_value = tasks
+        return mock_session
+
+    def test_resource_tasks_do_not_block_completion(self) -> None:
+        """A step with one action task (completed) + resource tasks completes correctly."""
+        step_id = uuid.uuid4()
+        action_task = _make_task(step_id, is_completed=True)
+        resource_task = _make_task(
+            step_id, is_completed=False, task_category=TaskCategory.RESOURCE
+        )
+        mock_step, mock_journey = self._make_step_and_journey(step_id)
+        mock_session = self._make_session([action_task, resource_task])
+
+        _sync_step_status_from_tasks(
+            session=mock_session,
+            step=mock_step,
+            updated_task=action_task,
+            journey=mock_journey,
+        )
+
+        assert mock_step.status == StepStatus.COMPLETED
+
+    def test_warning_tasks_do_not_block_completion(self) -> None:
+        """A step with one action task (completed) + warning tasks completes correctly."""
+        step_id = uuid.uuid4()
+        action_task = _make_task(step_id, is_completed=True)
+        warning_task = _make_task(
+            step_id, is_completed=False, task_category=TaskCategory.WARNING
+        )
+        mock_step, mock_journey = self._make_step_and_journey(step_id)
+        mock_session = self._make_session([action_task, warning_task])
+
+        _sync_step_status_from_tasks(
+            session=mock_session,
+            step=mock_step,
+            updated_task=action_task,
+            journey=mock_journey,
+        )
+
+        assert mock_step.status == StepStatus.COMPLETED
+
+    def test_step_with_only_resource_tasks_is_not_affected(self) -> None:
+        """A step with zero action tasks returns early — status unchanged."""
+        step_id = uuid.uuid4()
+        resource_task = _make_task(
+            step_id, is_completed=False, task_category=TaskCategory.RESOURCE
+        )
+        mock_step, mock_journey = self._make_step_and_journey(step_id)
+        mock_step.status = StepStatus.IN_PROGRESS
+        mock_session = self._make_session([resource_task])
+
+        _sync_step_status_from_tasks(
+            session=mock_session,
+            step=mock_step,
+            updated_task=resource_task,
+            journey=mock_journey,
+        )
+
+        assert mock_step.status == StepStatus.IN_PROGRESS
+
+    def test_incomplete_action_task_keeps_step_in_progress(self) -> None:
+        """Action task unchecked while resource task exists — step stays in_progress."""
+        step_id = uuid.uuid4()
+        action_task = _make_task(step_id, is_completed=True)
+        action_task2 = _make_task(step_id, is_completed=False)
+        resource_task = _make_task(
+            step_id, is_completed=False, task_category=TaskCategory.RESOURCE
+        )
+        mock_step, mock_journey = self._make_step_and_journey(step_id)
+        mock_step.status = StepStatus.IN_PROGRESS
+        mock_step.started_at = datetime.now(timezone.utc)
+        mock_session = self._make_session([action_task, action_task2, resource_task])
+
+        _sync_step_status_from_tasks(
+            session=mock_session,
+            step=mock_step,
+            updated_task=action_task2,
+            journey=mock_journey,
+        )
+
+        assert mock_step.status == StepStatus.IN_PROGRESS
 
 
 class TestStep4StatusTransitions:
