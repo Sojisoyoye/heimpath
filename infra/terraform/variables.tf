@@ -176,6 +176,27 @@ variable "staging_emails_from_email" {
   default     = ""
 }
 
+variable "staging_stripe_secret_key" {
+  description = "Staging Stripe secret key (stored in Key Vault)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "staging_anthropic_api_key" {
+  description = "Staging Anthropic API key (stored in Key Vault)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "staging_azure_translator_key" {
+  description = "Staging Azure Translator key (stored in Key Vault)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 # ──────────────────────────────────────────────
 # Production variables
 # ──────────────────────────────────────────────
@@ -313,5 +334,26 @@ variable "prod_smtp_password" {
 variable "prod_emails_from_email" {
   description = "Production sender email address"
   type        = string
+  default     = ""
+}
+
+variable "prod_stripe_secret_key" {
+  description = "Production Stripe secret key (stored in Key Vault)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "prod_anthropic_api_key" {
+  description = "Production Anthropic API key (stored in Key Vault)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "prod_azure_translator_key" {
+  description = "Production Azure Translator key (stored in Key Vault)"
+  type        = string
+  sensitive   = true
   default     = ""
 }
