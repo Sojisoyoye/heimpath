@@ -14,7 +14,7 @@ import {
 import { cn, formatEur } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import type { JourneyPhase } from "@/models/journey"
+import type { JourneyPhase, JourneyPublic } from "@/models/journey"
 import { useJourneyContext } from "./JourneyContext"
 
 interface IProps {
@@ -25,10 +25,18 @@ interface IProps {
   /**
    * Override the canonical next phase. When provided, this phase is used as
    * the navigation target instead of the canonical JOURNEY_PHASES successor.
+   * Use this to navigate to the phase containing the first incomplete step
+   * (by step_number), which may differ from the canonical order for journeys
+   * where steps span phases non-sequentially (e.g. rent_out investors).
    */
   nextPhaseKey?: JourneyPhase
   /** Called when the user clicks "Add to Portfolio" on the all-phases-complete card. */
   onAddToPortfolio?: () => void
+}
+
+interface IStatCardProps {
+  stat: StatItem
+  index: number
 }
 
 interface StatItem {
@@ -40,6 +48,12 @@ interface StatItem {
                               Constants
 ******************************************************************************/
 
+// Max stat mini-cards shown in the celebration card.
+const MAX_DISPLAY_STATS = 3
+
+// Stagger delay increment per stat card (ms). Keeps total duration under ~300ms.
+const STAT_ANIMATION_DELAY_MS = 80
+
 type PhaseStyle = {
   gradient: string
   border: string
@@ -49,6 +63,11 @@ type PhaseStyle = {
   bodyColor: string
 }
 
+/**
+ * Per-phase visual style for the celebration card.
+ * Uses the same color palette as PHASE_COLORS in constants/index.ts but
+ * extends it with gradient, icon, and text colour variants for this card.
+ */
 const PHASE_STYLES: Record<string, PhaseStyle> = {
   research: {
     gradient:
@@ -162,17 +181,76 @@ const PHASE_MESSAGES: Record<string, string> = {
 }
 
 /******************************************************************************
+                              Functions
+******************************************************************************/
+
+/**
+ * Compute up to MAX_DISPLAY_STATS contextual stats for the completed phase.
+ * Only includes stats for which data is present on the journey.
+ */
+function _buildPhaseStats(
+  journey: JourneyPublic,
+  phase: JourneyPhase,
+): StatItem[] {
+  const phaseSteps = journey.steps.filter((s) => s.phase === phase)
+  const completedCount = phaseSteps.filter(
+    (s) => s.status === "completed" || s.status === "skipped",
+  ).length
+
+  const stateName =
+    GERMAN_STATES.find((s) => s.code === journey.property_location)?.name ??
+    journey.property_location
+
+  // Use the label up to the first opening parenthesis to avoid displaying
+  // the German term in brackets (e.g. "Cash purchase" instead of "Cash purchase (Barkauf)").
+  const financingLabel = FINANCING_TYPES.find(
+    (f) => f.value === journey.financing_type,
+  )?.label.split(" (")[0]
+
+  const stats: StatItem[] = []
+
+  if (phase === "research") {
+    if (journey.budget_euros)
+      stats.push({ label: "Budget", value: formatEur(journey.budget_euros) })
+    if (stateName) stats.push({ label: "Location", value: stateName })
+    if (journey.market_insights?.avg_price_per_sqm)
+      stats.push({
+        label: "Market avg/m²",
+        value: `${formatEur(journey.market_insights.avg_price_per_sqm)}/m²`,
+      })
+  } else if (phase === "preparation") {
+    if (financingLabel)
+      stats.push({ label: "Financing", value: financingLabel })
+    if (stateName) stats.push({ label: "Location", value: stateName })
+    stats.push({
+      label: "Steps done",
+      value: `${completedCount} of ${phaseSteps.length}`,
+    })
+  } else {
+    if (stateName) stats.push({ label: "Location", value: stateName })
+    stats.push({
+      label: "Steps done",
+      value: `${completedCount} of ${phaseSteps.length}`,
+    })
+    if (financingLabel)
+      stats.push({ label: "Financing", value: financingLabel })
+  }
+
+  return stats.slice(0, MAX_DISPLAY_STATS)
+}
+
+/******************************************************************************
                               Components
 ******************************************************************************/
 
 /** A single stat mini-card inside the celebration card. */
-function StatCard(props: Readonly<{ stat: StatItem; index: number }>) {
+function StatCard(props: Readonly<IStatCardProps>) {
   const { stat, index } = props
   return (
     <div
       className="animate-in fade-in-0 zoom-in-95 min-w-0 flex-1 rounded-lg border bg-white px-3 py-2 shadow-sm dark:bg-background"
       style={{
-        animationDelay: `${(index + 1) * 80}ms`,
+        animationDelay: `${(index + 1) * STAT_ANIMATION_DELAY_MS}ms`,
         animationFillMode: "both",
       }}
     >
@@ -194,7 +272,8 @@ function PhaseCompletionCta(props: Readonly<IProps>) {
 
   const { journey } = useJourneyContext()
 
-  // Only consider phases that actually have steps in this journey.
+  // Only consider phases that actually have steps in this journey, preserving
+  // canonical JOURNEY_PHASES order.
   const visiblePhases = JOURNEY_PHASES.filter((p) =>
     activePhaseKeys.includes(p.key),
   )
@@ -203,6 +282,11 @@ function PhaseCompletionCta(props: Readonly<IProps>) {
   const canonicalIsLast =
     phaseIndex === -1 || phaseIndex === visiblePhases.length - 1
   const canonicalNext = canonicalIsLast ? null : visiblePhases[phaseIndex + 1]
+
+  // Use the explicit override if provided, otherwise fall back to the canonical
+  // successor. The override ensures users navigate to the section that actually
+  // contains their next incomplete step, rather than the canonical next phase
+  // (which can differ when steps span phases non-sequentially).
   const nextPhase = nextPhaseKey
     ? (visiblePhases.find((p) => p.key === nextPhaseKey) ?? canonicalNext)
     : canonicalNext
@@ -211,49 +295,7 @@ function PhaseCompletionCta(props: Readonly<IProps>) {
   const currentLabel = visiblePhases[phaseIndex]?.label ?? currentPhase
   const style = PHASE_STYLES[currentPhase] ?? PHASE_STYLES.research
 
-  // Compute stats from journey data for the completed phase.
-  const phaseSteps = journey.steps.filter((s) => s.phase === currentPhase)
-  const completedCount = phaseSteps.filter(
-    (s) => s.status === "completed" || s.status === "skipped",
-  ).length
-
-  const stateName =
-    GERMAN_STATES.find((s) => s.code === journey.property_location)?.name ??
-    journey.property_location
-
-  const financingLabel = FINANCING_TYPES.find(
-    (f) => f.value === journey.financing_type,
-  )?.label.split(" ")[0]
-
-  const stats: StatItem[] = []
-  if (currentPhase === "research") {
-    if (journey.budget_euros)
-      stats.push({ label: "Budget", value: formatEur(journey.budget_euros) })
-    if (stateName) stats.push({ label: "Location", value: stateName })
-    if (journey.market_insights?.avg_price_per_sqm)
-      stats.push({
-        label: "Market avg/m²",
-        value: `${formatEur(journey.market_insights.avg_price_per_sqm)}/m²`,
-      })
-  } else if (currentPhase === "preparation") {
-    if (financingLabel)
-      stats.push({ label: "Financing", value: financingLabel })
-    if (stateName) stats.push({ label: "Location", value: stateName })
-    stats.push({
-      label: "Steps done",
-      value: `${completedCount} of ${phaseSteps.length}`,
-    })
-  } else {
-    if (stateName) stats.push({ label: "Location", value: stateName })
-    stats.push({
-      label: "Steps done",
-      value: `${completedCount} of ${phaseSteps.length}`,
-    })
-    if (financingLabel)
-      stats.push({ label: "Financing", value: financingLabel })
-  }
-
-  const displayStats = stats.slice(0, 3)
+  const displayStats = _buildPhaseStats(journey, currentPhase)
 
   if (isLastPhase) {
     return (
