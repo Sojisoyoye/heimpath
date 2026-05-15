@@ -2065,6 +2065,16 @@ class TestOwnershipPhaseSteps:
         assert template.prerequisites == [25]
 
 
+def _v2_template(content_key: str) -> StepTemplate:
+    """Return the BUYING_STEP_TEMPLATES_V2 entry with the given content_key."""
+    return next(t for t in BUYING_STEP_TEMPLATES_V2 if t.content_key == content_key)
+
+
+def _v2_task_titles(content_key: str) -> list[str]:
+    """Return the task titles for the V2 template with the given content_key."""
+    return [t["title"] for t in _v2_template(content_key).tasks]
+
+
 class TestBuyingStepTemplatesV2:
     """Tests for the consolidated v2 buying journey templates.
 
@@ -2079,9 +2089,7 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_buying_costs_is_step_3(self) -> None:
         """Buying costs step retains same content_key and is step 3 in v2."""
-        template = next(
-            t for t in BUYING_STEP_TEMPLATES_V2 if t.content_key == "buying_costs"
-        )
+        template = _v2_template("buying_costs")
         assert template.step_number == 3
         assert template.phase == JourneyPhase.RESEARCH
         # task order must be preserved for _personalize_buying_costs()
@@ -2092,13 +2100,9 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_goals_and_market_merged(self) -> None:
         """Step 1 combines goals and market research tasks."""
-        template = next(
-            t
-            for t in BUYING_STEP_TEMPLATES_V2
-            if t.content_key == "property_goals_and_market"
-        )
+        template = _v2_template("property_goals_and_market")
         assert template.step_number == 1
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("property_goals_and_market")
         # From old step 1
         assert any("must-have" in t for t in task_titles)
         assert any("budget" in t for t in task_titles)
@@ -2108,13 +2112,9 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_find_and_evaluate_merged(self) -> None:
         """Step 2 combines property search and evaluation tasks."""
-        template = next(
-            t
-            for t in BUYING_STEP_TEMPLATES_V2
-            if t.content_key == "find_and_evaluate_property"
-        )
+        template = _v2_template("find_and_evaluate_property")
         assert template.step_number == 2
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("find_and_evaluate_property")
         # From old step 3
         assert any("ImmoScout24" in t for t in task_titles)
         assert any("Energieausweis" in t for t in task_titles)
@@ -2125,12 +2125,10 @@ class TestBuyingStepTemplatesV2:
     def test_v2_secure_financing_merged(self) -> None:
         """Secure financing step (step 4, mortgage/mixed) merges finance check,
         pre-approval, and comparison tasks."""
-        template = next(
-            t for t in BUYING_STEP_TEMPLATES_V2 if t.content_key == "secure_financing"
-        )
+        template = _v2_template("secure_financing")
         assert template.step_number == 4
         assert template.conditions == {"financing_type": ["mortgage", "mixed"]}
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("secure_financing")
         # From old step 6 (finance check)
         assert any("SCHUFA" in t for t in task_titles)
         # From old step 7 (pre-approval)
@@ -2140,13 +2138,9 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_due_diligence_and_offer_merged(self) -> None:
         """Step 9 merges due diligence and make-offer tasks."""
-        template = next(
-            t
-            for t in BUYING_STEP_TEMPLATES_V2
-            if t.content_key == "due_diligence_and_offer"
-        )
+        template = _v2_template("due_diligence_and_offer")
         assert template.step_number == 9
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("due_diligence_and_offer")
         # From old step 10 (due diligence)
         assert any("Grundbuchauszug" in t for t in task_titles)
         assert any("encumbrances" in t for t in task_titles)
@@ -2156,13 +2150,9 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_notary_and_contract_merged(self) -> None:
         """Step 11 merges notary selection and contract review tasks."""
-        template = next(
-            t
-            for t in BUYING_STEP_TEMPLATES_V2
-            if t.content_key == "notary_and_contract"
-        )
+        template = _v2_template("notary_and_contract")
         assert template.step_number == 11
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("notary_and_contract")
         # From old step 12 (choose notary)
         assert any("Research local notaries" in t for t in task_titles)
         # From old step 13 (review contract)
@@ -2170,13 +2160,9 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_payment_and_transfer_tax_merged(self) -> None:
         """Step 14 merges payment and transfer tax tasks."""
-        template = next(
-            t
-            for t in BUYING_STEP_TEMPLATES_V2
-            if t.content_key == "payment_and_transfer_tax"
-        )
+        template = _v2_template("payment_and_transfer_tax")
         assert template.step_number == 14
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("payment_and_transfer_tax")
         # From old step 15 (payment)
         assert any("Auflassungsvormerkung" in t for t in task_titles)
         assert any("Transfer purchase price" in t for t in task_titles)
@@ -2186,13 +2172,9 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_registration_and_insurance_merged(self) -> None:
         """Step 16 merges registration and insurance tasks."""
-        template = next(
-            t
-            for t in BUYING_STEP_TEMPLATES_V2
-            if t.content_key == "registration_and_insurance"
-        )
+        template = _v2_template("registration_and_insurance")
         assert template.step_number == 16
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("registration_and_insurance")
         # From old step 25 (registration)
         assert any("Grundbuch" in t for t in task_titles)
         assert any("utilities" in t for t in task_titles)
@@ -2201,13 +2183,9 @@ class TestBuyingStepTemplatesV2:
 
     def test_v2_management_and_finance_merged(self) -> None:
         """Step 17 merges property management and tax/finance tasks."""
-        template = next(
-            t
-            for t in BUYING_STEP_TEMPLATES_V2
-            if t.content_key == "management_and_finance_setup"
-        )
+        template = _v2_template("management_and_finance_setup")
         assert template.step_number == 17
-        task_titles = [t["title"] for t in template.tasks]
+        task_titles = _v2_task_titles("management_and_finance_setup")
         # From old step 27 (management)
         assert any("Müllabfuhr" in t for t in task_titles)
         # From old step 28 (tax/finance)
