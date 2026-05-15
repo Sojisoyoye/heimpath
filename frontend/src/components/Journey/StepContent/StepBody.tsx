@@ -19,14 +19,24 @@ import { ProgressBar } from "../ProgressBar"
 import { ResourceCard } from "../ResourceCard"
 import { TaskCheckbox } from "../TaskCheckbox"
 import { WarningCallout } from "../WarningCallout"
+import { BuyingCostsGuide } from "./BuyingCostsGuide"
+import { DocumentsPrep } from "./DocumentsPrep"
+import { DueDiligenceAndOffer } from "./DueDiligenceAndOffer"
 import { FinanceCheck } from "./FinanceCheck"
+import { FindAndEvaluateGuide } from "./FindAndEvaluateGuide"
+import { LoanCommitmentGuide } from "./LoanCommitmentGuide"
 import { MarketInsights } from "./MarketInsights"
 import { MortgageComparison } from "./MortgageComparison"
 import { MortgagePreapproval } from "./MortgagePreapproval"
+import { NotaryAndContract } from "./NotaryAndContract"
+import { NotarySigningGuide } from "./NotarySigningGuide"
 import { OwnershipInsurance } from "./OwnershipInsurance"
 import { OwnershipManagement } from "./OwnershipManagement"
 import { OwnershipRegistration } from "./OwnershipRegistration"
 import { OwnershipTaxFinance } from "./OwnershipTaxFinance"
+import { OwnershipTransferGuide } from "./OwnershipTransferGuide"
+import { PaymentAndTransferTaxGuide } from "./PaymentAndTransferTaxGuide"
+import { ProofOfFundsGuide } from "./ProofOfFundsGuide"
 import { PropertyEvaluationSummary } from "./PropertyEvaluationSummary"
 import { PropertyGoalsForm } from "./PropertyGoalsForm"
 import { RentalApplicationGuide } from "./RentalApplicationGuide"
@@ -101,6 +111,53 @@ const STEP_CONTENT_REGISTRY: Record<
   rental_application_documents: (p) => <RentalApplicationGuide step={p.step} />,
   rental_contract_review: (p) => <RentalContractReview step={p.step} />,
   rental_move_in_checklist: (p) => <RentalMoveInGuide step={p.step} />,
+  property_goals_and_market: (p) => (
+    <div className="space-y-4">
+      <PropertyGoalsForm
+        journeyId={p.journeyId}
+        initialGoals={p.propertyGoals}
+        propertyLocation={p.propertyLocation}
+      />
+      <MarketInsights
+        propertyLocation={p.propertyLocation}
+        propertyType={p.propertyType}
+        budgetEuros={p.budgetEuros}
+        propertyGoals={p.propertyGoals}
+        marketInsights={p.marketInsights}
+      />
+    </div>
+  ),
+  secure_financing: (p) => (
+    <div className="space-y-4">
+      <FinanceCheck step={p.step} />
+      <MortgagePreapproval step={p.step} />
+      <MortgageComparison step={p.step} />
+    </div>
+  ),
+  registration_and_insurance: (p) => (
+    <div className="space-y-4">
+      <OwnershipRegistration step={p.step} />
+      <OwnershipInsurance step={p.step} />
+    </div>
+  ),
+  management_and_finance_setup: (p) => (
+    <div className="space-y-4">
+      <OwnershipManagement step={p.step} />
+      <OwnershipTaxFinance step={p.step} />
+    </div>
+  ),
+  find_and_evaluate_property: (p) => (
+    <FindAndEvaluateGuide journeyId={p.journeyId} stepId={p.step.id} />
+  ),
+  buying_costs: (p) => <BuyingCostsGuide step={p.step} />,
+  proof_of_funds: (p) => <ProofOfFundsGuide step={p.step} />,
+  documents_prep: (p) => <DocumentsPrep step={p.step} />,
+  due_diligence_and_offer: (p) => <DueDiligenceAndOffer step={p.step} />,
+  notary_and_contract: (p) => <NotaryAndContract step={p.step} />,
+  loan_commitment: (p) => <LoanCommitmentGuide step={p.step} />,
+  notary_signing: (p) => <NotarySigningGuide step={p.step} />,
+  payment_and_transfer_tax: (p) => <PaymentAndTransferTaxGuide step={p.step} />,
+  ownership_transfer: (p) => <OwnershipTransferGuide step={p.step} />,
 }
 
 /******************************************************************************
