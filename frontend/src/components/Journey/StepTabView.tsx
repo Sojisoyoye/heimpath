@@ -41,6 +41,10 @@ function StepTabView(props: IProps) {
   const [selectedPhase, setSelectedPhase] = useState<JourneyPhase>(defaultPhase)
 
   // Track which step cards are expanded. Start with just the active step open.
+  // Safe: StepTabView is only mounted after data loads (skeleton shown instead),
+  // so activeStep is defined on first render.
+  // Expansions are intentionally preserved across phase tab switches so users
+  // don't lose their place when browsing back to a phase.
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() =>
     activeStep ? new Set([activeStep.id]) : new Set(),
   )
