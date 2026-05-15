@@ -166,6 +166,10 @@ class Journey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # Market insights (generated after Step 1 completion)
     market_insights = Column(MutableDict.as_mutable(JSONB), nullable=True)
 
+    # Step template version — v1 uses STEP_TEMPLATES, v2 uses BUYING_STEP_TEMPLATES_V2.
+    # Existing journeys remain on v1; new buying journeys are created at v2.
+    journey_version = Column(Integer, default=1, nullable=False, server_default="1")
+
     # Progress tracking
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)

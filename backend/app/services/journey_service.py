@@ -822,6 +822,695 @@ STEP_TEMPLATES: list[StepTemplate] = [
     ),
 ]
 
+# ─────────────────────────────────────────────────────────────────────────────
+# V2 buying journey — consolidated from ~28 templates down to ~18.
+# step_number values are sequential (1-18) and serve as stable prerequisite
+# references within this list.  Existing v1 journeys are not affected.
+# ─────────────────────────────────────────────────────────────────────────────
+# Task order in the "buying_costs" step MUST match _personalize_buying_costs():
+# index 0 = transfer tax, 1 = notary, 2 = land registry, 3 = agent commission.
+BUYING_STEP_TEMPLATES_V2: list[StepTemplate] = [
+    # RESEARCH PHASE
+    StepTemplate(
+        step_number=1,
+        phase=JourneyPhase.RESEARCH,
+        title="Set Your Goals & Explore the Market",
+        description="Define what you're looking for in a property and understand German market prices and trends.",
+        estimated_duration_days=12,
+        content_key="property_goals_and_market",
+        tasks=[
+            # Goals tasks (from old step 1)
+            {"title": "List your must-have features", "is_required": True},
+            {"title": "Set your budget range", "is_required": True},
+            {"title": "Choose preferred locations", "is_required": True},
+            {"title": "Decide on property type", "is_required": False},
+            # Market tasks (from old step 2)
+            {
+                "title": "Research average prices in your target area",
+                "is_required": True,
+            },
+            {"title": "Understand price per sqm trends", "is_required": True},
+            {
+                "title": "Learn about Makler (agent) fees in your state",
+                "is_required": True,
+            },
+            {
+                "title": "Compare Grunderwerbsteuer (transfer tax) rates across states",
+                "is_required": True,
+            },
+            {
+                "title": "Research neighborhood amenities and infrastructure",
+                "is_required": False,
+            },
+        ],
+        related_laws=["BGB §433-453 (Kaufvertrag)"],
+    ),
+    StepTemplate(
+        step_number=2,
+        phase=JourneyPhase.RESEARCH,
+        title="Find & Evaluate Properties",
+        description="Search for properties matching your criteria, attend viewings, and assess value.",
+        estimated_duration_days=37,
+        content_key="find_and_evaluate_property",
+        prerequisites=[1],
+        tasks=[
+            # Search tasks (from old step 3)
+            {"title": "Set up alerts on ImmoScout24, Immowelt", "is_required": True},
+            {"title": "Contact local Makler (agents)", "is_required": False},
+            {"title": "Schedule and attend viewings", "is_required": True},
+            {"title": "Take notes and photos at viewings", "is_required": True},
+            {
+                "title": "Request the property exposé from the agent",
+                "is_required": True,
+            },
+            {
+                "title": "Check the Grundbuchauszug (land registry extract)",
+                "is_required": True,
+            },
+            {
+                "title": "Review the Energieausweis (energy certificate)",
+                "is_required": True,
+            },
+            {
+                "title": "Verify building permits and planning permissions",
+                "is_required": False,
+            },
+            {
+                "title": "Check for encumbrances or easements on the property",
+                "is_required": False,
+            },
+            {
+                "title": "Consider commissioning a building survey",
+                "is_required": False,
+            },
+            # Evaluation tasks (from old step 4)
+            {"title": "Run evaluation calculator", "is_required": True},
+            {"title": "Review cashflow analysis", "is_required": True},
+            {"title": "Understand cost breakdown", "is_required": True},
+            {"title": "Compare with market averages", "is_required": True},
+        ],
+        related_laws=[
+            "GBO (Grundbuchordnung)",
+            "EnEV (Energieeinsparverordnung)",
+        ],
+    ),
+    StepTemplate(
+        step_number=3,
+        phase=JourneyPhase.RESEARCH,
+        title="Learn About Buying Costs",
+        description="Understand all the additional costs beyond the purchase price.",
+        estimated_duration_days=3,
+        content_key="buying_costs",
+        prerequisites=[2],
+        tasks=[
+            # Task order matters: _personalize_buying_costs() accesses by index
+            # (0=transfer tax, 1=notary, 2=land registry, 3=agent commission).
+            {
+                "title": "Calculate Grunderwerbsteuer (property transfer tax)",
+                "is_required": True,
+            },
+            {"title": "Estimate notary fees (1.5-2%)", "is_required": True},
+            {"title": "Factor in land registry fees (0.5%)", "is_required": True},
+            {
+                "title": "Budget for agent commission if applicable",
+                "is_required": False,
+            },
+        ],
+        estimated_costs={
+            "grunderwerbsteuer": "3.5-6.5% (varies by state)",
+            "notary_fees": "1.5-2%",
+            "land_registry": "0.5%",
+            "agent_commission": "3-7% (if applicable)",
+        },
+    ),
+    # PREPARATION PHASE
+    StepTemplate(
+        step_number=4,
+        phase=JourneyPhase.PREPARATION,
+        title="Secure Your Financing",
+        description="Assess your finances, obtain pre-approval, and compare mortgage offers.",
+        estimated_duration_days=28,
+        content_key="secure_financing",
+        prerequisites=[3],
+        conditions={"financing_type": ["mortgage", "mixed"]},
+        tasks=[
+            # Finance check tasks (from old step 6)
+            {"title": "Calculate your available savings", "is_required": True},
+            {"title": "Review your monthly income and expenses", "is_required": True},
+            {"title": "Check your SCHUFA credit score", "is_required": True},
+            {
+                "title": "Gather salary statements (last 3 months)",
+                "is_required": True,
+            },
+            # Pre-approval tasks (from old step 7)
+            {
+                "title": "Compare mortgage offers from multiple banks",
+                "is_required": True,
+            },
+            {"title": "Submit mortgage application", "is_required": True},
+            {
+                "title": "Receive Finanzierungsbestätigung (financing confirmation)",
+                "is_required": True,
+            },
+            # Comparison tasks (from old step 8)
+            {"title": "Compare interest rates", "is_required": True},
+            {"title": "Review loan terms", "is_required": True},
+            {"title": "Understand application requirements", "is_required": True},
+            {"title": "Prepare application documents", "is_required": True},
+        ],
+        related_laws=["BGB §488-505 (Darlehensvertrag)"],
+    ),
+    # Mutually exclusive with "Secure Your Financing" above — only one step 4 is generated per journey.
+    StepTemplate(
+        step_number=4,
+        phase=JourneyPhase.PREPARATION,
+        title="Prepare Proof of Funds",
+        description="As a cash buyer, prove you have the funds available and plan your transfer.",
+        estimated_duration_days=7,
+        content_key="proof_of_funds",
+        prerequisites=[3],
+        conditions={"financing_type": ["cash"]},
+        tasks=[
+            {
+                "title": "Gather recent bank statements (last 3-6 months)",
+                "is_required": True,
+            },
+            {
+                "title": "Request a proof of funds letter from your bank",
+                "is_required": True,
+            },
+            {
+                "title": "Open a German bank account if you don't have one",
+                "is_required": True,
+            },
+            {
+                "title": "Plan your funds transfer (exchange rates, fees, timing)",
+                "is_required": True,
+            },
+        ],
+        related_laws=[
+            "GwG §10-11 (Sorgfaltspflichten — Anti-money laundering due diligence)"
+        ],
+    ),
+    StepTemplate(
+        step_number=5,
+        phase=JourneyPhase.PREPARATION,
+        title="Prepare Required Documents",
+        description="Gather all documents needed for the property purchase, tailored to your situation.",
+        estimated_duration_days=7,
+        content_key="documents_prep",
+        prerequisites=[3],
+        tasks=[
+            {"title": "Obtain proof of identity (passport/ID)", "is_required": True},
+            {"title": "Get proof of address in Germany", "is_required": True},
+            {"title": "Prepare recent bank statements", "is_required": True},
+            {
+                "title": "Get apostilled or translated copies of personal documents",
+                "is_required": True,
+                "conditions": {"has_german_residency": False},
+            },
+            {
+                "title": "Obtain proof of legal residency or visa documentation",
+                "is_required": True,
+                "conditions": {"has_german_residency": False},
+            },
+            {
+                "title": "Gather salary statements and employment contract",
+                "is_required": True,
+                "conditions": {"financing_type": ["mortgage", "mixed"]},
+            },
+            {
+                "title": "Request your SCHUFA credit report",
+                "is_required": True,
+                "conditions": {"financing_type": ["mortgage", "mixed"]},
+            },
+        ],
+    ),
+    # RENTAL INVESTOR RESEARCH STEPS (conditional on property_use = rent_out)
+    StepTemplate(
+        step_number=6,
+        phase=JourneyPhase.RENTAL_SETUP,
+        title="Understand Landlord Obligations",
+        description="Learn about German landlord duties, tenant protections, and rental regulations.",
+        estimated_duration_days=5,
+        content_key="rental_landlord_law",
+        prerequisites=[1],
+        conditions={"property_use": ["rent_out"]},
+        tasks=[
+            {
+                "title": "Study BGB Mietrecht (§535-580a) tenant protection basics",
+                "is_required": True,
+            },
+            {
+                "title": "Understand Mietpreisbremse (rent control) rules in your target area",
+                "is_required": True,
+            },
+            {
+                "title": "Learn Kaution (deposit) regulations — max 3 months' cold rent",
+                "is_required": True,
+            },
+            {
+                "title": "Review Kündigungsschutz (eviction protection) requirements",
+                "is_required": True,
+            },
+            {
+                "title": "Check local Zweckentfremdungsverbot (prohibition of misuse) rules",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "BGB §535-580a (Mietrecht)",
+            "MietpreisbremseVO (Rent Control Ordinance)",
+        ],
+    ),
+    StepTemplate(
+        step_number=7,
+        phase=JourneyPhase.RENTAL_SETUP,
+        title="Analyze Rental Yield",
+        description="Calculate expected rental returns and assess the investment viability.",
+        estimated_duration_days=5,
+        content_key="rental_yield_analysis",
+        prerequisites=[2],
+        conditions={"property_use": ["rent_out"]},
+        tasks=[
+            {
+                "title": "Look up local Mietspiegel (rent index) for your target area",
+                "is_required": True,
+            },
+            {
+                "title": "Calculate gross Mietrendite (rental yield) for the property",
+                "is_required": True,
+            },
+            {
+                "title": "Estimate net yield after costs (Hausgeld, maintenance, vacancy)",
+                "is_required": True,
+            },
+            {
+                "title": "Compare yields with market averages using the ROI calculator",
+                "is_required": True,
+            },
+            {
+                "title": "Research comparable rental listings in the neighborhood",
+                "is_required": False,
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=8,
+        phase=JourneyPhase.OWNERSHIP,
+        title="Plan Property Management",
+        description="Decide between self-management and hiring a Hausverwaltung.",
+        estimated_duration_days=7,
+        content_key="rental_property_management",
+        prerequisites=[3],
+        conditions={"property_use": ["rent_out"]},
+        tasks=[
+            {
+                "title": "Compare self-management vs Hausverwaltung (property management agency)",
+                "is_required": True,
+            },
+            {
+                "title": "Get quotes from local Hausverwaltung companies (typically 20-30 EUR/unit/month)",
+                "is_required": True,
+            },
+            {
+                "title": "Understand WEG-Verwaltung vs Mietverwaltung responsibilities",
+                "is_required": True,
+            },
+            {
+                "title": "Plan for maintenance reserve (Instandhaltungsrücklage)",
+                "is_required": False,
+            },
+        ],
+    ),
+    # BUYING PHASE
+    StepTemplate(
+        step_number=9,
+        phase=JourneyPhase.BUYING,
+        title="Inspect, Evaluate & Make an Offer",
+        description="Complete due diligence on your chosen property and submit your purchase offer.",
+        estimated_duration_days=21,
+        content_key="due_diligence_and_offer",
+        prerequisites=[2],
+        tasks=[
+            # Due diligence tasks (from old step 10)
+            {
+                "title": "Review the property exposé",
+                "is_required": True,
+            },
+            {
+                "title": "Request Grundbuchauszug (land registry extract)",
+                "is_required": True,
+            },
+            {
+                "title": "Review Energieausweis (energy certificate)",
+                "is_required": True,
+            },
+            {"title": "Check for encumbrances or easements", "is_required": True},
+            {"title": "Verify building permits and compliance", "is_required": True},
+            {"title": "Consider hiring a property surveyor", "is_required": False},
+            {
+                "title": "Review HOA documents (Teilungserklärung)",
+                "is_required": False,
+            },
+            {
+                "title": "Consider hiring a real estate lawyer (Immobilienanwalt)",
+                "is_required": False,
+            },
+            # Offer tasks (from old step 11)
+            {"title": "Determine your offer price", "is_required": True},
+            {"title": "Submit written offer (Kaufangebot)", "is_required": True},
+            {"title": "Negotiate terms if needed", "is_required": False},
+            {"title": "Receive seller acceptance", "is_required": True},
+        ],
+        related_laws=[
+            "GBO (Grundbuchordnung)",
+            "EnEV (Energieeinsparverordnung)",
+        ],
+    ),
+    StepTemplate(
+        step_number=10,
+        phase=JourneyPhase.BUYING,
+        title="Prepare Rental Tax Strategy",
+        description="Understand tax obligations for rental income in Germany.",
+        estimated_duration_days=7,
+        content_key="rental_tax_strategy",
+        prerequisites=[9],
+        conditions={"property_use": ["rent_out"]},
+        tasks=[
+            {
+                "title": "Learn about Anlage V (income from renting) tax filing",
+                "is_required": True,
+            },
+            {
+                "title": "Identify deductible expenses (mortgage interest, repairs, Hausverwaltung fees)",
+                "is_required": True,
+            },
+            {
+                "title": "Understand AfA (Absetzung für Abnutzung) — 2% linear depreciation over 50 years",
+                "is_required": True,
+            },
+            {
+                "title": "Consider consulting a Steuerberater (tax advisor) for rental income",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "EStG §21 (Einkünfte aus Vermietung und Verpachtung)",
+            "EStG §7 (AfA — Absetzung für Abnutzung)",
+        ],
+    ),
+    StepTemplate(
+        step_number=11,
+        phase=JourneyPhase.BUYING,
+        title="Notary Selection & Contract Review",
+        description="Choose a notary and carefully review the Kaufvertrag before signing.",
+        estimated_duration_days=21,
+        content_key="notary_and_contract",
+        prerequisites=[9],
+        tasks=[
+            # Notary selection tasks (from old step 12)
+            {"title": "Research local notaries", "is_required": True},
+            {"title": "Schedule appointment", "is_required": True},
+            {"title": "Provide required documents to notary", "is_required": True},
+            # Contract review tasks (from old step 13)
+            {"title": "Receive draft Kaufvertrag from notary", "is_required": True},
+            {"title": "Review all terms and conditions", "is_required": True},
+            {"title": "Clarify any questions with notary", "is_required": True},
+            {
+                "title": "Consider professional contract review",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "BeurkG (Beurkundungsgesetz)",
+            "BNotO (Bundesnotarordnung)",
+            "BGB §311b (Formvorschriften)",
+        ],
+    ),
+    StepTemplate(
+        step_number=12,
+        phase=JourneyPhase.BUYING,
+        title="Secure Final Loan Commitment",
+        description="Submit the purchase contract to your bank and receive the binding Darlehenszusage.",
+        estimated_duration_days=14,
+        content_key="loan_commitment",
+        prerequisites=[11],
+        conditions={"financing_type": ["mortgage", "mixed"]},
+        tasks=[
+            {
+                "title": "Submit the purchase contract draft to your bank",
+                "is_required": True,
+            },
+            {
+                "title": "Complete any remaining loan application documents",
+                "is_required": True,
+            },
+            {
+                "title": "Receive the formal loan commitment (Darlehenszusage)",
+                "is_required": True,
+            },
+            {
+                "title": "Review and sign the loan agreement (Darlehensvertrag)",
+                "is_required": True,
+            },
+        ],
+        related_laws=[
+            "BGB §488-505 (Darlehensvertrag)",
+            "BGB §492 (Schriftform bei Verbraucherdarlehen)",
+        ],
+    ),
+    StepTemplate(
+        step_number=13,
+        phase=JourneyPhase.BUYING,
+        title="Sign at the Notary",
+        description="Attend the notary appointment and sign the purchase contract.",
+        estimated_duration_days=1,
+        content_key="notary_signing",
+        # prerequisite 12 is conditional (mortgage/mixed) — resolved at generation time
+        prerequisites=[11, 12],
+        tasks=[
+            {"title": "Bring valid ID to appointment", "is_required": True},
+            {"title": "Listen to full contract reading", "is_required": True},
+            {"title": "Sign the Kaufvertrag", "is_required": True},
+            {"title": "Receive notarized copies", "is_required": True},
+        ],
+    ),
+    # CLOSING PHASE
+    StepTemplate(
+        step_number=14,
+        phase=JourneyPhase.CLOSING,
+        title="Complete Payment & Transfer Tax",
+        description="Transfer the purchase price and pay the Grunderwerbsteuer.",
+        estimated_duration_days=44,
+        content_key="payment_and_transfer_tax",
+        prerequisites=[13],
+        tasks=[
+            # Payment tasks (from old step 15)
+            {
+                "title": "Wait for Auflassungsvormerkung (priority notice)",
+                "is_required": True,
+            },
+            {"title": "Receive payment request from notary", "is_required": True},
+            {"title": "Transfer purchase price", "is_required": True},
+            {"title": "Confirm receipt with notary", "is_required": True},
+            # Transfer tax tasks (from old step 16)
+            {"title": "Receive tax assessment from Finanzamt", "is_required": True},
+            {"title": "Pay Grunderwerbsteuer", "is_required": True},
+            {
+                "title": "Receive Unbedenklichkeitsbescheinigung (tax clearance)",
+                "is_required": True,
+            },
+        ],
+        related_laws=[
+            "BGB §925 (Auflassung)",
+            "GrEStG (Grunderwerbsteuergesetz)",
+        ],
+    ),
+    StepTemplate(
+        step_number=15,
+        phase=JourneyPhase.CLOSING,
+        title="Ownership Transfer",
+        description="Complete the transfer and receive the keys.",
+        estimated_duration_days=30,
+        content_key="ownership_transfer",
+        prerequisites=[14],
+        tasks=[
+            {"title": "Notary submits for land registry update", "is_required": True},
+            {"title": "Receive updated Grundbuchauszug", "is_required": True},
+            {"title": "Collect keys from seller", "is_required": True},
+            {
+                "title": "Arrange utility transfer with seller (Übergabe)",
+                "is_required": True,
+            },
+        ],
+        related_laws=["GBO §13 (Eintragungsgrundsatz)"],
+    ),
+    # OWNERSHIP PHASE
+    StepTemplate(
+        step_number=16,
+        phase=JourneyPhase.OWNERSHIP,
+        title="Register Property & Arrange Insurance",
+        description="Finalize ownership records and secure essential insurance coverage.",
+        estimated_duration_days=12,
+        content_key="registration_and_insurance",
+        prerequisites=[15],
+        tasks=[
+            # Registration tasks (from old step 25)
+            {
+                "title": "Confirm Grundbuch (land register) transfer is complete with notary",
+                "is_required": True,
+            },
+            {
+                "title": "Obtain all property keys and complete Übergabeprotokoll (handover protocol)",
+                "is_required": True,
+            },
+            {
+                "title": "Transfer utilities (electricity, gas, water, internet) to your name",
+                "is_required": True,
+            },
+            {
+                "title": "Register new address at Bürgeramt (Anmeldung)",
+                "is_required": True,
+                "conditions": {"property_use": ["live_in"]},
+            },
+            {
+                "title": "Set up mail forwarding (Nachsendeauftrag) via Deutsche Post",
+                "is_required": False,
+            },
+            # Insurance tasks (from old step 26)
+            {
+                "title": "Arrange Wohngebäudeversicherung (building insurance)",
+                "is_required": True,
+            },
+            {
+                "title": "Consider Haus- und Grundbesitzerhaftpflicht (property liability insurance)",
+                "is_required": True,
+            },
+            {
+                "title": "Evaluate Elementarschadenversicherung (natural disaster) coverage for your region",
+                "is_required": False,
+            },
+            {
+                "title": "Set up Hausratversicherung (contents insurance)",
+                "is_required": True,
+                "conditions": {"property_use": ["live_in"]},
+            },
+            {
+                "title": "Verify WEG building insurance policy covers your unit",
+                "is_required": False,
+                "conditions": {"property_type": ["apartment"]},
+            },
+        ],
+    ),
+    StepTemplate(
+        step_number=17,
+        phase=JourneyPhase.OWNERSHIP,
+        title="Set Up Property Management & Finance",
+        description="Establish ongoing management and set up property tax payments.",
+        estimated_duration_days=12,
+        content_key="management_and_finance_setup",
+        prerequisites=[16],
+        tasks=[
+            # Management tasks (from old step 27)
+            {
+                "title": "Contact WEG-Verwaltung and register as new owner",
+                "is_required": True,
+                "conditions": {"property_type": ["apartment"]},
+            },
+            {
+                "title": "Set up Hausgeld (condo fees) payment via Dauerauftrag",
+                "is_required": True,
+                "conditions": {"property_type": ["apartment"]},
+            },
+            {
+                "title": "Review Teilungserklärung and Hausordnung (house rules)",
+                "is_required": False,
+                "conditions": {"property_type": ["apartment"]},
+            },
+            {
+                "title": "Plan annual maintenance budget (Instandhaltungsrücklage)",
+                "is_required": True,
+                "conditions": {"property_type": ["house"]},
+            },
+            {
+                "title": "Identify local tradespeople for repairs (plumber, electrician, heating)",
+                "is_required": False,
+                "conditions": {"property_type": ["house"]},
+            },
+            {
+                "title": "Register for waste collection (Müllabfuhr) service",
+                "is_required": True,
+            },
+            {
+                "title": "Schedule heating system inspection (Heizungswartung)",
+                "is_required": False,
+            },
+            # Finance tasks (from old step 28)
+            {
+                "title": "Register for Grundsteuer (property tax) at local Finanzamt",
+                "is_required": True,
+            },
+            {
+                "title": "Set up Grundsteuer payment via Dauerauftrag (quarterly or annual)",
+                "is_required": True,
+            },
+            {
+                "title": "Track mortgage payments and request annual interest statement",
+                "is_required": True,
+                "conditions": {"financing_type": ["mortgage", "mixed"]},
+            },
+            {
+                "title": "Prepare for Anlage V rental income tax filing",
+                "is_required": True,
+                "conditions": {"property_use": ["rent_out"]},
+            },
+            {
+                "title": "Keep records of all property expenses for tax deduction",
+                "is_required": True,
+            },
+        ],
+    ),
+    # RENTAL SETUP (rental investors only)
+    StepTemplate(
+        step_number=18,
+        phase=JourneyPhase.RENTAL_SETUP,
+        title="Set Up Rental Operations",
+        description="Prepare everything needed to start renting: lease template, tenant screening, and utility accounting.",
+        estimated_duration_days=14,
+        content_key="rental_operations_setup",
+        prerequisites=[15],
+        conditions={"property_use": ["rent_out"]},
+        tasks=[
+            {
+                "title": "Prepare a Mietvertrag (lease agreement) using a standard template",
+                "is_required": True,
+            },
+            {
+                "title": "Set up tenant screening process (SCHUFA check, income verification)",
+                "is_required": True,
+            },
+            {
+                "title": "Plan Nebenkostenabrechnung (utility cost accounting) for tenants",
+                "is_required": True,
+            },
+            {
+                "title": "Arrange landlord insurance (Haus- und Grundbesitzerhaftpflicht)",
+                "is_required": True,
+            },
+            {
+                "title": "Create a Wohnungsübergabeprotokoll (handover protocol) template",
+                "is_required": False,
+            },
+        ],
+        related_laws=[
+            "BGB §535 (Mietvertrag)",
+            "BetrKV (Betriebskostenverordnung)",
+            "HeizkostenV (Heizkostenverordnung)",
+        ],
+    ),
+]
+
 # Step templates for the tenant rental journey (apartment search → move-in).
 RENTAL_STEP_TEMPLATES: list[StepTemplate] = [
     # RENTAL_SEARCH phase
@@ -1388,6 +2077,7 @@ def generate_journey(
             target_purchase_date=answers.target_purchase_date,
             property_use=answers.property_use,
             started_at=datetime.now(timezone.utc),
+            journey_version=2,
             property_goals={
                 "preferred_property_type": answers.property_type.value
                 if answers.property_type
@@ -1400,8 +2090,17 @@ def generate_journey(
     session.add(journey)
     session.flush()  # Get journey ID
 
-    # Select template list based on journey type
-    templates = RENTAL_STEP_TEMPLATES if is_rental else STEP_TEMPLATES
+    # Select template list based on journey type and version.
+    # Rental journeys always use RENTAL_STEP_TEMPLATES.
+    # New buying journeys (v2) use the consolidated BUYING_STEP_TEMPLATES_V2.
+    # Existing buying journeys (v1, journey_version=1) keep the legacy STEP_TEMPLATES
+    # so that their existing steps are never altered.
+    if is_rental:
+        templates = RENTAL_STEP_TEMPLATES
+    elif journey.journey_version == 2:
+        templates = BUYING_STEP_TEMPLATES_V2
+    else:
+        templates = STEP_TEMPLATES
 
     # Generate steps based on conditions
     step_number_map: dict[int, int] = {}  # Original -> New step number
@@ -1412,6 +2111,10 @@ def generate_journey(
             continue
 
         current_step += 1
+        assert template.step_number not in step_number_map, (
+            f"Duplicate template step_number {template.step_number} — "
+            "only one branch should be included per journey"
+        )
         step_number_map[template.step_number] = current_step
 
         # Map prerequisites to new step numbers
