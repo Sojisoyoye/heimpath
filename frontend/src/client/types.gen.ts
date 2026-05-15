@@ -1316,6 +1316,7 @@ export type JourneyTaskResponse = {
     is_required?: boolean;
     resource_url?: (string | null);
     resource_type?: (string | null);
+    task_category?: TaskCategory;
     id: string;
     order: number;
     is_completed: boolean;
@@ -2686,6 +2687,11 @@ export type SupportedLanguageInfo = {
 export type SupportedLanguagesResponse = {
     languages: Array<SupportedLanguageInfo>;
 };
+
+/**
+ * Category of a journey task.
+ */
+export type TaskCategory = 'action' | 'resource' | 'warning';
 
 export type Token = {
     access_token: string;
