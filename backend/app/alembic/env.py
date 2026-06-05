@@ -72,7 +72,13 @@ def run_migrations_online():
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata, compare_type=True
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+            # Each migration runs in its own transaction so that DDL like
+            # ALTER TYPE ... ADD VALUE is committed before the next migration
+            # can reference the new enum value (PostgreSQL requirement).
+            transaction_per_migration=True,
         )
 
         with context.begin_transaction():

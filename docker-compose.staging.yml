@@ -1,0 +1,132 @@
+# Staging backend services — Hetzner VPS
+# Always used together with docker-compose.prod.yml:
+#   docker-compose -f docker-compose.prod.yml -f docker-compose.staging.yml up -d
+# modish_modish network is declared here so this file can be validated standalone.
+
+services:
+
+  redis-staging:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD?Variable not set}
+    environment:
+      - REDISCLI_AUTH=${REDIS_PASSWORD?Variable not set}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+    volumes:
+      - staging-redis-data:/data
+    networks:
+      - heimpath-staging
+
+  prestart-staging:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env.staging
+    depends_on:
+      redis-staging:
+        condition: service_healthy
+    networks:
+      - heimpath-staging
+
+  backend-staging:
+    container_name: heimpath-backend-staging
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: always
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env.staging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      redis-staging:
+        condition: service_healthy
+      prestart-staging:
+        condition: service_completed_successfully
+    networks:
+      - heimpath-staging
+      - modish_modish
+
+  celery-worker-staging:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: always
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=2 --hostname=worker-staging@%h
+    env_file:
+      - .env.staging
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - POSTGRES_SERVER=${POSTGRES_SERVER}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis-staging:6379
+      - SENTRY_DSN=${SENTRY_DSN}
+      - AZURE_TRANSLATOR_KEY=${AZURE_TRANSLATOR_KEY}
+      - AZURE_TRANSLATOR_REGION=${AZURE_TRANSLATOR_REGION}
+      - AZURE_TRANSLATOR_ENDPOINT=${AZURE_TRANSLATOR_ENDPOINT}
+      - AZURE_DOCUMENT_TRANSLATOR_ENDPOINT=${AZURE_DOCUMENT_TRANSLATOR_ENDPOINT}
+    depends_on:
+      redis-staging:
+        condition: service_healthy
+      prestart-staging:
+        condition: service_completed_successfully
+    networks:
+      - heimpath-staging
+
+  celery-beat-staging:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: always
+    command: celery -A app.worker.celery_app beat --loglevel=info
+    env_file:
+      - .env.staging
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - POSTGRES_SERVER=${POSTGRES_SERVER}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis-staging:6379
+      - SENTRY_DSN=${SENTRY_DSN}
+    depends_on:
+      redis-staging:
+        condition: service_healthy
+      prestart-staging:
+        condition: service_completed_successfully
+    networks:
+      - heimpath-staging
+
+volumes:
+  staging-redis-data:
+
+networks:
+  heimpath-staging:
+    driver: bridge
+  modish_modish:
+    external: true
+    name: modish_modish
