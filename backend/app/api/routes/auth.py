@@ -421,8 +421,12 @@ async def logout(
     # so that browsers (especially Safari) actually remove them.
     secure = settings.ENVIRONMENT != "local"
     samesite: str = "none" if secure else "lax"
-    response.delete_cookie(key="access_token", path="/", secure=secure, samesite=samesite)
-    response.delete_cookie(key="refresh_token", path="/", secure=secure, samesite=samesite)
+    response.delete_cookie(
+        key="access_token", path="/", secure=secure, samesite=samesite
+    )
+    response.delete_cookie(
+        key="refresh_token", path="/", secure=secure, samesite=samesite
+    )
     response.delete_cookie(
         key="logged_in",
         path="/",
