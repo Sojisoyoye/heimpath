@@ -1,7 +1,9 @@
 import { AuthService, OpenAPI, UsersService } from "../../src/client"
 import { firstSuperuser, firstSuperuserPassword } from "../config"
 
-OpenAPI.BASE = `${process.env.VITE_API_URL}`
+// Node.js direct backend calls (not through the Vite proxy). BACKEND_URL is a
+// non-VITE env var so it does not appear in the browser client bundle.
+OpenAPI.BASE = process.env.BACKEND_URL ?? "http://localhost:8000"
 
 export const createUser = async ({
   email,
