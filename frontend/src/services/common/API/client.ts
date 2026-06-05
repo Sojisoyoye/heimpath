@@ -16,12 +16,12 @@ import { OpenAPI } from "@/client"
  * is used directly.
  */
 export function initializeApiClient() {
-  // Always use relative URLs so requests go to the same origin as the frontend.
-  // In production, nginx proxies /api/ to the backend (see nginx.conf.template).
-  // In local dev, Vite proxies /api/ to the backend (see vite.config.ts).
-  // This ensures cookies set by the backend are on the frontend domain and
-  // readable by document.cookie for isLoggedIn() checks.
-  OpenAPI.BASE = ""
+  // Use VITE_API_URL as the base when set (production/staging on Vercel).
+  // The backend sets SameSite=None; Domain=.heimpath.com so cookies are sent
+  // cross-origin and logged_in=1 is readable on the frontend domain via
+  // document.cookie. In local dev VITE_API_URL is unset so relative URLs are
+  // used and the Vite proxy handles /api/ → backend (see vite.config.ts).
+  OpenAPI.BASE = import.meta.env.VITE_API_URL ?? ""
   OpenAPI.WITH_CREDENTIALS = true
 }
 

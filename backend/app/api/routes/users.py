@@ -219,14 +219,20 @@ async def delete_user_me(
         auth_service.logout(refresh_token)
     # Clear all auth cookies so the browser stops sending them.
     secure = settings.ENVIRONMENT != "local"
+    samesite: str = "none" if secure else "lax"
     response.delete_cookie(
-        key="access_token", path="/", secure=secure, httponly=True, samesite="lax"
+        key="access_token", path="/", secure=secure, httponly=True, samesite=samesite
     )
     response.delete_cookie(
-        key="refresh_token", path="/", secure=secure, httponly=True, samesite="lax"
+        key="refresh_token", path="/", secure=secure, httponly=True, samesite=samesite
     )
     response.delete_cookie(
-        key="logged_in", path="/", secure=secure, httponly=False, samesite="lax"
+        key="logged_in",
+        path="/",
+        secure=secure,
+        httponly=False,
+        samesite=samesite,
+        domain=f".{settings.DOMAIN}" if secure else None,
     )
 
 

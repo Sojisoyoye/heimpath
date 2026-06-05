@@ -330,11 +330,11 @@ export type BatchTranslationResponse = {
 };
 
 export type Body_contracts_analyze_contract = {
-    file: (Blob | File);
+    file: string;
 };
 
 export type Body_documents_upload_document = {
-    file: (Blob | File);
+    file: string;
 };
 
 export type Body_login_login_access_token = {
@@ -347,7 +347,7 @@ export type Body_login_login_access_token = {
 };
 
 export type Body_users_upload_avatar = {
-    file: (Blob | File);
+    file: string;
 };
 
 /**

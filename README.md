@@ -10,11 +10,18 @@ HeimPath is a comprehensive platform helping foreign investors and immigrants na
 
 ## Environments
 
-| Environment | URL | Deploys from |
-|-------------|-----|--------------|
-| Production | https://heimpath.com | Manual (`workflow_dispatch` with image tag) |
-| Staging | https://staging.heimpath.com | Automatic on push to `main` |
-| Local | http://localhost:5173 (frontend), http://localhost:8000 (backend) | `docker compose up` |
+| Environment | URL | Frontend | Backend |
+|-------------|-----|----------|---------|
+| Production | https://heimpath.com | Vercel (`heimpath` project) | Hetzner VPS via `docker-compose.prod.yml` |
+| Staging | https://staging.heimpath.com | Vercel (`heimpath-staging` project) | Hetzner VPS via `docker-compose.prod.yml` |
+| Local | http://localhost:5173 / http://localhost:8000 | `docker compose up` | `docker compose up` |
+
+### Backend URLs
+
+| Environment | URL |
+|-------------|-----|
+| Production API | https://api.heimpath.com |
+| Staging API | https://api.staging.heimpath.com |
 
 ## Features
 
@@ -131,9 +138,12 @@ All calculators are available without login at `/tools/*` for public access.
 - **Vite** - Fast build tool
 
 ### Infrastructure
-- **Azure Container Apps** - Cloud hosting (staging and production)
-- **Docker Compose** - Local development and container orchestration
-- **GHCR** - Container image registry
+- **Vercel** - Frontend hosting (production and staging)
+- **Hetzner VPS** - Backend hosting with Caddy reverse proxy
+- **Neon** - Managed PostgreSQL (separate databases per environment)
+- **Redis** - Celery broker and cache (self-hosted on Hetzner)
+- **Docker Compose** - Backend orchestration and local development
+- **Caddy** - TLS termination and reverse proxy on the VPS
 - **GitHub Actions** - CI/CD pipelines
 - **Sentry** - Error monitoring (optional)
 
@@ -204,16 +214,68 @@ See `.env.example` for the full list.
 | **Pre-commit** | PRs | Linting and formatting checks |
 | **Playwright** | PRs | End-to-end tests |
 | **Security Scan** | PRs | Dependency vulnerability scanning |
-| **Deploy Staging** | Push to `main` | Builds images, runs migrations, deploys to staging |
-| **Deploy Production** | Manual trigger | Deploys a staging-tested image tag to production |
 
 ### Deployment Flow
 
-1. Push to `main` triggers staging deployment automatically
-2. Images are built and pushed to GHCR with tag `staging-<commit-sha>`
-3. Database migrations run via Azure Container Apps job
-4. Backend and frontend containers are updated on Azure Container Apps
-5. After verifying staging, manually trigger production deployment with the tested image tag
+#### Frontend (Vercel)
+
+Both Vercel projects are deployed manually via the CLI (GitHub integration not yet configured):
+- Staging: deploy after merging to `main` and verifying locally
+- Production: deploy after staging has been verified
+
+Each Vercel project has `VITE_API_URL` configured to point to the corresponding backend:
+- Production: `https://api.heimpath.com`
+- Staging: `https://api.staging.heimpath.com`
+
+To deploy manually from the CLI:
+
+```bash
+cd frontend
+
+# Production
+vercel deploy --prod
+
+# Staging (switch .vercel/project.json to heimpath-staging project first)
+vercel deploy --prod
+```
+
+#### Backend (Hetzner VPS)
+
+The backend runs via Docker Compose on the Hetzner VPS. Production services are in `docker-compose.prod.yml` and staging services in `docker-compose.staging.yml`. Both files are used together on the host:
+
+```bash
+# Sync code to server
+rsync -av --exclude='.git' --exclude='node_modules' --exclude='__pycache__' \
+  --exclude='.env*' ./ root@<VPS_HOST>:/opt/heimpath/
+
+# Restart production backend
+ssh root@<VPS_HOST> "cd /opt/heimpath && \
+  docker-compose -f docker-compose.prod.yml up -d --build --force-recreate backend celery-worker celery-beat"
+
+# Restart staging backend (requires both files)
+ssh root@<VPS_HOST> "cd /opt/heimpath && \
+  docker-compose -f docker-compose.prod.yml -f docker-compose.staging.yml up -d --build --force-recreate backend-staging celery-worker-staging celery-beat-staging"
+```
+
+Key backend services per environment:
+
+| Service | Production port | Staging port |
+|---------|----------------|--------------|
+| Backend API | 8000 | 8001 |
+| Redis | internal | internal |
+| Celery worker | — | — |
+| Celery beat | — | — |
+
+Caddy handles TLS and reverse-proxies `api.heimpath.com → :8000` and `api.staging.heimpath.com → :8001`.
+
+#### Database Migrations
+
+Migrations run automatically via the `prestart` service on container startup:
+
+```bash
+# Force a migration run manually
+docker-compose -f docker-compose.prod.yml run --rm prestart
+```
 
 ## API Overview
 
@@ -295,28 +357,33 @@ See `.env.example` for the full list.
 
 ```
 heimpath/
-├── .github/workflows/      # CI/CD pipelines
+├── .github/workflows/        # CI/CD pipelines
 ├── backend/
 │   ├── app/
-│   │   ├── api/             # API routes
-│   │   ├── models/          # Database models
-│   │   ├── schemas/         # Pydantic schemas
-│   │   ├── services/        # Business logic
-│   │   ├── repository/      # Data access layer
-│   │   └── core/            # Configuration
-│   ├── tests/               # Test suite
-│   └── alembic/             # Database migrations
+│   │   ├── api/              # API routes
+│   │   ├── models/           # Database models
+│   │   ├── schemas/          # Pydantic schemas
+│   │   ├── services/         # Business logic
+│   │   ├── repository/       # Data access layer
+│   │   └── core/             # Configuration
+│   ├── tests/                # Test suite
+│   └── alembic/              # Database migrations
 ├── frontend/
 │   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── hooks/           # Custom hooks (queries + mutations)
-│   │   ├── models/          # TypeScript models
-│   │   ├── routes/          # TanStack Router pages
-│   │   ├── services/        # API service layer
-│   │   └── query/           # Query key factory
-│   └── tests/               # E2E tests (Playwright)
-├── compose.yml              # Docker Compose (local + deployment)
-└── compose.override.yml     # Local development overrides
+│   │   ├── components/       # React components
+│   │   ├── hooks/            # Custom hooks (queries + mutations)
+│   │   ├── models/           # TypeScript models
+│   │   ├── routes/           # TanStack Router pages
+│   │   ├── services/         # API service layer
+│   │   └── query/            # Query key factory
+│   ├── tests/                # E2E tests (Playwright)
+│   └── vercel.json           # Vercel SPA rewrite config
+├── infra/
+│   └── terraform/            # Legacy Azure infrastructure (archived)
+├── compose.yml               # Docker Compose for local development
+├── compose.override.yml      # Local development overrides
+├── docker-compose.prod.yml   # Production + staging backend on Hetzner VPS
+└── .env.example              # Environment variable reference
 ```
 
 ## Development

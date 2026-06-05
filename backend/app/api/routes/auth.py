@@ -174,6 +174,25 @@ def _record_failed_login(email: str, client_ip: str | None) -> RateLimitInfo:
     return rate_info
 
 
+def _check_account_lockout(email: str) -> None:
+    """Raise HTTP 429 if the account is currently locked out due to failed logins."""
+    if not rate_limit_service.is_locked(email):
+        return
+    status_info = rate_limit_service.get_status(email)
+    retry_after = 900  # Default 15 minutes
+    if status_info.lockout_expires_at:
+        retry_after = int(
+            (
+                status_info.lockout_expires_at - datetime.now(timezone.utc)
+            ).total_seconds()
+        )
+    raise HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail="Too many failed login attempts. Please try again later.",
+        headers={"Retry-After": str(max(retry_after, 1))},
+    )
+
+
 @router.post("/login", response_model=AuthToken)
 async def login(
     request: LoginRequest,
@@ -200,20 +219,7 @@ async def login(
         )
 
     # Check if account is locked due to rate limiting
-    if rate_limit_service.is_locked(request.email):
-        status_info = rate_limit_service.get_status(request.email)
-        retry_after = 900  # Default 15 minutes
-        if status_info.lockout_expires_at:
-            retry_after = int(
-                (
-                    status_info.lockout_expires_at - datetime.now(timezone.utc)
-                ).total_seconds()
-            )
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many failed login attempts. Please try again later.",
-            headers={"Retry-After": str(max(retry_after, 1))},
-        )
+    _check_account_lockout(request.email)
 
     # Find user by email
     statement = select(User).where(User.email == request.email)
@@ -270,8 +276,11 @@ async def login(
         subject=str(user.id), remember_me=request.remember_me
     )
 
-    # Set HttpOnly cookies so the browser never exposes tokens to JS
+    # Set HttpOnly cookies so the browser never exposes tokens to JS.
+    # SameSite=None is required for cross-origin requests (Vercel frontend →
+    # Hetzner backend). SameSite=None requires Secure=True, enforced for non-local.
     secure = settings.ENVIRONMENT != "local"
+    samesite: str = "none" if secure else "lax"
     access_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60  # always 15 min
     refresh_max_age = (
         settings.REMEMBER_ME_EXPIRE_DAYS * 24 * 60 * 60
@@ -284,7 +293,7 @@ async def login(
         value=access_token,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=access_max_age,
         path="/",
     )
@@ -293,7 +302,7 @@ async def login(
         value=refresh_token_value,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=refresh_max_age,
         path="/",
     )
@@ -302,14 +311,16 @@ async def login(
     # boolean "1" to signal to isLoggedIn() that an HttpOnly access token exists.
     # Lifetime follows refresh_max_age so the indicator stays valid as long as
     # silent refresh is possible.
+    # domain=.DOMAIN makes it readable from document.cookie on the frontend origin.
     response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
         key="logged_in",
         value="1",
         httponly=False,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=refresh_max_age,
         path="/",
+        domain=f".{settings.DOMAIN}" if secure else None,
     )
 
     return AuthToken(
@@ -357,13 +368,14 @@ async def refresh_token(
 
     # Rotate both cookies — new access token + new refresh token
     secure = settings.ENVIRONMENT != "local"
+    samesite: str = "none" if secure else "lax"
     refresh_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     response.set_cookie(
         key="access_token",
         value=new_access_token,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
     )
@@ -372,7 +384,7 @@ async def refresh_token(
         value=new_refresh_token,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=refresh_max_age,
         path="/",
     )
@@ -382,9 +394,10 @@ async def refresh_token(
         value="1",
         httponly=False,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=refresh_max_age,
         path="/",
+        domain=f".{settings.DOMAIN}" if secure else None,
     )
 
     return AuthToken(
@@ -413,9 +426,20 @@ async def logout(
     # secure + samesite must match the attributes used when setting the cookies
     # so that browsers (especially Safari) actually remove them.
     secure = settings.ENVIRONMENT != "local"
-    response.delete_cookie(key="access_token", path="/", secure=secure, samesite="lax")
-    response.delete_cookie(key="refresh_token", path="/", secure=secure, samesite="lax")
-    response.delete_cookie(key="logged_in", path="/", secure=secure, samesite="lax")
+    samesite: str = "none" if secure else "lax"
+    response.delete_cookie(
+        key="access_token", path="/", secure=secure, samesite=samesite
+    )
+    response.delete_cookie(
+        key="refresh_token", path="/", secure=secure, samesite=samesite
+    )
+    response.delete_cookie(
+        key="logged_in",
+        path="/",
+        secure=secure,
+        samesite=samesite,
+        domain=f".{settings.DOMAIN}" if secure else None,
+    )
     # Always return success even if token was invalid (security best practice)
 
 

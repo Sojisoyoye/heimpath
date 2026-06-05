@@ -26,9 +26,15 @@ export default defineConfig({
     // backend at a different hostname (e.g. backend:8000) would set cookies
     // on its own domain, making them invisible to document.cookie at
     // localhost:5173 and breaking isLoggedIn() checks.
+    //
+    // BACKEND_URL (non-VITE prefix) is used here so the proxy target is a
+    // server-side-only value and is not baked into the client bundle.
+    // VITE_API_URL is intentionally not used here: when set (e.g. in the
+    // playwright container), it would also appear in import.meta.env and make
+    // OpenAPI.BASE point directly at the backend hostname, bypassing this proxy.
     proxy: {
       "/api": {
-        target: process.env.VITE_API_URL ?? "http://localhost:8000",
+        target: process.env.BACKEND_URL ?? "http://localhost:8000",
         changeOrigin: true,
       },
     },
