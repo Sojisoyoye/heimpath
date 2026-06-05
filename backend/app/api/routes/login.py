@@ -79,27 +79,34 @@ def login_access_token(
     access_token = security.create_access_token(
         user.id, expires_delta=access_token_expires
     )
-    # Set HttpOnly cookie so the browser never exposes the token to JS
+    # Set HttpOnly cookie so the browser never exposes the token to JS.
+    # SameSite=None is required for cross-origin requests (Vercel frontend →
+    # Hetzner backend). SameSite=None requires Secure=True, which is already
+    # enforced for non-local environments.
     secure = settings.ENVIRONMENT != "local"
+    samesite: str = "none" if secure else "lax"
     access_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=access_max_age,
         path="/",
     )
     # httponly=False is intentional: non-secret indicator for isLoggedIn() in JS.
+    # domain=.DOMAIN makes the cookie readable from document.cookie on the
+    # frontend origin (heimpath.com) even though it is set by api.heimpath.com.
     response.set_cookie(  # NOSONAR - S3330: httponly=False intentional for UI indicator
         key="logged_in",
         value="1",
         httponly=False,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=access_max_age,
         path="/",
+        domain=f".{settings.DOMAIN}" if secure else None,
     )
     return Token(access_token=access_token)
 
