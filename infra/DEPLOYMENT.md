@@ -44,7 +44,7 @@ vercel deploy --prod
 vercel deploy --prod
 ```
 
-The `frontend/.vercel/project.json` tracks the currently linked project. Switch between projects by updating `projectId` in that file. Do not commit credentials or tokens.
+The `frontend/.vercel/project.json` tracks the currently linked project (project and org IDs only — no credentials). Switch between projects by updating `projectId` in that file. The auth token lives in `~/.local/share/com.vercel.cli/auth.json` and must never be committed.
 
 ### SPA routing
 
@@ -110,13 +110,14 @@ rsync -av --exclude='.git' --exclude='node_modules' --exclude='__pycache__' \
   --exclude='.env*' \
   ./ root@<VPS_HOST>:/opt/heimpath/
 
-# 2. Rebuild and restart (production only)
+# 2. Rebuild and restart production
 ssh root@<VPS_HOST> "cd /opt/heimpath && \
   docker-compose -f docker-compose.prod.yml up -d --build --force-recreate backend celery-worker celery-beat"
 
-# 3. For staging
+# 3. Rebuild and restart staging
+# Note: staging services live in docker-compose.staging.yml — both -f flags required
 ssh root@<VPS_HOST> "cd /opt/heimpath && \
-  docker-compose -f docker-compose.prod.yml up -d --build --force-recreate backend-staging celery-worker-staging celery-beat-staging"
+  docker-compose -f docker-compose.prod.yml -f docker-compose.staging.yml up -d --build --force-recreate backend-staging celery-worker-staging celery-beat-staging"
 ```
 
 ### Database migrations
@@ -124,8 +125,13 @@ ssh root@<VPS_HOST> "cd /opt/heimpath && \
 Migrations run automatically via the `prestart` service when containers start. To run manually:
 
 ```bash
+# Production migrations
 ssh root@<VPS_HOST> "cd /opt/heimpath && \
   docker-compose -f docker-compose.prod.yml run --rm prestart"
+
+# Staging migrations
+ssh root@<VPS_HOST> "cd /opt/heimpath && \
+  docker-compose -f docker-compose.prod.yml -f docker-compose.staging.yml run --rm prestart-staging"
 ```
 
 Alembic is configured with `transaction_per_migration=True` to safely handle enum additions across separate transactions.

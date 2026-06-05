@@ -219,9 +219,9 @@ See `.env.example` for the full list.
 
 #### Frontend (Vercel)
 
-Vercel is connected to the GitHub repository and deploys automatically:
-- Push to `main` → staging Vercel project (`heimpath-staging`) deploys automatically
-- Production deploys are triggered manually via the Vercel dashboard or CLI
+Both Vercel projects are deployed manually via the CLI (GitHub integration not yet configured):
+- Staging: deploy after merging to `main` and verifying locally
+- Production: deploy after staging has been verified
 
 Each Vercel project has `VITE_API_URL` configured to point to the corresponding backend:
 - Production: `https://api.heimpath.com`
@@ -241,17 +241,20 @@ vercel deploy --prod
 
 #### Backend (Hetzner VPS)
 
-The backend runs via Docker Compose on the Hetzner VPS. Both production and staging services run on the same host, managed by a single `docker-compose.prod.yml`:
+The backend runs via Docker Compose on the Hetzner VPS. Production services are in `docker-compose.prod.yml` and staging services in `docker-compose.staging.yml`. Both files are used together on the host:
 
 ```bash
 # Sync code to server
 rsync -av --exclude='.git' --exclude='node_modules' --exclude='__pycache__' \
-  ./ root@<VPS_HOST>:/opt/heimpath/
+  --exclude='.env*' ./ root@<VPS_HOST>:/opt/heimpath/
 
-# SSH into server and restart backend
-ssh root@<VPS_HOST>
-cd /opt/heimpath
-docker-compose -f docker-compose.prod.yml up -d --build --force-recreate backend
+# Restart production backend
+ssh root@<VPS_HOST> "cd /opt/heimpath && \
+  docker-compose -f docker-compose.prod.yml up -d --build --force-recreate backend celery-worker celery-beat"
+
+# Restart staging backend (requires both files)
+ssh root@<VPS_HOST> "cd /opt/heimpath && \
+  docker-compose -f docker-compose.prod.yml -f docker-compose.staging.yml up -d --build --force-recreate backend-staging celery-worker-staging celery-beat-staging"
 ```
 
 Key backend services per environment:
