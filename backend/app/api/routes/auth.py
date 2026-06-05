@@ -174,6 +174,25 @@ def _record_failed_login(email: str, client_ip: str | None) -> RateLimitInfo:
     return rate_info
 
 
+def _check_account_lockout(email: str) -> None:
+    """Raise HTTP 429 if the account is currently locked out due to failed logins."""
+    if not rate_limit_service.is_locked(email):
+        return
+    status_info = rate_limit_service.get_status(email)
+    retry_after = 900  # Default 15 minutes
+    if status_info.lockout_expires_at:
+        retry_after = int(
+            (
+                status_info.lockout_expires_at - datetime.now(timezone.utc)
+            ).total_seconds()
+        )
+    raise HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail="Too many failed login attempts. Please try again later.",
+        headers={"Retry-After": str(max(retry_after, 1))},
+    )
+
+
 @router.post("/login", response_model=AuthToken)
 async def login(
     request: LoginRequest,
@@ -200,20 +219,7 @@ async def login(
         )
 
     # Check if account is locked due to rate limiting
-    if rate_limit_service.is_locked(request.email):
-        status_info = rate_limit_service.get_status(request.email)
-        retry_after = 900  # Default 15 minutes
-        if status_info.lockout_expires_at:
-            retry_after = int(
-                (
-                    status_info.lockout_expires_at - datetime.now(timezone.utc)
-                ).total_seconds()
-            )
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many failed login attempts. Please try again later.",
-            headers={"Retry-After": str(max(retry_after, 1))},
-        )
+    _check_account_lockout(request.email)
 
     # Find user by email
     statement = select(User).where(User.email == request.email)

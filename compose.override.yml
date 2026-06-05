@@ -136,7 +136,6 @@ services:
       context: .
       dockerfile: frontend/Dockerfile.playwright
       args:
-        - VITE_API_URL=http://backend:8000
         - NODE_ENV=production
     ipc: host
     depends_on:
@@ -145,7 +144,11 @@ services:
     env_file:
       - .env
     environment:
-      - VITE_API_URL=http://backend:8000
+      # BACKEND_URL (non-VITE prefix) is used by the Vite dev-server proxy
+      # only (server-side). VITE_API_URL is intentionally not set here so that
+      # OpenAPI.BASE stays "" (relative URLs) and all /api/ calls go through
+      # the Vite proxy — keeping cookies on the same origin (localhost:5173).
+      - BACKEND_URL=http://backend:8000
       - MAILCATCHER_HOST=http://mailcatcher:1080
       # For the reports when run locally
       - PLAYWRIGHT_HTML_HOST=0.0.0.0
