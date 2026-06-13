@@ -25,7 +25,7 @@ celery_app.conf.update(
     beat_schedule={
         "retry-failed-notifications": {
             "task": "app.tasks.document_tasks.retry_failed_notifications",
-            "schedule": crontab(minute="*/10"),  # every 10 minutes
+            "schedule": crontab(minute=0),  # hourly
         },
         "generate-recurring-transactions": {
             "task": "app.tasks.scheduled_tasks.generate_recurring_transactions",
@@ -33,7 +33,7 @@ celery_app.conf.update(
         },
         "cleanup-stuck-documents": {
             "task": "app.tasks.scheduled_tasks.cleanup_stuck_documents",
-            "schedule": crontab(minute="*/5"),  # every 5 minutes
+            "schedule": crontab(minute="*/30"),  # every 30 minutes
         },
     },
 )

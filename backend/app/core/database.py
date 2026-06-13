@@ -19,6 +19,10 @@ async_engine = create_async_engine(
     echo=settings.ENVIRONMENT == "local",
     pool_pre_ping=True,
     connect_args=_async_connect_args,
+    pool_size=3,
+    max_overflow=5,
+    pool_timeout=30,
+    pool_recycle=1800,
 )
 
 AsyncSessionLocal = async_sessionmaker(
