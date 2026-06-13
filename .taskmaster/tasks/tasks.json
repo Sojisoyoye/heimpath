@@ -3421,14 +3421,14 @@
         "description": "_count_total_calculations() in dashboard_service.py re-runs the same 3 queries that _get_recent_calculations() already ran, just to count them. This doubles the DB round-trips on every dashboard load. Fix it to reuse already-fetched data instead of hitting the DB again.",
         "details": "**File:** `backend/app/services/dashboard_service.py`\n\nCurrently `_count_total_calculations()` (lines ~411-425) runs:\n```python\nhc_count = session.exec(select(func.count()).where(...)).one()\nroi_count = session.exec(select(func.count()).where(...)).one()\nfin_count = session.exec(select(func.count()).where(...)).one()\n```\n\nBut `_get_recent_calculations()` already loaded the same records. Pass the results from `_get_recent_calculations()` into the count function instead:\n\n```python\n# In get_dashboard_overview(), collect the calcs list first\ncalcs = _get_recent_calculations(session, user_id, limit=5)\ntotal_calcs = len(calcs)  # use length of already-fetched list\n```\n\nIf the total count needs to be independent of the `limit=5` cap, change the approach: run a single `SELECT COUNT(*)` combined query using `UNION ALL` across the 3 tables, or add `include_count=True` param to `_get_recent_calculations()` that runs count queries in the same call and returns them alongside results.\n\nEither way, eliminate the duplicate 3-query round-trip.",
         "testStrategy": "1. Add SQLAlchemy query logging (`echo=True`) locally and load the dashboard. 2. Count the number of SELECT statements. 3. Verify count queries for HiddenCostCalculation, ROICalculation, FinancingAssessment appear only once total (not twice). 4. Dashboard total calculation count should still be accurate.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "269",
           "270"
         ],
         "priority": "medium",
         "subtasks": [],
-        "updatedAt": "2026-06-13T14:26:54.000Z"
+        "updatedAt": "2026-06-13T15:02:09.000Z"
       },
       {
         "id": "272",
@@ -3436,13 +3436,13 @@
         "description": "build_activity_timeline() in dashboard_service.py runs 7 separate sequential queries (one per activity type). These 7 round-trips keep the DB compute busy on every dashboard load. Consolidate into 2-3 queries using UNION or load all types in parallel.",
         "details": "**File:** `backend/app/services/dashboard_service.py`, lines 250-394\n\nCurrent pattern (7 separate queries in sequence):\n```python\nfor j in session.exec(j_stmt).all(): ...         # journeys\nfor step, _ in session.exec(cs_stmt).all(): ...   # completed steps\nfor doc in session.exec(doc_stmt).all(): ...       # documents\nfor hc in session.exec(hc_stmt).all(): ...         # hidden cost calcs\nfor roi in session.exec(roi_stmt).all(): ...       # ROI calcs\nfor fin in session.exec(fin_stmt).all(): ...       # financing assessments\nfor bm, _ in session.exec(bm_stmt).all(): ...     # law bookmarks\n```\n\n**Option A (recommended \u2014 simplest):** Cache the dashboard timeline response with a short TTL using a dict keyed by user_id in memory (or Redis if available). A 30-second cache means a user refreshing the page rapidly only triggers 1 DB read per 30 seconds.\n\n**Option B:** Combine the 3 calculator queries (hidden cost, ROI, financing) into one query using `UNION ALL` and a discriminator column, reducing 7 queries to 5.\n\n**Option C:** Run all 7 queries concurrently using `asyncio.gather()` if the service is refactored to be async.\n\nOption A is the lowest-risk change. Implement it first \u2014 add a `_timeline_cache: dict[str, tuple[float, list]]` module-level dict, check/set it with a 30s TTL around the 7-query block.",
         "testStrategy": "1. Hit /api/v1/dashboard/ twice within 30 seconds with the same user. 2. Verify the second call does not trigger any SELECT queries (cache hit). 3. Wait 31 seconds, hit again \u2014 verify queries fire once (cache miss + refresh). 4. Verify different users get isolated cache entries.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "271"
         ],
         "priority": "medium",
         "subtasks": [],
-        "updatedAt": "2026-06-13T14:26:54.000Z"
+        "updatedAt": "2026-06-13T15:02:09.000Z"
       },
       {
         "id": "273",

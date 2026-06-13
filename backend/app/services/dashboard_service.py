@@ -4,10 +4,15 @@ Aggregates data across journeys, documents, calculations, and bookmarks
 to produce the dashboard overview for a user.
 """
 
+import time
 import uuid
 from datetime import datetime, timezone
 
 from sqlmodel import Session, func, select
+
+# (user_id_str, limit) -> (monotonic_timestamp, cached_items)
+_timeline_cache: dict[tuple[str, int], tuple[float, list]] = {}
+_TIMELINE_CACHE_TTL = 30  # seconds
 
 from app.models.calculator import HiddenCostCalculation
 from app.models.document import Document
@@ -255,6 +260,12 @@ def build_activity_timeline(
     """Merge recent activity from all tables into a unified timeline."""
     from app.models.journey import Journey, JourneyStep, StepStatus
 
+    cache_key = (str(user_id), limit)
+    now_mono = time.monotonic()
+    cached = _timeline_cache.get(cache_key)
+    if cached is not None and now_mono - cached[0] < _TIMELINE_CACHE_TTL:
+        return cached[1]
+
     items: list[ActivityItem] = []
 
     # Journey starts
@@ -391,7 +402,9 @@ def build_activity_timeline(
 
     # Sort all items by timestamp descending and take the limit
     items.sort(key=lambda i: i.timestamp, reverse=True)
-    return items[:limit]
+    result = items[:limit]
+    _timeline_cache[cache_key] = (now_mono, result)
+    return result
 
 
 def _count_documents_this_month(
@@ -412,17 +425,11 @@ def _count_total_calculations(
     session: Session,
     user_id: uuid.UUID,
 ) -> int:
-    """Count total calculations across all calculator types."""
-    hc_count = session.exec(
-        select(func.count()).where(HiddenCostCalculation.user_id == user_id)
-    ).one()
-    roi_count = session.exec(
-        select(func.count()).where(ROICalculation.user_id == user_id)
-    ).one()
-    fin_count = session.exec(
-        select(func.count()).where(FinancingAssessment.user_id == user_id)
-    ).one()
-    return hc_count + roi_count + fin_count
+    """Count total calculations across all calculator types in one round-trip."""
+    hc_sub = select(func.count()).where(HiddenCostCalculation.user_id == user_id).scalar_subquery()
+    roi_sub = select(func.count()).where(ROICalculation.user_id == user_id).scalar_subquery()
+    fin_sub = select(func.count()).where(FinancingAssessment.user_id == user_id).scalar_subquery()
+    return session.exec(select(hc_sub + roi_sub + fin_sub)).one()
 
 
 def _count_total_bookmarks(
