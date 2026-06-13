@@ -1,0 +1,114 @@
+# Task ID: 7
+# Title: Create Financing Eligibility Wizard
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Build an interactive multi-step questionnaire that assesses user's likelihood of obtaining mortgage financing in Germany and provides personalized recommendations and document checklist. Includes 7-question wizard, eligibility score calculation (0-100), personalized results with strengths and areas to improve, and required documents checklist.
+# Details:
+7-question wizard collecting:
+- Employment status (permanent/self-employed/other)
+- Years at current employer
+- Monthly net income
+- Existing monthly debt obligations
+- Down payment available
+- Credit history (SCHUFA: good/fair/poor/unknown)
+- Citizenship/residency status
+
+Eligibility score calculation (0-100):
+- Weighted scoring algorithm
+- Strong factors: Permanent employment 2+ years, good income-to-debt ratio, 20%+ down payment
+- Moderate factors: EU citizenship, good SCHUFA, stable income
+- Weak factors: Self-employed, non-EU, limited credit history, low down payment
+
+Likelihood assessment:
+- 80-100: High likelihood (green)
+- 60-79: Good likelihood (light green)
+- 40-59: Moderate likelihood (yellow)
+- 20-39: Low likelihood (orange)
+- 0-19: Very low likelihood (red)
+
+Personalized results:
+- Overall likelihood verdict
+- Strengths (green checkmarks)
+- Areas to strengthen (orange warnings with actionable advice)
+- Maximum loan amount estimate
+- Recommended down payment percentage
+- Expected interest rate range
+- Likely loan-to-value ratio
+
+Required documents checklist (personalized):
+- Essential documents (all applicants)
+- Additional documents (based on user's situation)
+- Format requirements
+- Tips for obtaining each document
+- Downloadable PDF checklist
+
+Endpoints:
+- POST /api/v1/financing/eligibility
+- GET /api/v1/financing/eligibility/{assessment_id}
+- GET /api/v1/financing/documents-checklist/{assessment_id}
+
+# Test Strategy:
+Unit tests for scoring algorithm, integration tests for wizard flow, validation with sample user profiles
+
+# Subtasks:
+## 1. Create FinancingAssessment database model and migration [done]
+### Dependencies: None
+### Description: Create SQLAlchemy model FinancingAssessment with UUIDPrimaryKeyMixin, TimestampMixin, Base. Fields: user_id (UUID FK nullable, indexed), share_id (String unique indexed), inputs (employment_status, years_employed, monthly_net_income, monthly_debt, down_payment_available, schufa_rating, residency_status — all stored), results (eligibility_score 0-100, likelihood_label, max_loan_estimate, recommended_down_payment_pct, expected_rate_min, expected_rate_max, loan_to_value_ratio), strengths (JSON array), improvements (JSON array), required_documents (JSON array). Create Alembic migration. Update models/__init__.py.
+### Details:
+
+
+## 2. Create Pydantic schemas for financing eligibility [done]
+### Dependencies: None
+### Description: Create backend/app/schemas/financing.py with: FinancingEligibilityCreate (7 input fields with validation — employment_status enum, years_employed >= 0, monthly_net_income > 0, monthly_debt >= 0, down_payment_available >= 0, schufa_rating enum good/fair/poor/unknown, residency_status enum german/eu/non_eu/permanent_resident). FinancingStrength (label, description, icon). FinancingImprovement (label, description, advice). RequiredDocument (name, description, format_requirements, tips, is_essential bool). FinancingEligibilityResponse (all inputs + score + likelihood_label + max_loan + recommendations + strengths[] + improvements[] + documents[] + share_id + created_at). FinancingEligibilitySummary (id, share_id, score, likelihood_label, max_loan, created_at).
+### Details:
+
+
+## 3. Implement eligibility scoring algorithm [done]
+### Dependencies: None
+### Description: Create backend/app/services/financing_service.py with module-level functions. Core function calculate_eligibility(inputs) returns EligibilityResult dataclass. Weighted scoring (0-100): employment_status (20pts — permanent 2+yr=20, permanent <2yr=14, self-employed 3+yr=10, self-employed <3yr=5, other=2), income_to_debt_ratio (20pts — ratio >5:1=20, 4:1=16, 3:1=12, 2:1=6, <2:1=2), down_payment_pct (20pts — 30%+=20, 20-29%=16, 15-19%=10, 10-14%=6, <10%=2), schufa_rating (15pts — good=15, fair=10, poor=3, unknown=5), residency_status (15pts — german=15, eu=13, permanent_resident=10, non_eu=5), employment_years bonus (10pts — 5+yr=10, 3-4yr=7, 1-2yr=4, <1yr=1). Calculate max_loan_estimate = monthly_net_income * 110 * (1 - debt_ratio). Generate likelihood_label based on score ranges.
+### Details:
+
+
+## 4. Implement strengths/improvements analysis and document checklist generator [done]
+### Dependencies: 7.3
+### Description: Add to financing_service.py: generate_strengths(inputs, score_breakdown) — returns list of strength items based on which scoring factors scored above threshold (e.g., 'Permanent employment provides stability'). generate_improvements(inputs, score_breakdown) — returns list of actionable improvement items for weak factors (e.g., 'Consider saving for a larger down payment — 20%+ significantly improves approval chances'). generate_document_checklist(inputs) — returns personalized document list. Essential for all: ID/passport, proof of income (3 months payslips), bank statements (3 months), SCHUFA report, property details. Conditional: self-employed adds tax returns (3 years) + business financials; non-EU adds residence permit + work permit; low down payment adds additional collateral documentation.
+### Details:
+
+
+## 5. Implement CRUD functions and save/share [done]
+### Dependencies: 7.1, 7.3, 7.4
+### Description: Add to financing_service.py: save_assessment(session, user_id, inputs) — calculates score, generates strengths/improvements/documents, creates share_id via secrets.token_urlsafe(8), persists to DB. get_assessment(session, assessment_id, user_id) — with ownership check. get_by_share_id(session, share_id) — no auth required. list_user_assessments(session, user_id) — returns summaries. delete_assessment(session, assessment_id, user_id).
+### Details:
+
+
+## 6. Create API endpoints for financing eligibility [done]
+### Dependencies: 7.2, 7.5
+### Description: Create backend/app/api/routes/financing.py with router prefix /financing. Endpoints: POST /eligibility (auth, 201 — save assessment), GET /eligibility (auth, 200 — list user assessments), GET /eligibility/share/{share_id} (no auth, 200), GET /eligibility/{assessment_id} (auth, 200), DELETE /eligibility/{assessment_id} (auth, 204). Register router in api/main.py. Route order: share/{share_id} before {assessment_id}.
+### Details:
+
+
+## 7. Write backend unit and integration tests [done]
+### Dependencies: 7.6
+### Description: Create tests for: scoring algorithm with 5+ sample profiles (high-income German permanent employee = 85+, self-employed non-EU low down payment = 20-30, etc.), strengths/improvements generation, document checklist personalization, API endpoints (save, retrieve, share, list, delete). Mock DB session. Verify score boundaries and label mapping.
+### Details:
+
+
+## 8. Create frontend models, service, and hooks [done]
+### Dependencies: 7.6
+### Description: Add to frontend/src/models/calculator.ts: FinancingInput, FinancingStrength, FinancingImprovement, RequiredDocument, FinancingAssessment, FinancingAssessmentSummary interfaces. Add to CalculatorService.ts: saveFinancingAssessment(), getFinancingAssessment(), getFinancingByShareId(), getUserFinancingAssessments(), deleteFinancingAssessment(). Add to services/common/Paths.ts: FINANCING paths. Add to queryKeys.ts: financing section (list, detail, share). Add query hooks: useFinancingAssessment, useFinancingByShareId, useUserFinancingAssessments. Add mutation hooks: useSaveFinancingAssessment, useDeleteFinancingAssessment.
+### Details:
+
+
+## 9. Build FinancingWizard UI component [done]
+### Dependencies: 7.8
+### Description: Create frontend/src/components/Calculators/FinancingWizard.tsx. Multi-step wizard with 7 questions (one per step): employment status (radio cards), years employed (number input), monthly net income (currency input), monthly debt obligations (currency input), down payment available (currency input), SCHUFA rating (radio cards with explainer tooltip for 'unknown'), residency status (radio cards). Progress bar at top. Back/Next navigation. Final step: 'Calculate My Eligibility' button. Client-side scoring mirrors backend for instant result display. Uses useSaveFinancingAssessment mutation on submit.
+### Details:
+
+
+## 10. Build FinancingResults UI component [done]
+### Dependencies: 7.9
+### Description: Create results section within FinancingWizard.tsx or as FinancingResults.tsx. Displays: score gauge (0-100 with color gradient), likelihood label badge (colored like ROI grade), strengths list (green checkmarks), improvements list (orange warnings with actionable advice), loan estimate card (max loan, recommended down payment %, expected rate range, LTV ratio), document checklist (grouped by essential/additional, each with tips expandable). Save section with name input + save button. Share URL with copy-to-clipboard. Saved assessments list with summary cards + delete.
+### Details:
+
+

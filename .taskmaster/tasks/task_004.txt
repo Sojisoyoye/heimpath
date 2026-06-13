@@ -1,0 +1,108 @@
+# Task ID: 4
+# Title: Create Document Translation Engine
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Build an AI-powered document translation service that converts German real estate documents (contracts, leases, property listings) into English with automatic detection of key clauses and risk warnings. Supports PDF upload (max 10 pages free tier, 20 pages premium), automatic document type detection, DeepL API integration for translation, key clause detection and highlighting, risk detection and warnings.
+# Details:
+Supported document types:
+- Kaufvertrag (Purchase Contract)
+- Mietvertrag (Rental Agreement)
+- Exposé (Property Listing)
+- Nebenkostenabrechnung (Utility Statement)
+- Grundbuchauszug (Land Registry Extract)
+- Teilungserklärung (Condo Declaration)
+- Hausgeldabrechnung (Condo Fee Statement)
+
+Key clause detection:
+- Purchase price and payment terms
+- Dates and deadlines
+- Warranty exclusions
+- Special conditions
+- Financial terms (rent, deposits, fees)
+
+Risk warnings for:
+- High-risk clauses (e.g., 'Gewährleistung ausgeschlossen')
+- Unusual terms requiring attention
+- Missing required information
+
+Technical requirements:
+- DeepL API integration (official Python SDK)
+- PDF text extraction (pdfplumber library)
+- Async processing (Celery background tasks)
+- Document storage (AWS S3, encrypted at rest)
+- Progress tracking and status updates
+- Usage limit enforcement per subscription tier
+- Keyword matching for clause detection (regex patterns)
+
+Endpoints:
+- POST /api/v1/documents/upload
+- GET /api/v1/documents/{document_id}
+- GET /api/v1/documents/{document_id}/translation
+- GET /api/v1/documents/{document_id}/status
+- GET /api/v1/documents/ (list user's documents)
+
+# Test Strategy:
+Unit tests for clause detection, integration tests for DeepL API, E2E tests for document upload and translation flow
+
+# Subtasks:
+## 1. Create Document database models and migrations [done]
+### Dependencies: None
+### Description: Create SQLAlchemy models for Document (id, user_id, filename, document_type, status, page_count, created_at, updated_at) and Translation (id, document_id, original_text, translated_text, clauses, risks, created_at). Add Alembic migration.
+### Details:
+
+
+## 2. Implement PDF text extraction service [done]
+### Dependencies: None
+### Description: Create DocumentExtractionService using pdfplumber library to extract text from uploaded PDFs. Handle multi-page documents, return structured text with page numbers. Include error handling for corrupted/unsupported PDFs.
+### Details:
+
+
+## 3. Integrate DeepL API for translation [done]
+### Dependencies: None
+### Description: Create TranslationService wrapping DeepL Python SDK. Implement async translate_text() and translate_document() methods. Handle rate limiting, API errors, and retry logic. Cache translations for repeated requests.
+### Details:
+
+
+## 4. Implement document type detection and clause extraction [done]
+### Dependencies: None
+### Description: Create ClauseDetectionService with regex patterns to detect document types (Kaufvertrag, Mietvertrag, etc.) and extract key clauses: purchase price, payment terms, dates/deadlines, warranty exclusions, special conditions, financial terms.
+### Details:
+
+
+## 5. Implement risk warning detection [done]
+### Dependencies: None
+### Description: Create RiskDetectionService to identify high-risk clauses (e.g., 'Gewährleistung ausgeschlossen'), unusual terms requiring attention, and missing required information. Return risk level (low/medium/high) and warning messages.
+### Details:
+
+
+## 6. Set up AWS S3 document storage [done]
+### Dependencies: None
+### Description: Configure aioboto3 for async S3 operations. Implement DocumentStorageService with upload_document(), get_document(), delete_document() methods. Enable server-side encryption (AES-256). Store documents with user_id prefix for isolation.
+### Details:
+
+
+## 7. Create document upload endpoint [done]
+### Dependencies: None
+### Description: Implement POST /api/v1/documents/upload endpoint. Accept multipart form data with PDF file. Validate file type and size (max 10 pages free, 20 premium). Extract text, store in S3, create Document record, queue translation job. Return document_id and status.
+### Details:
+
+
+## 8. Create document retrieval and status endpoints [done]
+### Dependencies: None
+### Description: Implement: GET /api/v1/documents/ (list user documents with pagination), GET /api/v1/documents/{id} (document details), GET /api/v1/documents/{id}/status (translation progress), GET /api/v1/documents/{id}/translation (full translation with clauses and risks).
+### Details:
+
+
+## 9. Implement async translation processing with Celery [done]
+### Dependencies: None
+### Description: Set up Celery with Redis broker. Create translate_document_task that: extracts PDF text, translates via DeepL, detects clauses and risks, updates document status. Implement progress tracking and error handling.
+### Details:
+
+
+## 10. Write unit and integration tests [done]
+### Dependencies: None
+### Description: Write tests for: PDF extraction service, DeepL integration (mocked), clause detection patterns, risk detection, document upload endpoint, translation retrieval endpoint. Achieve 90%+ coverage. Include E2E test for full upload-translate flow.
+### Details:
+
+

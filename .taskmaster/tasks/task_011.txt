@@ -1,0 +1,55 @@
+# Task ID: 11
+# Title: Implement Frontend UI for HeimPath Features
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Build the React frontend components for the HeimPath platform including: (1) Journey Dashboard - display user's property buying journeys with progress tracking, step navigation, and task checklists; (2) Legal Knowledge Base UI - browsable law categories, search interface, law detail pages with court rulings and state variations, bookmark functionality; (3) User Profile - account settings, subscription management, data export; (4) Landing pages and onboarding flow. Use React with TypeScript, Tailwind CSS, and shadcn/ui components following the project's frontend standards.
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Set up Frontend Project Structure [done]
+### Dependencies: None
+### Description: Configure the React frontend with proper folder structure following project standards: components/_ui-common for reusable UI, components/pages for page components, services for API integration, hooks for React Query hooks, and common for shared utilities and types.
+### Details:
+
+
+## 2. Build Journey Dashboard Components [done]
+### Dependencies: None
+### Description: Create React components for the property journey feature: JourneyList (display all user journeys), JourneyCard (summary view), JourneyDetail (full journey with steps), StepCard (individual step with tasks), TaskCheckbox (task completion), ProgressBar (journey progress), and PhaseIndicator (current phase display). Integrate with /api/v1/journeys endpoints using React Query.
+### Details:
+
+
+## 3. Build Legal Knowledge Base UI [done]
+### Dependencies: None
+### Description: Create React components for the legal knowledge base: LawList (paginated law listing with filters), LawCard (law summary), LawDetail (full law with court rulings, state variations, related laws), LawSearch (search interface with results), CategoryFilter (filter by law category), BookmarkButton (toggle bookmark), BookmarksList (user's bookmarked laws). Integrate with /api/v1/laws endpoints using React Query.
+### Details:
+
+
+## 4. Build User Profile and Settings [done]
+### Dependencies: None
+### Description: Create React components for user account management: ProfilePage (user info display/edit), SettingsForm (account settings), SubscriptionCard (current plan display), SubscriptionUpgrade (upgrade flow with Stripe checkout), DataExportButton (GDPR data export), DeleteAccountModal (account deletion with confirmation). Integrate with /api/v1/users and /api/v1/subscriptions endpoints.
+### Details:
+
+
+## 5. Build Journey Creation Wizard [done]
+### Dependencies: None
+### Description: Create multi-step wizard for creating a new property journey: QuestionnaireForm (property type, location, financing, budget, timeline questions), StepIndicator (wizard progress), PropertyTypeSelector, LocationInput (German states/cities), FinancingOptions (cash/mortgage/mixed), BudgetSlider, TimelineSelector. On completion, POST to /api/v1/journeys to generate personalized journey.
+### Details:
+
+
+## 6. Build sign up, sign in, password reset ui [done]
+### Dependencies: None
+### Description: Create authentication UI components: SignUpForm (registration with email, password, name), SignInForm (login with email/password), ForgotPasswordForm (email input for reset), ResetPasswordForm (new password input), EmailVerification (verification code/link handling). Include form validation, error handling, loading states, and redirect logic. Integrate with /api/v1/auth and /api/v1/login endpoints.
+### Details:
+
+
+## 7. Build Hidden Costs Calculator and ROI Calculator UI [done]
+### Dependencies: None
+### Description: Create financial calculator UI components: (1) HiddenCostsCalculator - inputs for property price, location (state), property type; displays breakdown of notary fees, land transfer tax (Grunderwerbsteuer by state), agent commission, registration fees, renovation estimates, moving costs, and total cost of ownership. (2) ROICalculator - inputs for purchase price, rental income, expenses, appreciation rate; displays cash-on-cash return, cap rate, ROI projections, and comparison charts. Include interactive sliders, real-time calculations, and exportable results.
+### Details:
+
+

@@ -1,0 +1,97 @@
+# Task ID: 12
+# Title: Check Current Project Setup and Configure CI/CD Pipeline
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Review the current project setup including Docker configuration, environment variables, testing setup, and code quality tools. Then set up a complete CI/CD pipeline using GitHub Actions for automated testing, linting, building, and deployment. The pipeline should support both backend (Python/FastAPI) and frontend (React/TypeScript) with separate jobs for each.
+# Details:
+Tasks to complete:
+
+1. Project Setup Review:
+- Audit current Docker Compose configuration (compose.yml, compose.override.yml)
+- Review environment variable management (.env files, secrets)
+- Check test configuration for backend (pytest) and frontend (vitest/jest)
+- Verify code quality tools (ESLint, Prettier, Black, Ruff, MyPy)
+- Document any missing or incomplete configurations
+
+2. GitHub Actions CI Pipeline:
+- Create .github/workflows/ci.yml for continuous integration
+- Backend job: Python setup, dependency install (uv), linting (ruff, black --check), type checking (mypy), unit tests (pytest with coverage)
+- Frontend job: Node setup, dependency install (npm ci), linting (eslint), type checking (tsc --noEmit), unit tests, build verification
+- Add caching for dependencies (pip cache, npm cache)
+- Configure parallel job execution
+- Set up test result reporting and coverage comments on PRs
+
+3. GitHub Actions CD Pipeline:
+- Create .github/workflows/deploy.yml for deployment
+- Build Docker images for backend and frontend
+- Push images to container registry (AWS ECR or GitHub Container Registry)
+- Deploy to staging environment on push to develop branch
+- Deploy to production on push to main/master branch (with manual approval gate)
+- Configure environment secrets for deployment credentials
+
+4. Additional CI Checks:
+- Add security scanning (Dependabot, CodeQL, or Trivy for container scanning)
+- Add commit message linting (conventional commits)
+- Add PR template and branch protection rules documentation
+- Configure automated version bumping (optional)
+
+Technical Requirements:
+- GitHub Actions workflow syntax
+- Docker multi-stage builds for optimized images
+- Environment-specific configuration management
+- Secrets management via GitHub Secrets
+- Matrix builds for multiple Python/Node versions (optional)
+
+# Test Strategy:
+Verify CI pipeline by creating a test PR and ensuring all checks pass. Test CD pipeline by deploying to a staging environment.
+
+# Subtasks:
+## 1. Create root .env.example template [done]
+### Dependencies: None
+### Description: Create /.env.example with placeholder values for all required environment variables: DOMAIN, FRONTEND_HOST, ENVIRONMENT, PROJECT_NAME, STACK_NAME, BACKEND_CORS_ORIGINS, SECRET_KEY, FIRST_SUPERUSER, FIRST_SUPERUSER_PASSWORD, SMTP settings, POSTGRES settings, SENTRY_DSN, and DOCKER_IMAGE settings.
+### Details:
+
+
+## 2. Create frontend .env.example template [done]
+### Dependencies: None
+### Description: Create /frontend/.env.example with placeholder values for VITE_API_URL (default: http://localhost:8000) and MAILCATCHER_HOST (default: http://localhost:1080) for development testing.
+### Details:
+
+
+## 3. Create security scanning workflow [done]
+### Dependencies: None
+### Description: Create /.github/workflows/security-scan.yml with jobs for: (1) python-audit: pip-audit on backend deps, (2) npm-audit: bun pm audit on frontend deps, (3) container-scan: Trivy scanning on Docker images with SARIF upload to GitHub Security, (4) secret-scan: TruffleHog to detect leaked secrets, (5) alls-green aggregator. Triggers: push to master, PRs, weekly schedule.
+### Details:
+
+
+## 4. Create PR template [done]
+### Dependencies: None
+### Description: Create /.github/PULL_REQUEST_TEMPLATE.md with sections: Summary, Type of Change (checkboxes for bug fix, feature, breaking change, docs, refactor, CI), Related Issues, Changes Made, Testing checklist (unit tests, E2E tests, manual testing), Pre-merge checklist, Screenshots section.
+### Details:
+
+
+## 5. Create CONTRIBUTING.md [done]
+### Dependencies: None
+### Description: Create /CONTRIBUTING.md with: (1) Development setup instructions (copy env files, docker compose), (2) Branch naming conventions (feature/, bugfix/, refactor/, docs/, ci/), (3) Commit message guidelines (conventional commits), (4) PR process, (5) Branch protection rules documentation, (6) Security guidelines (never commit secrets), (7) Code standards for backend (Python) and frontend (TypeScript/React).
+### Details:
+
+
+## 6. (Optional) Add conventional commits check [done]
+### Dependencies: None
+### Description: Create /commitlint.config.js with rules for conventional commits (feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert) and /.github/workflows/commitlint.yml workflow to validate PR commit messages. This subtask is optional and can be skipped.
+### Details:
+
+
+## 7. Verify CI/CD improvements [done]
+### Dependencies: None
+### Description: Verification steps: (1) Push to a branch and verify all security scan jobs run in GitHub Actions, (2) Create a new PR and verify the template appears, (3) Copy .env.example to .env, run docker compose up to ensure app starts correctly, (4) If commitlint added, test with invalid commit format to verify it fails.
+### Details:
+
+
+## 8. Manual: Rotate compromised credentials [done]
+### Dependencies: None
+### Description: MANUAL USER ACTION REQUIRED: Since credentials were historically committed to git, rotate all secrets: (1) Generate new SECRET_KEY with 'openssl rand -hex 32', (2) Change FIRST_SUPERUSER_PASSWORD to a secure password, (3) Change POSTGRES_PASSWORD to a secure password, (4) Update GitHub Secrets in repository settings for deployment workflows. Optional: Consider using git-filter-repo to remove .env from git history.
+### Details:
+
+

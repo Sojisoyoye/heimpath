@@ -1,0 +1,38 @@
+# Task ID: 3
+# Title: Develop Legal Knowledge Base
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Build a comprehensive database of 50+ German real estate laws translated into English with plain-language explanations, practical examples, and contextual relevance indicators. Laws are browsable by category, searchable, and automatically surfaced at relevant journey steps. Includes 5 categories: Buying Process (12 laws), Costs & Taxes (10 laws), Rental & Landlord Law (15 laws), Condominium Ownership (8 laws), Agent Regulations (5 laws).
+# Details:
+Each law entry includes:
+- Official citation and title
+- One-line summary (280 characters)
+- Short summary (2-3 sentences)
+- Detailed explanation (2-3 paragraphs)
+- Real-world example
+- Common disputes and resolutions
+- What it means for buyer/seller/landlord/tenant
+- Related laws (hyperlinked)
+- Court rulings (2-5 key decisions)
+- Original German text (collapsible)
+- Last amended date and change history
+- State-specific variations (e.g., land transfer tax rates by state)
+
+Technical requirements:
+- PostgreSQL database with full-text search indexes
+- Content versioning (track changes over time)
+- Related law relationship mapping
+- State variation data structure
+- Interactive state comparison maps
+- Bookmark functionality
+
+Endpoints:
+- GET /api/v1/laws/ (with filtering by category, state, property_type)
+- GET /api/v1/laws/{law_id}
+- GET /api/v1/laws/search?q={query}
+- POST /api/v1/laws/{law_id}/bookmark
+- GET /api/v1/laws/by-journey-step/{step_id}
+
+# Test Strategy:
+Unit tests for search functionality, integration tests for law retrieval and bookmarking

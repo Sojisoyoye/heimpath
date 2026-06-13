@@ -1,0 +1,59 @@
+# Task ID: 6
+# Title: Develop ROI Calculator
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Build an investment analysis calculator that helps users evaluate whether a property is a good investment by calculating key metrics like cash flow, rental yield, cash-on-cash return, and long-term projections. Includes investment grade scoring (0-10 scale), 10-year projection with equity buildup, cumulative cash flow, property value appreciation.
+# Details:
+Input form accepting:
+- Purchase price
+- Down payment amount
+- Interest rate
+- Loan term (years)
+- Expected monthly rent
+- Vacancy rate (%, default 5%)
+- Monthly condo fee (if applicable)
+- Annual property tax (auto-estimated)
+- Annual maintenance (%, default 1% of value)
+
+Calculations:
+- Monthly mortgage payment (amortization formula)
+- Monthly net rental income (rent - vacancy)
+- Monthly operating expenses
+- Monthly cash flow (positive or negative)
+- Annual cash flow
+- Gross rental yield (%)
+- Net rental yield (%)
+- Cash-on-cash return (%)
+- Cap rate (%)
+- Break-even rent amount
+
+Investment grade (0-10 scale):
+- 8-10: Excellent (green)
+- 6-7.9: Good (light green)
+- 4-5.9: Moderate (yellow)
+- 2-3.9: Poor (orange)
+- 0-1.9: Very Poor (red)
+
+10-year projection:
+- Equity buildup (year by year)
+- Cumulative cash flow
+- Property value (assuming 3% appreciation)
+- Line chart visualization
+- Table with yearly breakdown
+
+Technical requirements:
+- Amortization formula implementation
+- Property tax estimation algorithm (state-specific)
+- Configurable assumptions (appreciation rate, rent increases)
+- Chart.js or Recharts for visualizations
+- Scenario state management
+- Calculation history storage
+
+Endpoints:
+- POST /api/v1/calculators/roi
+- GET /api/v1/calculators/roi/{calculation_id}
+- POST /api/v1/calculators/roi/compare
+
+# Test Strategy:
+Unit tests for amortization and ROI calculations, integration tests for scenario comparison
