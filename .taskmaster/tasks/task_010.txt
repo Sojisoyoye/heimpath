@@ -1,0 +1,67 @@
+# Task ID: 10
+# Title: Build Notifications and Reminders System
+# Status: done
+# Dependencies: 1, 2
+# Priority: medium
+# Description: Create a system for delivering timely notifications to users about deadlines, document completion, upcoming steps, and other important events via in-app notifications and email. Includes notification types for journey deadlines, document translation complete, step completion, payment due reminders, subscription expiration, and usage limits approaching.
+# Details:
+Notification types:
+- Journey deadlines (1 week, 3 days, 1 day before)
+- Document translation complete
+- Step completion congratulations
+- Payment due reminders
+- Subscription expiration (7 days before)
+- Law updates (for bookmarked laws)
+- Usage limits approaching (80% of quota)
+- New feature announcements
+
+Delivery channels:
+- In-app notification bell (with badge count)
+- Email (user preference, default ON)
+- Browser push notifications (future, opt-in)
+
+In-app notification center:
+- Dropdown from bell icon
+- Unread indicator (bold text, blue dot)
+- Notification title and preview text
+- Timestamp (relative, e.g., '2 hours ago')
+- Action button (e.g., 'View Step', 'Download Document')
+- Delete/dismiss button
+- Mark all as read
+- Filter by type
+- Clear all notifications
+
+Email notifications:
+- Professional template design
+- Clear subject lines
+- Preview text optimized for mobile
+- Primary CTA button
+- Unsubscribe link (except critical transactional)
+
+Onboarding email sequence:
+- Day 1: Welcome + getting started guide
+- Day 3: How to use the journey feature
+- Day 7: Explore the law database
+- Day 14: Check-in + offer help
+
+Technical requirements:
+- Notification database table
+- Email service integration (SendGrid)
+- Scheduled jobs (Celery Beat for deadline checks)
+- Real-time notification delivery (WebSocket or polling)
+- User preference storage
+- Email template engine
+- Unsubscribe link management
+- Email bounce/complaint handling
+- SPF, DKIM, DMARC configuration
+
+Endpoints:
+- GET /api/v1/notifications/
+- PUT /api/v1/notifications/{notification_id}/read
+- PUT /api/v1/notifications/mark-all-read
+- DELETE /api/v1/notifications/{notification_id}
+- GET /api/v1/notifications/preferences
+- PUT /api/v1/notifications/preferences
+
+# Test Strategy:
+Unit tests for notification creation, integration tests for email delivery, E2E tests for notification preferences
