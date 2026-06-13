@@ -3397,11 +3397,11 @@
         "description": "The async SQLAlchemy engine in backend/app/core/database.py has no pool_size, max_overflow, or pool_recycle settings. This allows unlimited async connections and prevents Neon from autosuspending (Neon suspends compute after ~5 min of inactivity \u2014 open connections block that). Mirror the sync engine config from db.py.",
         "details": "**File:** `backend/app/core/database.py`\n\nAdd the following parameters to `create_async_engine()`:\n```python\nasync_engine = create_async_engine(\n    str(settings.ASYNC_DATABASE_URI),\n    echo=settings.ENVIRONMENT == \"local\",\n    pool_pre_ping=True,\n    connect_args=_async_connect_args,\n    pool_size=3,          # mirror sync engine\n    max_overflow=5,       # mirror sync engine\n    pool_timeout=30,      # mirror sync engine\n    pool_recycle=1800,    # recycle before Neon's 15-min idle drop\n)\n```\n\n`pool_recycle=1800` is critical: Neon drops idle connections after 15 minutes. Without recycling, SQLAlchemy holds stale connections, forcing reconnects and keeping compute awake. The sync engine in `backend/app/core/db.py` already has this correctly configured at lines 20-31 \u2014 match it.\n\n**Note:** The connect_args already sets `server_settings` for statement_timeout \u2014 keep that unchanged.",
         "testStrategy": "1. Start the app locally, hit an async route (e.g. document upload), then leave it idle 16+ minutes. 2. Verify no `SSL connection has been closed unexpectedly` errors on the next request. 3. Check pool stats: add a temporary log of `async_engine.pool.status()` and verify pool_size and overflow are bounded.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2026-06-13T14:26:54.000Z"
+        "updatedAt": "2026-06-13T14:53:41.000Z"
       },
       {
         "id": "270",
@@ -3409,11 +3409,11 @@
         "description": "Two Celery beat tasks run every 5 and 10 minutes respectively, which prevents Neon from ever autosuspending (compute stays awake, burning CU hours around the clock). The cleanup-stuck-documents task runs every 5 min (288 DB queries/day) and retry-failed-notifications runs every 10 min (144 DB queries/day). Extending these intervals will allow Neon compute to sleep between runs.",
         "details": "**File:** `backend/app/tasks/scheduled_tasks.py`\n\nChange the Celery beat schedule:\n\n```python\n# BEFORE\n\"cleanup-stuck-documents\": {\n    \"schedule\": crontab(minute=\"*/5\"),   # every 5 min\n},\n\"retry-failed-notifications\": {\n    \"schedule\": crontab(minute=\"*/10\"),  # every 10 min\n},\n\n# AFTER\n\"cleanup-stuck-documents\": {\n    \"schedule\": crontab(minute=\"*/30\"),  # every 30 min \u2014 reduces from 288 to 48 DB hits/day\n},\n\"retry-failed-notifications\": {\n    \"schedule\": crontab(minute=0),       # hourly \u2014 reduces from 144 to 24 DB hits/day\n},\n```\n\nRationale: Neon free tier compute autosuspends after ~5 minutes of no connections. Tasks running every 5-10 minutes guarantee the compute never suspends. Documents stuck for more than 30 minutes or notifications delayed by an hour are still within acceptable SLA for these background jobs. The weekly recurring transaction job (Monday 02:00) is already fine \u2014 leave it unchanged.",
         "testStrategy": "1. Deploy to staging and monitor Neon console compute activity graph. 2. Verify 30-min gaps appear between cleanup task runs. 3. Confirm stuck documents and failed notifications are still retried (just less frequently). 4. Check Celery beat logs to confirm new schedule is registered.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2026-06-13T14:26:54.000Z"
+        "updatedAt": "2026-06-13T14:53:41.000Z"
       },
       {
         "id": "271",
