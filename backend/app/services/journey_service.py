@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from app.models.journey import (
@@ -2205,9 +2206,13 @@ def get_journey(
     Raises:
         JourneyNotFoundError: If journey not found or doesn't belong to user.
     """
-    statement = select(Journey).where(
-        Journey.id == journey_id,
-        Journey.user_id == user_id,
+    statement = (
+        select(Journey)
+        .where(
+            Journey.id == journey_id,
+            Journey.user_id == user_id,
+        )
+        .options(selectinload(Journey.steps))
     )
     journey = session.exec(statement).first()
     if not journey:
@@ -2233,7 +2238,9 @@ def get_user_journeys(
     statement = select(Journey).where(Journey.user_id == user_id)
     if active_only:
         statement = statement.where(Journey.is_active == True)  # noqa: E712
-    statement = statement.order_by(Journey.created_at.desc())
+    statement = statement.order_by(Journey.created_at.desc()).options(
+        selectinload(Journey.steps)
+    )
     return list(session.exec(statement).all())
 
 
@@ -2460,20 +2467,14 @@ def _sync_step_status_from_tasks(
 
 
 def _get_next_incomplete_step(
-    session: Session,
+    session: Session,  # noqa: ARG001
     journey: Journey,
 ) -> JourneyStep | None:
     """Get the next incomplete step in the journey."""
-    statement = (
-        select(JourneyStep)
-        .where(
-            JourneyStep.journey_id == journey.id,
-            JourneyStep.status != StepStatus.COMPLETED,
-            JourneyStep.status != StepStatus.SKIPPED,
-        )
-        .order_by(JourneyStep.step_number)
-    )
-    return session.exec(statement).first()
+    for step in journey.steps:  # steps are ordered by step_number via model definition
+        if step.status not in (StepStatus.COMPLETED, StepStatus.SKIPPED):
+            return step
+    return None
 
 
 def get_next_step(
@@ -2493,7 +2494,7 @@ def get_next_step(
 
 
 def get_progress(
-    session: Session,
+    session: Session,  # noqa: ARG001
     journey: Journey,
 ) -> dict[str, Any]:
     """Calculate journey progress.
@@ -2505,8 +2506,7 @@ def get_progress(
     Returns:
         Progress dictionary with stats.
     """
-    statement = select(JourneyStep).where(JourneyStep.journey_id == journey.id)
-    steps = list(session.exec(statement).all())
+    steps = list(journey.steps)
 
     total_steps = len(steps)
     completed_steps = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
