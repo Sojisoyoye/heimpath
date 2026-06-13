@@ -1,0 +1,58 @@
+# Task ID: 9
+# Title: Implement Dashboard and Progress Tracking
+# Status: done
+# Dependencies: 1, 2, 4, 5, 6
+# Priority: medium
+# Description: Build a centralized user dashboard displaying journey progress, saved items, recent activity, usage statistics, and quick action buttons. Includes overview section with journey progress percentage, saved items (documents, calculations, bookmarked laws), activity timeline, quick actions section, and personalized recommendations.
+# Details:
+Overview section:
+- Overall journey progress (% complete)
+- Current phase and step
+- Next recommended action (primary CTA)
+- Number of action items requiring attention
+- Time since journey started
+- Estimated time remaining
+- Budget status (on track/over budget)
+
+Journey preview:
+- List of all phases with completion status
+- Current step highlighted
+- Quick navigation to any unlocked step
+- Visual progress bar
+
+Saved items:
+- Documents (3 most recent, link to view all)
+- Calculations (2 most recent, link to view all)
+- Bookmarked laws (top 3, link to view all)
+
+Activity timeline:
+- Recent actions (last 10)
+- Timestamped entries
+- Type icons (document uploaded, step completed, law viewed, etc.)
+
+Quick actions section:
+- Upload document
+- Calculate costs
+- Browse laws
+- Continue journey (primary CTA)
+
+Usage stats (for free users):
+- Document translations: X/5 used this month
+- Resets in: X days
+- Upgrade prompt when approaching limit
+
+Technical requirements:
+- Real-time progress calculation
+- Activity event logging
+- Notification aggregation
+- Responsive grid layout
+- Caching for performance (dashboard loads fast)
+- Skeleton loaders while data fetches
+
+Endpoints:
+- GET /api/v1/dashboard/
+- GET /api/v1/dashboard/activity
+- GET /api/v1/dashboard/recommendations
+
+# Test Strategy:
+Unit tests for progress calculation, integration tests for dashboard data aggregation, performance testing for load time

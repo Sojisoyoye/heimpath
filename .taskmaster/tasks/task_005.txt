@@ -1,0 +1,48 @@
+# Task ID: 5
+# Title: Build Hidden Costs Calculator
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Create an interactive calculator that reveals the true cost of buying property in Germany, including all hidden fees and taxes that real estate agents don't disclose upfront. Includes state-by-state comparison feature, automatic calculations for land transfer tax (state-specific 3.5-6.5%), notary fees (~1.5%), land registry fee (~0.5%), agent commission (~3.57% buyer's share).
+# Details:
+Input form accepting:
+- Purchase price (EUR 10,000 - EUR 10,000,000)
+- Property type (apartment/house)
+- Location (German state selector - all 16 states)
+- Agent involvement (yes/no)
+- Financing details (optional)
+
+Results display:
+- 'What agents tell you' vs. 'Real total cost'
+- Detailed breakdown with explanations
+- Visual pie chart of cost distribution
+- Potential savings in different states
+
+State comparison tool:
+- Interactive map of Germany
+- Color-coded by transfer tax rate
+- Table of all 16 states with calculated amounts
+- Savings calculator (vs. user's selected state)
+
+Save and share functionality:
+- Save calculation with custom name
+- Download as PDF report
+- Share via email or link
+- Multiple scenario comparison
+
+Technical requirements:
+- Real-time calculation on input change
+- Current state tax rates database (updated annually)
+- GNotKG fee schedule algorithm
+- Chart.js or Recharts for visualizations
+- PDF generation library
+- Shareable link generation (unique URLs)
+
+Endpoints:
+- POST /api/v1/calculators/hidden-costs
+- GET /api/v1/calculators/hidden-costs/{calculation_id}
+- GET /api/v1/calculators/hidden-costs/share/{share_id}
+- GET /api/v1/calculators/state-rates
+
+# Test Strategy:
+Unit tests for calculation algorithms, integration tests for PDF generation, E2E tests for calculator flow
