@@ -93,5 +93,3 @@ Verify CI pipeline by creating a test PR and ensuring all checks pass. Test CD p
 ### Dependencies: None
 ### Description: MANUAL USER ACTION REQUIRED: Since credentials were historically committed to git, rotate all secrets: (1) Generate new SECRET_KEY with 'openssl rand -hex 32', (2) Change FIRST_SUPERUSER_PASSWORD to a secure password, (3) Change POSTGRES_PASSWORD to a secure password, (4) Update GitHub Secrets in repository settings for deployment workflows. Optional: Consider using git-filter-repo to remove .env from git history.
 ### Details:
-
-

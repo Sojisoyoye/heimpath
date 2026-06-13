@@ -110,5 +110,3 @@ Unit tests for scoring algorithm, integration tests for wizard flow, validation 
 ### Dependencies: 7.9
 ### Description: Create results section within FinancingWizard.tsx or as FinancingResults.tsx. Displays: score gauge (0-100 with color gradient), likelihood label badge (colored like ROI grade), strengths list (green checkmarks), improvements list (orange warnings with actionable advice), loan estimate card (max loan, recommended down payment %, expected rate range, LTV ratio), document checklist (grouped by essential/additional, each with tips expandable). Save section with name input + save button. Share URL with copy-to-clipboard. Saved assessments list with summary cards + delete.
 ### Details:
-
-

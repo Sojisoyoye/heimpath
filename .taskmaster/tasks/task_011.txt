@@ -51,5 +51,3 @@
 ### Dependencies: None
 ### Description: Create financial calculator UI components: (1) HiddenCostsCalculator - inputs for property price, location (state), property type; displays breakdown of notary fees, land transfer tax (Grunderwerbsteuer by state), agent commission, registration fees, renovation estimates, moving costs, and total cost of ownership. (2) ROICalculator - inputs for purchase price, rental income, expenses, appreciation rate; displays cash-on-cash return, cap rate, ROI projections, and comparison charts. Include interactive sliders, real-time calculations, and exportable results.
 ### Details:
-
-

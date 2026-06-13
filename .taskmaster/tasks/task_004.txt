@@ -104,5 +104,3 @@ Unit tests for clause detection, integration tests for DeepL API, E2E tests for 
 ### Dependencies: None
 ### Description: Write tests for: PDF extraction service, DeepL integration (mocked), clause detection patterns, risk detection, document upload endpoint, translation retrieval endpoint. Achieve 90%+ coverage. Include E2E test for full upload-translate flow.
 ### Details:
-
-
