@@ -2209,7 +2209,7 @@ def get_journey(
     statement = select(Journey).where(
         Journey.id == journey_id,
         Journey.user_id == user_id,
-    )
+    ).options(selectinload(Journey.steps))
     journey = session.exec(statement).first()
     if not journey:
         raise JourneyNotFoundError(f"Journey {journey_id} not found")
