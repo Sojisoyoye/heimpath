@@ -264,7 +264,7 @@ def build_activity_timeline(
     now_mono = time.monotonic()
     cached = _timeline_cache.get(cache_key)
     if cached is not None and now_mono - cached[0] < _TIMELINE_CACHE_TTL:
-        return cached[1]
+        return list(cached[1])  # return a copy so callers cannot corrupt the cache
 
     items: list[ActivityItem] = []
 
@@ -403,8 +403,14 @@ def build_activity_timeline(
     # Sort all items by timestamp descending and take the limit
     items.sort(key=lambda i: i.timestamp, reverse=True)
     result = items[:limit]
+
+    # Evict expired entries before writing to prevent unbounded growth
+    expired_keys = [k for k, (ts, _) in _timeline_cache.items() if now_mono - ts >= _TIMELINE_CACHE_TTL]
+    for k in expired_keys:
+        del _timeline_cache[k]
+
     _timeline_cache[cache_key] = (now_mono, result)
-    return result
+    return list(result)  # return a copy so callers cannot corrupt the cache
 
 
 def _count_documents_this_month(
@@ -429,7 +435,7 @@ def _count_total_calculations(
     hc_sub = select(func.count()).where(HiddenCostCalculation.user_id == user_id).scalar_subquery()
     roi_sub = select(func.count()).where(ROICalculation.user_id == user_id).scalar_subquery()
     fin_sub = select(func.count()).where(FinancingAssessment.user_id == user_id).scalar_subquery()
-    return session.exec(select(hc_sub + roi_sub + fin_sub)).one()
+    return int(session.exec(select(hc_sub + roi_sub + fin_sub)).one())
 
 
 def _count_total_bookmarks(
