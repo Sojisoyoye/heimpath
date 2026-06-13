@@ -6,7 +6,7 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-.claude/
+.claude/settings.local.json
 .copier/
 .DS_Store
 **/.env

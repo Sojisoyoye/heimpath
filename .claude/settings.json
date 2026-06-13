@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "taskmaster-ai": {
+      "command": "npx",
+      "args": ["task-master-ai"],
+      "env": {}
+    }
+  }
+}
