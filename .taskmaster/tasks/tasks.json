@@ -3450,13 +3450,13 @@
         "description": "Journey steps and document translations use lazy loading. When code iterates over journey.steps or accesses document.translation, SQLAlchemy fires a separate query per object. Adding selectinload() to the key query sites eliminates these N+1 patterns.",
         "details": "**File 1:** `backend/app/services/journey_service.py`\n\nFind queries that load journeys and then access `.steps`. Add `selectinload`:\n```python\nfrom sqlalchemy.orm import selectinload\n\n# Wherever journeys are fetched for iteration over steps, e.g.:\nstmt = select(Journey).where(Journey.user_id == user_id).options(\n    selectinload(Journey.steps)\n)\n```\n\nSpecifically check `get_user_journeys()`, `get_progress()`, and `get_next_step()` \u2014 if any of these load a journey and then access `.steps`, add `selectinload(Journey.steps)` to the initial fetch.\n\n**File 2:** `backend/app/services/document_service.py`\n\nLines without selectinload that later access `document.translation` \u2014 add:\n```python\n.options(selectinload(Document.translation))\n```\nLines 617 and 737 already do this correctly \u2014 find and fix the remaining query sites that don't.\n\n**File 3:** `backend/app/services/dashboard_service.py`\n\nIn `build_activity_timeline()`, the journey and step queries load objects that may then access related fields. Review and add appropriate `selectinload()` calls.\n\n**Do not** add `lazy='selectin'` to the model relationship definition \u2014 that changes behavior globally. Prefer query-level `options(selectinload(...))` for targeted control.",
         "testStrategy": "1. Enable SQLAlchemy echo logging locally. 2. Load the journey detail page for a journey with 10+ steps. 3. Verify only 2 SELECT statements fire (1 for journey, 1 for all steps via selectinload) \u2014 not 1 + N. 4. Load the documents page and verify document.translation does not trigger per-document queries. 5. Run existing backend tests to ensure nothing is broken.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "271"
         ],
         "priority": "medium",
         "subtasks": [],
-        "updatedAt": "2026-06-13T14:26:54.000Z"
+        "updatedAt": "2026-06-13T15:04:54.000Z"
       }
     ],
     "metadata": {
