@@ -501,7 +501,7 @@ class TestCountTotalCalculations:
     def test_sums_across_all_calculator_types(self, user_id: uuid.UUID) -> None:
         """Test that counts from all three types are summed."""
         mock_session = MagicMock()
-        mock_session.exec.return_value.one.side_effect = [3, 2, 1]
+        mock_session.exec.return_value.one.return_value = 6
 
         result = _count_total_calculations(mock_session, user_id)
         assert result == 6
@@ -509,7 +509,7 @@ class TestCountTotalCalculations:
     def test_returns_zero_when_no_calculations(self, user_id: uuid.UUID) -> None:
         """Test zero when user has no calculations."""
         mock_session = MagicMock()
-        mock_session.exec.return_value.one.side_effect = [0, 0, 0]
+        mock_session.exec.return_value.one.return_value = 0
 
         result = _count_total_calculations(mock_session, user_id)
         assert result == 0

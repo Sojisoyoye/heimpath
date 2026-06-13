@@ -10,10 +10,6 @@ from datetime import datetime, timezone
 
 from sqlmodel import Session, func, select
 
-# (user_id_str, limit) -> (monotonic_timestamp, cached_items)
-_timeline_cache: dict[tuple[str, int], tuple[float, list]] = {}
-_TIMELINE_CACHE_TTL = 30  # seconds
-
 from app.models.calculator import HiddenCostCalculation
 from app.models.document import Document
 from app.models.financing import FinancingAssessment
@@ -29,6 +25,10 @@ from app.schemas.dashboard import (
     SavedDocumentSummary,
 )
 from app.services import journey_service
+
+# (user_id_str, limit) -> (monotonic_timestamp, cached_items)
+_timeline_cache: dict[tuple[str, int], tuple[float, list]] = {}
+_TIMELINE_CACHE_TTL = 30  # seconds
 
 
 def get_dashboard_overview(
@@ -405,7 +405,11 @@ def build_activity_timeline(
     result = items[:limit]
 
     # Evict expired entries before writing to prevent unbounded growth
-    expired_keys = [k for k, (ts, _) in _timeline_cache.items() if now_mono - ts >= _TIMELINE_CACHE_TTL]
+    expired_keys = [
+        k
+        for k, (ts, _) in _timeline_cache.items()
+        if now_mono - ts >= _TIMELINE_CACHE_TTL
+    ]
     for k in expired_keys:
         del _timeline_cache[k]
 
@@ -432,9 +436,19 @@ def _count_total_calculations(
     user_id: uuid.UUID,
 ) -> int:
     """Count total calculations across all calculator types in one round-trip."""
-    hc_sub = select(func.count()).where(HiddenCostCalculation.user_id == user_id).scalar_subquery()
-    roi_sub = select(func.count()).where(ROICalculation.user_id == user_id).scalar_subquery()
-    fin_sub = select(func.count()).where(FinancingAssessment.user_id == user_id).scalar_subquery()
+    hc_sub = (
+        select(func.count())
+        .where(HiddenCostCalculation.user_id == user_id)
+        .scalar_subquery()
+    )
+    roi_sub = (
+        select(func.count()).where(ROICalculation.user_id == user_id).scalar_subquery()
+    )
+    fin_sub = (
+        select(func.count())
+        .where(FinancingAssessment.user_id == user_id)
+        .scalar_subquery()
+    )
     return int(session.exec(select(hc_sub + roi_sub + fin_sub)).one())
 
 

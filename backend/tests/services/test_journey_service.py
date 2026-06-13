@@ -374,12 +374,11 @@ class TestGetProgress:
         step3.phase = JourneyPhase.PREPARATION
         step3.estimated_duration_days = 10
 
-        mock_session.exec.return_value.all.return_value = [step1, step2, step3]
-
         mock_journey = MagicMock(spec=Journey)
         mock_journey.id = uuid.uuid4()
         mock_journey.current_step_number = 2
         mock_journey.current_phase = JourneyPhase.RESEARCH
+        mock_journey.steps = [step1, step2, step3]
 
         progress = get_progress(mock_session, mock_journey)
 
@@ -402,12 +401,11 @@ class TestGetProgress:
         step2.phase = JourneyPhase.RESEARCH
         step2.estimated_duration_days = 7
 
-        mock_session.exec.return_value.all.return_value = [step1, step2]
-
         mock_journey = MagicMock(spec=Journey)
         mock_journey.id = uuid.uuid4()
         mock_journey.current_step_number = 1
         mock_journey.current_phase = JourneyPhase.RESEARCH
+        mock_journey.steps = [step1, step2]
 
         progress = get_progress(mock_session, mock_journey)
 
