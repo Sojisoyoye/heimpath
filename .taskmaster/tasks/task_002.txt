@@ -1,0 +1,30 @@
+# Task ID: 2
+# Title: Build Guided Property Journey System
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Create an interactive step-by-step guidance system that walks users through the entire property buying process from initial research to ownership transfer. The journey is personalized based on user's situation (property type, location, financing needs, citizenship status) with progressive disclosure of information. Includes 7-question onboarding questionnaire, auto-generated journey with 8-15 steps, journey dashboard showing overall progress, individual step pages with tasks/checklists/relevant laws/costs/timeline.
+# Details:
+Technical requirements:
+- Dynamic journey generation algorithm based on user inputs from questionnaire
+- State machine for step progression and prerequisites
+- Real-time progress calculation
+- Auto-save every 30 seconds
+- Mobile-responsive UI for all journey components
+
+Database models:
+- Journey model (user_id, phase, current_step, started_at, target_date)
+- JourneyStep model (journey_id, step_number, title, description, status, completed_at)
+- JourneyTask model (step_id, task_description, is_completed)
+
+Endpoints needed:
+- POST /api/v1/journeys/ (create from questionnaire answers)
+- GET /api/v1/journeys/{journey_id}
+- PUT /api/v1/journeys/{journey_id}/steps/{step_id}
+- GET /api/v1/journeys/{journey_id}/next-step
+- GET /api/v1/journeys/{journey_id}/progress
+
+4 phases: Research, Preparation, Buying, Closing (total 15 steps)
+
+# Test Strategy:
+Unit tests for journey generation algorithm, integration tests for journey endpoints, E2E tests for complete journey flow
