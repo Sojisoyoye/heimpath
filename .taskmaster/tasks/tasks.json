@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "createdAt": "2026-01-30T12:00:00.000Z",
     "updatedAt": "2026-05-05T09:55:52.000Z",
-    "totalTasks": 229,
+    "totalTasks": 236,
     "sourceFile": "scripts/prd.txt"
   },
   "master": {
@@ -3445,6 +3445,90 @@
         "updatedAt": "2026-06-13T15:02:09.000Z"
       },
       {
+        "id": "274",
+        "title": "Self-Hosted Postgres: Install and Initialise PostgreSQL on VPS",
+        "description": "Install PostgreSQL on the VPS, create the production database and a dedicated application user, and verify the server is running.",
+        "details": "**Steps:**\n\n1. SSH into the VPS and install Postgres:\n```bash\nsudo apt update && sudo apt install -y postgresql postgresql-contrib\n```\n\n2. Confirm the service started:\n```bash\nsudo systemctl status postgresql\n```\n\n3. Switch to the postgres OS user and create the app DB and user:\n```bash\nsudo -u postgres psql\n```\nThen inside psql:\n```sql\nCREATE DATABASE heimpath;\nCREATE USER heimpath_user WITH ENCRYPTED PASSWORD 'strong-password-here';\nGRANT ALL PRIVILEGES ON DATABASE heimpath TO heimpath_user;\n-- Postgres 15+ requires this too:\n\\c heimpath\nGRANT ALL ON SCHEMA public TO heimpath_user;\n\\q\n```\n\n4. Note the connection string for use in the next task:\n```\npostgresql+asyncpg://heimpath_user:password@localhost:5432/heimpath\npostgresql+psycopg2://heimpath_user:password@localhost:5432/heimpath\n```\n\n**Do NOT use the `postgres` superuser in the app's DATABASE_URL** — that is handled in task 275.",
+        "testStrategy": "1. `sudo systemctl status postgresql` shows active (running). 2. `psql -U heimpath_user -d heimpath -h localhost` connects without error. 3. `\\dt` inside psql returns an empty list (no tables yet — migrations come in task 277).",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [],
+        "updatedAt": "2026-06-13T18:38:00.000Z"
+      },
+      {
+        "id": "275",
+        "title": "Self-Hosted Postgres: Security Hardening (listen_addresses, pg_hba, dedicated user)",
+        "description": "Harden the Postgres install so it is not publicly exposed, only accepts authenticated local connections from the app user, and the app never runs as the superuser.",
+        "details": "**1. Bind Postgres to localhost only**\n\nEdit `/etc/postgresql/<version>/main/postgresql.conf`:\n```conf\nlisten_addresses = 'localhost'\n```\nThis ensures Postgres never accepts connections from the internet, even if the firewall is misconfigured.\n\n**2. Enforce password auth in pg_hba.conf**\n\nEdit `/etc/postgresql/<version>/main/pg_hba.conf` — ensure the local/host lines use `scram-sha-256` (Postgres 14+) or `md5`:\n```\n# TYPE  DATABASE        USER            ADDRESS         METHOD\nlocal   all             postgres                        peer\nlocal   heimpath        heimpath_user                   scram-sha-256\nhost    heimpath        heimpath_user   127.0.0.1/32    scram-sha-256\nhost    heimpath        heimpath_user   ::1/128         scram-sha-256\n```\n\n**3. Reload Postgres to apply changes:**\n```bash\nsudo systemctl reload postgresql\n```\n\n**4. Verify no public port exposure:**\n```bash\nsudo ss -tlnp | grep 5432\n# Should show 127.0.0.1:5432 only, NOT 0.0.0.0:5432\n```\n\n**5. Confirm the app's .env uses `heimpath_user`, never `postgres`.**",
+        "testStrategy": "1. `ss -tlnp | grep 5432` shows only 127.0.0.1:5432 (not 0.0.0.0). 2. `psql -U heimpath_user -d heimpath -h 127.0.0.1` connects with the correct password. 3. Attempting to connect from an external IP is refused. 4. App starts and connects successfully using heimpath_user credentials.",
+        "priority": "high",
+        "dependencies": ["274"],
+        "status": "pending",
+        "subtasks": [],
+        "updatedAt": "2026-06-13T18:38:00.000Z"
+      },
+      {
+        "id": "276",
+        "title": "Self-Hosted Postgres: Enable Auto-Start on VPS Reboot",
+        "description": "Configure systemd so PostgreSQL starts automatically when the VPS reboots, eliminating manual intervention after server restarts.",
+        "details": "**Enable the systemd service:**\n```bash\nsudo systemctl enable postgresql\n```\n\nThis creates a symlink so Postgres starts on every boot. The service is likely already enabled after `apt install`, but this confirms it explicitly.\n\n**Verify:**\n```bash\nsudo systemctl is-enabled postgresql\n# Should output: enabled\n```\n\n**Test the reboot behaviour (optional but recommended):**\n```bash\nsudo reboot\n# After reconnecting:\nsudo systemctl status postgresql\n# Should show active (running)\n```\n\n**Also check the app process manager** (if using systemd for the FastAPI/Celery processes too): ensure those services also have `Requires=postgresql.service` and `After=postgresql.service` in their unit files so they don't start before the DB is ready.",
+        "testStrategy": "1. `systemctl is-enabled postgresql` returns `enabled`. 2. After a VPS reboot, `systemctl status postgresql` shows active (running) without any manual intervention. 3. App services come up after Postgres (verify ordering in unit file if applicable).",
+        "priority": "high",
+        "dependencies": ["274"],
+        "status": "pending",
+        "subtasks": [],
+        "updatedAt": "2026-06-13T18:38:00.000Z"
+      },
+      {
+        "id": "277",
+        "title": "Self-Hosted Postgres: Migrate App from Neon to Self-Hosted Postgres",
+        "description": "Update the app's environment variables to point at the self-hosted Postgres instance, run Alembic migrations to create the schema, and verify the app is fully operational.",
+        "details": "**1. Update environment variables**\n\nIn the production `.env` (or server environment):\n```env\nDATABASE_URL=postgresql+psycopg2://heimpath_user:password@localhost:5432/heimpath\nASYNC_DATABASE_URL=postgresql+asyncpg://heimpath_user:password@localhost:5432/heimpath\n```\nRemove or comment out the Neon connection strings.\n\n**2. Run Alembic migrations**\n```bash\ncd backend\nalembic upgrade head\n```\nThis creates all tables, indexes, and constraints on the new DB.\n\n**3. Migrate existing data from Neon (if needed)**\n\nIf production data needs to be carried over:\n```bash\n# On a machine with access to Neon:\npg_dump \"<neon-connection-string>\" | psql -U heimpath_user -d heimpath -h localhost\n```\nRun this before switching DNS/traffic to avoid a data gap.\n\n**4. Restart app services:**\n```bash\nsudo systemctl restart heimpath-api\nsudo systemctl restart heimpath-worker\nsudo systemctl restart heimpath-beat\n```\n\n**5. Remove Neon dependency** — once verified stable for 24h, revoke Neon credentials and archive the project on Neon's dashboard.",
+        "testStrategy": "1. `alembic upgrade head` completes without errors. 2. `psql -U heimpath_user -d heimpath -h localhost -c '\\dt'` lists all expected tables. 3. App health check endpoint returns 200. 4. Create a test user and complete a full journey flow end-to-end. 5. Celery worker connects and processes a task successfully. 6. No Neon connection strings remain in the environment.",
+        "priority": "high",
+        "dependencies": ["275", "276"],
+        "status": "pending",
+        "subtasks": [],
+        "updatedAt": "2026-06-13T18:38:00.000Z"
+      },
+      {
+        "id": "278",
+        "title": "Self-Hosted Postgres: Set Up Automated Local pg_dump Backup Cron",
+        "description": "Schedule a daily pg_dump via cron to create compressed local backups of the Heimpath database, with automatic deletion of backups older than 7 days to prevent disk bloat.",
+        "details": "**1. Create backup directory:**\n```bash\nsudo mkdir -p /backups/postgres\nsudo chown postgres:postgres /backups/postgres\n```\n\n**2. Add cron job for the postgres OS user:**\n```bash\nsudo crontab -u postgres -e\n```\n\nAdd this line:\n```cron\n0 2 * * * pg_dump -U postgres heimpath | gzip > /backups/postgres/heimpath_$(date +\\%F).sql.gz && find /backups/postgres -name '*.sql.gz' -mtime +7 -delete\n```\n\nThis runs at 02:00 every night, creates a dated compressed dump, and removes dumps older than 7 days automatically.\n\n**3. Verify the cron runs:**\nAfter adding, manually run the dump command once to confirm it works:\n```bash\nsudo -u postgres pg_dump heimpath | gzip > /backups/postgres/test.sql.gz\nls -lh /backups/postgres/test.sql.gz\n```\n\n**4. Verify restore works (critical):**\n```bash\n# Create a test DB and restore into it\nsudo -u postgres createdb heimpath_restore_test\ngunzip -c /backups/postgres/test.sql.gz | sudo -u postgres psql heimpath_restore_test\nsudo -u postgres psql -c '\\l' | grep heimpath_restore_test\nsudo -u postgres dropdb heimpath_restore_test  # cleanup\n```\n\n**Retention policy:** 7 daily backups kept locally. A compressed HeimPath dump will likely be under 50MB, so 7 copies ≈ 350MB on disk.",
+        "testStrategy": "1. Manual dump command runs without errors. 2. Resulting .sql.gz file is non-zero size and can be gunzipped. 3. Restore test into a temporary DB succeeds with all tables present. 4. `crontab -u postgres -l` shows the cron entry. 5. After 24h, verify a dated backup file exists in /backups/postgres/.",
+        "priority": "high",
+        "dependencies": ["277"],
+        "status": "pending",
+        "subtasks": [],
+        "updatedAt": "2026-06-13T18:38:00.000Z"
+      },
+      {
+        "id": "279",
+        "title": "Self-Hosted Postgres: Disk Usage Monitoring Cron Alert",
+        "description": "Set up a cron job that checks the VPS disk usage daily and sends an alert (email or log entry) when usage exceeds 70%, giving enough lead time to act before the disk fills up.",
+        "details": "**Simple approach — log to a file and optionally email:**\n\nCreate `/usr/local/bin/disk-check.sh`:\n```bash\n#!/bin/bash\nTHRESHOLD=70\nUSAGE=$(df / | awk 'NR==2 {print $5}' | tr -d '%')\nif [ \"$USAGE\" -gt \"$THRESHOLD\" ]; then\n  MSG=\"[HeimPath VPS] Disk usage is at ${USAGE}% — action needed.\"\n  echo \"$(date): $MSG\" >> /var/log/disk-alert.log\n  # Optional: send email if mail is configured\n  # echo \"$MSG\" | mail -s \"Disk Alert\" soji.soyoye@gmail.com\nfi\n```\n\nMake it executable:\n```bash\nchmod +x /usr/local/bin/disk-check.sh\n```\n\nAdd to root crontab (`sudo crontab -e`):\n```cron\n0 8 * * * /usr/local/bin/disk-check.sh\n```\n\nRuns every morning at 08:00. Check `/var/log/disk-alert.log` if you want to see past alerts.\n\n**If email is desired**, install `msmtp` or `postfix` on the VPS and uncomment the `mail` line above — or use a service like SendGrid with a simple curl POST instead.\n\n**Also monitor Postgres data directory specifically:**\nAdd to the script:\n```bash\nPG_SIZE=$(du -sh /var/lib/postgresql/ 2>/dev/null | cut -f1)\necho \"$(date): Postgres data dir size: $PG_SIZE\" >> /var/log/disk-alert.log\n```\nThis logs the Postgres directory size daily regardless of threshold, giving a growth trend over time.",
+        "testStrategy": "1. Run `/usr/local/bin/disk-check.sh` manually and verify it exits without errors. 2. Temporarily lower THRESHOLD to 1 and run again — verify alert is written to /var/log/disk-alert.log. 3. Restore threshold to 70 and confirm cron entry is registered (`crontab -l`). 4. After 24h verify the daily Postgres size log entry appears.",
+        "priority": "medium",
+        "dependencies": ["277"],
+        "status": "pending",
+        "subtasks": [],
+        "updatedAt": "2026-06-13T18:38:00.000Z"
+      },
+      {
+        "id": "280",
+        "title": "[DEFERRED] Self-Hosted Postgres: Offsite Backup to Cloudflare R2 or Google Drive",
+        "description": "Set up automated offsite backup of daily pg_dump files to a free cloud storage provider (Cloudflare R2 recommended — 10GB free, S3-compatible, no egress fees) so backups survive a total VPS loss. Deferred until local backups (task 278) are stable.",
+        "details": "**Deferred — implement after task 278 is running stably.**\n\n**Recommended: Cloudflare R2 (free tier: 10GB storage, 1M writes/month)**\n\n1. Create a Cloudflare account and create an R2 bucket named `heimpath-backups`.\n2. Generate an R2 API token with Object Write permissions.\n3. Install rclone on the VPS:\n```bash\ncurl https://rclone.org/install.sh | sudo bash\n```\n4. Configure rclone for R2:\n```bash\nrclone config\n# provider: Cloudflare R2\n# access_key_id: <from R2 token>\n# secret_access_key: <from R2 token>\n# endpoint: https://<account-id>.r2.cloudflarestorage.com\n```\n5. Update the cron in task 278 to also ship the file offsite:\n```cron\n0 2 * * * pg_dump -U postgres heimpath | gzip > /backups/postgres/heimpath_$(date +\\%F).sql.gz && find /backups/postgres -name '*.sql.gz' -mtime +7 -delete && rclone copy /backups/postgres/heimpath_$(date +\\%F).sql.gz r2:heimpath-backups/\n```\n\n**Alternative: Google Drive (15GB free)**\nUse `rclone` with Google Drive OAuth — same command, different remote name. Good option if you already have a Google account and prefer not to create a Cloudflare account.\n\n**Retention:** Keep 30 days of backups on R2/Drive (free storage easily accommodates this at HeimPath's data volume).",
+        "testStrategy": "1. `rclone lsd r2:heimpath-backups` lists the bucket. 2. Manual `rclone copy` of a dump file succeeds. 3. Check R2 dashboard to confirm file appears. 4. Restore test: download from R2 and restore to a test DB. 5. After 24h automated run, verify file appears in R2 with correct date.",
+        "priority": "low",
+        "dependencies": ["278"],
+        "status": "pending",
+        "subtasks": [],
+        "updatedAt": "2026-06-13T18:38:00.000Z"
+      },
+      {
         "id": "273",
         "title": "Neon Compute Fix P3: Add selectinload to journey steps and document translation relationships",
         "description": "Journey steps and document translations use lazy loading. When code iterates over journey.steps or accesses document.translation, SQLAlchemy fires a separate query per object. Adding selectinload() to the key query sites eliminates these N+1 patterns.",
@@ -3462,7 +3546,7 @@
     "metadata": {
       "version": "1.0.0",
       "lastModified": "2026-05-15T19:01:46.673Z",
-      "taskCount": 267,
+      "taskCount": 274,
       "completedCount": 262,
       "tags": [
         "master"
