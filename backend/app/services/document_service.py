@@ -667,6 +667,7 @@ async def list_documents(
         .order_by(Document.created_at.desc())
         .offset(offset)
         .limit(page_size)
+        .options(selectinload(Document.translation))
     )
     documents = list(result.scalars().all())
 
@@ -800,6 +801,7 @@ async def get_documents_by_step_id(
         select(Document)
         .where(Document.journey_step_id == step_id, Document.user_id == user_id)
         .order_by(Document.created_at.desc())
+        .options(selectinload(Document.translation))
     )
     return list(result.scalars().all())
 
