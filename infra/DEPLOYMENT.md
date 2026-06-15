@@ -19,8 +19,9 @@ This document describes the current production and staging infrastructure.
                                         │
                                  ┌──────┴──────┐
                                  │             │
-                              Neon DB        Redis
-                           (PostgreSQL)  (self-hosted)
+                           PostgreSQL 16     Redis
+                           (self-hosted      (self-hosted
+                            on VPS)          on VPS)
 ```
 
 ## Frontend — Vercel
@@ -145,16 +146,20 @@ Alembic is configured with `transaction_per_migration=True` to safely handle enu
 
 ---
 
-## Database — Neon PostgreSQL
+## Database — Self-Hosted PostgreSQL 16
 
-Two separate Neon projects (one per environment) in the Azure Germany West Central region.
+PostgreSQL 16 runs directly on the Hetzner VPS (`/var/lib/postgresql/16/main`).
 
-| Environment | Neon endpoint (unpooled) |
-|-------------|--------------------------|
-| Production | `ep-long-bread-a9mlfg8t.gwc.azure.neon.tech` |
-| Staging | `ep-shy-paper-a9bzjdvq.gwc.azure.neon.tech` |
+| Environment | Database | User |
+|-------------|----------|------|
+| Production | `heimpath` | `heimpath_user` |
+| Staging | `heimpath_staging` | `heimpath_staging_user` |
+
+Docker containers reach the host Postgres via `host.docker.internal` (mapped to `host-gateway` in `extra_hosts`). SSL is disabled (`DATABASE_USE_SSL=false`) since the connection is local.
 
 Credentials are stored only in the respective `.env` files on the VPS — never committed.
+
+> **Rollback:** A Neon backup of the pre-cutover env is at `/opt/heimpath/.env.neon-backup` (keep until 2026-06-17). After 48h stability, archive Neon credentials and delete both Neon projects via the Neon console.
 
 ---
 
