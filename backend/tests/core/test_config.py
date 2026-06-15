@@ -70,3 +70,25 @@ def test_secret_key_missing_raises_validation_error(
     kwargs = {k: v for k, v in _base_settings_kwargs().items() if k != "SECRET_KEY"}
     with pytest.raises(ValidationError):
         Settings(**kwargs, ENVIRONMENT="local", _env_file=None)
+
+
+# ── DATABASE_USE_SSL ───────────────────────────────────────────────────────
+
+
+def test_database_use_ssl_true_appends_sslmode() -> None:
+    """DATABASE_USE_SSL=True must append ?sslmode=require to SQLALCHEMY_DATABASE_URI."""
+    s = Settings(**_base_settings_kwargs(), DATABASE_USE_SSL=True, _env_file=None)
+    assert "sslmode=require" in s.SQLALCHEMY_DATABASE_URI
+
+
+def test_database_use_ssl_false_omits_sslmode() -> None:
+    """DATABASE_USE_SSL=False must not include sslmode in SQLALCHEMY_DATABASE_URI."""
+    s = Settings(**_base_settings_kwargs(), DATABASE_USE_SSL=False, _env_file=None)
+    assert "sslmode" not in s.SQLALCHEMY_DATABASE_URI
+
+
+def test_database_use_ssl_default_is_true() -> None:
+    """DATABASE_USE_SSL defaults to True — SSL on unless explicitly disabled."""
+    s = Settings(**_base_settings_kwargs(), _env_file=None)
+    assert s.DATABASE_USE_SSL is True
+    assert "sslmode=require" in s.SQLALCHEMY_DATABASE_URI

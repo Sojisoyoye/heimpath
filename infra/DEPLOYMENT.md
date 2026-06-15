@@ -91,16 +91,23 @@ These files are **not committed** to the repository. See `.env.example` for requ
 Key variables to set per environment:
 
 ```
-ENVIRONMENT=production          # or staging
-DOMAIN=heimpath.com             # or staging.heimpath.com
-POSTGRES_SERVER=<neon-endpoint> # use unpooled endpoint (no -pooler suffix)
+ENVIRONMENT=production             # or staging
+DOMAIN=heimpath.com                # or staging.heimpath.com
+POSTGRES_SERVER=host.docker.internal  # self-hosted on VPS; use Neon endpoint for Neon
+POSTGRES_PORT=5432
+POSTGRES_DB=heimpath               # heimpath_staging for staging
+POSTGRES_USER=heimpath_user
+POSTGRES_PASSWORD=<strong-random>
+DATABASE_USE_SSL=false             # false for self-hosted localhost Postgres; true for Neon
 REDIS_PASSWORD=<strong-random>
 SECRET_KEY=<random-64-char-hex>
 FIRST_SUPERUSER=admin@heimpath.com
 FIRST_SUPERUSER_PASSWORD=<secure-password>
 ```
 
-> **Important:** Always use the **unpooled** Neon endpoint (without `-pooler` in the hostname). PgBouncer's transaction-mode pooler rejects psycopg3's `statement_timeout` startup parameter.
+> **Self-hosted Postgres:** Set `POSTGRES_SERVER=host.docker.internal` so Docker containers reach the host's Postgres. Set `DATABASE_USE_SSL=false` — no TLS is configured on the local instance.
+>
+> **Neon (legacy):** Use the unpooled endpoint (no `-pooler` suffix) and `DATABASE_USE_SSL=true`. PgBouncer's transaction-mode pooler rejects psycopg3's `statement_timeout` startup parameter.
 
 ### Deploying a backend update
 
