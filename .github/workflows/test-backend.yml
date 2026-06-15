@@ -43,6 +43,7 @@ jobs:
           echo "EMAILS_FROM_EMAIL=info@example.com" >> .env
           echo "SENTRY_DSN=" >> .env
           echo "REDIS_PASSWORD=$(openssl rand -hex 16)" >> .env
+          echo "DATABASE_USE_SSL=false" >> .env
       - name: Set up Python
         uses: actions/setup-python@v6
         with:

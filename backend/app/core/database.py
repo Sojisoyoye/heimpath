@@ -11,7 +11,7 @@ from app.core.config import settings
 _async_connect_args: dict[str, object] = {
     "server_settings": {"statement_timeout": str(settings.DB_STATEMENT_TIMEOUT_MS)},
 }
-if settings.ENVIRONMENT != "local":
+if settings.DATABASE_USE_SSL:
     _async_connect_args["ssl"] = True
 
 async_engine = create_async_engine(

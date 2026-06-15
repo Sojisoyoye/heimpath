@@ -33,6 +33,7 @@ jobs:
               "EMAILS_FROM_EMAIL=info@example.com" \
               "SENTRY_DSN=" \
               "REDIS_PASSWORD=$(openssl rand -hex 16)" \
+              "DATABASE_USE_SSL=false" \
               > .env
 
       - run:

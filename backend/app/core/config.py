@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+    # Set to false when connecting to a Postgres that has no TLS configured —
+    # e.g. self-hosted Postgres on the Hetzner VPS, or a local dev Postgres.
+    # Neon and any remote/cloud Postgres: keep true (default).
+    DATABASE_USE_SSL: bool = True
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -73,8 +77,8 @@ class Settings(BaseSettings):
                 path=self.POSTGRES_DB,
             )
         )
-        if self.ENVIRONMENT != "local":
-            base_url += "?sslmode=require&channel_binding=require"
+        if self.DATABASE_USE_SSL:
+            base_url += "?sslmode=require"
         return base_url
 
     @computed_field  # type: ignore[prop-decorator]
