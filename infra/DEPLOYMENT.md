@@ -80,6 +80,12 @@ Caddy (running in the `modish_modish` Docker network on the same host) reverse-p
 - `api.heimpath.com` → `heimpath-backend:8000`
 - `api.staging.heimpath.com` → `heimpath-backend-staging:8000`
 
+### VPS access
+
+```bash
+ssh -i ~/.ssh/hetzner_modish root@178.104.122.53
+```
+
 ### Environment files
 
 | File | Used by |
@@ -94,21 +100,25 @@ Key variables to set per environment:
 ```
 ENVIRONMENT=production             # or staging
 DOMAIN=heimpath.com                # or staging.heimpath.com
-POSTGRES_SERVER=host.docker.internal  # self-hosted on VPS; use Neon endpoint for Neon
+POSTGRES_SERVER=host.docker.internal
 POSTGRES_PORT=5432
 POSTGRES_DB=heimpath               # heimpath_staging for staging
 POSTGRES_USER=heimpath_user
 POSTGRES_PASSWORD=<strong-random>
-DATABASE_USE_SSL=false             # false for self-hosted localhost Postgres; true for Neon
+DATABASE_USE_SSL=false
 REDIS_PASSWORD=<strong-random>
+REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379  # redis-staging:6379 for staging
 SECRET_KEY=<random-64-char-hex>
-FIRST_SUPERUSER=admin@heimpath.com
+FIRST_SUPERUSER=soji.soyoye@gmail.com  # admin@heimpath.com for staging
 FIRST_SUPERUSER_PASSWORD=<secure-password>
+BACKEND_CORS_ORIGINS=https://heimpath.com,https://www.heimpath.com,https://staging.heimpath.com
 ```
 
-> **Self-hosted Postgres:** Set `POSTGRES_SERVER=host.docker.internal` so Docker containers reach the host's Postgres. Set `DATABASE_USE_SSL=false` — no TLS is configured on the local instance.
+> **CORS:** `BACKEND_CORS_ORIGINS` must include **both** `https://heimpath.com` and `https://www.heimpath.com` — Vercel serves the frontend on both. Missing `www` causes a CORS error for users who land on the www subdomain.
 >
-> **Neon (legacy):** Use the unpooled endpoint (no `-pooler` suffix) and `DATABASE_USE_SSL=true`. PgBouncer's transaction-mode pooler rejects psycopg3's `statement_timeout` startup parameter.
+> **REDIS_URL:** The `backend` service reads `REDIS_URL` from `.env` (not computed by docker-compose), so it must be set explicitly with the actual password expanded. The `celery-worker` and `celery-beat` services compute it at compose-time via `environment:`.
+>
+> **Staging credentials:** superuser is `admin@heimpath.com` / see password manager.
 
 ### Deploying a backend update
 
@@ -159,7 +169,85 @@ Docker containers reach the host Postgres via `host.docker.internal` (mapped to 
 
 Credentials are stored only in the respective `.env` files on the VPS — never committed.
 
-> **Rollback:** A Neon backup of the pre-cutover env is at `/opt/heimpath/.env.neon-backup` (keep until 2026-06-17). After 48h stability, archive Neon credentials and delete both Neon projects via the Neon console.
+> **Neon decommission:** After 2026-06-17, archive Neon credentials to password manager and delete both Neon projects via the Neon console.
+
+### Database Backups
+
+Nightly compressed backups run at 02:00 via cron under the `postgres` OS user.
+
+| What | Where |
+|------|-------|
+| Script | `/usr/local/bin/pg-backup.sh` |
+| Output | `/backups/postgres/{db}_{date}.sql.gz` |
+| Retention | 7 days (older files auto-deleted) |
+| Log | `/var/log/pg-backup.log` |
+
+**Manual backup:**
+```bash
+sudo -u postgres /usr/local/bin/pg-backup.sh
+```
+
+**Restore to a temp DB (verify integrity):**
+```bash
+sudo -u postgres createdb heimpath_restore_test
+sudo -u postgres bash -c "gunzip -c /backups/postgres/heimpath_$(date +%F).sql.gz | psql -q heimpath_restore_test"
+# Check row counts, then:
+sudo -u postgres dropdb heimpath_restore_test
+```
+
+**Restore to production** (after data loss incident):
+```bash
+# 1. Stop the backend
+cd /opt/heimpath && docker-compose -f docker-compose.prod.yml stop backend celery-worker celery-beat
+
+# 2. Drop and recreate the database
+sudo -u postgres psql -c "DROP DATABASE heimpath;"
+sudo -u postgres psql -c "CREATE DATABASE heimpath OWNER heimpath_user;"
+sudo -u postgres psql -c "GRANT ALL ON DATABASE heimpath TO heimpath_user;"
+
+# 3. Restore from latest backup
+sudo -u postgres bash -c "gunzip -c /backups/postgres/heimpath_$(date +%F).sql.gz | psql -q heimpath"
+
+# 4. Restart services (prestart re-applies any missing migrations)
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+## VPS Monitoring
+
+Two cron jobs run on the VPS to catch disk and process issues early.
+
+### Disk & Swap & Postgres Health (`disk-check.sh`)
+
+Runs at **08:00 daily** (root crontab). Logs to `/var/log/disk-alert.log`.
+
+| Alert condition | Threshold |
+|-----------------|-----------|
+| Root filesystem | ≥ 70% |
+| Swap usage | ≥ 90% |
+| Postgres process | not `active` |
+
+```bash
+# Check current status
+tail -20 /var/log/disk-alert.log
+
+# Run manually
+/usr/local/bin/disk-check.sh
+```
+
+If disk hits 70%: prune old Docker images (`docker image prune -a`) and check backup volume.
+If swap hits 90%: consider upgrading VPS to CX32 (4 vCPU / 8 GB, ~€14.49/month) via Hetzner Cloud console — live resize, ~2 min downtime.
+If Postgres alert fires: `systemctl status postgresql` and `journalctl -u postgresql -n 50`.
+
+### Log Rotation
+
+`/etc/logrotate.d/heimpath-postgres` rotates weekly, keeps 8 weeks, gzip:
+- `/var/log/pg-backup.log`
+- `/var/log/disk-alert.log`
+- `/var/log/pg-health.log`
+
+PostgreSQL's own logs (`/var/log/postgresql/`) are handled by the system `/etc/logrotate.d/postgresql-common`.
 
 ---
 
