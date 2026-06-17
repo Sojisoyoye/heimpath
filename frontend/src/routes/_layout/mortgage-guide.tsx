@@ -3,15 +3,9 @@
  * Educational guide for German mortgage eligibility by residency status
  */
 
-import { createFileRoute, Link } from "@tanstack/react-router"
-import {
-  BookOpen,
-  CheckCircle2,
-  ExternalLink,
-  FileText,
-  Landmark,
-  ShieldCheck,
-} from "lucide-react"
+import { createFileRoute } from "@tanstack/react-router"
+import { BookOpen, CheckCircle2, ExternalLink, Landmark } from "lucide-react"
+import AffordabilityCalculator from "@/components/MortgageGuide/AffordabilityCalculator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -212,25 +206,32 @@ function ResidencyCard({ profile }: Readonly<IResidencyCardProps>) {
   )
 }
 
-/** CTA cards linking to eligibility checker and Hypofriend pre-approval. */
+/** CTA cards linking to the affordability calculator and Hypofriend pre-approval. */
 function MortgageGuideCtas() {
+  function scrollToCalculator() {
+    document
+      .getElementById("affordability-calculator")
+      ?.scrollIntoView({ behavior: "smooth" })
+  }
+
   return (
     <section className="grid gap-4 sm:grid-cols-2">
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="flex flex-col gap-3 p-5">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            <p className="font-semibold">Check your eligibility score</p>
+            <BookOpen className="h-5 w-5 text-primary" />
+            <p className="font-semibold">Calculate your affordability</p>
           </div>
           <p className="text-sm text-muted-foreground">
-            Enter your financials to get a personalised mortgage eligibility
-            score and lender access overview.
+            Enter your income and savings to get a personalised estimate of the
+            maximum property price and monthly payment.
           </p>
-          <Button asChild size="sm" className="mt-auto w-fit">
-            <Link to="/calculators" search={{ tab: "eligibility" }}>
-              <FileText className="mr-1.5 h-4 w-4" />
-              Open Eligibility Checker
-            </Link>
+          <Button
+            size="sm"
+            className="mt-auto w-fit"
+            onClick={scrollToCalculator}
+          >
+            Try the calculator
           </Button>
         </CardContent>
       </Card>
@@ -308,6 +309,11 @@ function MortgageGuidePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section id="affordability-calculator" className="space-y-4">
+        <h2 className="text-lg font-semibold">Affordability Calculator</h2>
+        <AffordabilityCalculator />
       </section>
 
       <MortgageGuideCtas />
