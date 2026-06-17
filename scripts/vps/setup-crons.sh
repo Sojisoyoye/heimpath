@@ -18,7 +18,13 @@ chown postgres:postgres /backups/postgres
 chmod 750 /backups/postgres
 
 echo "==> Creating log files (if absent)"
-for LOG_FILE in /var/log/pg-backup.log /var/log/disk-alert.log /var/log/pg-health.log; do
+# pg-backup.sh runs as the postgres user, so it must own its log file
+touch /var/log/pg-backup.log
+chown postgres:postgres /var/log/pg-backup.log
+chmod 0640 /var/log/pg-backup.log
+
+# disk-check.sh and pg-health run as root — standard root:adm ownership
+for LOG_FILE in /var/log/disk-alert.log /var/log/pg-health.log; do
   touch "$LOG_FILE"
   chown root:adm "$LOG_FILE"
   chmod 0640 "$LOG_FILE"

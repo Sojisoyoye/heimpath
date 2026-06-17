@@ -23,7 +23,8 @@ for DB in heimpath heimpath_staging; do
     SIZE=$(du -sh "$DEST" | cut -f1)
     log "OK — ${DB} backed up to ${DEST} (${SIZE})"
   else
-    log "ERROR — ${DB} backup failed"
+    rm -f "$DEST"
+    log "ERROR — ${DB} backup failed; partial file removed"
     exit 1
   fi
 done
