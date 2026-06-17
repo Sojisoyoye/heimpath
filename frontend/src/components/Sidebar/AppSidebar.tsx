@@ -5,6 +5,7 @@ import {
   Compass,
   FileText,
   Home,
+  Landmark,
   Languages,
   Scale,
   ScrollText,
@@ -37,6 +38,7 @@ const baseItems: Item[] = [
   { icon: Scale, title: "Laws", path: "/laws" },
   { icon: Languages, title: "Glossary", path: "/glossary" },
   { icon: Calculator, title: "Calculators", path: "/calculators" },
+  { icon: Landmark, title: "Mortgage Guide", path: "/mortgage-guide" },
   { icon: BookOpen, title: "Articles", path: "/articles" },
   { icon: UserCheck, title: "Professionals", path: "/professionals" },
 ]
