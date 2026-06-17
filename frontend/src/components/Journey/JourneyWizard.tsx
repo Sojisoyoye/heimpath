@@ -116,6 +116,7 @@ function JourneyWizard(props: IProps) {
   }
 
   const handleJourneyTypeChange = (v: JourneyType) => {
+    if (v === state.journeyType) return
     // Reset step to 1 and clear type-specific fields when switching intent
     setCurrentStep(1)
     updateState({
@@ -137,8 +138,8 @@ function JourneyWizard(props: IProps) {
         case 2:
           return !!state.targetState
         case 3:
-          // Budget is optional
-          if (state.budgetMin && state.budgetMax) {
+          // Budget is optional; use != null to avoid falsy-zero rejecting 0 as a valid value
+          if (state.budgetMin != null && state.budgetMax != null) {
             return state.budgetMax >= state.budgetMin
           }
           return true
@@ -162,7 +163,8 @@ function JourneyWizard(props: IProps) {
       case 5:
         return !!state.financingType
       case 6:
-        if (state.budgetMin && state.budgetMax) {
+        // Budget is optional; use != null to avoid falsy-zero rejecting 0 as a valid value
+        if (state.budgetMin != null && state.budgetMax != null) {
           return state.budgetMax >= state.budgetMin
         }
         return true
@@ -224,7 +226,7 @@ function JourneyWizard(props: IProps) {
         financing_type: isRental ? undefined : state.financingType,
         is_first_time_buyer: true,
         has_german_residency: hasGermanResidency,
-        budget_euros: state.budgetMax || state.budgetMin,
+        budget_euros: state.budgetMax ?? state.budgetMin,
         budget_min_euros: state.budgetMin,
         target_purchase_date: state.targetDate,
         property_use: isRental ? undefined : state.propertyUse,

@@ -119,9 +119,9 @@ function JourneySummary(props: IProps) {
             {isRental ? "Monthly Budget" : "Budget Range"}
           </p>
           <p className="font-medium">
-            {state.budgetMin || state.budgetMax
+            {state.budgetMin != null && state.budgetMax != null
               ? `${formatEur(state.budgetMin)} - ${formatEur(state.budgetMax)}`
-              : "Not specified"}
+              : formatEur(state.budgetMax ?? state.budgetMin)}
           </p>
         </div>
         <div className="rounded-lg border p-4">

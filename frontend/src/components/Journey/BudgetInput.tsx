@@ -79,7 +79,7 @@ function BudgetInput(props: Readonly<IProps>) {
               type="text"
               inputMode="numeric"
               placeholder={minPlaceholder}
-              value={budgetMin ? budgetMin.toLocaleString("de-DE") : ""}
+              value={budgetMin != null ? budgetMin.toLocaleString("de-DE") : ""}
               onChange={handleMinChange}
               className="pl-9"
             />
@@ -91,13 +91,13 @@ function BudgetInput(props: Readonly<IProps>) {
               type="text"
               inputMode="numeric"
               placeholder={maxPlaceholder}
-              value={budgetMax ? budgetMax.toLocaleString("de-DE") : ""}
+              value={budgetMax != null ? budgetMax.toLocaleString("de-DE") : ""}
               onChange={handleMaxChange}
               className="pl-9"
             />
           </div>
         </div>
-        {budgetMin && budgetMax && budgetMin > budgetMax && (
+        {budgetMin != null && budgetMax != null && budgetMin > budgetMax && (
           <p className="text-sm text-destructive">
             Min. cannot be greater than max.
           </p>
