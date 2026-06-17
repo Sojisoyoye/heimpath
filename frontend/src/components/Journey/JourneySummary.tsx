@@ -54,7 +54,7 @@ const PROPERTY_USE_LABELS: Record<string, string> = {
 ******************************************************************************/
 
 /** Default component. Summary review before submission. */
-function JourneySummary(props: IProps) {
+function JourneySummary(props: Readonly<IProps>) {
   const { state } = props
 
   const isRental = state.journeyType === "rental"
