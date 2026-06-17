@@ -62,7 +62,7 @@ const STORAGE_STEP_KEY = "heimpath-wizard-step"
 ******************************************************************************/
 
 /** Default component. Multi-step journey creation wizard. */
-function JourneyWizard(props: IProps) {
+function JourneyWizard(props: Readonly<IProps>) {
   const { className } = props
   const navigate = useNavigate()
   const createJourneyMutation = useCreateJourney()
