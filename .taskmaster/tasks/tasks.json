@@ -1715,10 +1715,11 @@
         "description": "Urbyo is HeimPath's closest direct competitor and the only platform that could replicate HeimPath's \"guided DIY\" positioning by shipping document translation. Establish a lightweight quarterly monitoring habit to track whether the competitive gap is widening or narrowing — this directly determines how urgently document translation investment needs to accelerate.",
         "details": "Quarterly review checklist (to be run every 3 months):\n1. Check Urbyo's public changelog, blog, and release notes for new features\n2. Review their job postings — engineering roles (NLP, document processing, AI) signal what they're building next\n3. Check App Store / Play Store reviews mentioning document handling, translation, or legal guidance\n4. Scan expat forums (Reddit r/germany, r/eupersonalfinance, Toytown Germany, InterNations) for user comparisons between Urbyo and HeimPath\n5. Do a side-by-side feature comparison against the last quarter's table\n\nOutput each quarter: a one-paragraph written summary answering: \"Has the gap widened or narrowed? Does document translation investment need to accelerate?\"\n\nAdditional monitoring signals to watch:\n- Any Urbyo fundraising announcements (new capital = new feature velocity)\n- Press mentions of Urbyo + \"document\" or \"translation\" or \"AI\"\n- LinkedIn posts from Urbyo engineers about document AI work\n\nThis is a business/product process task — not a dev task. Assign to product owner. Schedule first review for end of Q2 2026.",
         "testStrategy": "N/A — process task. Success metric: quarterly report produced on schedule, feature comparison table updated, product acceleration decision documented.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T11:53:14.802Z"
       },
       {
         "id": 140,
@@ -1822,10 +1823,11 @@
         "description": "Several high-value features are better served by specialist platforms than built in-house. This task tracks the business development work to establish referral/affiliate arrangements with three partners: Rentflow (bank-sync portfolio accounting), Hypofriend (mortgage pre-approval), and Myhammer or Blauarbeit (vetted English-speaking Handwerker). Each should be surfaced contextually in HeimPath at the right moment in the user journey.",
         "details": "Partner 1 — Rentflow (portfolio accounting):\n- Trigger: user reaches 6+ properties in portfolio (see separate Rentflow prompt task)\n- Contact: Rentflow BD team — HeimPath delivers post-purchase qualified investors\n- Goal: affiliate link + revenue share agreement\n- Fallback: non-affiliate contextual link if partnership not established within 60 days\n\nPartner 2 — Hypofriend (mortgage pre-approval):\n- Trigger: user reaches financing/mortgage step in guided journey\n- HeimPath's financing calculators are estimates; Hypofriend provides binding pre-approvals\n- Contact: Hypofriend partnerships team\n- Goal: co-marketing or affiliate arrangement\n- Integration: contextual CTA in FinancingWizard and MortgageEligibilityGuide components\n\nPartner 3 — Handwerker network (Myhammer / Blauarbeit / dedicated English-speaking network):\n- Trigger: user is in post-purchase ownership phase (OwnershipManagement journey step)\n- Research which platform has the best English-speaking contractor coverage in major cities\n- Goal: curated directory or affiliate referral, not a marketplace build\n- Integration: CTA in portfolio property detail page (\"Need a contractor?\")\n\nFor each partner:\n1. Identify correct contact / BD channel\n2. Draft outreach explaining HeimPath's user base and referral volume potential\n3. Agree terms (affiliate % or flat fee per referral)\n4. Implement contextual link/CTA in the relevant HeimPath touchpoint\n5. Track click-through and referral conversion\n\nSuccess metrics: at least one active affiliate arrangement live within Q3 2026.",
         "testStrategy": "N/A — business development task. Success metrics: signed referral agreement with at least one partner, affiliate link live in product, click-through rate tracked in analytics.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T11:53:14.887Z"
       },
       {
         "id": 149,
@@ -3464,10 +3466,11 @@
         "description": "Install PostgreSQL on the VPS and bootstrap the heimpath database, application user, and privileges for the Neon-to-self-hosted migration.",
         "details": "Install PostgreSQL via apt (apt update && apt install -y postgresql postgresql-contrib). Create the heimpath database. Create a dedicated heimpath_user with a strong, randomly generated password (do not reuse the postgres superuser). Grant privileges on the heimpath database and on the public schema to heimpath_user (GRANT ALL PRIVILEGES ON DATABASE heimpath TO heimpath_user; GRANT ALL ON SCHEMA public TO heimpath_user). Note and securely record the sync and async connection strings (postgresql://... and postgresql+asyncpg://...) for use in the next migration task.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T10:19:57.770Z"
       },
       {
         "id": 275,
@@ -3475,12 +3478,13 @@
         "description": "Lock down the self-hosted PostgreSQL instance so it is only reachable from localhost and authenticates the dedicated app user with scram-sha-256.",
         "details": "Set listen_addresses = 'localhost' in postgresql.conf so Postgres does not bind to public interfaces. Configure pg_hba.conf to use scram-sha-256 authentication for heimpath_user on localhost (127.0.0.1/32 and ::1/128) only. Reload Postgres (systemctl reload postgresql or SELECT pg_reload_conf()). Verify there is no public port exposure with 'ss -tlnp' (port 5432 should bind to 127.0.0.1/::1 only). Confirm the application .env uses heimpath_user and never the postgres superuser.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
-          274
+          "274"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T10:19:57.883Z"
       },
       {
         "id": 276,
@@ -3488,12 +3492,13 @@
         "description": "Ensure PostgreSQL and the dependent app services start automatically and in the correct order on VPS reboot.",
         "details": "Run 'systemctl enable postgresql' so Postgres starts on boot. Verify with 'systemctl is-enabled postgresql' (should report 'enabled'). Add 'Requires=postgresql.service' and 'After=postgresql.service' to the [Unit] section of the FastAPI and Celery systemd unit files so the application services wait for Postgres to be available before starting on boot. Reload systemd (systemctl daemon-reload) after editing the units.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
-          274
+          "274"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T10:19:57.898Z"
       },
       {
         "id": 277,
@@ -3501,13 +3506,14 @@
         "description": "Cut the application over from Neon DB to the self-hosted localhost PostgreSQL instance and decommission Neon once stable.",
         "details": "Update DATABASE_URL and ASYNC_DATABASE_URL in the production environment to point at localhost:5432 (heimpath_user / heimpath database). Run 'alembic upgrade head' against the new database to apply the schema. If existing data must be preserved, dump from Neon (pg_dump) and restore into the self-hosted instance (pg_restore / psql). Restart all app services (FastAPI, Celery workers, beat). Validate the app against the new database. Once the new setup has been stable for 24 hours, revoke the Neon credentials and decommission the Neon project.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
-          275,
-          276
+          "275",
+          "276"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T10:19:57.907Z"
       },
       {
         "id": 278,
@@ -3515,12 +3521,13 @@
         "description": "Schedule nightly compressed local backups of the self-hosted PostgreSQL database with retention and verified restores.",
         "details": "Create /backups/postgres/ owned by the postgres OS user. Add a cron job for the postgres user (crontab -u postgres) that runs nightly at 02:00 and dumps the heimpath database with gzip compression (pg_dump heimpath | gzip > /backups/postgres/heimpath_$(date +\\%F).sql.gz). Keep 7 days of backups and delete older ones (find /backups/postgres -name '*.sql.gz' -mtime +7 -delete). Test a restore of a recent dump into a temporary database to confirm the dump is valid and complete.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
-          277
+          "277"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T10:27:42.643Z"
       },
       {
         "id": 279,
@@ -3528,12 +3535,13 @@
         "description": "Add a daily disk-usage monitoring script that alerts when the root filesystem fills up and tracks Postgres data directory growth.",
         "details": "Create /usr/local/bin/disk-check.sh that checks disk usage on / and appends an alert line to /var/log/disk-alert.log when usage exceeds 70%. The script should also log the PostgreSQL data directory size (du -sh on the data dir, e.g. /var/lib/postgresql) daily for trend tracking. Make the script executable (chmod +x). Schedule it at 08:00 daily via the root crontab.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
-          277
+          "277"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T10:27:42.689Z"
       },
       {
         "id": 280,
@@ -3543,23 +3551,48 @@
         "testStrategy": "",
         "status": "pending",
         "dependencies": [
-          278
+          "278"
         ],
         "priority": "low",
+        "subtasks": []
+      },
+      {
+        "id": 281,
+        "title": "Mortgage Eligibility Guide for Foreign Buyers",
+        "description": "Add a new /mortgage-guide page that explains German mortgage eligibility criteria for foreign buyers by residency status, typical LTV ratios, required documents, and a contextual CTA to Hypofriend for binding pre-approval.",
+        "details": "New frontend page at /mortgage-guide covering:\n1. Eligibility by residency status (German citizen, EU/EEA citizen, non-EU resident in Germany, non-resident foreigner) — LTV ratios, bank willingness, restrictions\n2. Required document checklist per residency category (Schufa, income proof, residence permit, tax ID)\n3. Typical mortgage process timeline (application → approval → notarisation)\n4. A CTA card linking to Hypofriend (non-affiliate fallback link: https://www.hypofriend.de) for binding pre-approval\n5. Link from the FinancingSelector wizard step so users who choose \"mortgage\" see a \"Learn more\" pointer\n\nImplementation:\n- New route added to TanStack Router config\n- New page component frontend/src/pages/MortgageGuide.tsx\n- New components: EligibilityTable, DocumentChecklist, TimelineSteps\n- Add \"Mortgage Guide\" link in navigation or from FinancingSelector\n- No backend changes required — fully static educational content",
+        "testStrategy": "Visual review of all four residency status sections; verify Hypofriend CTA link is correct; verify route is accessible at /mortgage-guide; tsc --noEmit passes; no regressions in existing journey wizard",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [],
+        "updatedAt": "2026-06-17T12:59:15.165Z"
+      },
+      {
+        "id": 282,
+        "title": "Interactive Mortgage Affordability Calculator for Foreign Buyers",
+        "description": "Add an interactive affordability calculator section to the /mortgage-guide page. Users input gross income, savings/equity, and residency status to get personalised estimates of max loan amount, required equity, and monthly payment — with a Hypofriend CTA.",
+        "details": "New AffordabilityCalculator component embedded in /mortgage-guide page (new tab or section below the residency profiles).\n\nInputs:\n- Gross annual income (€) — with optional partner income toggle\n- Available equity/savings (€)\n- Residency status (German citizen, EU/EEA citizen, Non-EU resident, Non-resident foreigner) — reuse RESIDENCY_PROFILES LTV data\n- Target property price (€) — optional, enables reverse calc\n\nOutputs (calculated in real-time, no backend needed):\n- Maximum loan amount: income × 4.5 × (LTV/100), capped by equity available\n- Required minimum equity: property price × (1 - LTV/100) + closing costs (11% of price)\n- Estimated monthly payment: annuity formula at 3.8% p.a. over 25 years\n- Affordability verdict: green (can afford), amber (borderline, <20% buffer), red (cannot afford)\n- If target price entered: gap to affordability (how much more savings needed)\n\nLTV rates per residency (from RESIDENCY_PROFILES):\n- German citizen: 80%\n- EU/EEA citizen: 75%\n- Non-EU resident in Germany: 70%\n- Non-resident foreigner: 60%\n\nImplementation:\n- New file: frontend/src/components/MortgageGuide/AffordabilityCalculator.tsx\n- Add tab or collapsible section to MortgageGuidePage\n- Uses useState for form state, useMemo for derived calculations\n- Tailwind-only styling, colour tokens from Colors.ts\n- No API calls — fully static calculation\n- Add share/copy result button (copy summary text to clipboard)",
+        "testStrategy": "Visual QA: enter inputs for each residency type, verify output changes in real-time. Edge cases: 0 equity, very high income, non-resident with low savings. tsc --noEmit passes. No regressions on existing mortgage guide sections.",
+        "status": "pending",
+        "dependencies": [
+          281
+        ],
+        "priority": "high",
         "subtasks": []
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-15T19:01:46.673Z",
-      "taskCount": 274,
-      "completedCount": 262,
+      "lastModified": "2026-06-17T12:59:15.165Z",
+      "taskCount": 280,
+      "completedCount": 276,
       "tags": [
         "master"
       ],
-      "created": "2026-06-13T20:32:50.892Z",
+      "created": "2026-06-17T13:01:04.817Z",
       "description": "Tasks for master context",
-      "updated": "2026-06-13T20:34:03.656Z"
+      "updated": "2026-06-17T13:01:04.848Z"
     }
   }
 }
