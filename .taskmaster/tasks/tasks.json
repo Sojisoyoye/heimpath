@@ -3588,12 +3588,13 @@
         "description": "Build a dedicated guide page at /mortgage-guide or /guides/bank-account explaining how foreign buyers can open a German bank account, which is a prerequisite for property purchase and mortgage approval.",
         "details": "Create a new frontend guide page at /guides/bank-account modelled after the mortgage guide page (PR #355). Content sections: (1) Why you need a German bank account before buying property — mortgage disbursement, notary fee payments, and ongoing utility direct debits all require a German IBAN. (2) Bank comparison table: N26 (app-only, accepts non-residents in EU), Deutsche Bank (branch-based, accepts non-EU with appointment), DKB (online, EU residents only), Commerzbank (branch-based, accepts non-EU). Columns: accepts non-residents, account fee, minimum deposit, time to open, English support, online banking. (3) Required documents by citizenship: EU citizen (passport + address proof), non-EU resident (Aufenthaltstitel + Anmeldebescheinigung), non-EU non-resident (passport + home country bank statement + reason for opening). (4) Step-by-step process: online vs. branch application, VideoIdent (video identity verification) option, PostIdent fallback. (5) Timeline: typically 5–14 business days. (6) Call to action: link to Hypofriend for mortgage pre-qualification, link to journey bank-account step. Build as a React page component using the same card + section structure as MortgageGuide. Add route to TanStack Router. Add meta tags for SEO. Add link from the mortgage guide page and from the buying journey financing step.",
         "testStrategy": "Manual: Navigate to /guides/bank-account, verify all sections render correctly on mobile and desktop. Check bank comparison table is readable on small screens. Verify internal links (mortgage guide, journey) navigate correctly. TypeScript: bunx tsc --noEmit passes.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "281"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-06-17T14:39:42.070Z"
       },
       {
         "id": "284",
@@ -3614,20 +3615,20 @@
         "description": "Build an interactive calculator that helps foreign buyers decide whether renting or buying makes financial sense in their specific situation, considering German-specific costs, tax treatment, and investment horizon.",
         "details": "Frontend-only calculator (no backend needed — same pattern as affordability calculator). Inputs: property price (€), monthly rent for equivalent property (€), down payment (%), mortgage interest rate (%), loan term (years), planned holding period (years), property value growth rate p.a. (%), investment return on alternative (if not buying) (%), annual Hausgeld / Betriebskosten (€/month), annual maintenance budget (% of property value, default 1%), Grunderwerbsteuer (pre-filled from state selector), notary + registration fees (pre-filled, editable). Calculation logic: Buying scenario: total purchase cost (price + all buying costs), monthly mortgage payment (standard annuity formula), total monthly ownership cost (mortgage + Hausgeld + maintenance reserve), equity built after N years (property value × (1+g)^N minus remaining principal), net cost of buying = total payments made + buying costs - equity at exit. Renting scenario: total rent paid over N years, opportunity cost of down payment (compounded at investment return rate), net cost of renting = total rent + opportunity cost of down payment. Output: Break-even horizon (in years — when does buying become cheaper than renting?), monthly cost comparison (rent vs mortgage+costs), total cost comparison at user's planned holding period, verdict card (\"At X years, buying saves you €Y / costs you €Z more\"). Add share link using share_id pattern. Add to /tools page and link from the mortgage guide. Use Colors.ts tokens, mobile-first Tailwind layout matching affordability calculator patterns.",
         "testStrategy": "Manual: test edge cases (very short holding period, very high rent, 100% equity purchase). Verify break-even year matches manual calculation. TypeScript: bunx tsc --noEmit passes. Test share link generates unique URL and restores inputs.",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "282"
         ],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2026-06-17T14:06:47.802Z"
+        "updatedAt": "2026-06-17T14:39:37.213Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-06-17T14:06:47.803Z",
+      "lastModified": "2026-06-17T14:39:42.070Z",
       "taskCount": 284,
-      "completedCount": 277,
+      "completedCount": 278,
       "tags": [
         "master"
       ]
