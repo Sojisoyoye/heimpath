@@ -28,6 +28,7 @@ import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mort
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
+import { Route as LayoutMortgageGuideRouteImport } from './routes/_layout/mortgage-guide'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutContractExplainerRouteImport } from './routes/_layout/contract-explainer'
 import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
@@ -145,6 +146,11 @@ const LayoutSearchRoute = LayoutSearchRouteImport.update({
 const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutMortgageGuideRoute = LayoutMortgageGuideRouteImport.update({
+  id: '/mortgage-guide',
+  path: '/mortgage-guide',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/calculators': typeof LayoutCalculatorsRoute
   '/contract-explainer': typeof LayoutContractExplainerRoute
   '/dashboard': typeof LayoutDashboardRoute
+  '/mortgage-guide': typeof LayoutMortgageGuideRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -327,6 +334,7 @@ export interface FileRoutesByTo {
   '/calculators': typeof LayoutCalculatorsRoute
   '/contract-explainer': typeof LayoutContractExplainerRoute
   '/dashboard': typeof LayoutDashboardRoute
+  '/mortgage-guide': typeof LayoutMortgageGuideRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/_layout/calculators': typeof LayoutCalculatorsRoute
   '/_layout/contract-explainer': typeof LayoutContractExplainerRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
+  '/_layout/mortgage-guide': typeof LayoutMortgageGuideRoute
   '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
@@ -416,6 +425,7 @@ export interface FileRouteTypes {
     | '/calculators'
     | '/contract-explainer'
     | '/dashboard'
+    | '/mortgage-guide'
     | '/notifications'
     | '/search'
     | '/settings'
@@ -458,6 +468,7 @@ export interface FileRouteTypes {
     | '/calculators'
     | '/contract-explainer'
     | '/dashboard'
+    | '/mortgage-guide'
     | '/notifications'
     | '/search'
     | '/settings'
@@ -501,6 +512,7 @@ export interface FileRouteTypes {
     | '/_layout/calculators'
     | '/_layout/contract-explainer'
     | '/_layout/dashboard'
+    | '/_layout/mortgage-guide'
     | '/_layout/notifications'
     | '/_layout/search'
     | '/_layout/settings'
@@ -678,6 +690,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof LayoutNotificationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/mortgage-guide': {
+      id: '/_layout/mortgage-guide'
+      path: '/mortgage-guide'
+      fullPath: '/mortgage-guide'
+      preLoaderRoute: typeof LayoutMortgageGuideRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/dashboard': {
@@ -866,6 +885,7 @@ interface LayoutRouteChildren {
   LayoutCalculatorsRoute: typeof LayoutCalculatorsRoute
   LayoutContractExplainerRoute: typeof LayoutContractExplainerRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
+  LayoutMortgageGuideRoute: typeof LayoutMortgageGuideRoute
   LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
@@ -892,6 +912,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutCalculatorsRoute: LayoutCalculatorsRoute,
   LayoutContractExplainerRoute: LayoutContractExplainerRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
+  LayoutMortgageGuideRoute: LayoutMortgageGuideRoute,
   LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
