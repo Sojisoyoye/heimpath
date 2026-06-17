@@ -23,6 +23,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools/index'
 import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools/roi-calculator'
+import { Route as ToolsRentVsBuyCalculatorRouteImport } from './routes/tools/rent-vs-buy-calculator'
 import { Route as ToolsPropertyCostCalculatorRouteImport } from './routes/tools/property-cost-calculator'
 import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mortgage-calculator'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
@@ -122,6 +123,12 @@ const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
   path: '/roi-calculator',
   getParentRoute: () => ToolsRoute,
 } as any)
+const ToolsRentVsBuyCalculatorRoute =
+  ToolsRentVsBuyCalculatorRouteImport.update({
+    id: '/rent-vs-buy-calculator',
+    path: '/rent-vs-buy-calculator',
+    getParentRoute: () => ToolsRoute,
+  } as any)
 const ToolsPropertyCostCalculatorRoute =
   ToolsPropertyCostCalculatorRouteImport.update({
     id: '/property-cost-calculator',
@@ -297,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
   '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
+  '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/': typeof ToolsIndexRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
@@ -340,6 +348,7 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
   '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
+  '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools': typeof ToolsIndexRoute
   '/articles/$slug': typeof LayoutArticlesSlugRoute
@@ -385,6 +394,7 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
   '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
+  '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/': typeof ToolsIndexRoute
   '/_layout/articles/$slug': typeof LayoutArticlesSlugRoute
@@ -431,6 +441,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tools/mortgage-calculator'
     | '/tools/property-cost-calculator'
+    | '/tools/rent-vs-buy-calculator'
     | '/tools/roi-calculator'
     | '/tools/'
     | '/articles/$slug'
@@ -474,6 +485,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tools/mortgage-calculator'
     | '/tools/property-cost-calculator'
+    | '/tools/rent-vs-buy-calculator'
     | '/tools/roi-calculator'
     | '/tools'
     | '/articles/$slug'
@@ -518,6 +530,7 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/tools/mortgage-calculator'
     | '/tools/property-cost-calculator'
+    | '/tools/rent-vs-buy-calculator'
     | '/tools/roi-calculator'
     | '/tools/'
     | '/_layout/articles/$slug'
@@ -655,6 +668,13 @@ declare module '@tanstack/react-router' {
       path: '/roi-calculator'
       fullPath: '/tools/roi-calculator'
       preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/rent-vs-buy-calculator': {
+      id: '/tools/rent-vs-buy-calculator'
+      path: '/rent-vs-buy-calculator'
+      fullPath: '/tools/rent-vs-buy-calculator'
+      preLoaderRoute: typeof ToolsRentVsBuyCalculatorRouteImport
       parentRoute: typeof ToolsRoute
     }
     '/tools/property-cost-calculator': {
@@ -941,6 +961,7 @@ const LayoutRouteWithChildren =
 interface ToolsRouteChildren {
   ToolsMortgageCalculatorRoute: typeof ToolsMortgageCalculatorRoute
   ToolsPropertyCostCalculatorRoute: typeof ToolsPropertyCostCalculatorRoute
+  ToolsRentVsBuyCalculatorRoute: typeof ToolsRentVsBuyCalculatorRoute
   ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
 }
@@ -948,6 +969,7 @@ interface ToolsRouteChildren {
 const ToolsRouteChildren: ToolsRouteChildren = {
   ToolsMortgageCalculatorRoute: ToolsMortgageCalculatorRoute,
   ToolsPropertyCostCalculatorRoute: ToolsPropertyCostCalculatorRoute,
+  ToolsRentVsBuyCalculatorRoute: ToolsRentVsBuyCalculatorRoute,
   ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
   ToolsIndexRoute: ToolsIndexRoute,
 }
