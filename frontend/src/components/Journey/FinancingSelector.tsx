@@ -3,6 +3,7 @@
  * Allows user to select financing type for their property purchase
  */
 
+import { Link } from "@tanstack/react-router"
 import { Banknote, Building2, Info, Percent } from "lucide-react"
 import { FINANCING_TYPES } from "@/common/constants"
 import { cn } from "@/common/utils"
@@ -37,11 +38,13 @@ const FINANCING_DESCRIPTIONS: Record<FinancingType, string> = {
 ******************************************************************************/
 
 /** Single financing option. */
-function FinancingOption(props: {
-  type: (typeof FINANCING_TYPES)[number]
-  isSelected: boolean
-  onSelect: () => void
-}) {
+function FinancingOption(
+  props: Readonly<{
+    type: (typeof FINANCING_TYPES)[number]
+    isSelected: boolean
+    onSelect: () => void
+  }>,
+) {
   const { type, isSelected, onSelect } = props
   const Icon = FINANCING_ICONS[type.value as FinancingType]
   const description = FINANCING_DESCRIPTIONS[type.value as FinancingType]
@@ -79,7 +82,7 @@ function FinancingOption(props: {
 }
 
 /** Default component. Financing type selector. */
-function FinancingSelector(props: IProps) {
+function FinancingSelector(props: Readonly<IProps>) {
   const { value, onChange, className } = props
 
   return (
@@ -112,7 +115,13 @@ function FinancingSelector(props: IProps) {
             <p className="text-amber-800 dark:text-amber-200">
               German banks typically require 20-40% down payment for
               non-residents. We'll guide you through the mortgage process and
-              required documentation.
+              required documentation.{" "}
+              <Link
+                to="/mortgage-guide"
+                className="font-medium underline underline-offset-2"
+              >
+                View full mortgage guide →
+              </Link>
             </p>
           </div>
         </div>
