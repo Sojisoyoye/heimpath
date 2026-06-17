@@ -119,13 +119,15 @@ function JourneySummary(props: IProps) {
             {isRental ? "Monthly Budget" : "Budget Range"}
           </p>
           <p className="font-medium">
-            {state.budgetMin || state.budgetMax
+            {state.budgetMin != null && state.budgetMax != null
               ? `${formatEur(state.budgetMin)} - ${formatEur(state.budgetMax)}`
-              : "Not specified"}
+              : formatEur(state.budgetMax ?? state.budgetMin)}
           </p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Target Date</p>
+          <p className="text-sm text-muted-foreground">
+            {isRental ? "Target move-in date" : "Target purchase date"}
+          </p>
           <p className="font-medium">{formatMonthYear(state.targetDate)}</p>
         </div>
         <div className="rounded-lg border p-4">
