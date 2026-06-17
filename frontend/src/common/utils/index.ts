@@ -1,5 +1,5 @@
 export { cn } from "./cn"
-export { formatDate, formatEur } from "./formatters"
+export { formatDate, formatEur, parsePosFloat } from "./formatters"
 export {
   buildQuerySearch,
   buildTabSearch,

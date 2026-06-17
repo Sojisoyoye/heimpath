@@ -3,8 +3,14 @@
  * Educational guide for German mortgage eligibility by residency status
  */
 
-import { createFileRoute } from "@tanstack/react-router"
-import { BookOpen, CheckCircle2, ExternalLink, Landmark } from "lucide-react"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import {
+  BarChart2,
+  BookOpen,
+  CheckCircle2,
+  ExternalLink,
+  Landmark,
+} from "lucide-react"
 import AffordabilityCalculator from "@/components/MortgageGuide/AffordabilityCalculator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -260,6 +266,35 @@ function MortgageGuideCtas() {
               <ExternalLink className="mr-1.5 h-4 w-4" />
               Visit Hypofriend
             </a>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30 sm:col-span-2">
+        <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-green-600" />
+              <p className="font-semibold">
+                Still unsure? Run a rent vs. buy comparison
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Compare the true long-term cost of buying versus renting —
+              accounting for equity, closing costs, and what your down payment
+              could earn if invested instead.
+            </p>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="w-fit shrink-0 border-green-300 bg-white dark:bg-transparent"
+          >
+            <Link to="/tools/rent-vs-buy-calculator">
+              <BarChart2 className="mr-1.5 h-4 w-4" />
+              Rent vs. Buy Calculator
+            </Link>
           </Button>
         </CardContent>
       </Card>

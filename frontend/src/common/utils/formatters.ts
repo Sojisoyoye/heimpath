@@ -72,3 +72,13 @@ export function formatPctFromDecimal(value: number): string {
 export function formatFactor(value: number): string {
   return `${value.toFixed(1)}x`
 }
+
+/**
+ * Parse a positive float from a raw input string.
+ * Strips locale separators (spaces, commas) while preserving the decimal point.
+ * Returns 0 for non-positive, non-finite, or empty values.
+ */
+export function parsePosFloat(raw: string): number {
+  const n = parseFloat(raw.replace(/[^\d.]/g, ""))
+  return Number.isFinite(n) && n > 0 ? n : 0
+}

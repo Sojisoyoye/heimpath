@@ -328,9 +328,8 @@ class TestAuditServiceEdgeCases:
 
     def test_log_action_without_request_yields_null_ip_and_request_id(self) -> None:
         """When request=None both ip_address and request_id are stored as None."""
-        from app.services.audit_service import log_action
-
         from app.models.audit_log import AuditLog
+        from app.services.audit_service import log_action
 
         mock_session = MagicMock()
         log_action(mock_session, action="document.upload", request=None)
@@ -341,9 +340,8 @@ class TestAuditServiceEdgeCases:
 
     def test_log_action_with_unauthenticated_user(self) -> None:
         """user_id=None is allowed for logging pre-authentication actions."""
-        from app.services.audit_service import log_action
-
         from app.models.audit_log import AuditLog
+        from app.services.audit_service import log_action
 
         mock_session = MagicMock()
         log_action(mock_session, action="user.login", user_id=None)
@@ -353,9 +351,8 @@ class TestAuditServiceEdgeCases:
 
     def test_log_action_stores_correct_action_string(self) -> None:
         """The action string is stored verbatim in the AuditLog row."""
-        from app.services.audit_service import log_action
-
         from app.models.audit_log import AuditLog
+        from app.services.audit_service import log_action
 
         mock_session = MagicMock()
         log_action(

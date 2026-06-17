@@ -5,7 +5,7 @@
 
 import { AlertTriangle, Calculator, CheckCircle2, Copy } from "lucide-react"
 import { useState } from "react"
-import { formatEur } from "@/common/utils"
+import { formatEur, parsePosFloat } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -76,13 +76,6 @@ function maxLoanFromIncome(grossAnnual: number): number {
   const r = ANNUAL_RATE / 12
   const factor = (1 + r) ** LOAN_MONTHS
   return (monthlyCapacity * (factor - 1)) / (r * factor)
-}
-
-// Strips locale thousands separators (spaces, commas) before parsing.
-// Preserves the decimal point — consistent with other calculator parsers.
-function parsePosFloat(raw: string): number {
-  const n = parseFloat(raw.replace(/[^\d.]/g, ""))
-  return Number.isFinite(n) && n > 0 ? n : 0
 }
 
 /******************************************************************************

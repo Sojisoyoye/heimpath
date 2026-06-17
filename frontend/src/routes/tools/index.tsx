@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Calculator, Home, TrendingUp } from "lucide-react"
+import { BarChart2, Calculator, Home, TrendingUp } from "lucide-react"
 
 import { toolsMeta } from "@/components/Tools/toolsMeta"
 import {
@@ -45,6 +45,13 @@ const TOOLS = [
       "Analyse rental investment returns, get an investment grade, and see 10-year projections with tax impact.",
     href: "/tools/roi-calculator",
     icon: TrendingUp,
+  },
+  {
+    title: "Rent vs. Buy Calculator",
+    description:
+      "Compare the net long-term cost of renting versus buying in Germany — including closing costs, equity, and investment opportunity cost.",
+    href: "/tools/rent-vs-buy-calculator",
+    icon: BarChart2,
   },
 ] as const
 
