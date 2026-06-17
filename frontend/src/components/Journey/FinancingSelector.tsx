@@ -38,11 +38,13 @@ const FINANCING_DESCRIPTIONS: Record<FinancingType, string> = {
 ******************************************************************************/
 
 /** Single financing option. */
-function FinancingOption(props: {
-  type: (typeof FINANCING_TYPES)[number]
-  isSelected: boolean
-  onSelect: () => void
-}) {
+function FinancingOption(
+  props: Readonly<{
+    type: (typeof FINANCING_TYPES)[number]
+    isSelected: boolean
+    onSelect: () => void
+  }>,
+) {
   const { type, isSelected, onSelect } = props
   const Icon = FINANCING_ICONS[type.value as FinancingType]
   const description = FINANCING_DESCRIPTIONS[type.value as FinancingType]
@@ -80,7 +82,7 @@ function FinancingOption(props: {
 }
 
 /** Default component. Financing type selector. */
-function FinancingSelector(props: IProps) {
+function FinancingSelector(props: Readonly<IProps>) {
   const { value, onChange, className } = props
 
   return (

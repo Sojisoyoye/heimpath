@@ -212,11 +212,64 @@ function ResidencyCard({ profile }: Readonly<IResidencyCardProps>) {
   )
 }
 
+/** CTA cards linking to eligibility checker and Hypofriend pre-approval. */
+function MortgageGuideCtas() {
+  return (
+    <section className="grid gap-4 sm:grid-cols-2">
+      <Card className="border-primary/30 bg-primary/5">
+        <CardContent className="flex flex-col gap-3 p-5">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            <p className="font-semibold">Check your eligibility score</p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Enter your financials to get a personalised mortgage eligibility
+            score and lender access overview.
+          </p>
+          <Button asChild size="sm" className="mt-auto w-fit">
+            <Link to="/calculators" search={{ tab: "eligibility" }}>
+              <FileText className="mr-1.5 h-4 w-4" />
+              Open Eligibility Checker
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
+        <CardContent className="flex flex-col gap-3 p-5">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-blue-600" />
+            <p className="font-semibold">Get a binding pre-approval</p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Hypofriend specialises in German mortgages for international buyers
+            and provides binding pre-approvals online.
+          </p>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="mt-auto w-fit border-blue-300 bg-white dark:bg-transparent"
+          >
+            <a
+              href="https://www.hypofriend.de"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink className="mr-1.5 h-4 w-4" />
+              Visit Hypofriend
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+    </section>
+  )
+}
+
 /** Default component. German mortgage guide for foreign buyers. */
 function MortgageGuidePage() {
   return (
     <div className="space-y-10">
-      {/* Header */}
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
           <Landmark className="h-6 w-6" />
@@ -228,7 +281,6 @@ function MortgageGuidePage() {
         </p>
       </div>
 
-      {/* Residency eligibility cards */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">
           Eligibility by Residency Status
@@ -240,7 +292,6 @@ function MortgageGuidePage() {
         </div>
       </section>
 
-      {/* Process timeline */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Typical Mortgage Process</h2>
         <div className="grid gap-4 sm:grid-cols-3">
@@ -259,55 +310,7 @@ function MortgageGuidePage() {
         </div>
       </section>
 
-      {/* CTA cards */}
-      <section className="grid gap-4 sm:grid-cols-2">
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="flex flex-col gap-3 p-5">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <p className="font-semibold">Check your eligibility score</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Enter your financials to get a personalised mortgage eligibility
-              score and lender access overview.
-            </p>
-            <Button asChild size="sm" className="mt-auto w-fit">
-              <Link to="/calculators" search={{ tab: "eligibility" }}>
-                <FileText className="mr-1.5 h-4 w-4" />
-                Open Eligibility Checker
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
-          <CardContent className="flex flex-col gap-3 p-5">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-600" />
-              <p className="font-semibold">Get a binding pre-approval</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Hypofriend specialises in German mortgages for international
-              buyers and provides binding pre-approvals online.
-            </p>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="mt-auto w-fit border-blue-300 bg-white dark:bg-transparent"
-            >
-              <a
-                href="https://www.hypofriend.de"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="mr-1.5 h-4 w-4" />
-                Visit Hypofriend
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
+      <MortgageGuideCtas />
     </div>
   )
 }
