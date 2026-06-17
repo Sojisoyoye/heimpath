@@ -125,7 +125,9 @@ function JourneySummary(props: IProps) {
           </p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Target Date</p>
+          <p className="text-sm text-muted-foreground">
+            {isRental ? "Target move-in date" : "Target purchase date"}
+          </p>
           <p className="font-medium">{formatMonthYear(state.targetDate)}</p>
         </div>
         <div className="rounded-lg border p-4">

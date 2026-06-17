@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 interface IProps {
   value?: string
   onChange: (value: string | undefined) => void
+  isRental?: boolean
   className?: string
 }
 
@@ -79,8 +80,8 @@ function PresetButton(props: {
 }
 
 /** Default component. Timeline selector with presets and date picker. */
-function TimelineSelector(props: IProps) {
-  const { value, onChange, className } = props
+function TimelineSelector(props: Readonly<IProps>) {
+  const { value, onChange, isRental = false, className } = props
 
   const handlePresetClick = (months: number) => {
     onChange(getDateInMonths(months))
@@ -115,9 +116,15 @@ function TimelineSelector(props: IProps) {
   return (
     <div className={cn("space-y-6", className)}>
       <div>
-        <h3 className="text-lg font-semibold">When do you want to buy?</h3>
+        <h3 className="text-lg font-semibold">
+          {isRental
+            ? "When do you want to move in?"
+            : "When do you want to buy?"}
+        </h3>
         <p className="text-sm text-muted-foreground">
-          Set a target date for your property purchase (optional)
+          {isRental
+            ? "Set a target date for your lease start (optional)"
+            : "Set a target date for your property purchase (optional)"}
         </p>
       </div>
 
@@ -177,9 +184,9 @@ function TimelineSelector(props: IProps) {
             Typical timeline
           </p>
           <p className="text-blue-800 dark:text-blue-200">
-            The property buying process in Germany typically takes 3-6 months
-            from the start of your search to closing. Financing approval can add
-            4-8 weeks.
+            {isRental
+              ? "The apartment search process in Germany typically takes 4-8 weeks from the start of your search to signing a lease. High-demand cities like Berlin or Munich can take longer."
+              : "The property buying process in Germany typically takes 3-6 months from the start of your search to closing. Financing approval can add 4-8 weeks."}
           </p>
         </div>
       </div>

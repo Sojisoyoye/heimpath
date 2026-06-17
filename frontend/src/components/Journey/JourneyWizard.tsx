@@ -116,12 +116,16 @@ function JourneyWizard(props: IProps) {
   }
 
   const handleJourneyTypeChange = (v: JourneyType) => {
-    // When switching journey type, reset step to 1 and clear type-specific fields
+    // Reset step to 1 and clear type-specific fields when switching intent
+    setCurrentStep(1)
     updateState({
       journeyType: v,
       propertyType: undefined,
       propertyUse: undefined,
       financingType: undefined,
+      budgetMin: undefined,
+      budgetMax: undefined,
+      targetDate: undefined,
     })
   }
 
@@ -306,6 +310,7 @@ function JourneyWizard(props: IProps) {
               budgetMax={state.budgetMax}
               onBudgetMinChange={(v) => updateState({ budgetMin: v })}
               onBudgetMaxChange={(v) => updateState({ budgetMax: v })}
+              isRental
             />
           )
         case 4:
@@ -313,6 +318,7 @@ function JourneyWizard(props: IProps) {
             <TimelineSelector
               value={state.targetDate}
               onChange={(v) => updateState({ targetDate: v })}
+              isRental
             />
           )
         case 5:
