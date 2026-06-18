@@ -8,7 +8,7 @@ import NotFound from "@/components/Common/NotFound"
 export const Route = createRootRoute({
   component: () => (
     <>
-      {typeof document !== "undefined" && <HeadContent />}
+      <HeadContent />
       <ErrorBoundary>
         <Outlet />
       </ErrorBoundary>
