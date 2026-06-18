@@ -58,7 +58,7 @@ export const Route = createFileRoute("/login")({
     }
   },
   head: () => ({
-    meta: seoMeta({
+    ...seoMeta({
       title: "Log In - HeimPath",
       description:
         "Log in to your HeimPath account to continue your German property buying journey.",

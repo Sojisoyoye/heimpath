@@ -14,7 +14,7 @@ import { LandingHeader } from "@/components/Landing/LandingHeader"
 export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
   head: () => ({
-    meta: seoMeta({
+    ...seoMeta({
       title: "Privacy Policy - HeimPath",
       description:
         "HeimPath privacy policy. Learn how we collect, use, and protect your personal data in compliance with GDPR.",

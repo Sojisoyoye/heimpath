@@ -18,7 +18,7 @@ import { LandingHeader } from "@/components/Landing/LandingHeader"
 export const Route = createFileRoute("/imprint")({
   component: ImprintPage,
   head: () => ({
-    meta: seoMeta({
+    ...seoMeta({
       title: "Imprint - HeimPath",
       description:
         "Impressum (Imprint) for HeimPath pursuant to §5 TMG. Company information, contact details, and legal notices.",

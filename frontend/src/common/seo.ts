@@ -27,6 +27,8 @@ type MetaTag =
   | { name: string; content: string }
   | { property: string; content: string }
 
+type LinkTag = { rel: string; href: string }
+
 interface SeoOptions {
   /** Page title — will be set as <title> and og:title */
   title: string
@@ -42,12 +44,18 @@ interface SeoOptions {
   ogType?: string
 }
 
+/** Return type for seoMeta — matches TanStack Router head() object shape. */
+interface SeoHead {
+  meta: MetaTag[]
+  links: LinkTag[]
+}
+
 /******************************************************************************
                               Functions
 ******************************************************************************/
 
-/** Build a complete SEO meta array for a TanStack Router head() function. */
-function seoMeta(options: SeoOptions) {
+/** Build a complete SEO head object for a TanStack Router head() function. */
+function seoMeta(options: SeoOptions): SeoHead {
   const {
     title,
     description = DEFAULT_DESCRIPTION,
@@ -87,7 +95,11 @@ function seoMeta(options: SeoOptions) {
     meta.push({ property: "og:url", content: canonicalUrl })
   }
 
-  return meta
+  const links: LinkTag[] = canonicalUrl
+    ? [{ rel: "canonical", href: canonicalUrl }]
+    : []
+
+  return { meta, links }
 }
 
 /******************************************************************************

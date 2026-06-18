@@ -36,15 +36,15 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
     () =>
-      (typeof window !== "undefined"
-        ? (localStorage.getItem(storageKey) as Theme)
-        : null) || defaultTheme,
+      (typeof globalThis.window === "undefined"
+        ? null
+        : (localStorage.getItem(storageKey) as Theme)) || defaultTheme,
   )
 
   const getResolvedTheme = useCallback((theme: Theme): "dark" | "light" => {
     if (theme === "system") {
-      return typeof window !== "undefined" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
+      return typeof globalThis.window !== "undefined" &&
+        globalThis.window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light"
     }
@@ -56,14 +56,15 @@ export function ThemeProvider({
   )
 
   const updateTheme = useCallback((newTheme: Theme) => {
-    if (typeof window === "undefined") return
-    const root = window.document.documentElement
+    if (typeof globalThis.window === "undefined") return
+    const root = globalThis.window.document.documentElement
 
     root.classList.remove("light", "dark")
 
     if (newTheme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
+      const systemTheme = globalThis.window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches
         ? "dark"
         : "light"
 
@@ -78,8 +79,10 @@ export function ThemeProvider({
     updateTheme(theme)
     setResolvedTheme(getResolvedTheme(theme))
 
-    if (typeof window === "undefined") return
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+    if (typeof globalThis.window === "undefined") return
+    const mediaQuery = globalThis.window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    )
 
     const handleChange = () => {
       if (theme === "system") {
@@ -99,7 +102,8 @@ export function ThemeProvider({
     theme,
     resolvedTheme,
     setTheme: (theme: Theme) => {
-      if (typeof window !== "undefined") localStorage.setItem(storageKey, theme)
+      if (typeof globalThis.window !== "undefined")
+        localStorage.setItem(storageKey, theme)
       setTheme(theme)
     },
   }

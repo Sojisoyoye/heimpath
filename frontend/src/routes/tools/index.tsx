@@ -12,7 +12,7 @@ import {
 export const Route = createFileRoute("/tools/")({
   component: ToolsIndexPage,
   head: () => ({
-    meta: toolsMeta(
+    ...toolsMeta(
       "Free German Property Calculators - HeimPath",
       "Free calculators for buying property in Germany. Estimate hidden costs, mortgage payments, and rental ROI — no sign-up required.",
       "/tools",

@@ -7,7 +7,7 @@ import { toolsMeta } from "@/components/Tools/toolsMeta"
 export const Route = createFileRoute("/tools/roi-calculator")({
   component: ROICalculatorPage,
   head: () => ({
-    meta: toolsMeta(
+    ...toolsMeta(
       "German Rental Property ROI Calculator - HeimPath",
       "Analyse rental investment returns in Germany. Calculate gross yield, cap rate, cash-on-cash return, and view 10-year projections with German tax impact.",
       "/tools/roi-calculator",
