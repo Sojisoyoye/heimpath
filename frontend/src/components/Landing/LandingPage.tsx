@@ -3,6 +3,7 @@ import { CtaSection } from "./CtaSection"
 import { FeaturesSection } from "./FeaturesSection"
 import { FreeToolsSection } from "./FreeToolsSection"
 import { HeroSection } from "./HeroSection"
+import { HomepageCalculatorSection } from "./HomepageCalculatorSection"
 import { HowItWorksSection } from "./HowItWorksSection"
 import { LandingFooter } from "./LandingFooter"
 import { LandingHeader } from "./LandingHeader"
@@ -19,6 +20,7 @@ function LandingPage() {
       <LandingHeader />
       <main className="flex-1">
         <HeroSection />
+        <HomepageCalculatorSection />
         <FeaturesSection />
         <PropertyEvaluationCtaSection />
         <HowItWorksSection />
