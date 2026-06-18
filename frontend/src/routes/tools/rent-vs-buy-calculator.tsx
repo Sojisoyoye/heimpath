@@ -6,7 +6,7 @@ import { toolsMeta } from "@/components/Tools/toolsMeta"
 export const Route = createFileRoute("/tools/rent-vs-buy-calculator")({
   component: RentVsBuyCalculatorPage,
   head: () => ({
-    meta: toolsMeta(
+    ...toolsMeta(
       "Rent vs. Buy Calculator Germany - HeimPath",
       "Compare the true long-term cost of renting versus buying property in Germany. Accounts for Grunderwerbsteuer, closing costs, mortgage payments, equity, and investment opportunity cost.",
       "/tools/rent-vs-buy-calculator",

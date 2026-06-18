@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export const Route = createFileRoute("/_layout/bank-account-guide")({
   component: BankAccountGuidePage,
   head: () => ({
-    meta: seoMeta({
+    ...seoMeta({
       title:
         "German Bank Account for Non-Residents & Foreign Buyers - HeimPath",
       description:

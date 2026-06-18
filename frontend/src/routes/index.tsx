@@ -6,7 +6,7 @@ import LandingPage from "@/components/Landing/LandingPage"
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    meta: seoMeta({
+    ...seoMeta({
       title: "HeimPath - Navigate German Real Estate with Confidence",
       path: "/",
     }),

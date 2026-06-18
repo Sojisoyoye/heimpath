@@ -13,7 +13,7 @@ import { LandingHeader } from "@/components/Landing/LandingHeader"
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
   head: () => ({
-    meta: seoMeta({
+    ...seoMeta({
       title: "Terms of Service - HeimPath",
       description:
         "Terms of Service for HeimPath, the German real estate navigator for foreign investors and immigrants.",

@@ -11,5 +11,12 @@ Disallow: /journeys
 Disallow: /portfolio
 Disallow: /articles
 Disallow: /search
+Disallow: /laws
+Disallow: /mortgage-guide
+Disallow: /bank-account-guide
+Disallow: /notifications
+Disallow: /professionals
+Disallow: /glossary
+Disallow: /contract-explainer
 
 Sitemap: https://heimpath.com/sitemap.xml
