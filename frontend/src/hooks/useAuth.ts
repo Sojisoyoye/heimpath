@@ -21,6 +21,7 @@ import useCustomToast from "./useCustomToast"
  * (e.g. in TanStack Router `beforeLoad`) without touching localStorage.
  */
 const isLoggedIn = () => {
+  if (typeof document === "undefined") return false
   return document.cookie.split(";").some((c) => c.trim() === "logged_in=1")
 }
 
