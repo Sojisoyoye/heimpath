@@ -51,18 +51,21 @@ for (const url of ROUTES) {
     // 1. Replace generic <title> with route-specific one (if SSR produced one)
     // 2. Append any remaining SSR head tags before </head>
     // 3. Inject rendered body content into #root placeholder
-    let html = template.replace("<!--app-html-->", bodyHtml)
+    // Use replacer functions to prevent $ sequences in content (e.g. $$, $&)
+    // from being misinterpreted as String.replace capture-group specials.
+    let html = template.replace("<!--app-html-->", () => bodyHtml)
 
     if (headTags) {
       // Replace the fallback <title> with the SSR-rendered route-specific title
       const ssrTitle = headTags.match(/<title[^>]*>[\s\S]*?<\/title>/)
       if (ssrTitle) {
-        html = html.replace(/<title[^>]*>[\s\S]*?<\/title>/, ssrTitle[0])
+        html = html.replace(/<title[^>]*>[\s\S]*?<\/title>/, () => ssrTitle[0])
         headTags = headTags.replace(ssrTitle[0], "")
       }
       // Append remaining meta/link tags before </head>
       if (headTags.trim()) {
-        html = html.replace("</head>", `${headTags}\n  </head>`)
+        const remaining = headTags
+        html = html.replace("</head>", () => `${remaining}\n  </head>`)
       }
     }
 
