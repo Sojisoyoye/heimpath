@@ -11,7 +11,12 @@ const SITE_URL = "https://heimpath.com"
 const SITE_NAME = "HeimPath"
 const DEFAULT_DESCRIPTION =
   "Navigate German real estate with confidence. Guided property journeys, financial calculators, legal knowledge, and document translation for foreign investors and immigrants."
-const DEFAULT_OG_IMAGE = `${SITE_URL}/images/og-default.jpg`
+const DEFAULT_OG_IMAGE = `${SITE_URL}/images/og-heimpath.jpg`
+const DEFAULT_OG_IMAGE_WIDTH = "1200"
+const DEFAULT_OG_IMAGE_HEIGHT = "630"
+const DEFAULT_OG_IMAGE_TYPE = "image/jpeg"
+const DEFAULT_OG_IMAGE_ALT =
+  "HeimPath — Navigate German Real Estate with Confidence"
 
 /******************************************************************************
                               Types
@@ -31,6 +36,8 @@ interface SeoOptions {
   path?: string
   /** Override the default OG image URL */
   ogImage?: string
+  /** Alt text for the OG image — defaults to the brand tagline */
+  ogImageAlt?: string
   /** OG type — defaults to "website" */
   ogType?: string
 }
@@ -46,6 +53,7 @@ function seoMeta(options: SeoOptions) {
     description = DEFAULT_DESCRIPTION,
     path,
     ogImage = DEFAULT_OG_IMAGE,
+    ogImageAlt = DEFAULT_OG_IMAGE_ALT,
     ogType = "website",
   } = options
 
@@ -61,6 +69,10 @@ function seoMeta(options: SeoOptions) {
     { property: "og:type", content: ogType },
     { property: "og:site_name", content: SITE_NAME },
     { property: "og:image", content: ogImage },
+    { property: "og:image:width", content: DEFAULT_OG_IMAGE_WIDTH },
+    { property: "og:image:height", content: DEFAULT_OG_IMAGE_HEIGHT },
+    { property: "og:image:type", content: DEFAULT_OG_IMAGE_TYPE },
+    { property: "og:image:alt", content: ogImageAlt },
     { property: "og:locale", content: "en_US" },
 
     // Twitter Card
@@ -68,6 +80,7 @@ function seoMeta(options: SeoOptions) {
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
     { name: "twitter:image", content: ogImage },
+    { name: "twitter:image:alt", content: ogImageAlt },
   ]
 
   if (canonicalUrl) {
