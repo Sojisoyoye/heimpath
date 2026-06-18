@@ -107,4 +107,3 @@ function seoMeta(options: SeoOptions): SeoHead {
 ******************************************************************************/
 
 export { seoMeta }
-export type { SeoHead }

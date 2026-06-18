@@ -5,7 +5,7 @@
 
 import { seoMeta } from "@/common/seo"
 
-/** Build SEO meta array for a tools page. */
+/** Build SEO head object for a tools page. */
 function toolsMeta(title: string, description: string, path?: string) {
   return seoMeta({ title, description, path })
 }
