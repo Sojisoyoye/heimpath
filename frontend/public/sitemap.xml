@@ -31,6 +31,24 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://heimpath.com/tools/rent-vs-buy-calculator</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://heimpath.com/mortgage-guide</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://heimpath.com/bank-account-guide</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://heimpath.com/login</loc>
     <lastmod>2026-04-22</lastmod>
     <changefreq>monthly</changefreq>

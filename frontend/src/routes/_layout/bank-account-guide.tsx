@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Landmark,
 } from "lucide-react"
+import { seoMeta } from "@/common/seo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,12 +23,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export const Route = createFileRoute("/_layout/bank-account-guide")({
   component: BankAccountGuidePage,
   head: () => ({
-    meta: [
-      {
-        title:
-          "German Bank Account for Non-Residents & Foreign Buyers - HeimPath",
-      },
-    ],
+    meta: seoMeta({
+      title:
+        "German Bank Account for Non-Residents & Foreign Buyers - HeimPath",
+      description:
+        "How to open a German bank account as a foreign buyer or non-resident. Compare N26, DKB, Deutsche Bank and Commerzbank, required documents, and step-by-step process.",
+      path: "/bank-account-guide",
+    }),
   }),
 })
 
