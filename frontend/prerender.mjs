@@ -70,7 +70,9 @@ for (const url of ROUTES) {
     }
 
     const outPath =
-      url === "/" ? resolve(scriptDir, "dist/index.html") : resolve(scriptDir, `dist${url}/index.html`)
+      url === "/"
+        ? resolve(scriptDir, "dist/index.html")
+        : resolve(scriptDir, `dist${url}/index.html`)
     mkdirSync(dirname(outPath), { recursive: true })
     writeFileSync(outPath, html)
     console.log(`  ✓ pre-rendered ${url}`)
