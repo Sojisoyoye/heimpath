@@ -9,6 +9,7 @@ import {
   Languages,
   Scale,
   ScrollText,
+  University,
   UserCheck,
   Users,
 } from "lucide-react"
@@ -39,6 +40,11 @@ const baseItems: Item[] = [
   { icon: Languages, title: "Glossary", path: "/glossary" },
   { icon: Calculator, title: "Calculators", path: "/calculators" },
   { icon: Landmark, title: "Mortgage Guide", path: "/mortgage-guide" },
+  {
+    icon: University,
+    title: "Bank Account Guide",
+    path: "/bank-account-guide",
+  },
   { icon: BookOpen, title: "Articles", path: "/articles" },
   { icon: UserCheck, title: "Professionals", path: "/professionals" },
 ]

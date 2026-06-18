@@ -313,7 +313,15 @@ function MortgageGuidePage() {
         </h1>
         <p className="mt-1 text-muted-foreground">
           Understand mortgage eligibility, required documents, and the
-          application process based on your residency status.
+          application process based on your residency status. You'll also need a
+          German bank account before mortgage disbursement —{" "}
+          <Link
+            to="/bank-account-guide"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            see the bank account guide
+          </Link>
+          .
         </p>
       </div>
 

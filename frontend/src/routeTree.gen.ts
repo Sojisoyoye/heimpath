@@ -33,6 +33,7 @@ import { Route as LayoutMortgageGuideRouteImport } from './routes/_layout/mortga
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutContractExplainerRouteImport } from './routes/_layout/contract-explainer'
 import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
+import { Route as LayoutBankAccountGuideRouteImport } from './routes/_layout/bank-account-guide'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutProfessionalsIndexRouteImport } from './routes/_layout/professionals/index'
 import { Route as LayoutPortfolioIndexRouteImport } from './routes/_layout/portfolio/index'
@@ -175,6 +176,11 @@ const LayoutCalculatorsRoute = LayoutCalculatorsRouteImport.update({
   path: '/calculators',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutBankAccountGuideRoute = LayoutBankAccountGuideRouteImport.update({
+  id: '/bank-account-guide',
+  path: '/bank-account-guide',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -295,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof LayoutAdminRoute
+  '/bank-account-guide': typeof LayoutBankAccountGuideRoute
   '/calculators': typeof LayoutCalculatorsRoute
   '/contract-explainer': typeof LayoutContractExplainerRoute
   '/dashboard': typeof LayoutDashboardRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof LayoutAdminRoute
+  '/bank-account-guide': typeof LayoutBankAccountGuideRoute
   '/calculators': typeof LayoutCalculatorsRoute
   '/contract-explainer': typeof LayoutContractExplainerRoute
   '/dashboard': typeof LayoutDashboardRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/bank-account-guide': typeof LayoutBankAccountGuideRoute
   '/_layout/calculators': typeof LayoutCalculatorsRoute
   '/_layout/contract-explainer': typeof LayoutContractExplainerRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
@@ -432,6 +441,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/verify-email'
     | '/admin'
+    | '/bank-account-guide'
     | '/calculators'
     | '/contract-explainer'
     | '/dashboard'
@@ -476,6 +486,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/verify-email'
     | '/admin'
+    | '/bank-account-guide'
     | '/calculators'
     | '/contract-explainer'
     | '/dashboard'
@@ -521,6 +532,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/verify-email'
     | '/_layout/admin'
+    | '/_layout/bank-account-guide'
     | '/_layout/calculators'
     | '/_layout/contract-explainer'
     | '/_layout/dashboard'
@@ -740,6 +752,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutCalculatorsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/bank-account-guide': {
+      id: '/_layout/bank-account-guide'
+      path: '/bank-account-guide'
+      fullPath: '/bank-account-guide'
+      preLoaderRoute: typeof LayoutBankAccountGuideRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
@@ -902,6 +921,7 @@ const LayoutJourneysJourneyIdRouteWithChildren =
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutBankAccountGuideRoute: typeof LayoutBankAccountGuideRoute
   LayoutCalculatorsRoute: typeof LayoutCalculatorsRoute
   LayoutContractExplainerRoute: typeof LayoutContractExplainerRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
@@ -929,6 +949,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutBankAccountGuideRoute: LayoutBankAccountGuideRoute,
   LayoutCalculatorsRoute: LayoutCalculatorsRoute,
   LayoutContractExplainerRoute: LayoutContractExplainerRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
