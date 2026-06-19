@@ -92,6 +92,7 @@ from app.models.professional import (
 from app.models.property_evaluation import PropertyEvaluation
 from app.models.roi import ROICalculation
 from app.models.user import User as UserV2
+from app.models.viewing import PropertyViewing
 
 __all__ = [
     # SQLModel base class (for Alembic)
@@ -163,4 +164,5 @@ __all__ = [
     "StepStatus",
     "SubscriptionTier",
     "UserV2",
+    "PropertyViewing",
 ]

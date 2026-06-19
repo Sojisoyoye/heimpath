@@ -2234,6 +2234,36 @@ export type PropertyType = 'apartment' | 'house' | 'land' | 'commercial';
  */
 export type PropertyTypeApplicability = 'all' | 'apartment' | 'house' | 'land' | 'commercial';
 
+export type PropertyViewingCreate = {
+    address: string;
+    journey_id?: (string | null);
+    viewed_at?: (string | null);
+};
+
+export type PropertyViewingListResponse = {
+    data: Array<PropertyViewingResponse>;
+    count: number;
+};
+
+export type PropertyViewingResponse = {
+    id: string;
+    user_id: string;
+    journey_id?: (string | null);
+    address: string;
+    viewed_at?: (string | null);
+    notes?: (string | null);
+    checklist_data: Array<unknown>;
+    created_at: string;
+    updated_at: string;
+};
+
+export type PropertyViewingUpdate = {
+    address?: (string | null);
+    viewed_at?: (string | null);
+    notes?: (string | null);
+    checklist_data?: (Array<unknown> | null);
+};
+
 /**
  * Answers from the onboarding questionnaire.
  */
@@ -3932,3 +3962,30 @@ export type UtilsCircuitBreakerHealthCheckResponse = ({
 export type UtilsDbPoolStatsResponse = ({
     [key: string]: (number);
 });
+
+export type ViewingsListViewingsResponse = (PropertyViewingListResponse);
+
+export type ViewingsCreateViewingData = {
+    requestBody: PropertyViewingCreate;
+};
+
+export type ViewingsCreateViewingResponse = (PropertyViewingResponse);
+
+export type ViewingsGetViewingData = {
+    viewingId: string;
+};
+
+export type ViewingsGetViewingResponse = (PropertyViewingResponse);
+
+export type ViewingsUpdateViewingData = {
+    requestBody: PropertyViewingUpdate;
+    viewingId: string;
+};
+
+export type ViewingsUpdateViewingResponse = (PropertyViewingResponse);
+
+export type ViewingsDeleteViewingData = {
+    viewingId: string;
+};
+
+export type ViewingsDeleteViewingResponse = (void);
