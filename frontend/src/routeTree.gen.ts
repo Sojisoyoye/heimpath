@@ -26,6 +26,7 @@ import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools/roi-calcu
 import { Route as ToolsRentVsBuyCalculatorRouteImport } from './routes/tools/rent-vs-buy-calculator'
 import { Route as ToolsPropertyCostCalculatorRouteImport } from './routes/tools/property-cost-calculator'
 import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mortgage-calculator'
+import { Route as LayoutViewingChecklistRouteImport } from './routes/_layout/viewing-checklist'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
@@ -140,6 +141,11 @@ const ToolsMortgageCalculatorRoute = ToolsMortgageCalculatorRouteImport.update({
   id: '/mortgage-calculator',
   path: '/mortgage-calculator',
   getParentRoute: () => ToolsRoute,
+} as any)
+const LayoutViewingChecklistRoute = LayoutViewingChecklistRouteImport.update({
+  id: '/viewing-checklist',
+  path: '/viewing-checklist',
+  getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
+  '/viewing-checklist': typeof LayoutViewingChecklistRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
   '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
   '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
@@ -354,6 +361,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
+  '/viewing-checklist': typeof LayoutViewingChecklistRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
   '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
   '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
@@ -401,6 +409,7 @@ export interface FileRoutesById {
   '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/viewing-checklist': typeof LayoutViewingChecklistRoute
   '/tools/mortgage-calculator': typeof ToolsMortgageCalculatorRoute
   '/tools/property-cost-calculator': typeof ToolsPropertyCostCalculatorRoute
   '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
@@ -449,6 +458,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/search'
     | '/settings'
+    | '/viewing-checklist'
     | '/tools/mortgage-calculator'
     | '/tools/property-cost-calculator'
     | '/tools/rent-vs-buy-calculator'
@@ -494,6 +504,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/search'
     | '/settings'
+    | '/viewing-checklist'
     | '/tools/mortgage-calculator'
     | '/tools/property-cost-calculator'
     | '/tools/rent-vs-buy-calculator'
@@ -540,6 +551,7 @@ export interface FileRouteTypes {
     | '/_layout/notifications'
     | '/_layout/search'
     | '/_layout/settings'
+    | '/_layout/viewing-checklist'
     | '/tools/mortgage-calculator'
     | '/tools/property-cost-calculator'
     | '/tools/rent-vs-buy-calculator'
@@ -702,6 +714,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tools/mortgage-calculator'
       preLoaderRoute: typeof ToolsMortgageCalculatorRouteImport
       parentRoute: typeof ToolsRoute
+    }
+    '/_layout/viewing-checklist': {
+      id: '/_layout/viewing-checklist'
+      path: '/viewing-checklist'
+      fullPath: '/viewing-checklist'
+      preLoaderRoute: typeof LayoutViewingChecklistRouteImport
+      parentRoute: typeof LayoutRoute
     }
     '/_layout/settings': {
       id: '/_layout/settings'
@@ -929,6 +948,7 @@ interface LayoutRouteChildren {
   LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutViewingChecklistRoute: typeof LayoutViewingChecklistRoute
   LayoutArticlesSlugRoute: typeof LayoutArticlesSlugRoute
   LayoutDocumentsDocumentIdRoute: typeof LayoutDocumentsDocumentIdRoute
   LayoutGlossarySlugRoute: typeof LayoutGlossarySlugRoute
@@ -957,6 +977,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutViewingChecklistRoute: LayoutViewingChecklistRoute,
   LayoutArticlesSlugRoute: LayoutArticlesSlugRoute,
   LayoutDocumentsDocumentIdRoute: LayoutDocumentsDocumentIdRoute,
   LayoutGlossarySlugRoute: LayoutGlossarySlugRoute,

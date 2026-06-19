@@ -240,4 +240,11 @@ export const queryKeys = {
     shared: (shareId: string) =>
       [...queryKeys.contracts.all, "shared", shareId] as const,
   },
+
+  // Property Viewing queries
+  viewings: {
+    all: ["viewings"] as const,
+    list: () => [...queryKeys.viewings.all, "list"] as const,
+    detail: (id: string) => [...queryKeys.viewings.all, "detail", id] as const,
+  },
 } as const

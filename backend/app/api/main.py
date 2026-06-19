@@ -23,6 +23,7 @@ from app.api.routes import (
     translations,
     users,
     utils,
+    viewings,
 )
 
 api_router = APIRouter()
@@ -48,3 +49,4 @@ api_router.include_router(contracts.router)
 api_router.include_router(portfolio.router)
 api_router.include_router(glossary.router)
 api_router.include_router(feedback.router)
+api_router.include_router(viewings.router)

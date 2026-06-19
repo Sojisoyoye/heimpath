@@ -176,4 +176,9 @@
   main {
     padding: 0;
   }
+
+  /* Viewing checklist: keep accordions open and hide interactive controls */
+  .print\:hidden {
+    display: none;
+  }
 }

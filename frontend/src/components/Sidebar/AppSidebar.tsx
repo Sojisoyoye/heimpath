@@ -2,6 +2,7 @@ import {
   BookOpen,
   Building2,
   Calculator,
+  CheckSquare,
   Compass,
   FileText,
   Home,
@@ -39,6 +40,11 @@ const baseItems: Item[] = [
   { icon: Scale, title: "Laws", path: "/laws" },
   { icon: Languages, title: "Glossary", path: "/glossary" },
   { icon: Calculator, title: "Calculators", path: "/calculators" },
+  {
+    icon: CheckSquare,
+    title: "Viewing Checklist",
+    path: "/viewing-checklist",
+  },
   { icon: Landmark, title: "Mortgage Guide", path: "/mortgage-guide" },
   {
     icon: University,

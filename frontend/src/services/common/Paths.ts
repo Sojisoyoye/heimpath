@@ -210,4 +210,10 @@ export const PATHS = {
     SHARE: (id: string) => `${API_V1}/contracts/${id}/share`,
     SHARED: (shareId: string) => `${API_V1}/contracts/shared/${shareId}`,
   },
+
+  // Property Viewings
+  VIEWINGS: {
+    LIST: `${API_V1}/viewings`,
+    DETAIL: (id: string) => `${API_V1}/viewings/${id}`,
+  },
 } as const
