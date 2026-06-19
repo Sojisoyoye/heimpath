@@ -675,3 +675,52 @@ test.describe("TEST 10: mortgage calculator inputs and calculation", () => {
     }
   })
 })
+
+// ---------------------------------------------------------------------------
+// TEST 11 — Rent vs Buy Calculator inputs and result
+// ---------------------------------------------------------------------------
+
+test.describe("TEST 11: rent vs buy calculator inputs and result", () => {
+  test("calculator inputs are visible and result verdict appears", async ({
+    page,
+  }) => {
+    await page.goto("/tools/rent-vs-buy-calculator")
+    await page.waitForLoadState("networkidle")
+
+    // Property price and monthly rent inputs (type="number")
+    const priceInput = page
+      .locator("#rvb-price")
+      .or(page.locator('input[placeholder*="450000"]'))
+      .first()
+    const rentInput = page
+      .locator("#rvb-rent")
+      .or(page.locator('input[placeholder*="1800"]'))
+      .first()
+
+    expect.soft(await priceInput.isVisible().catch(() => false)).toBe(true)
+    expect.soft(await rentInput.isVisible().catch(() => false)).toBe(true)
+
+    // Wait for DOM to settle
+    await page.waitForTimeout(300)
+
+    // Fill inputs — result updates reactively (no Calculate button needed)
+    if (await priceInput.isVisible().catch(() => false)) {
+      await priceInput.fill("450000")
+      await rentInput.fill("1800")
+      await page.waitForTimeout(300)
+
+      // Verdict text should appear ("Buying saves you" or "Renting saves you")
+      const verdict = page
+        .getByText(/saves you/i, { exact: false })
+        .or(page.getByText(/wins/i, { exact: false }))
+        .first()
+      expect.soft(await verdict.isVisible().catch(() => false)).toBe(true)
+
+      // Net cost rows should be visible
+      const netCostBuying = page.getByText(/net cost of buying/i, {
+        exact: false,
+      })
+      expect.soft(await netCostBuying.isVisible().catch(() => false)).toBe(true)
+    }
+  })
+})
