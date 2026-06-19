@@ -40,7 +40,9 @@ def get_viewing(
         )
     ).first()
     if not viewing:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Viewing not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Viewing not found"
+        )
     return viewing
 
 
@@ -65,14 +67,10 @@ def update_viewing(
 ) -> PropertyViewing:
     viewing = get_viewing(session, viewing_id, user_id)
 
-    if data.address is not None:
-        viewing.address = data.address
-    if data.viewed_at is not None:
-        viewing.viewed_at = data.viewed_at
-    if data.notes is not None:
-        viewing.notes = data.notes
-    if data.checklist_data is not None:
-        viewing.checklist_data = data.checklist_data
+    # Use model_fields_set so explicit null values (e.g. PATCH {"notes":null})
+    # correctly clear the field rather than being silently skipped.
+    for field in data.model_fields_set:
+        setattr(viewing, field, getattr(data, field))
 
     session.add(viewing)
     session.commit()

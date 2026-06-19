@@ -94,6 +94,7 @@ function ViewingChecklistPage() {
                 goToDetail(viewing.id)
                 showSuccessToast("Viewing created")
               },
+              onError: () => showErrorToast("Failed to initialise checklist"),
             },
           )
         },
@@ -113,7 +114,11 @@ function ViewingChecklistPage() {
   }
 
   if (viewingId) {
-    return <DetailView viewingId={viewingId} onBack={goToList} />
+    // key={viewingId} forces remount when navigating between viewings so that
+    // localNotes in ViewingDetail resets to the new viewing's notes.
+    return (
+      <DetailView key={viewingId} viewingId={viewingId} onBack={goToList} />
+    )
   }
 
   if (isLoading) {
@@ -135,7 +140,7 @@ function ViewingChecklistPage() {
       />
       <CreateViewingDialog
         open={dialogOpen}
-        isCreating={createViewing.isPending}
+        isCreating={createViewing.isPending || updateViewing.isPending}
         onClose={() => setDialogOpen(false)}
         onCreate={handleCreate}
       />

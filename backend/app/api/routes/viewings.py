@@ -1,10 +1,8 @@
 """Property viewing endpoints."""
 
 import uuid
-from typing import Annotated
 
 from fastapi import APIRouter, status
-from sqlmodel import Session
 
 from app.api.deps import CurrentUser, SessionDep
 from app.schemas.viewing import (
@@ -31,7 +29,9 @@ def list_viewings(
     )
 
 
-@router.post("", response_model=PropertyViewingResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=PropertyViewingResponse, status_code=status.HTTP_201_CREATED
+)
 def create_viewing(
     session: SessionDep,
     current_user: CurrentUser,

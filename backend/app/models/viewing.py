@@ -2,6 +2,7 @@
 
 from sqlalchemy import Column, Date, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.ext.mutable import MutableList
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
@@ -36,4 +37,6 @@ class PropertyViewing(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     notes = Column(Text, nullable=True)
 
     # Full checklist state: list of {id, label, items: [{id, label, checked, notes}]}
-    checklist_data = Column(JSONB, nullable=False, server_default="'[]'::jsonb")
+    checklist_data = Column(
+        MutableList.as_mutable(JSONB), nullable=False, server_default="'[]'::jsonb"
+    )
