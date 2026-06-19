@@ -26,6 +26,22 @@ class ContractAnalysisNotFoundError(Exception):
     """Raised when a contract analysis is not found."""
 
 
+def _populate_record_from_analysis(
+    record: ContractAnalysis,
+    analysis_data: dict,
+) -> None:
+    """Hydrate a ContractAnalysis record from the AI analysis dict in-place."""
+    record.summary = analysis_data.get("summary")
+    record.analyzed_clauses = analysis_data.get("analyzed_clauses", [])
+    record.notary_checklist = analysis_data.get("notary_checklist", [])
+    record.overall_risk_assessment = analysis_data.get("overall_risk_assessment")
+    record.overall_risk_explanation = analysis_data.get("overall_risk_explanation")
+    raw_price = analysis_data.get("purchase_price_euros")
+    record.purchase_price = (
+        float(raw_price) if isinstance(raw_price, (int, float)) else None
+    )
+
+
 def _extract_pages_from_bytes(file_bytes: bytes) -> list[dict]:
     """Extract text from PDF bytes using pdfplumber (blocking — run in thread)."""
     import pdfplumber
@@ -45,6 +61,30 @@ def _extract_pages_from_bytes(file_bytes: bytes) -> list[dict]:
                     }
                 )
     return pages
+
+
+async def analyze_contract_text(
+    session: Session,
+    user_id: uuid.UUID,
+    text: str,
+    filename: str = "Pasted contract",
+) -> ContractAnalysis:
+    """Analyze pasted contract text without a PDF upload.
+
+    Wraps the raw text into the single-page format expected by
+    analyze_kaufvertrag and stores the result in the database.
+    """
+    pages = [{"page_number": 1, "original_text": text, "translated_text": ""}]
+    analysis_data = await analyze_kaufvertrag(pages, document_type="kaufvertrag")
+
+    record = ContractAnalysis(user_id=user_id, filename=filename)
+    if analysis_data:
+        _populate_record_from_analysis(record, analysis_data)
+
+    session.add(record)
+    session.commit()
+    session.refresh(record)
+    return record
 
 
 async def analyze_contract_pdf(
@@ -79,17 +119,8 @@ async def analyze_contract_pdf(
         user_id=user_id,
         filename=filename,
     )
-
     if analysis_data:
-        record.summary = analysis_data.get("summary")
-        record.analyzed_clauses = analysis_data.get("analyzed_clauses", [])
-        record.notary_checklist = analysis_data.get("notary_checklist", [])
-        record.overall_risk_assessment = analysis_data.get("overall_risk_assessment")
-        record.overall_risk_explanation = analysis_data.get("overall_risk_explanation")
-        raw_price = analysis_data.get("purchase_price_euros")
-        record.purchase_price = (
-            float(raw_price) if isinstance(raw_price, (int, float)) else None
-        )
+        _populate_record_from_analysis(record, analysis_data)
 
     session.add(record)
     session.commit()

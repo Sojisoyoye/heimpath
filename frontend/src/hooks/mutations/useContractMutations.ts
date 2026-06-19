@@ -28,6 +28,26 @@ export function useAnalyzeContract() {
 }
 
 /**
+ * Analyze pasted contract text
+ */
+export function useAnalyzeContractText() {
+  const queryClient = useQueryClient()
+  const { showErrorToast } = useCustomToast()
+
+  return useMutation({
+    mutationFn: (text: string) => ContractService.analyzeContractText(text),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.contracts.all })
+    },
+    onError: () => {
+      showErrorToast(
+        "Could not analyze contract text. Please check the content and try again.",
+      )
+    },
+  })
+}
+
+/**
  * Generate a shareable link for a contract analysis
  */
 export function useShareContractAnalysis(analysisId: string) {

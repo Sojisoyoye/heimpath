@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 _SHARED_UPGRADE_CTA = "Sign up to see the full analysis — all clauses, notary checklist, and risk assessment."
 
@@ -117,3 +117,10 @@ class ContractAnalysisListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ContractTextRequest(BaseModel):
+    """Request body for analyzing pasted contract text."""
+
+    text: str
+    filename: str = Field(default="Pasted contract", max_length=255)

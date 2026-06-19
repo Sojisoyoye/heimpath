@@ -421,3 +421,157 @@ def test_analyze_contract_returns_429_when_rate_limited(
     assert r.status_code == 429
     assert "Retry-After" in r.headers
     assert int(r.headers["Retry-After"]) >= 1
+
+
+# ---------------------------------------------------------------------------
+# POST /contracts/analyze-text
+# ---------------------------------------------------------------------------
+
+_SAMPLE_TEXT = (
+    "Kaufvertrag über die Immobilie Musterstraße 1, Berlin. Kaufpreis: EUR 500.000."
+)
+
+
+def test_analyze_contract_text_success(client: TestClient, db: Session) -> None:
+    """Pasting text returns 201 with a full analysis."""
+    headers, _ = _get_auth_headers(client, db)
+
+    with patch(
+        "app.services.contract_service.analyze_kaufvertrag",
+        new=AsyncMock(return_value=_MOCK_ANALYSIS),
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze-text",
+            json={"text": _SAMPLE_TEXT},
+            headers=headers,
+        )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert data["filename"] == "Pasted contract"
+    assert data["clause_count"] == 4
+    assert data["overall_risk_assessment"] == "medium"
+    assert "id" in data
+
+
+def test_analyze_contract_text_custom_filename(client: TestClient, db: Session) -> None:
+    """Custom filename is stored and returned."""
+    headers, _ = _get_auth_headers(client, db)
+
+    with patch(
+        "app.services.contract_service.analyze_kaufvertrag",
+        new=AsyncMock(return_value=_MOCK_ANALYSIS),
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze-text",
+            json={"text": _SAMPLE_TEXT, "filename": "MyContract.txt"},
+            headers=headers,
+        )
+
+    assert r.status_code == 201
+    assert r.json()["filename"] == "MyContract.txt"
+
+
+def test_analyze_contract_text_free_user_truncated(
+    client: TestClient, db: Session
+) -> None:
+    """Free users see only the first 3 clauses from pasted text analysis."""
+    headers, _ = _get_auth_headers(client, db)
+
+    with patch(
+        "app.services.contract_service.analyze_kaufvertrag",
+        new=AsyncMock(return_value=_MOCK_ANALYSIS),
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze-text",
+            json={"text": _SAMPLE_TEXT},
+            headers=headers,
+        )
+
+    assert r.status_code == 201
+    data = r.json()
+    assert len(data["analyzed_clauses"]) == 3
+    assert data["is_truncated"] is True
+    assert data["notary_checklist"] == []
+
+
+def test_analyze_contract_text_unauthenticated(client: TestClient) -> None:
+    """Unauthenticated requests to analyze-text return 401."""
+    r = client.post(
+        f"{settings.API_V1_STR}/contracts/analyze-text",
+        json={"text": _SAMPLE_TEXT},
+    )
+    assert r.status_code == 401
+
+
+def test_analyze_contract_text_empty_body_returns_400(
+    client: TestClient, db: Session
+) -> None:
+    """Empty or whitespace-only text returns 400 without consuming a rate-limit slot."""
+    headers, _ = _get_auth_headers(client, db)
+
+    with patch(
+        "app.api.routes.contracts.rate_limit_service.record_contract_analysis"
+    ) as mock_rl:
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze-text",
+            json={"text": "   "},
+            headers=headers,
+        )
+        mock_rl.assert_not_called()
+
+    assert r.status_code == 400
+    assert "empty" in r.json()["detail"].lower()
+
+
+def test_analyze_contract_text_too_long_returns_413(
+    client: TestClient, db: Session
+) -> None:
+    """Text exceeding 500,000 characters returns 413 without hitting Claude."""
+    headers, _ = _get_auth_headers(client, db)
+    huge_text = "A" * 500_001
+
+    with patch(
+        "app.services.contract_service.analyze_kaufvertrag",
+        new=AsyncMock(return_value=_MOCK_ANALYSIS),
+    ) as mock_ai:
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze-text",
+            json={"text": huge_text},
+            headers=headers,
+        )
+        mock_ai.assert_not_called()
+
+    assert r.status_code == 413
+
+
+def test_analyze_contract_text_filename_too_long_returns_422(
+    client: TestClient, db: Session
+) -> None:
+    """Filename longer than 255 chars is rejected by Pydantic before hitting the DB."""
+    headers, _ = _get_auth_headers(client, db)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/contracts/analyze-text",
+        json={"text": _SAMPLE_TEXT, "filename": "X" * 256},
+        headers=headers,
+    )
+    assert r.status_code == 422
+
+
+def test_analyze_contract_text_returns_429_when_rate_limited(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+) -> None:
+    """Returns 429 with Retry-After when the hourly limit is hit for pasted text."""
+    with patch(
+        "app.api.routes.contracts.rate_limit_service.record_contract_analysis",
+        return_value=_LOCKED_RATE_LIMIT,
+    ):
+        r = client.post(
+            f"{settings.API_V1_STR}/contracts/analyze-text",
+            json={"text": _SAMPLE_TEXT},
+            headers=normal_user_token_headers,
+        )
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
