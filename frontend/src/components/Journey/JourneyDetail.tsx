@@ -168,7 +168,7 @@ function JourneyDetailSkeleton() {
       </div>
       <Skeleton className="h-12 w-full" />
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+        <div className="min-w-0 space-y-4 lg:col-span-2">
           {["overview", "phase", "steps"].map((k) => (
             <Skeleton key={k} className="h-48 w-full" />
           ))}
@@ -398,7 +398,7 @@ function JourneyDetail(props: IProps) {
       <JourneyProvider journey={journey}>
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Steps — phase tab bar is the primary navigation */}
-          <div className="space-y-4 lg:col-span-2">
+          <div className="min-w-0 space-y-4 lg:col-span-2">
             <StepTabView
               steps={journey.steps}
               activeStepNumber={journey.current_step_number}
