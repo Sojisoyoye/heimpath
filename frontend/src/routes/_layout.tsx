@@ -311,7 +311,7 @@ function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-hidden">
+      <SidebarInset className="min-w-0 overflow-x-clip">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 bg-background px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-2">
@@ -336,7 +336,7 @@ function Layout() {
             isSuccess={resendMutation.isSuccess}
           />
         )}
-        <main className="min-w-0 flex-1 p-6 md:p-8">
+        <main className="min-w-0 flex-1 p-6 pb-36 sm:pb-20 md:px-8 md:pt-8 md:pb-20">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>
