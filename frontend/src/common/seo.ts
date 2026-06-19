@@ -10,13 +10,13 @@
 const SITE_URL = "https://heimpath.com"
 const SITE_NAME = "HeimPath"
 const DEFAULT_DESCRIPTION =
-  "Navigate German real estate with confidence. Guided property journeys, financial calculators, legal knowledge, and document translation for foreign investors and immigrants."
+  "Calculate the exact cost of buying property in Germany as a foreigner — Grunderwerbsteuer, notary, mortgage. In English."
 const DEFAULT_OG_IMAGE = `${SITE_URL}/images/og-heimpath.jpg`
 const DEFAULT_OG_IMAGE_WIDTH = "1200"
 const DEFAULT_OG_IMAGE_HEIGHT = "630"
 const DEFAULT_OG_IMAGE_TYPE = "image/jpeg"
 const DEFAULT_OG_IMAGE_ALT =
-  "HeimPath — Navigate German Real Estate with Confidence"
+  "HeimPath — Buy Property in Germany as a Foreigner | English Guide & Calculators"
 
 /******************************************************************************
                               Types

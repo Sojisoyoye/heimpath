@@ -7,7 +7,8 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
     ...seoMeta({
-      title: "HeimPath - Navigate German Real Estate with Confidence",
+      title:
+        "Buy Property in Germany as a Foreigner — HeimPath | English Guide & Calculators",
       path: "/",
     }),
   }),
