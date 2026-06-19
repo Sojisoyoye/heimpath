@@ -33,12 +33,16 @@ def get_viewing(
     viewing_id: uuid.UUID,
     user_id: uuid.UUID,
 ) -> PropertyViewing:
-    viewing = session.exec(
-        select(PropertyViewing).where(
-            PropertyViewing.id == viewing_id,
-            PropertyViewing.user_id == user_id,
+    viewing = (
+        session.execute(
+            select(PropertyViewing).where(
+                PropertyViewing.id == viewing_id,
+                PropertyViewing.user_id == user_id,
+            )
         )
-    ).first()
+        .scalars()
+        .first()
+    )
     if not viewing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Viewing not found"
@@ -51,11 +55,13 @@ def list_user_viewings(
     user_id: uuid.UUID,
 ) -> list[PropertyViewing]:
     return list(
-        session.exec(
+        session.execute(
             select(PropertyViewing)
             .where(PropertyViewing.user_id == user_id)
             .order_by(PropertyViewing.created_at.desc())
-        ).all()
+        )
+        .scalars()
+        .all()
     )
 
 

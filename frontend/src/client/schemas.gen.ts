@@ -8704,6 +8704,190 @@ export const PropertyTypeApplicabilitySchema = {
     description: 'Property types a law applies to.'
 } as const;
 
+export const PropertyViewingCreateSchema = {
+    properties: {
+        address: {
+            type: 'string',
+            maxLength: 500,
+            minLength: 1,
+            title: 'Address'
+        },
+        journey_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Id'
+        },
+        viewed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Viewed At'
+        }
+    },
+    type: 'object',
+    required: ['address'],
+    title: 'PropertyViewingCreate'
+} as const;
+
+export const PropertyViewingListResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/PropertyViewingResponse'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'PropertyViewingListResponse'
+} as const;
+
+export const PropertyViewingResponseSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        journey_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Journey Id'
+        },
+        address: {
+            type: 'string',
+            title: 'Address'
+        },
+        viewed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Viewed At'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        },
+        checklist_data: {
+            items: {},
+            type: 'array',
+            title: 'Checklist Data'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'user_id', 'address', 'checklist_data', 'created_at', 'updated_at'],
+    title: 'PropertyViewingResponse'
+} as const;
+
+export const PropertyViewingUpdateSchema = {
+    properties: {
+        address: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Address'
+        },
+        viewed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Viewed At'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        },
+        checklist_data: {
+            anyOf: [
+                {
+                    items: {},
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Checklist Data'
+        }
+    },
+    type: 'object',
+    title: 'PropertyViewingUpdate'
+} as const;
+
 export const QuestionnaireAnswersSchema = {
     properties: {
         journey_type: {
