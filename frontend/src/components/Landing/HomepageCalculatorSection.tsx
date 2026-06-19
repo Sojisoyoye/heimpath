@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router"
 import { HiddenCostsCalculator } from "@/components/Calculators/HiddenCostsCalculator"
 import { AnimateIn } from "./AnimateIn"
 
@@ -27,19 +26,6 @@ function HomepageCalculatorSection() {
         </AnimateIn>
 
         <HiddenCostsCalculator />
-
-        <AnimateIn>
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            <Link
-              to="/signup"
-              className="font-medium text-primary hover:underline"
-            >
-              Create a free account
-            </Link>{" "}
-            to save results, compare properties, and unlock your guided buying
-            journey.
-          </p>
-        </AnimateIn>
       </div>
     </section>
   )
@@ -49,4 +35,4 @@ function HomepageCalculatorSection() {
                               Export
 ******************************************************************************/
 
-export { HomepageCalculatorSection }
+export default HomepageCalculatorSection
