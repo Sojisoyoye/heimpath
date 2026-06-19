@@ -65,9 +65,16 @@ function JourneyCard(props: IProps) {
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-1">
-            <CardTitle className="text-lg sm:text-xl">
-              {propertyLabel?.split(" ")[0]}
-            </CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg sm:text-xl">
+                {propertyLabel?.split(" ")[0]}
+              </CardTitle>
+              {journey.journey_type && (
+                <Badge variant="outline" className="shrink-0 text-xs capitalize">
+                  {journey.journey_type === "buying" ? "Buying" : "Rental"}
+                </Badge>
+              )}
+            </div>
             <CardDescription className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               {stateName}
