@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import { ArrowRight, Calculator, Home, TrendingUp } from "lucide-react"
+import { ArrowRight, Home, TrendingUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,14 +17,6 @@ import { AnimateIn } from "./AnimateIn"
 ******************************************************************************/
 
 const FREE_TOOLS = [
-  {
-    icon: Calculator,
-    title: "Property Cost Calculator",
-    description:
-      "Estimate Grunderwerbsteuer, notary fees, agent commission, and all closing costs before you make an offer.",
-    href: "/tools/property-cost-calculator",
-    color: "text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-400",
-  },
   {
     icon: Home,
     title: "Mortgage Calculator",
@@ -60,17 +52,16 @@ function FreeToolsSection() {
               No sign-up required
             </span>
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Try Our Free Property Tools
+              More Free Property Tools
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Get a clear financial picture before you commit — our calculators
-              are free to use and built specifically for buying property in
-              Germany.
+              Plan your mortgage and analyse rental yields — free, no account
+              needed.
             </p>
           </div>
         </AnimateIn>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2">
           {FREE_TOOLS.map((tool) => (
             <AnimateIn key={tool.href}>
               <Card className="flex h-full flex-col">
