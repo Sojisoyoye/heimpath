@@ -12,13 +12,17 @@
 
 const { chromium } = require('playwright');
 
-const GROWTHOS_API   = process.env.GROWTHOS_API_URL || 'http://178.104.122.53:4000';
+const GROWTHOS_API   = process.env.GROWTHOS_API_URL;
 const GROWTHOS_TOKEN = process.env.GROWTHOS_TOKEN;
 const TARGET_URL     = process.argv.find(a => a.startsWith('--url='))?.split('=')[1]
                     || 'https://www.heimpath.com';
 const EMAIL          = process.env.FIRST_SUPERUSER;
 const PASSWORD       = process.env.FIRST_SUPERUSER_PASSWORD;
 
+if (!GROWTHOS_API) {
+  console.error('GROWTHOS_API_URL not set. Add it to .env');
+  process.exit(1);
+}
 if (!GROWTHOS_TOKEN) {
   console.error('GROWTHOS_TOKEN not set. Add it to .env');
   process.exit(1);

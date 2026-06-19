@@ -14,11 +14,15 @@
 const fs = require('fs');
 const path = require('path');
 
-const GROWTHOS_API   = process.env.GROWTHOS_API_URL   || 'http://178.104.122.53:4000';
+const GROWTHOS_API   = process.env.GROWTHOS_API_URL;
 const GROWTHOS_TOKEN = process.env.GROWTHOS_TOKEN;
 const TASKMASTER_DIR = path.resolve(__dirname, '../.taskmaster');
 const FETCH_TIMEOUT_MS = 10_000;
 
+if (!GROWTHOS_API) {
+  console.error('Error: GROWTHOS_API_URL env var is required. Add it to .env');
+  process.exit(1);
+}
 if (!GROWTHOS_TOKEN) {
   console.error('Error: GROWTHOS_TOKEN env var is required.');
   console.error('Get your token by logging in at https://www.growthos.heimpath.com,');
