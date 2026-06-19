@@ -60,7 +60,7 @@ function PhaseIconNav(props: IProps) {
   const { phases, activePhase, onPhaseClick } = props
 
   return (
-    <div className="-mx-1 flex gap-1.5 overflow-x-auto pb-1">
+    <div className="flex gap-1.5 overflow-x-auto pb-1">
       {phases.map((phase) => {
         const Icon = PHASE_ICONS[phase.key] ?? BookOpen
         const isActive = activePhase === phase.key
