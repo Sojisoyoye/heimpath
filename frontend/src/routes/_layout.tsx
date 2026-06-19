@@ -48,6 +48,10 @@ import { handleError } from "@/utils"
 export const Route = createFileRoute("/_layout")({
   component: Layout,
   beforeLoad: async () => {
+    // During SSR (prerender), window is undefined — skip the auth redirect so
+    // public content pages (mortgage-guide, glossary, laws, articles) are
+    // pre-rendered with full HTML for Google indexing.
+    if (typeof window === "undefined") return
     if (!isLoggedIn()) {
       throw redirect({
         to: "/login",
@@ -69,6 +73,7 @@ const RESHOW_DAYS = 7
 
 /** Check if the banner was dismissed less than RESHOW_DAYS ago. */
 function isBannerDismissed(): boolean {
+  if (typeof localStorage === "undefined") return false
   const raw = localStorage.getItem(DISMISS_KEY)
   if (!raw) return false
   const dismissedAt = Number(raw)
@@ -311,7 +316,7 @@ function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="min-w-0 overflow-x-clip">
+      <SidebarInset className="min-w-0 overflow-x-hidden">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 bg-background px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="ml-auto flex items-center gap-2">

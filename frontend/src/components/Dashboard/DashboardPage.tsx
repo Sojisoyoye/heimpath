@@ -486,7 +486,7 @@ function DashboardSkeleton() {
     <div className="space-y-6">
       <div>
         <Skeleton className="mb-2 h-8 w-64" />
-        <Skeleton className="h-5 w-96" />
+        <Skeleton className="h-5 w-full max-w-96" />
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

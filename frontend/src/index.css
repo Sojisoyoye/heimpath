@@ -115,11 +115,11 @@
     @apply border-border outline-ring/50;
   }
   html {
-    overflow-x: clip;
+    overflow-x: hidden;
   }
   body {
     @apply bg-background text-foreground;
-    overflow-x: clip;
+    overflow-x: hidden;
   }
   button,
   [role="button"] {
