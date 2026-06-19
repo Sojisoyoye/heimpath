@@ -8,6 +8,7 @@ import { ArrowRight, Calendar, MapPin, Trash2 } from "lucide-react"
 import {
   GERMAN_STATES,
   JOURNEY_PHASES,
+  JOURNEY_TYPE_LABELS,
   PHASE_COLORS,
   PROPERTY_TYPES,
 } from "@/common/constants"
@@ -65,16 +66,14 @@ function JourneyCard(props: IProps) {
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-lg sm:text-xl">
-                {propertyLabel?.split(" ")[0]}
-              </CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              {propertyLabel?.split(" ")[0]}
               {journey.journey_type && (
-                <Badge variant="outline" className="shrink-0 text-xs capitalize">
-                  {journey.journey_type === "buying" ? "Buying" : "Rental"}
+                <Badge variant="outline" className="shrink-0 text-xs">
+                  {JOURNEY_TYPE_LABELS[journey.journey_type]}
                 </Badge>
               )}
-            </div>
+            </CardTitle>
             <CardDescription className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               {stateName}

@@ -100,6 +100,12 @@ export const COST_DEFAULTS = {
   RENOVATION_ESTIMATE_PERCENT: 5.0, // Estimated renovation costs
 } as const
 
+// Journey type display labels — single source of truth used by card, summary, and selector
+export const JOURNEY_TYPE_LABELS: Record<"buying" | "rental", string> = {
+  buying: "Buy Property",
+  rental: "Rent Apartment",
+} as const
+
 // Pagination defaults
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
