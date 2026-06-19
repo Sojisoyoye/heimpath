@@ -99,8 +99,8 @@ function JourneyOverviewCard(props: { journey: JourneyOverview }) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle>{journey.title}</CardTitle>
+          <div className="min-w-0 flex-1">
+            <CardTitle className="truncate">{journey.title}</CardTitle>
             <CardDescription>
               Step {journey.currentStepNumber} of {journey.totalSteps}
               {journey.estimatedDaysRemaining != null && (
@@ -112,7 +112,7 @@ function JourneyOverviewCard(props: { journey: JourneyOverview }) {
           </div>
           <Badge
             variant="secondary"
-            className={PHASE_COLORS[journey.currentPhase]}
+            className={cn("shrink-0", PHASE_COLORS[journey.currentPhase])}
           >
             {PHASE_LABELS[journey.currentPhase] ?? journey.currentPhase}
           </Badge>
@@ -489,7 +489,7 @@ function DashboardSkeleton() {
         <Skeleton className="h-5 w-full max-w-96" />
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Skeleton className="h-64 w-full rounded-xl" />
           <div className="grid gap-4 md:grid-cols-3">
             <Skeleton className="h-40 rounded-xl" />
@@ -528,7 +528,7 @@ function DashboardPage(props: Readonly<IProps>) {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column: 2/3 width */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           {data.hasJourney && data.journey ? (
             <>
               <JourneyOverviewCard journey={data.journey} />

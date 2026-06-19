@@ -146,7 +146,7 @@ function ProfessionalDetail(props: Readonly<IProps>) {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="min-w-0 lg:col-span-2 space-y-6">
           {/* Description */}
           {professional.description && (
             <Card>
