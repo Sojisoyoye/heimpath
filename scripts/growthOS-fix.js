@@ -14,9 +14,19 @@
 const fs = require('fs');
 const path = require('path');
 
-const GROWTHOS_API = process.env.GROWTHOS_API_URL || 'http://178.104.122.53:4000';
+const GROWTHOS_API   = process.env.GROWTHOS_API_URL   || 'http://178.104.122.53:4000';
+const GROWTHOS_TOKEN = process.env.GROWTHOS_TOKEN;
 const TASKMASTER_DIR = path.resolve(__dirname, '../.taskmaster');
 const FETCH_TIMEOUT_MS = 10_000;
+
+if (!GROWTHOS_TOKEN) {
+  console.error('Error: GROWTHOS_TOKEN env var is required.');
+  console.error('Get your token by logging in at https://www.growthos.heimpath.com,');
+  console.error('then set GROWTHOS_TOKEN=<token> in your .env file here.');
+  process.exit(1);
+}
+
+const AUTH_HEADERS = { Authorization: `Bearer ${GROWTHOS_TOKEN}` };
 
 function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
@@ -25,7 +35,9 @@ function fetchWithTimeout(url, options = {}) {
 }
 
 async function fetchPendingFixes() {
-  const res = await fetchWithTimeout(`${GROWTHOS_API}/api/fix-requests?status=pending`);
+  const res = await fetchWithTimeout(`${GROWTHOS_API}/api/fix-requests?status=pending`, {
+    headers: AUTH_HEADERS,
+  });
   if (!res.ok) throw new Error(`GrowthOS API error: ${res.status} ${res.statusText}`);
   const data = await res.json();
   if (!Array.isArray(data)) {
@@ -37,7 +49,7 @@ async function fetchPendingFixes() {
 async function markAsTasked(fixRequestId, taskmasterTaskId) {
   const res = await fetchWithTimeout(`${GROWTHOS_API}/api/fix-request/${fixRequestId}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
     body: JSON.stringify({ status: 'tasked', taskmasterTaskId: String(taskmasterTaskId) }),
   });
   if (!res.ok) {
