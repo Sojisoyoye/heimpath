@@ -31,6 +31,22 @@ class ContractServiceClass {
   }
 
   /**
+   * Analyze pasted contract text and receive an AI clause-by-clause analysis
+   */
+  async analyzeContractText(
+    text: string,
+    filename = "Pasted contract",
+  ): Promise<ContractAnalysis> {
+    const response = await request<Record<string, unknown>>(OpenAPI, {
+      method: "POST",
+      url: PATHS.CONTRACTS.ANALYZE_TEXT,
+      body: { text, filename },
+      mediaType: "application/json",
+    })
+    return transformKeys<ContractAnalysis>(response)
+  }
+
+  /**
    * List the current user's contract analyses
    */
   async listAnalyses(

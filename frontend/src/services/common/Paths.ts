@@ -205,6 +205,7 @@ export const PATHS = {
   // Contract Explainer
   CONTRACTS: {
     ANALYZE: `${API_V1}/contracts/analyze`,
+    ANALYZE_TEXT: `${API_V1}/contracts/analyze-text`,
     LIST: `${API_V1}/contracts/`,
     DETAIL: (id: string) => `${API_V1}/contracts/${id}`,
     SHARE: (id: string) => `${API_V1}/contracts/${id}/share`,

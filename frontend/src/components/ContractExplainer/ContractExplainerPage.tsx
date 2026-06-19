@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   Calculator,
   CheckSquare,
+  ClipboardPaste,
   Copy,
   FileText,
   Lock,
@@ -21,7 +22,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { useAnalyzeContract, useShareContractAnalysis } from "@/hooks/mutations"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  useAnalyzeContract,
+  useAnalyzeContractText,
+  useShareContractAnalysis,
+} from "@/hooks/mutations"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import type { ContractAnalysis, NotaryQuestion } from "@/models/contract"
@@ -332,6 +339,20 @@ interface IUploadProps {
   onAnalyzed: (analysis: ContractAnalysis) => void
 }
 
+/** Shared pulsing loading indicator shown while AI analysis is in progress. */
+function AnalyzingIndicator(props: Readonly<{ subtitle: string }>) {
+  const { subtitle } = props
+  return (
+    <div className="border-2 border-dashed border-muted rounded-xl p-10 text-center space-y-3">
+      <div className="mx-auto h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center animate-pulse">
+        <FileText className="h-6 w-6 text-amber-600" />
+      </div>
+      <p className="text-sm font-medium">Analyzing your contract with AI…</p>
+      <p className="text-xs text-muted-foreground">{subtitle}</p>
+    </div>
+  )
+}
+
 /** File upload form with drag-and-drop. */
 function UploadForm(props: Readonly<IUploadProps>) {
   const { onAnalyzed } = props
@@ -355,6 +376,12 @@ function UploadForm(props: Readonly<IUploadProps>) {
     if (file) processFile(file)
   }
 
+  if (isPending) {
+    return (
+      <AnalyzingIndicator subtitle="This may take up to 60 seconds for large contracts." />
+    )
+  }
+
   return (
     <label
       className={cn(
@@ -362,7 +389,6 @@ function UploadForm(props: Readonly<IUploadProps>) {
         isDragging
           ? "border-amber-500 bg-amber-50 dark:bg-amber-900/10"
           : "border-muted hover:border-muted-foreground/50",
-        isPending && "pointer-events-none opacity-60",
       )}
       onDragOver={(e) => {
         e.preventDefault()
@@ -377,30 +403,58 @@ function UploadForm(props: Readonly<IUploadProps>) {
         className="hidden"
         onChange={handleFileChange}
       />
-      {isPending ? (
-        <div className="space-y-3">
-          <div className="mx-auto h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center animate-pulse">
-            <FileText className="h-6 w-6 text-amber-600" />
-          </div>
-          <p className="text-sm font-medium">
-            Analyzing your contract with AI…
-          </p>
-          <p className="text-xs text-muted-foreground">
-            This may take up to 60 seconds for large contracts.
-          </p>
+      <div className="space-y-3">
+        <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+          <Upload className="h-6 w-6 text-muted-foreground" />
         </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-            <Upload className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <p className="text-sm font-medium">Drop your Kaufvertrag PDF here</p>
-          <p className="text-xs text-muted-foreground">
-            or click to browse — PDF only, max 20 MB
-          </p>
-        </div>
-      )}
+        <p className="text-sm font-medium">Drop your Kaufvertrag PDF here</p>
+        <p className="text-xs text-muted-foreground">
+          or click to browse — PDF only, max 20 MB
+        </p>
+      </div>
     </label>
+  )
+}
+
+/** Paste text form for pasting raw contract text. */
+function PasteForm(props: Readonly<IUploadProps>) {
+  const { onAnalyzed } = props
+  const { mutate: analyzeText, isPending } = useAnalyzeContractText()
+  const [text, setText] = useState("")
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    analyzeText(text, { onSuccess: onAnalyzed })
+  }
+
+  if (isPending) {
+    return <AnalyzingIndicator subtitle="This may take up to 60 seconds." />
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <Textarea
+        placeholder="Paste the German Kaufvertrag text here…"
+        className="min-h-[240px] resize-y font-mono text-sm"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">
+          {text.length > 0
+            ? `${text.length.toLocaleString()} characters`
+            : "Paste contract text above"}
+        </p>
+        <Button
+          type="submit"
+          disabled={!text.trim()}
+          className="bg-amber-600 hover:bg-amber-700 text-white"
+        >
+          <ClipboardPaste className="h-4 w-4 mr-1.5" />
+          Analyze text
+        </Button>
+      </div>
+    </form>
   )
 }
 
@@ -440,9 +494,26 @@ function ContractExplainerPage() {
         </Card>
       )}
 
-      {/* Upload or results */}
+      {/* Input tabs or results */}
       {!analysis ? (
-        <UploadForm onAnalyzed={setAnalysis} />
+        <Tabs defaultValue="upload">
+          <TabsList className="mb-4">
+            <TabsTrigger value="upload" className="gap-1.5">
+              <Upload className="h-4 w-4" />
+              Upload PDF
+            </TabsTrigger>
+            <TabsTrigger value="paste" className="gap-1.5">
+              <ClipboardPaste className="h-4 w-4" />
+              Paste text
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="upload">
+            <UploadForm onAnalyzed={setAnalysis} />
+          </TabsContent>
+          <TabsContent value="paste">
+            <PasteForm onAnalyzed={setAnalysis} />
+          </TabsContent>
+        </Tabs>
       ) : (
         <>
           <Button variant="ghost" size="sm" onClick={() => setAnalysis(null)}>

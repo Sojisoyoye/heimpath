@@ -523,6 +523,14 @@ export type ContractSharedPreviewResponse = {
 };
 
 /**
+ * Request body for analyzing pasted contract text.
+ */
+export type ContractTextRequest = {
+    text: string;
+    filename?: string;
+};
+
+/**
  * Fine-grained Nebenkosten (running cost) categories.
  */
 export type CostCategory = 'hausgeld' | 'grundsteuer' | 'insurance' | 'heating' | 'water' | 'electricity' | 'maintenance' | 'misc';
@@ -3262,6 +3270,12 @@ export type ContractsAnalyzeContractData = {
 };
 
 export type ContractsAnalyzeContractResponse = (ContractAnalysisResponse);
+
+export type ContractsAnalyzeContractTextData = {
+    requestBody: ContractTextRequest;
+};
+
+export type ContractsAnalyzeContractTextResponse = (ContractAnalysisResponse);
 
 export type ContractsListContractAnalysesData = {
     page?: number;

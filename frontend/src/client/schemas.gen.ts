@@ -1791,6 +1791,25 @@ Exposes at most 3 clauses and the overall risk level to encourage
 sign-up, without giving away the full premium analysis.`
 } as const;
 
+export const ContractTextRequestSchema = {
+    properties: {
+        text: {
+            type: 'string',
+            title: 'Text'
+        },
+        filename: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Filename',
+            default: 'Pasted contract'
+        }
+    },
+    type: 'object',
+    required: ['text'],
+    title: 'ContractTextRequest',
+    description: 'Request body for analyzing pasted contract text.'
+} as const;
+
 export const CostCategorySchema = {
     type: 'string',
     enum: ['hausgeld', 'grundsteuer', 'insurance', 'heating', 'water', 'electricity', 'maintenance', 'misc'],

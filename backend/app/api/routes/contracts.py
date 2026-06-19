@@ -15,6 +15,7 @@ from app.schemas.contract import (
     ContractAnalysisListResponse,
     ContractAnalysisResponse,
     ContractSharedPreviewResponse,
+    ContractTextRequest,
     NotaryQuestion,
 )
 from app.services import contract_service, rate_limit_service
@@ -27,8 +28,33 @@ router = APIRouter(prefix="/contracts", tags=["contracts"])
 # Max upload size: 20 MB
 _MAX_FILE_SIZE = 20 * 1024 * 1024
 
+# Max pasted text: ~500 KB of characters (well within any model context window)
+_MAX_TEXT_CHARS = 500_000
+
 # Free tier sees only the first N clauses
 _FREE_TIER_LIMIT = contract_service.FREE_TIER_CLAUSE_LIMIT
+
+
+def _is_premium(user: CurrentUser) -> bool:  # type: ignore[valid-type]
+    return user.subscription_tier in (
+        SubscriptionTier.PREMIUM,
+        SubscriptionTier.ENTERPRISE,
+    )
+
+
+def _enforce_rate_limit(user_id: str) -> None:
+    """Consume one rate-limit slot; raise 429 if the hourly cap is already reached."""
+    limit_info = rate_limit_service.record_contract_analysis(user_id)
+    if limit_info.is_locked:
+        retry_after = rate_limit_service.retry_after_seconds(
+            limit_info, rate_limit_service.CONTRACT_ANALYSIS_HOURLY_LOCKOUT
+        )
+        logger.warning("Contract analysis hourly limit exceeded for user %s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Analysis limit reached. You can run up to {rate_limit_service.CONTRACT_ANALYSIS_HOURLY_MAX} contract analyses per hour.",
+            headers={"Retry-After": str(retry_after)},
+        )
 
 
 def _build_response(
@@ -129,19 +155,7 @@ async def analyze_contract(
     **Rate limits:**
     - 5 analyses per hour per user
     """
-    limit_info = rate_limit_service.record_contract_analysis(str(current_user.id))
-    if limit_info.is_locked:
-        retry_after = rate_limit_service.retry_after_seconds(
-            limit_info, rate_limit_service.CONTRACT_ANALYSIS_HOURLY_LOCKOUT
-        )
-        logger.warning(
-            "Contract analysis hourly limit exceeded for user %s", current_user.id
-        )
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Analysis limit reached. You can run up to {rate_limit_service.CONTRACT_ANALYSIS_HOURLY_MAX} contract analyses per hour.",
-            headers={"Retry-After": str(retry_after)},
-        )
+    _enforce_rate_limit(str(current_user.id))
 
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
@@ -168,11 +182,48 @@ async def analyze_contract(
         file_bytes=file_bytes,
     )
 
-    is_premium = current_user.subscription_tier in (
-        SubscriptionTier.PREMIUM,
-        SubscriptionTier.ENTERPRISE,
+    return _build_response(record, is_premium=_is_premium(current_user))
+
+
+@router.post(
+    "/analyze-text",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ContractAnalysisResponse,
+)
+async def analyze_contract_text(
+    current_user: CurrentUser,
+    session: SessionDep,
+    body: ContractTextRequest,
+) -> ContractAnalysisResponse:
+    """Analyze pasted contract text and receive an AI clause-by-clause analysis.
+
+    Accepts raw German Kaufvertrag text instead of a PDF upload.
+
+    **Rate limits:**
+    - 5 analyses per hour per user (shared with PDF upload limit)
+    """
+    if not body.text.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Contract text must not be empty",
+        )
+
+    if len(body.text) > _MAX_TEXT_CHARS:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Contract text must not exceed {_MAX_TEXT_CHARS:,} characters",
+        )
+
+    _enforce_rate_limit(str(current_user.id))
+
+    record = await contract_service.analyze_contract_text(
+        session=session,
+        user_id=current_user.id,
+        text=body.text,
+        filename=body.filename,
     )
-    return _build_response(record, is_premium=is_premium)
+
+    return _build_response(record, is_premium=_is_premium(current_user))
 
 
 @router.get("/", response_model=ContractAnalysisListResponse)
@@ -220,11 +271,7 @@ async def get_contract_analysis(
             detail=f"Analysis {analysis_id} not found",
         )
 
-    is_premium = current_user.subscription_tier in (
-        SubscriptionTier.PREMIUM,
-        SubscriptionTier.ENTERPRISE,
-    )
-    return _build_response(record, is_premium=is_premium)
+    return _build_response(record, is_premium=_is_premium(current_user))
 
 
 @router.post(
@@ -247,8 +294,4 @@ async def share_contract_analysis(
             detail=f"Analysis {analysis_id} not found",
         )
 
-    is_premium = current_user.subscription_tier in (
-        SubscriptionTier.PREMIUM,
-        SubscriptionTier.ENTERPRISE,
-    )
-    return _build_response(record, is_premium=is_premium)
+    return _build_response(record, is_premium=_is_premium(current_user))
