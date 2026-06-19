@@ -1,7 +1,7 @@
 """Add property_viewing table
 
-Revision ID: a3b4c5d6e7f8
-Revises: z2v3w4x5y6a7
+Revision ID: p9q1v2i3e4w5
+Revises: i5j6k7l8m9n0
 Create Date: 2026-06-19 08:00:00.000000
 
 """
@@ -11,8 +11,8 @@ from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB
 
 # revision identifiers, used by Alembic
-revision = "a3b4c5d6e7f8"
-down_revision = "z2v3w4x5y6a7"
+revision = "p9q1v2i3e4w5"
+down_revision = "i5j6k7l8m9n0"
 branch_labels = None
 depends_on = None
 

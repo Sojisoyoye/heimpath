@@ -33,13 +33,30 @@ function DetailView(
   props: Readonly<{ viewingId: string; onBack: () => void }>,
 ) {
   const { viewingId, onBack } = props
-  const { data: viewing, isLoading } = useViewing(viewingId)
+  const { data: viewing, isLoading, isError } = useViewing(viewingId)
   const updateViewing = useUpdateViewing()
 
-  if (isLoading || !viewing) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground">
         Loading…
+      </div>
+    )
+  }
+
+  if (isError || !viewing) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+        <p className="text-muted-foreground">
+          Viewing not found or failed to load.
+        </p>
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-primary hover:underline text-sm"
+        >
+          ← Back to list
+        </button>
       </div>
     )
   }

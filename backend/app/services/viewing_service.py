@@ -68,9 +68,14 @@ def update_viewing(
     viewing = get_viewing(session, viewing_id, user_id)
 
     # Use model_fields_set so explicit null values (e.g. PATCH {"notes":null})
-    # correctly clear the field rather than being silently skipped.
+    # correctly clear nullable fields. Non-nullable fields (address) skip null
+    # values to avoid IntegrityError when clients send {"address": null}.
+    _non_nullable = frozenset({"address", "checklist_data"})
     for field in data.model_fields_set:
-        setattr(viewing, field, getattr(data, field))
+        value = getattr(data, field)
+        if value is None and field in _non_nullable:
+            continue
+        setattr(viewing, field, value)
 
     session.add(viewing)
     session.commit()

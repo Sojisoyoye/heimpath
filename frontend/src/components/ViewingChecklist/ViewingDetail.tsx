@@ -39,6 +39,26 @@ function overallPercent(categories: ChecklistCategory[]): number {
                               Components
 ******************************************************************************/
 
+/** Controlled notes input that only fires onSave on blur, not on every keystroke. */
+function ItemNotesInput(
+  props: Readonly<{ notes: string; onSave: (notes: string) => void }>,
+) {
+  const { notes: savedNotes, onSave } = props
+  const [localValue, setLocalValue] = useState(savedNotes)
+
+  return (
+    <Input
+      placeholder="Add note..."
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={() => {
+        if (localValue !== savedNotes) onSave(localValue)
+      }}
+      className="ml-7 h-8 text-sm"
+    />
+  )
+}
+
 function CategoryAccordion(
   props: Readonly<{
     category: ChecklistCategory
@@ -56,6 +76,7 @@ function CategoryAccordion(
   return (
     <div className="border rounded-lg overflow-hidden">
       <button
+        type="button"
         className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
         onClick={() => setOpen((v) => !v)}
       >
@@ -95,13 +116,11 @@ function CategoryAccordion(
                   {item.label}
                 </Label>
               </div>
-              <Input
-                placeholder="Add note..."
-                value={item.notes}
-                onChange={(e) =>
-                  onItemChange(category.id, item.id, { notes: e.target.value })
+              <ItemNotesInput
+                notes={item.notes}
+                onSave={(notes) =>
+                  onItemChange(category.id, item.id, { notes })
                 }
-                className="ml-7 h-8 text-sm"
               />
             </div>
           ))}

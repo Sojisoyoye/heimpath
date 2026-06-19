@@ -48,9 +48,7 @@ class TestCreateViewing:
     def test_rejects_empty_address(
         self, client: TestClient, normal_user_token_headers: dict
     ) -> None:
-        r = client.post(
-            BASE, json={"address": ""}, headers=normal_user_token_headers
-        )
+        r = client.post(BASE, json={"address": ""}, headers=normal_user_token_headers)
         assert r.status_code == 422
 
     def test_creates_with_viewed_at(
