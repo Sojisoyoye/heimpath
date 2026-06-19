@@ -666,3 +666,56 @@ test.describe("TEST 9: property cost calculator inputs and calculation", () => {
     }
   })
 })
+
+// ---------------------------------------------------------------------------
+// TEST 10 — Mortgage Calculator inputs and calculation
+// ---------------------------------------------------------------------------
+
+test.describe("TEST 10: mortgage calculator inputs and calculation", () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test("calculator inputs are visible and produce a monthly payment", async ({
+    page,
+  }) => {
+    await page.goto("/tools/mortgage-calculator")
+    await page.waitForLoadState("networkidle")
+
+    // Property price input (type="text" with inputMode="numeric")
+    const priceInput = page
+      .locator("#propertyPrice")
+      .or(page.locator('input[placeholder*="400"]'))
+      .first()
+    expect.soft(await priceInput.isVisible().catch(() => false)).toBe(true)
+
+    // Wait for DOM to settle before checking number inputs
+    await page.waitForTimeout(300)
+
+    // Interest rate and repayment rate inputs (type="number")
+    const interestInput = page.locator("#interestRate")
+    const repaymentInput = page.locator("#initialRepaymentRate")
+    expect.soft(await interestInput.isVisible().catch(() => false)).toBe(true)
+    expect.soft(await repaymentInput.isVisible().catch(() => false)).toBe(true)
+
+    // Fill in values and calculate
+    if (await priceInput.isVisible().catch(() => false)) {
+      await priceInput.fill("400000")
+      await interestInput.fill("3.5")
+      await repaymentInput.fill("2")
+
+      const calculateBtn = page.getByRole("button", { name: /calculate/i })
+      expect.soft(await calculateBtn.isVisible().catch(() => false)).toBe(true)
+
+      await calculateBtn.click()
+      await page.waitForTimeout(300)
+
+      // Monthly payment result should appear
+      const monthlyPayment = page
+        .getByText(/monthly payment/i, { exact: false })
+        .or(page.getByText(/monatliche rate/i, { exact: false }))
+        .first()
+      expect
+        .soft(await monthlyPayment.isVisible().catch(() => false))
+        .toBe(true)
+    }
+  })
+})
