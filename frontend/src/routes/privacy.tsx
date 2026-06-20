@@ -192,12 +192,26 @@ function PrivacyPage() {
                   </thead>
                   <tbody className="divide-y">
                     <tr>
-                      <td className="py-2 pr-4">Microsoft Azure</td>
-                      <td className="py-2 pr-4">
-                        Hosting, document translation (Azure Translator)
-                      </td>
+                      <td className="py-2 pr-4">Hetzner Online GmbH</td>
+                      <td className="py-2 pr-4">Backend hosting (VPS)</td>
                       <td className="py-2">
                         All platform data, uploaded documents
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4">Vercel Inc.</td>
+                      <td className="py-2 pr-4">Frontend hosting</td>
+                      <td className="py-2">
+                        Access logs (IP address, user-agent, request metadata)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4">Microsoft Azure</td>
+                      <td className="py-2 pr-4">
+                        Document translation (Azure Translator)
+                      </td>
+                      <td className="py-2">
+                        Uploaded documents (translation only)
                       </td>
                     </tr>
                     <tr>

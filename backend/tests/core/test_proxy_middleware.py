@@ -1,4 +1,4 @@
-"""Tests for _ContainerAppsProxyMiddleware."""
+"""Tests for _ReverseProxyMiddleware."""
 
 import pytest
 from starlette.applications import Starlette
@@ -7,7 +7,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from app.main import _ContainerAppsProxyMiddleware
+from app.main import _ReverseProxyMiddleware
 
 
 def _make_app() -> Starlette:
@@ -18,7 +18,7 @@ def _make_app() -> Starlette:
         return PlainTextResponse(f"{host} {request.url.scheme}")
 
     app = Starlette(routes=[Route("/", echo)])
-    app.add_middleware(_ContainerAppsProxyMiddleware)
+    app.add_middleware(_ReverseProxyMiddleware)
     return app
 
 

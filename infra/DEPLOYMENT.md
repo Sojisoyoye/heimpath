@@ -283,3 +283,101 @@ This is set automatically when `ENVIRONMENT != "local"`.
 - Caddy handles TLS certificate provisioning automatically via Let's Encrypt
 - The `logged_in` cookie is intentionally non-HttpOnly (UI indicator only — contains no sensitive data)
 - Avatar files are served from the backend without authentication; they are keyed by UUID only
+
+---
+
+## Azure Teardown Runbook
+
+Azure Container Apps, Redis, Key Vaults, and related resources have been decommissioned.
+The Terraform config in `infra/terraform/` has been emptied of resource blocks.
+Run the steps below **once** to destroy any remaining Azure resources and clean up.
+
+### Prerequisites
+
+Export the Azure service principal credentials from the `AZURE_CREDENTIALS` GitHub secret
+(JSON with `clientId`, `clientSecret`, `subscriptionId`, `tenantId`):
+
+```bash
+export ARM_CLIENT_ID="<clientId>"
+export ARM_CLIENT_SECRET="<clientSecret>"
+export ARM_SUBSCRIPTION_ID="<subscriptionId>"
+export ARM_TENANT_ID="<tenantId>"
+```
+
+Verify the service principal is still active before proceeding (a revoked SP will cause
+`terraform init -migrate-state` to fail at the blob-read step with no easy recovery):
+
+```bash
+az login --service-principal \
+  -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID"
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+az account show   # should print subscription details; if this fails, renew the SP first
+```
+
+### Step 1 — Migrate state from Azure blob to local
+
+All subsequent terraform commands must be run from `infra/terraform/`.
+
+```bash
+cd infra/terraform
+terraform init -migrate-state
+# Confirm "yes" when prompted to copy state to local backend
+```
+
+State is now stored in `infra/terraform/terraform.tfstate` (do not commit this file).
+**Back it up immediately** before running apply — if the file is lost, resources must be
+cleaned up manually via the Azure portal:
+
+```bash
+cp terraform.tfstate terraform.tfstate.manual-backup
+```
+
+### Step 2 — Destroy all Azure resources
+
+Run from `infra/terraform/`:
+
+```bash
+terraform apply
+# Review the destroy plan — all resources should show as "will be destroyed"
+# Confirm "yes"
+```
+
+Both Key Vaults are soft-deleted by `terraform apply` and must be purged manually.
+
+`kv-heimpath-prod` has `purge_protection_enabled = true` with a 30-day retention.
+Azure **blocks** `az keyvault purge` for the entire retention window — the command will
+return a `409 Conflict` until day 30. Run it now to start the clock; re-run it after
+30 days to complete the purge.
+
+`kv-heimpath-staging` has `purge_protection_enabled = false` (7-day retention) — purge
+succeeds immediately so the name is released from the namespace at once:
+
+```bash
+az keyvault purge --name kv-heimpath-prod --location germanywestcentral
+az keyvault purge --name kv-heimpath-staging --location germanywestcentral
+```
+
+### Step 3 — Delete the tfstate storage account
+
+The `heimpathtfstate` storage account was bootstrapped outside Terraform and is not in state.
+Delete it manually after the apply succeeds:
+
+```bash
+az group delete --name rg-heimpath-tfstate --yes --no-wait
+```
+
+### Step 4 — Remove AZURE_CREDENTIALS GitHub secret
+
+```bash
+gh secret delete AZURE_CREDENTIALS --repo Sojisoyoye/heimpath
+```
+
+### Step 5 — Delete the terraform directory
+
+Once all Azure resources are confirmed destroyed:
+
+```bash
+rm -rf infra/terraform/
+```
+
+Then open a PR removing the `infra/terraform/` directory from the repository.
