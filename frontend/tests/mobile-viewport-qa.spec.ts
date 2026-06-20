@@ -1,11 +1,4 @@
-import {
-  type Browser,
-  type BrowserContext,
-  expect,
-  type Page,
-  test,
-} from "@playwright/test"
-import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
+import { expect, test } from "@playwright/test"
 
 const PAGES = [
   { path: "/dashboard", heading: /dashboard/i },
@@ -24,39 +17,14 @@ const PAGES = [
 
 const MOBILE_VIEWPORT = { width: 390, height: 844 }
 
-let browser: Browser
-let context: BrowserContext
-let page: Page
-
 test.describe("Mobile Viewport QA", () => {
-  test.beforeAll(async ({ browser: b, baseURL }) => {
-    browser = b
-    context = await browser.newContext({
-      baseURL: baseURL ?? "http://localhost:5173",
-      viewport: MOBILE_VIEWPORT,
-    })
-    page = await context.newPage()
-
-    await page.setViewportSize(MOBILE_VIEWPORT)
-    await page.goto("/login")
-    await page
-      .getByTestId("email-input")
-      .waitFor({ state: "visible", timeout: 15000 })
-
-    await page.getByTestId("email-input").fill(firstSuperuser)
-    await page.getByTestId("password-input").fill(firstSuperuserPassword)
-    await page.getByRole("button", { name: "Sign In" }).click()
-
-    await page.waitForURL("**/dashboard")
-  })
-
-  test.afterAll(async () => {
-    await context.close()
-  })
+  test.use({ storageState: "playwright/.auth/user.json" })
+  test.use({ viewport: MOBILE_VIEWPORT })
 
   for (const { path, heading } of PAGES) {
-    test(`${path} - no horizontal overflow and heading visible on mobile`, async () => {
-      await page.setViewportSize(MOBILE_VIEWPORT)
+    test(`${path} - no horizontal overflow and heading visible on mobile`, async ({
+      page,
+    }) => {
       await page.goto(path)
 
       const headingLocator = page.getByRole("heading", { name: heading })
