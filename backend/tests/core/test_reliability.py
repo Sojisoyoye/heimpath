@@ -45,12 +45,15 @@ class TestIsTransientStripeError:
 
 
 class TestIsTransientTranslatorError:
-    """Predicate must handle aiohttp connection errors and status-coded TranslationErrors."""
+    """Predicate must handle Anthropic connection errors and status-coded TranslationErrors."""
 
-    def test_aiohttp_client_connection_error_is_transient(self) -> None:
-        import aiohttp
+    def test_anthropic_api_connection_error_is_transient(self) -> None:
+        err = anthropic.APIConnectionError(request=MagicMock())
+        assert _is_transient_translator_error(err)
 
-        assert _is_transient_translator_error(aiohttp.ClientConnectionError())
+    def test_anthropic_api_timeout_error_is_transient(self) -> None:
+        err = anthropic.APITimeoutError(request=MagicMock())
+        assert _is_transient_translator_error(err)
 
     def test_translation_error_429_is_transient(self) -> None:
         from app.services.translation_service import TranslationError
@@ -80,14 +83,13 @@ class TestIsTransientTranslatorError:
         assert not _is_transient_translator_error(ValueError("bad value"))
 
     def test_import_error_returns_false(self) -> None:
-        """If TranslationError cannot be imported, non-aiohttp errors return False."""
+        """If TranslationError cannot be imported, non-Anthropic errors return False."""
         import sys
 
         with patch.dict(
             sys.modules,
             {"app.services.translation_service": None},  # type: ignore[dict-item]
         ):
-            # Non-aiohttp error with no TranslationError available
             result = _is_transient_translator_error(RuntimeError("boom"))
         assert result is False
 

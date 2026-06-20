@@ -153,15 +153,10 @@ class Settings(BaseSettings):
     def stripe_enabled(self) -> bool:
         return bool(self.STRIPE_SECRET_KEY)
 
-    # Azure Translator configuration (free tier: 2M chars/month)
-    AZURE_TRANSLATOR_KEY: str | None = None
-    AZURE_TRANSLATOR_REGION: str = "westeurope"
-    AZURE_TRANSLATOR_ENDPOINT: str = "https://api.cognitive.microsofttranslator.com"
-
     @computed_field  # type: ignore[prop-decorator]
     @property
     def translator_enabled(self) -> bool:
-        return bool(self.AZURE_TRANSLATOR_KEY)
+        return self.anthropic_enabled
 
     # GrowthOS integration
     GROWTHOS_API_URL: str | None = None
@@ -183,17 +178,19 @@ class Settings(BaseSettings):
     MAX_PAGES_FREE: int = 10
     MAX_PAGES_PREMIUM: int = 20
 
+    # Translation model — use haiku for speed and cost efficiency
+    TRANSLATION_MODEL: str = "claude-haiku-4-5-20251001"
+
     # Reliability settings
     TRANSLATION_CONFIDENCE_THRESHOLD: float = 0.70
     # Minimum fraction of pages/clauses that must be translated before the document
-    # is allowed to reach COMPLETED status. If Azure Translator returns fewer
-    # results than submitted, the document is marked FAILED rather than silently
-    # accepted as complete with missing pages.
+    # is allowed to reach COMPLETED status. If Claude returns fewer results than
+    # submitted, the document is marked FAILED rather than silently accepted as
+    # complete with missing pages.
     TRANSLATION_COVERAGE_THRESHOLD: float = 0.95
-    AZURE_TRANSLATOR_TIMEOUT_SECONDS: int = 60
-    # Quota: default 1,900,000 leaves a 5% buffer below the 2M free-tier limit.
-    AZURE_TRANSLATOR_QUOTA_LIMIT: int = 1_900_000
-    AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD: float = 0.80
+    # Quota: monthly character budget. Default 1,900,000 leaves a 5% buffer.
+    TRANSLATION_QUOTA_LIMIT: int = 1_900_000
+    TRANSLATION_QUOTA_ALERT_THRESHOLD: float = 0.80
     MAX_JSON_BODY_SIZE_BYTES: int = 1_048_576  # 1 MB
     DB_STATEMENT_TIMEOUT_MS: int = 10_000  # 10 seconds
     POOL_EXHAUSTION_BACKOFF_SECONDS: int = 5

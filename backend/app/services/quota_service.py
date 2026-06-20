@@ -1,12 +1,12 @@
-"""Azure Translator monthly character quota metering via Redis.
+"""Monthly character quota metering for the translation service via Redis.
 
 Tracks translated character counts per calendar month using a Redis counter
 keyed by year-month (e.g. ``translator:chars:2026-05``). The key expires
 automatically at month end so no cleanup job is required.
 
-The limit defaults to 1,900,000 characters — a 5 % buffer below the free-tier
-ceiling of 2,000,000 — to absorb the slight over-counting that can occur when
-the check fires and the record fires in separate operations.
+The limit defaults to 1,900,000 characters — a 5 % buffer below the budget
+ceiling — to absorb the slight over-counting that can occur when the check
+fires and the record fires in separate operations.
 """
 
 import calendar
@@ -76,7 +76,7 @@ def check_quota(_char_count: int) -> None:
         # Fail open — do not block translations when Redis is unreachable.
         return
 
-    if current >= settings.AZURE_TRANSLATOR_QUOTA_LIMIT:
+    if current >= settings.TRANSLATION_QUOTA_LIMIT:
         raise HTTPException(
             status_code=429,
             detail=(
@@ -85,15 +85,14 @@ def check_quota(_char_count: int) -> None:
         )
 
     alert_limit = int(
-        settings.AZURE_TRANSLATOR_QUOTA_LIMIT
-        * settings.AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD
+        settings.TRANSLATION_QUOTA_LIMIT * settings.TRANSLATION_QUOTA_ALERT_THRESHOLD
     )
     if current >= alert_limit:
         logger.warning(
-            "Azure Translator quota at %.1f%% (%d/%d chars used this month)",
-            current / settings.AZURE_TRANSLATOR_QUOTA_LIMIT * 100,
+            "Translation quota at %.1f%% (%d/%d chars used this month)",
+            current / settings.TRANSLATION_QUOTA_LIMIT * 100,
             current,
-            settings.AZURE_TRANSLATOR_QUOTA_LIMIT,
+            settings.TRANSLATION_QUOTA_LIMIT,
         )
 
 
@@ -117,16 +116,16 @@ def record_usage(char_count: int) -> None:
 
         # Log once when usage crosses the alert threshold.
         alert_limit = int(
-            settings.AZURE_TRANSLATOR_QUOTA_LIMIT
-            * settings.AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD
+            settings.TRANSLATION_QUOTA_LIMIT
+            * settings.TRANSLATION_QUOTA_ALERT_THRESHOLD
         )
         prev_total = new_total - char_count
         if new_total >= alert_limit > prev_total:
             logger.warning(
-                "Azure Translator quota crossed %.0f%% threshold (%d/%d chars)",
-                settings.AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD * 100,
+                "Translation quota crossed %.0f%% threshold (%d/%d chars)",
+                settings.TRANSLATION_QUOTA_ALERT_THRESHOLD * 100,
                 new_total,
-                settings.AZURE_TRANSLATOR_QUOTA_LIMIT,
+                settings.TRANSLATION_QUOTA_LIMIT,
             )
     except (redis_lib.RedisError, RuntimeError):
         logger.warning("quota_service: failed to record %d chars in Redis", char_count)
@@ -146,8 +145,8 @@ def get_usage_stats() -> dict:
         redis_available = False
 
     current = get_current_usage()
-    limit = settings.AZURE_TRANSLATOR_QUOTA_LIMIT
-    alert_threshold = settings.AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD
+    limit = settings.TRANSLATION_QUOTA_LIMIT
+    alert_threshold = settings.TRANSLATION_QUOTA_ALERT_THRESHOLD
     now = datetime.now(timezone.utc)
     return {
         "month": f"{now.year}-{now.month:02d}",
