@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # Token expiration settings
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     REMEMBER_ME_EXPIRE_DAYS: int = 30
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     # Redis (token blacklist + rate limiting)
     REDIS_URL: str = "redis://localhost:6379"
     FRONTEND_HOST: str = "http://localhost:5173"
@@ -162,6 +162,10 @@ class Settings(BaseSettings):
     @property
     def translator_enabled(self) -> bool:
         return bool(self.AZURE_TRANSLATOR_KEY)
+
+    # GrowthOS integration
+    GROWTHOS_API_URL: str | None = None
+    GROWTHOS_WEBHOOK_SECRET: str | None = None
 
     # Anthropic (Claude) configuration for AI analysis
     ANTHROPIC_API_KEY: str | None = None
