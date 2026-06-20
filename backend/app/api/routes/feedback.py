@@ -1,6 +1,6 @@
 """Feedback API endpoints."""
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, BackgroundTasks, status
 
 from app.api.deps import CurrentUser, SessionDep
 from app.schemas.feedback import FeedbackCreate, FeedbackResponse
@@ -13,7 +13,12 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 async def submit_feedback(
     current_user: CurrentUser,
     session: SessionDep,
+    background_tasks: BackgroundTasks,
     data: FeedbackCreate,
 ) -> FeedbackResponse:
-    """Submit user feedback."""
-    return feedback_service.create_feedback(session, current_user.id, data)
+    """Submit user feedback. Notifies admin via email and GrowthOS webhook in the background."""
+    feedback = feedback_service.create_feedback_sync(session, current_user.id, data)
+    background_tasks.add_task(
+        feedback_service.notify_feedback, feedback, str(current_user.email)
+    )
+    return feedback

@@ -1061,6 +1061,21 @@ export type GlossaryTermUpdate = {
 };
 
 /**
+ * Real-time growth metrics for the GrowthOS dashboard.
+ */
+export type GrowthMetricsResponse = {
+    signups: number;
+    signups_this_week: number;
+    activation_rate: number;
+    return_visit_rate: number;
+    feedback_count: number;
+    feedback_this_week: number;
+    journeys_started: number;
+    journeys_active: number;
+    as_of: string;
+};
+
+/**
  * Request to save a hidden cost calculation.
  */
 export type HiddenCostCalculationCreate = {
@@ -2989,6 +3004,8 @@ export type AdminTriggerJobResponse = ({
 });
 
 export type AdminTranslatorUsageResponse = (TranslatorUsageResponse);
+
+export type AdminGrowthMetricsResponse = (GrowthMetricsResponse);
 
 export type ArticlesListArticlesData = {
     category?: (ArticleCategory | null);

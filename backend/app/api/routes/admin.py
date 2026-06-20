@@ -5,12 +5,16 @@ from datetime import datetime, timedelta, timezone
 
 import sentry_sdk
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlalchemy import func
+from sqlmodel import Session, select
 
-from app.api.deps import get_current_active_superuser
+from app.api.deps import SessionDep, get_current_active_superuser
 from app.core.database import AsyncSessionLocal
 from app.core.db import engine
-from app.schemas.admin import TranslatorUsageResponse
+from app.models.feedback import Feedback
+from app.models.journey import Journey
+from app.models.user import User
+from app.schemas.admin import GrowthMetricsResponse, TranslatorUsageResponse
 from app.services.document_service import mark_stuck_documents_failed
 from app.services.portfolio_service import generate_recurring_transactions
 from app.services.quota_service import get_usage_stats
@@ -113,3 +117,62 @@ async def trigger_job(job_name: str) -> dict[str, str]:
 def translator_usage() -> TranslatorUsageResponse:
     """Return current-month Azure Translator character usage. Superuser-only."""
     return TranslatorUsageResponse(**get_usage_stats())
+
+
+@router.get(
+    "/growth-metrics",
+    dependencies=[Depends(get_current_active_superuser)],
+)
+def growth_metrics(session: SessionDep) -> GrowthMetricsResponse:
+    """Return real-time growth metrics for GrowthOS. Superuser-only."""
+    now = datetime.now(timezone.utc)
+    week_ago = now - timedelta(days=7)
+    fortnight_ago = now - timedelta(days=14)
+
+    total_users = session.exec(select(func.count(User.id))).one()
+
+    signups_this_week = session.exec(
+        select(func.count(User.id)).where(User.created_at >= week_ago)
+    ).one()
+
+    # Activation = users who have started at least one journey
+    users_with_journey = session.exec(
+        select(func.count(func.distinct(Journey.user_id)))
+    ).one()
+    activation_rate = round(
+        (users_with_journey / total_users * 100) if total_users else 0, 1
+    )
+
+    # Return visit proxy = users active (updated journey) in last 14 days / total users
+    recently_active = session.exec(
+        select(func.count(func.distinct(Journey.user_id))).where(
+            Journey.updated_at >= fortnight_ago
+        )
+    ).one()
+    return_visit_rate = round(
+        (recently_active / total_users * 100) if total_users else 0, 1
+    )
+
+    total_feedback = session.exec(select(func.count(Feedback.id))).one()
+
+    feedback_this_week = session.exec(
+        select(func.count(Feedback.id)).where(Feedback.created_at >= week_ago)
+    ).one()
+
+    journeys_started = session.exec(select(func.count(Journey.id))).one()
+
+    journeys_active = session.exec(
+        select(func.count(Journey.id)).where(Journey.updated_at >= fortnight_ago)
+    ).one()
+
+    return GrowthMetricsResponse(
+        signups=total_users,
+        signups_this_week=signups_this_week,
+        activation_rate=activation_rate,
+        return_visit_rate=return_visit_rate,
+        feedback_count=total_feedback,
+        feedback_this_week=feedback_this_week,
+        journeys_started=journeys_started,
+        journeys_active=journeys_active,
+        as_of=now.isoformat(),
+    )
