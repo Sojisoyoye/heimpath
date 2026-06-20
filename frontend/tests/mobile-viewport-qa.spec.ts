@@ -38,7 +38,9 @@ test.describe("Mobile Viewport QA", () => {
 
     await page.setViewportSize(MOBILE_VIEWPORT)
     await page.goto("/login")
-    await page.getByTestId("email-input").waitFor({ state: "visible", timeout: 15000 })
+    await page
+      .getByTestId("email-input")
+      .waitFor({ state: "visible", timeout: 15000 })
 
     await page.getByTestId("email-input").fill(firstSuperuser)
     await page.getByTestId("password-input").fill(firstSuperuserPassword)
