@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test"
 test.describe("TEST 1: journey phase tabs and step cards", () => {
   test("phase tabs appear and step cards are clickable", async ({ page }) => {
     await page.goto("/journeys")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Click the first journey card
     const firstJourneyCard = page
@@ -33,7 +33,7 @@ test.describe("TEST 1: journey phase tabs and step cards", () => {
       }
     }
 
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("tab").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Verify phase tabs — look for Research, Preparation, Buying or Closing
     const phaseLabels = ["Research", "Preparation", "Buying", "Closing"]
@@ -101,7 +101,7 @@ test.describe("TEST 2: portfolio property detail tabs", () => {
     page,
   }) => {
     await page.goto("/portfolio")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Check if a property card exists
     const propertyCard = page
@@ -120,7 +120,7 @@ test.describe("TEST 2: portfolio property detail tabs", () => {
     }
 
     await propertyCard.click()
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("tab", { name: "Overview" }).waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Verify tabs
     const expectedTabs = [
@@ -169,7 +169,7 @@ test.describe("TEST 2: portfolio property detail tabs", () => {
 test.describe("TEST 3: portfolio checkboxes", () => {
   test("task checkbox state changes on click", async ({ page }) => {
     await page.goto("/portfolio")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     const propertyCard = page
       .locator('[data-testid="property-card"]')
@@ -187,7 +187,7 @@ test.describe("TEST 3: portfolio checkboxes", () => {
     }
 
     await propertyCard.click()
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("tab", { name: "Overview" }).waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Ensure we are on Overview tab
     const overviewTab = page.getByRole("tab", { name: "Overview" })
@@ -228,7 +228,7 @@ test.describe("TEST 4: viewing checklist create and interact", () => {
     page,
   }) => {
     await page.goto("/viewing-checklist")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("button", { name: /new viewing/i }).or(page.getByRole("heading")).first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Verify New Viewing button is visible
     const newViewingBtn = page
@@ -285,7 +285,7 @@ test.describe("TEST 4: viewing checklist create and interact", () => {
 test.describe("TEST 5: contract explainer paste tab", () => {
   test("paste text tab enables analyze button", async ({ page }) => {
     await page.goto("/contract-explainer")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("tab", { name: /upload pdf/i }).or(page.getByRole("heading")).first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Verify Upload PDF tab is active by default
     const uploadTab = page
@@ -335,7 +335,7 @@ test.describe("TEST 5: contract explainer paste tab", () => {
 test.describe("TEST 6: edit portfolio property", () => {
   test("edit form opens and can be closed without saving", async ({ page }) => {
     await page.goto("/portfolio")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     const propertyCard = page
       .locator('[data-testid="property-card"]')
@@ -353,7 +353,7 @@ test.describe("TEST 6: edit portfolio property", () => {
     }
 
     await propertyCard.click()
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("tab", { name: "Overview" }).waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Click Edit button or pencil icon
     const editBtn = page
@@ -416,7 +416,7 @@ test.describe("TEST 6: edit portfolio property", () => {
 test.describe("TEST 7: laws bookmark toggle", () => {
   test("bookmark button toggles state on a law", async ({ page }) => {
     await page.goto("/laws")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Click a law card/item
     const lawItem = page
@@ -507,7 +507,7 @@ test.describe("TEST 8: search results", () => {
     page,
   }) => {
     await page.goto("/dashboard")
-    await page.waitForLoadState("networkidle")
+    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
 
     // Try triggering search via search icon in header or keyboard shortcut /
     const searchIcon = page
@@ -589,13 +589,14 @@ test.describe("TEST 9: property cost calculator inputs and calculation", () => {
     page,
   }) => {
     await page.goto("/tools/property-cost-calculator")
-    await page.waitForLoadState("networkidle")
 
     // Property price input (type="text" with inputMode="numeric")
     const priceInput = page
       .locator("#propertyPrice")
       .or(page.locator('input[placeholder*="price" i]'))
       .first()
+
+    await priceInput.waitFor({ state: "visible", timeout: 10000 })
     expect.soft(await priceInput.isVisible().catch(() => false)).toBe(true)
 
     // Wait for DOM to settle before counting comboboxes
@@ -634,13 +635,14 @@ test.describe("TEST 10: mortgage calculator inputs and calculation", () => {
     page,
   }) => {
     await page.goto("/tools/mortgage-calculator")
-    await page.waitForLoadState("networkidle")
 
     // Property price input (type="text" with inputMode="numeric")
     const priceInput = page
       .locator("#propertyPrice")
       .or(page.locator('input[placeholder*="400"]'))
       .first()
+
+    await priceInput.waitFor({ state: "visible", timeout: 10000 })
     expect.soft(await priceInput.isVisible().catch(() => false)).toBe(true)
 
     // Wait for DOM to settle before checking number inputs
@@ -685,7 +687,6 @@ test.describe("TEST 11: rent vs buy calculator inputs and result", () => {
     page,
   }) => {
     await page.goto("/tools/rent-vs-buy-calculator")
-    await page.waitForLoadState("networkidle")
 
     // Property price and monthly rent inputs (type="number")
     const priceInput = page
@@ -697,11 +698,9 @@ test.describe("TEST 11: rent vs buy calculator inputs and result", () => {
       .or(page.locator('input[placeholder*="1800"]'))
       .first()
 
+    await priceInput.waitFor({ state: "visible", timeout: 10000 })
     expect.soft(await priceInput.isVisible().catch(() => false)).toBe(true)
     expect.soft(await rentInput.isVisible().catch(() => false)).toBe(true)
-
-    // Wait for DOM to settle
-    await page.waitForTimeout(300)
 
     // Fill inputs — result updates reactively (no Calculate button needed)
     if (await priceInput.isVisible().catch(() => false)) {
