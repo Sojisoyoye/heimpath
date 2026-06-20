@@ -36,7 +36,7 @@ function LawsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Scale className="h-6 w-6" />
@@ -46,7 +46,7 @@ function LawsPage() {
             German property laws explained in plain English
           </p>
         </div>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="self-start shrink-0">
           <Link to="/laws/bookmarks">
             <Bookmark className="mr-2 h-4 w-4" />
             My Bookmarks

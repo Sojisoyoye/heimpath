@@ -96,7 +96,7 @@ function ArticleCard(props: IProps) {
               {article.title}
             </CardTitle>
           </Link>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {article.readingTimeMinutes} min read
