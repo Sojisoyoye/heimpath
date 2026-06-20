@@ -72,11 +72,13 @@ function FindAndEvaluateGuide(props: Readonly<IProps>) {
                 "Compare Eigentumswohnung (flat), Reihenhaus (terraced house), and Einfamilienhaus (detached). Each has different cost structures and maintenance obligations.",
             },
           ]}
-          tip="The first 48 hours after a listing goes live are critical. Properties in high-demand areas often receive multiple offers within days."
+          tip="Set up email alerts on each portal for your target location and budget — new listings in popular areas are claimed within 48 hours."
         />
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Search Portals</p>
+          <p className="text-sm font-medium text-muted-foreground">
+            Search Portals
+          </p>
           <PlatformLinksGrid platforms={BUYING_PORTALS} />
         </div>
 

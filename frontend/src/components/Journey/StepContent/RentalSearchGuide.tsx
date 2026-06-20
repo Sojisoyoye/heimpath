@@ -37,6 +37,12 @@ const RENTAL_PORTALS: readonly IPlatformLink[] = [
     description: "Verified private and agent listings",
     analyticsId: "immonet",
   },
+  {
+    name: "WG-Gesucht",
+    url: "https://www.wg-gesucht.de",
+    description: "Most popular platform for shared flats",
+    analyticsId: "wg-gesucht",
+  },
 ]
 
 /******************************************************************************
@@ -69,11 +75,13 @@ function RentalSearchGuide(_props: Readonly<IProps>) {
               "Know your budget (Kaltmiete + Nebenkosten), minimum size, preferred room count, and must-have features before you start searching.",
           },
         ]}
-        tip="In competitive markets like Berlin or Munich, respond to listings within hours and have your application documents ready to send immediately."
+        tip="Set up email alerts on each portal so new listings reach you within minutes. In competitive markets like Berlin or Munich, respond within hours and have your application documents ready to send immediately."
       />
 
       <div className="space-y-2">
-        <p className="text-sm font-medium">Search Portals</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          Search Portals
+        </p>
         <PlatformLinksGrid platforms={RENTAL_PORTALS} />
       </div>
     </div>
