@@ -3,16 +3,43 @@
  * Tabbed guidance for searching and evaluating German properties
  */
 
-import { BarChart2, Building2, MapPin, Search } from "lucide-react"
+import { BarChart2, Building2, MapPin } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GuidanceCard } from "./GuidanceCard"
+import type { IPlatformLink } from "./PlatformLinksGrid"
+import { PlatformLinksGrid } from "./PlatformLinksGrid"
 import { PropertyEvaluationSummary } from "./PropertyEvaluationSummary"
 
 interface IProps {
   journeyId: string
   stepId: string
 }
+
+/******************************************************************************
+                              Constants
+******************************************************************************/
+
+const BUYING_PORTALS: readonly IPlatformLink[] = [
+  {
+    name: "ImmoScout24",
+    url: "https://www.immobilienscout24.de",
+    description: "Germany's largest property portal",
+    analyticsId: "immoscout24",
+  },
+  {
+    name: "Immowelt",
+    url: "https://www.immowelt.de",
+    description: "Wide selection of apartments and houses",
+    analyticsId: "immowelt",
+  },
+  {
+    name: "Kleinanzeigen",
+    url: "https://www.kleinanzeigen.de",
+    description: "Private seller listings and deals",
+    analyticsId: "kleinanzeigen",
+  },
+]
 
 /******************************************************************************
                               Components
@@ -33,12 +60,6 @@ function FindAndEvaluateGuide(props: Readonly<IProps>) {
           description="Use the right platforms and criteria to narrow your search efficiently."
           items={[
             {
-              icon: Search,
-              label: "Major Listing Portals",
-              detail:
-                "Search on Immobilienscout24, Immowelt, and Kleinanzeigen. Set up alerts for your target location, size, and budget to catch new listings early.",
-            },
-            {
               icon: MapPin,
               label: "Location Research",
               detail:
@@ -51,8 +72,16 @@ function FindAndEvaluateGuide(props: Readonly<IProps>) {
                 "Compare Eigentumswohnung (flat), Reihenhaus (terraced house), and Einfamilienhaus (detached). Each has different cost structures and maintenance obligations.",
             },
           ]}
-          tip="The first 48 hours after a listing goes live are critical. Properties in high-demand areas often receive multiple offers within days."
+          tip="Set up email alerts on each portal for your target location and budget — new listings in popular areas are claimed within 48 hours."
         />
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Search Portals
+          </p>
+          <PlatformLinksGrid platforms={BUYING_PORTALS} />
+        </div>
+
         <GuidanceCard
           title="Evaluating Properties"
           description="Assess each property beyond the asking price before committing."
