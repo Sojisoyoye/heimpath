@@ -724,3 +724,44 @@ test.describe("TEST 11: rent vs buy calculator inputs and result", () => {
     }
   })
 })
+
+// ---------------------------------------------------------------------------
+// TEST 12 — ROI Calculator inputs and result
+// ---------------------------------------------------------------------------
+
+test.describe("TEST 12: ROI calculator inputs and result", () => {
+  test("calculator inputs are visible and gross yield appears", async ({
+    page,
+  }) => {
+    await page.goto("/tools/roi-calculator")
+    await page.waitForLoadState("networkidle")
+
+    // Purchase price (type="text") and rent per sqm (type="number")
+    const priceInput = page
+      .locator("#purchasePrice")
+      .or(page.locator('input[placeholder*="240,000"]'))
+      .first()
+    const rentInput = page
+      .locator("#rentPerSqm")
+      .or(page.locator('input[placeholder*="12"]'))
+      .first()
+
+    expect.soft(await priceInput.isVisible().catch(() => false)).toBe(true)
+
+    // Wait for DOM to settle
+    await page.waitForTimeout(300)
+
+    expect.soft(await rentInput.isVisible().catch(() => false)).toBe(true)
+
+    // Fill key inputs — results update reactively
+    if (await priceInput.isVisible().catch(() => false)) {
+      await priceInput.fill("240000")
+      await rentInput.fill("12")
+      await page.waitForTimeout(300)
+
+      // Gross Rental Yield metric should appear in the evaluation section
+      const grossYield = page.getByText(/gross rental yield/i, { exact: false })
+      expect.soft(await grossYield.isVisible().catch(() => false)).toBe(true)
+    }
+  })
+})
