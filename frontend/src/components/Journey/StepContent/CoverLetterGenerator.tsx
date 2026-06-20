@@ -41,7 +41,7 @@ const INITIAL_FIELDS: IFormFields = {
   profession: "",
   income: "",
   moveInDate: "",
-  householdSize: "1",
+  householdSize: "",
   letterText: "",
 }
 
@@ -230,7 +230,7 @@ function CoverLetterGenerator() {
           disabled={!fields.letterText}
           className="w-full"
         >
-          {copiedText !== null ? (
+          {copiedText === fields.letterText && copiedText !== null ? (
             <>
               <Check className="mr-1.5 h-3.5 w-3.5" />
               Copied!
