@@ -1,0 +1,205 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+
+  # ── Job 1: Build backend image and push to GHCR ────────────────────────────
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+      image-prefix: ${{ steps.meta.outputs.prefix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image metadata
+        id: meta
+        run: |
+          echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=$(echo $GITHUB_SHA | head -c 7)" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.prefix }}/backend:staging-latest
+
+  # ── Job 2: Deploy backend-staging to VPS via SSH ───────────────────────────
+  deploy-staging-backend:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy backend-staging via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/heimpath
+
+            PREVIOUS_TAG=$(cat .last-deployed-tag 2>/dev/null || echo "staging-latest")
+            CURRENT_TAG="${{ needs.build.outputs.image-tag }}"
+            IMAGE_PREFIX="${{ needs.build.outputs.image-prefix }}"
+
+            docker pull "${IMAGE_PREFIX}/backend:${CURRENT_TAG}"
+
+            export BACKEND_IMAGE_TAG=${CURRENT_TAG}
+
+            docker compose -f docker-compose.prod.yml -f docker-compose.staging.yml \
+              run --rm prestart-staging
+
+            docker compose -f docker-compose.prod.yml -f docker-compose.staging.yml \
+              up -d --no-deps --pull never backend-staging celery-worker-staging celery-beat-staging
+
+            if timeout 60 bash -c \
+              'until curl -sf http://localhost:8001/api/v1/utils/health-check/; do sleep 3; done'; then
+              echo "${CURRENT_TAG}" > .last-deployed-tag
+            else
+              echo "Staging backend unhealthy — rolling back to ${PREVIOUS_TAG}"
+              BACKEND_IMAGE_TAG=${PREVIOUS_TAG} \
+                docker compose -f docker-compose.prod.yml -f docker-compose.staging.yml \
+                  up -d --no-deps --pull missing backend-staging celery-worker-staging celery-beat-staging
+              exit 1
+            fi
+
+  # ── Job 3: Deploy frontend-staging to Vercel ───────────────────────────────
+  deploy-staging-frontend:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel staging
+        run: |
+          npx vercel deploy \
+            --project=$VERCEL_PROJECT_ID \
+            --scope=$VERCEL_ORG_ID \
+            --yes \
+            --build-env VITE_API_URL=${{ vars.STAGING_API_URL }} \
+            --build-env VITE_SENTRY_DSN=${{ vars.STAGING_FRONTEND_SENTRY_DSN }}
+        working-directory: frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_STAGING }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+  # ── Job 4: Smoke tests against staging ─────────────────────────────────────
+  smoke-tests:
+    needs: [deploy-staging-backend, deploy-staging-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backend health check
+        run: |
+          curl -sf https://api.staging.heimpath.com/api/v1/utils/health-check/ \
+            || (echo "Staging backend health check failed" && exit 1)
+
+      - name: Frontend reachability check
+        run: |
+          BODY=$(curl -sf https://staging.heimpath.com/) \
+            || (echo "Staging frontend unreachable" && exit 1)
+          echo "$BODY" | grep -qi "heimpath" \
+            || (echo "Staging frontend missing expected content" && exit 1)
+
+      - name: API smoke test
+        run: |
+          STATUS=$(curl -o /dev/null -sw "%{http_code}" \
+            https://api.staging.heimpath.com/api/v1/journeys/)
+          [[ "$STATUS" == "200" || "$STATUS" == "401" ]] \
+            || (echo "Unexpected status $STATUS from journeys API" && exit 1)
+
+  # ── Job 5: Manual approval gate ────────────────────────────────────────────
+  # "production" environment has required reviewers configured in GitHub.
+  # This job pauses until a reviewer approves in the GitHub Actions UI.
+  await-approval:
+    needs: smoke-tests
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - run: echo "Approved. Proceeding to production deploy."
+
+  # ── Job 6a: Deploy backend-prod to VPS via SSH ─────────────────────────────
+  deploy-prod-backend:
+    needs: [build, await-approval]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy backend-prod via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/heimpath
+
+            PREVIOUS_TAG=$(cat .last-prod-deployed-tag 2>/dev/null || echo "latest")
+            CURRENT_TAG="${{ needs.build.outputs.image-tag }}"
+            IMAGE_PREFIX="${{ needs.build.outputs.image-prefix }}"
+
+            docker pull "${IMAGE_PREFIX}/backend:${CURRENT_TAG}"
+
+            export BACKEND_IMAGE_TAG=${CURRENT_TAG}
+
+            docker compose -f docker-compose.prod.yml run --rm prestart
+
+            docker compose -f docker-compose.prod.yml \
+              up -d --no-deps --pull never backend celery-worker celery-beat
+
+            if timeout 60 bash -c \
+              'until curl -sf http://localhost:8000/api/v1/utils/health-check/; do sleep 3; done'; then
+              echo "${CURRENT_TAG}" > .last-prod-deployed-tag
+            else
+              echo "Prod backend unhealthy — rolling back to ${PREVIOUS_TAG}"
+              BACKEND_IMAGE_TAG=${PREVIOUS_TAG} \
+                docker compose -f docker-compose.prod.yml \
+                  up -d --no-deps --pull missing backend celery-worker celery-beat
+              exit 1
+            fi
+
+  # ── Job 6b: Promote frontend to production Vercel project ──────────────────
+  deploy-prod-frontend:
+    needs: [build, await-approval]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel production
+        run: |
+          npx vercel deploy \
+            --prod \
+            --project=$VERCEL_PROJECT_ID \
+            --scope=$VERCEL_ORG_ID \
+            --yes \
+            --build-env VITE_API_URL=${{ vars.PROD_API_URL }} \
+            --build-env VITE_SENTRY_DSN=${{ vars.PROD_FRONTEND_SENTRY_DSN }}
+        working-directory: frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PROD }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
