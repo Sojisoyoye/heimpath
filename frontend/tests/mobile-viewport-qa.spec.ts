@@ -3,18 +3,35 @@ import { expect, type Page, test } from "@playwright/test"
 // iPhone 16 viewport — matches the investigation script used to discover these bugs
 test.use({ viewport: { width: 393, height: 852 } })
 
-// Check every element's right edge against the viewport — works even when
-// overflow-x-hidden on a parent clips children without inflating scrollWidth.
-// Returns a description of the first offending element, or null when all clear.
+// Check every in-flow element's right edge against the viewport.
+// Works even when overflow-x-hidden on a parent clips children without
+// inflating scrollWidth. Skips elements inside position:fixed ancestors
+// (DevTools panels, toast containers, modals) — those are UI overlays,
+// not content-layout overflow. Returns a description of the first offending
+// element, or null when all in-flow content fits within the viewport.
 async function firstOverflow(page: Page): Promise<string | null> {
   return page.evaluate(() => {
     const w = window.innerWidth
+
+    function hasFixedAncestor(el: Element): boolean {
+      let node = el.parentElement
+      while (node) {
+        if (window.getComputedStyle(node).position === "fixed") return true
+        node = node.parentElement
+      }
+      return false
+    }
+
     for (const el of document.querySelectorAll("*")) {
-      if (el.getBoundingClientRect().right > w + 1) {
+      const pos = window.getComputedStyle(el).position
+      if (pos === "fixed") continue // skip fixed overlays themselves
+      const rect = el.getBoundingClientRect()
+      if (rect.right > w + 1) {
+        if (hasFixedAncestor(el)) continue // skip children of fixed overlays
         const tag = el.tagName.toLowerCase()
         const cls = [...el.classList].slice(0, 3).join(".")
         const id = el.id ? `#${el.id}` : ""
-        return `<${tag}${id}${cls ? `.${cls}` : ""}> right=${Math.round(el.getBoundingClientRect().right)}px > ${w}px`
+        return `<${tag}${id}${cls ? `.${cls}` : ""}> right=${Math.round(rect.right)}px > ${w}px`
       }
     }
     return null
