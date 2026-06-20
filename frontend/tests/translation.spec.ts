@@ -22,8 +22,10 @@ const FIXTURE_PDF = path.join(__dirname, "fixtures/kaufvertrag-sample.pdf")
 
 // Slow motion makes the translation process visible — each action
 // pauses briefly so you can watch the UI update live.
+// Slow motion makes the translation process visible when running headed locally.
+// Disabled in CI where no human is watching.
 test.use({
-  launchOptions: { slowMo: 400 },
+  launchOptions: { slowMo: process.env.CI ? 0 : 400 },
 })
 
 test(

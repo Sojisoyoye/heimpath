@@ -156,4 +156,9 @@ def retry_failed_notifications() -> int:
 
     Scheduled every 10 minutes via :data:`app.worker.celery_app` beat schedule.
     """
-    return asyncio.run(_retry_failed_notifications_async())
+
+    async def _run() -> int:
+        await async_engine.dispose()
+        return await _retry_failed_notifications_async()
+
+    return asyncio.run(_run())
