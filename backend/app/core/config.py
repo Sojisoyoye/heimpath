@@ -163,6 +163,10 @@ class Settings(BaseSettings):
     def translator_enabled(self) -> bool:
         return bool(self.AZURE_TRANSLATOR_KEY)
 
+    # GrowthOS integration
+    GROWTHOS_API_URL: str | None = None
+    GROWTHOS_WEBHOOK_SECRET: str | None = None
+
     # Anthropic (Claude) configuration for AI analysis
     ANTHROPIC_API_KEY: str | None = None
     ANTHROPIC_MODEL: str = "claude-sonnet-4-20250514"

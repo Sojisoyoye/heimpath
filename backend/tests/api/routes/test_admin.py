@@ -184,3 +184,57 @@ class TestTriggerJob:
 
         assert response.status_code == 202
         mock_logger.warning.assert_called_once()
+
+
+class TestGrowthMetrics:
+    """GET /api/v1/admin/growth-metrics — GrowthOS dashboard metrics."""
+
+    def test_returns_valid_structure(
+        self, client: TestClient, superuser_token_headers: dict
+    ) -> None:
+        """Should return all expected metric fields."""
+        response = client.get(
+            f"{settings.API_V1_STR}/admin/growth-metrics",
+            headers=superuser_token_headers,
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert set(body.keys()) == {
+            "signups",
+            "signups_this_week",
+            "activation_rate",
+            "return_visit_rate",
+            "feedback_count",
+            "feedback_this_week",
+            "journeys_started",
+            "journeys_active",
+            "as_of",
+        }
+
+    def test_all_counts_are_non_negative(
+        self, client: TestClient, superuser_token_headers: dict
+    ) -> None:
+        """All numeric metrics should be zero or positive."""
+        response = client.get(
+            f"{settings.API_V1_STR}/admin/growth-metrics",
+            headers=superuser_token_headers,
+        )
+
+        body = response.json()
+        for key in (
+            "signups",
+            "signups_this_week",
+            "feedback_count",
+            "feedback_this_week",
+            "journeys_started",
+            "journeys_active",
+        ):
+            assert body[key] >= 0, f"{key} must be >= 0"
+        assert 0.0 <= body["activation_rate"] <= 100.0
+        assert 0.0 <= body["return_visit_rate"] <= 100.0
+
+    def test_requires_superuser_authentication(self, client: TestClient) -> None:
+        """Should return 401 without authentication."""
+        response = client.get(f"{settings.API_V1_STR}/admin/growth-metrics")
+        assert response.status_code == 401

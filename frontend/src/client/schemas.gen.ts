@@ -3471,6 +3471,51 @@ export const GlossaryTermUpdateSchema = {
     description: 'Request schema for updating a glossary term. All fields optional.'
 } as const;
 
+export const GrowthMetricsResponseSchema = {
+    properties: {
+        signups: {
+            type: 'integer',
+            title: 'Signups'
+        },
+        signups_this_week: {
+            type: 'integer',
+            title: 'Signups This Week'
+        },
+        activation_rate: {
+            type: 'number',
+            title: 'Activation Rate'
+        },
+        return_visit_rate: {
+            type: 'number',
+            title: 'Return Visit Rate'
+        },
+        feedback_count: {
+            type: 'integer',
+            title: 'Feedback Count'
+        },
+        feedback_this_week: {
+            type: 'integer',
+            title: 'Feedback This Week'
+        },
+        journeys_started: {
+            type: 'integer',
+            title: 'Journeys Started'
+        },
+        journeys_active: {
+            type: 'integer',
+            title: 'Journeys Active'
+        },
+        as_of: {
+            type: 'string',
+            title: 'As Of'
+        }
+    },
+    type: 'object',
+    required: ['signups', 'signups_this_week', 'activation_rate', 'return_visit_rate', 'feedback_count', 'feedback_this_week', 'journeys_started', 'journeys_active', 'as_of'],
+    title: 'GrowthMetricsResponse',
+    description: 'Real-time growth metrics for the GrowthOS dashboard.'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
