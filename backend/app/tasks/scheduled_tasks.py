@@ -12,7 +12,7 @@ import logging
 import sentry_sdk
 from sqlmodel import Session
 
-from app.core.database import AsyncSessionLocal
+from app.core.database import AsyncSessionLocal, async_engine
 from app.core.db import engine
 from app.services.document_service import mark_stuck_documents_failed
 from app.services.portfolio_service import generate_recurring_transactions
@@ -68,8 +68,13 @@ def cleanup_stuck_documents_task() -> int:
     Returns:
         Number of documents marked as failed (0 on error or nothing to do).
     """
+
+    async def _run() -> int:
+        await async_engine.dispose()
+        return await _cleanup_stuck_documents_async()
+
     try:
-        count = asyncio.run(_cleanup_stuck_documents_async())
+        count = asyncio.run(_run())
         if count:
             logger.info("Stuck document cleanup: marked %d as failed", count)
         return count
