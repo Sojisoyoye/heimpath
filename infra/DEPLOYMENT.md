@@ -283,3 +283,73 @@ This is set automatically when `ENVIRONMENT != "local"`.
 - Caddy handles TLS certificate provisioning automatically via Let's Encrypt
 - The `logged_in` cookie is intentionally non-HttpOnly (UI indicator only — contains no sensitive data)
 - Avatar files are served from the backend without authentication; they are keyed by UUID only
+
+---
+
+## Azure Teardown Runbook
+
+Azure Container Apps, Redis, Key Vaults, and related resources have been decommissioned.
+The Terraform config in `infra/terraform/` has been emptied of resource blocks.
+Run the steps below **once** to destroy any remaining Azure resources and clean up.
+
+### Prerequisites
+
+Export the Azure service principal credentials from the `AZURE_CREDENTIALS` GitHub secret
+(JSON with `clientId`, `clientSecret`, `subscriptionId`, `tenantId`):
+
+```bash
+export ARM_CLIENT_ID="<clientId>"
+export ARM_CLIENT_SECRET="<clientSecret>"
+export ARM_SUBSCRIPTION_ID="<subscriptionId>"
+export ARM_TENANT_ID="<tenantId>"
+```
+
+### Step 1 — Migrate state from Azure blob to local
+
+```bash
+cd infra/terraform
+terraform init -migrate-state
+# Confirm "yes" when prompted to copy state to local backend
+```
+
+State is now stored in `infra/terraform/terraform.tfstate` (do not commit this file).
+
+### Step 2 — Destroy all Azure resources
+
+```bash
+terraform apply
+# Review the destroy plan — all resources should show as "will be destroyed"
+# Confirm "yes"
+```
+
+Key Vault `kv-heimpath-prod` has `purge_protection_enabled = true` with a 30-day retention.
+After it is soft-deleted by `terraform apply`, purge it manually to fully remove it:
+
+```bash
+az keyvault purge --name kv-heimpath-prod --location germanywestcentral
+```
+
+### Step 3 — Delete the tfstate storage account
+
+The `heimpathtfstate` storage account was bootstrapped outside Terraform and is not in state.
+Delete it manually after the apply succeeds:
+
+```bash
+az group delete --name rg-heimpath-tfstate --yes --no-wait
+```
+
+### Step 4 — Remove AZURE_CREDENTIALS GitHub secret
+
+```bash
+gh secret delete AZURE_CREDENTIALS --repo Sojisoyoye/heimpath
+```
+
+### Step 5 — Delete the terraform directory
+
+Once all Azure resources are confirmed destroyed:
+
+```bash
+rm -rf infra/terraform/
+```
+
+Then open a PR removing the `infra/terraform/` directory from the repository.
