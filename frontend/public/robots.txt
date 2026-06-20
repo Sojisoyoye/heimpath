@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
-Allow: /tools/
 
+# Auth-protected app routes
 Disallow: /dashboard
 Disallow: /settings
 Disallow: /admin
@@ -9,14 +9,9 @@ Disallow: /calculators
 Disallow: /documents
 Disallow: /journeys
 Disallow: /portfolio
-Disallow: /articles
 Disallow: /search
-Disallow: /laws
-Disallow: /mortgage-guide
-Disallow: /bank-account-guide
 Disallow: /notifications
 Disallow: /professionals
-Disallow: /glossary
 Disallow: /contract-explainer
 
 Sitemap: https://heimpath.com/sitemap.xml

@@ -23,6 +23,14 @@ const ROUTES = [
   "/imprint",
   "/privacy",
   "/terms",
+  // Public content pages — high SEO value, pre-rendered for Google indexing
+  // _layout is a pathless layout route; URL paths don't include it
+  "/mortgage-guide",
+  "/glossary",
+  "/laws",
+  "/articles",
+  "/bank-account-guide",
+  "/pricing",
 ]
 
 for (const url of ROUTES) {

@@ -40,26 +40,30 @@ function HeroSection() {
             variant="secondary"
             className="mb-6 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-backwards motion-reduce:animate-none"
           >
-            Your German Property Journey Starts Here
+            Stop Renting. Start Building German Equity.
           </Badge>
 
           <h1 className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards text-4xl font-bold tracking-tight delay-100 duration-500 motion-reduce:animate-none md:text-5xl lg:text-6xl">
-            Navigate German Real Estate{" "}
-            <span className="text-blue-600">with Confidence</span>
+            Own German Property.{" "}
+            <span className="text-blue-600">Build Real Wealth.</span>
           </h1>
 
           <p className="mt-6 max-w-xl animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards text-lg text-muted-foreground delay-200 duration-500 motion-reduce:animate-none">
-            HeimPath guides foreign investors and immigrants through every step
-            of buying property in Germany — from first research to portfolio
-            management, in a language you understand.
+            Join investors who've tracked €2.3M in European property deals —
+            start in 2 minutes.
           </p>
 
-          <div className="mt-8 flex animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards flex-wrap gap-4 delay-300 duration-500 motion-reduce:animate-none">
-            <Button size="lg" asChild>
-              <Link to="/signup">Start Your Journey</Link>
-            </Button>
+          <div className="mt-8 flex animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards flex-col items-center gap-4 delay-300 duration-500 motion-reduce:animate-none sm:flex-row sm:items-start">
+            <div className="flex flex-col items-center gap-1.5 sm:items-start">
+              <Button size="lg" asChild>
+                <Link to="/signup">Start My Journey</Link>
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Free · No credit card · Takes 2 minutes
+              </span>
+            </div>
             <Button size="lg" variant="outline" asChild>
-              <a href="#features">Learn More</a>
+              <a href="#features">See How It Works</a>
             </Button>
           </div>
         </div>

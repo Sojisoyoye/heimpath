@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react"
 import { AdvantagesSection } from "./AdvantagesSection"
+import { ComparisonTable } from "./ComparisonTable"
 import { CtaSection } from "./CtaSection"
 import { FeaturesSection } from "./FeaturesSection"
 import { FreeToolsSection } from "./FreeToolsSection"
@@ -8,6 +9,7 @@ import { HowItWorksSection } from "./HowItWorksSection"
 import { LandingFooter } from "./LandingFooter"
 import { LandingHeader } from "./LandingHeader"
 import { PropertyEvaluationCtaSection } from "./PropertyEvaluationCtaSection"
+import { TestimonialsSection } from "./TestimonialsSection"
 
 // Lazy-loaded so jsPDF and the calculator's auth-aware hooks are excluded from
 // the homepage's SSG/SSR render (Suspense renders the fallback during
@@ -35,6 +37,8 @@ function LandingPage() {
           <HomepageCalculatorSection />
         </Suspense>
         <FeaturesSection />
+        <ComparisonTable />
+        <TestimonialsSection />
         <PropertyEvaluationCtaSection />
         <HowItWorksSection />
         <FreeToolsSection />

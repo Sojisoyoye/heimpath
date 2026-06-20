@@ -58,19 +58,19 @@ const PERSONAS: ReadonlyArray<{
     id: "explorer",
     label: "Explorer",
     description:
-      "Researching German property from abroad — just getting started",
+      "Researching from abroad — doing the rent-vs-buy math before committing",
     icon: Compass,
   },
   {
     id: "settler",
     label: "Settler",
-    description: "Already in Germany, ready to buy my first property",
+    description: "Living in Germany — ready to turn my rent cheque into equity",
     icon: Building2,
   },
   {
     id: "investor",
     label: "Investor",
-    description: "Looking to invest in German real estate for returns",
+    description: "Building a German property portfolio for long-term returns",
     icon: TrendingUp,
   },
 ]
@@ -146,15 +146,15 @@ const PRIORITY_CONFIG: Record<
 }
 
 const STEP_TITLES = [
-  "What best describes your situation?",
-  "What's your top priority right now?",
-  "Here's your recommended first step",
+  "Your German Property Portfolio Starts Here",
+  "What's your most urgent next step?",
+  "Here's where to start building equity",
 ] as const
 
 const STEP_DESCRIPTIONS = [
-  "This helps us personalise your experience.",
-  "We'll point you to the best starting point.",
-  "You can always explore other features from the dashboard.",
+  "We'll walk you through your first deal — step by step, cost by cost.",
+  "We'll point you to the fastest first win.",
+  "You can explore the full toolkit from your dashboard.",
 ] as const
 
 /******************************************************************************
@@ -398,7 +398,7 @@ function OnboardingWizard(props: Readonly<IProps>) {
               </Button>
             ) : (
               <Button size="sm" onClick={handleGoToAction}>
-                Let's Go
+                Add My First Property
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             )}
