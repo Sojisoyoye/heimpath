@@ -9,7 +9,7 @@ import sentry_sdk
 from sqlalchemy import select
 from sqlmodel import Session as SyncSession
 
-from app.core.database import AsyncSessionLocal
+from app.core.database import AsyncSessionLocal, async_engine
 from app.core.db import engine as sync_engine
 from app.models.document import Document, DocumentStatus
 from app.models.notification import NotificationType
@@ -40,13 +40,18 @@ def process_document_task(self, document_id_str: str) -> None:  # type: ignore[m
     the default prefork pool. Do NOT switch to the gevent or eventlet pool — both
     conflict with asyncio.run().
     """
-    try:
-        asyncio.run(
-            document_service.process_document(
-                document_id=uuid.UUID(document_id_str),
-                session_factory=AsyncSessionLocal,
-            )
+
+    async def _run() -> None:
+        # Dispose stale asyncpg connections from prior asyncio.run() loops
+        # before creating new sessions in the current event loop.
+        await async_engine.dispose()
+        await document_service.process_document(
+            document_id=uuid.UUID(document_id_str),
+            session_factory=AsyncSessionLocal,
         )
+
+    try:
+        asyncio.run(_run())
     except _NON_RETRYABLE as exc:
         # Non-transient errors (bad UUID, programming mistake) — do not retry.
         logger.error("Non-retryable error in process_document_task: %s", exc)
