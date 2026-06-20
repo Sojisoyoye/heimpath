@@ -2,7 +2,7 @@
 
 Three named retry strategies protect the three external integrations:
 - stripe_retry       — Stripe API (sync, 3 attempts)
-- translator_retry   — Azure Translator API (sync/async, 3 attempts)
+- translator_retry   — Translation API via Claude (sync/async, 3 attempts)
 - anthropic_retry    — Anthropic Claude API (sync/async, 2 attempts)
 
 Usage::
@@ -56,14 +56,18 @@ def _is_transient_stripe_error(exc: BaseException) -> bool:
 
 
 def _is_transient_translator_error(exc: BaseException) -> bool:
-    """Return True for Azure Translator errors that are safe to retry.
+    """Return True for translation errors that are safe to retry.
 
     Uses a lazy import of TranslationError to avoid a circular dependency
     with translation_service.
     """
-    import aiohttp  # noqa: PLC0415 — intentional lazy import
-
-    if isinstance(exc, aiohttp.ClientConnectionError):
+    if isinstance(
+        exc,
+        (
+            anthropic.APIConnectionError,
+            anthropic.APITimeoutError,
+        ),
+    ):
         return True
 
     # Lazy import to avoid circular dependency

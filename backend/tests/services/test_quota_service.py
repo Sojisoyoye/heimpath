@@ -199,8 +199,8 @@ class TestRecordUsage:
 
         # Seed so that after recording we cross the 80% threshold.
         alert_limit = int(
-            settings.AZURE_TRANSLATOR_QUOTA_LIMIT
-            * settings.AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD
+            settings.TRANSLATION_QUOTA_LIMIT
+            * settings.TRANSLATION_QUOTA_ALERT_THRESHOLD
         )
         r = _make_redis(initial_value=alert_limit - 1, key=_monthly_key())
         with (
@@ -263,7 +263,7 @@ class TestGetUsageStats:
         stats = quota_service.get_usage_stats()
 
         assert stats["characters_used"] == 950_000
-        assert stats["quota_limit"] == settings.AZURE_TRANSLATOR_QUOTA_LIMIT
+        assert stats["quota_limit"] == settings.TRANSLATION_QUOTA_LIMIT
         assert stats["quota_reached"] is False
         assert stats["alert_active"] is False
 
@@ -274,7 +274,7 @@ class TestGetUsageStats:
         monkeypatch.setattr(
             quota_service,
             "get_current_usage",
-            lambda: settings.AZURE_TRANSLATOR_QUOTA_LIMIT,
+            lambda: settings.TRANSLATION_QUOTA_LIMIT,
         )
         stats = quota_service.get_usage_stats()
         assert stats["quota_reached"] is True
@@ -284,8 +284,8 @@ class TestGetUsageStats:
         from app.services import quota_service
 
         alert_limit = int(
-            settings.AZURE_TRANSLATOR_QUOTA_LIMIT
-            * settings.AZURE_TRANSLATOR_QUOTA_ALERT_THRESHOLD
+            settings.TRANSLATION_QUOTA_LIMIT
+            * settings.TRANSLATION_QUOTA_ALERT_THRESHOLD
         )
         monkeypatch.setattr(quota_service, "get_current_usage", lambda: alert_limit)
         stats = quota_service.get_usage_stats()

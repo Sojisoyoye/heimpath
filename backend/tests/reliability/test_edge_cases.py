@@ -16,18 +16,19 @@ from app.schemas.translation import SupportedLanguage
 
 
 class TestTranslationEdgeCases:
-    """Edge cases for the Azure Translator service."""
+    """Edge cases for the Claude translation service."""
 
     @pytest.mark.asyncio
     async def test_batch_translate_single_item_works(self) -> None:
         """Batch with one text returns exactly one result."""
         from app.services.translation_service import TranslationService
 
-        service = TranslationService(api_key="test-key", region="westeurope")
+        service = TranslationService(api_key="test-key")
         mock_response = [
             {
-                "translations": [{"text": "purchase agreement"}],
-                "detectedLanguage": {"language": "de", "score": 0.95},
+                "translated_text": "purchase agreement",
+                "detected_language": "de",
+                "confidence": 0.95,
             }
         ]
         with patch.object(
@@ -59,21 +60,12 @@ class TestTranslationEdgeCases:
             TranslationService,
         )
 
-        service = TranslationService(api_key="test-key", region="westeurope")
+        service = TranslationService(api_key="test-key")
         # 3 results for 5 inputs — deliberate mismatch
         mock_response = [
-            {
-                "translations": [{"text": "one"}],
-                "detectedLanguage": {"language": "de", "score": 0.9},
-            },
-            {
-                "translations": [{"text": "two"}],
-                "detectedLanguage": {"language": "de", "score": 0.9},
-            },
-            {
-                "translations": [{"text": "three"}],
-                "detectedLanguage": {"language": "de", "score": 0.9},
-            },
+            {"translated_text": "one", "detected_language": "de", "confidence": 0.9},
+            {"translated_text": "two", "detected_language": "de", "confidence": 0.9},
+            {"translated_text": "three", "detected_language": "de", "confidence": 0.9},
         ]
         with patch.object(
             service,
@@ -96,16 +88,10 @@ class TestTranslationEdgeCases:
             TranslationService,
         )
 
-        service = TranslationService(api_key="test-key", region="westeurope")
+        service = TranslationService(api_key="test-key")
         mock_response = [
-            {
-                "translations": [{"text": "one"}],
-                "detectedLanguage": {"language": "de", "score": 0.9},
-            },
-            {
-                "translations": [{"text": "two"}],
-                "detectedLanguage": {"language": "de", "score": 0.9},
-            },
+            {"translated_text": "one", "detected_language": "de", "confidence": 0.9},
+            {"translated_text": "two", "detected_language": "de", "confidence": 0.9},
         ]
         with patch.object(
             service,
@@ -125,13 +111,12 @@ class TestTranslationEdgeCases:
         """Ordinary text with no German legal vocabulary produces no legal warnings."""
         from app.services.translation_service import TranslationService
 
-        service = TranslationService(api_key="test-key", region="westeurope")
-        mock_response = [
-            {
-                "translations": [{"text": "The house is red."}],
-                "detectedLanguage": {"language": "de", "score": 0.99},
-            }
-        ]
+        service = TranslationService(api_key="test-key")
+        mock_response = {
+            "translated_text": "The house is red.",
+            "detected_language": "de",
+            "confidence": 0.99,
+        }
         with patch.object(
             service, "_make_request", new_callable=AsyncMock, return_value=mock_response
         ):

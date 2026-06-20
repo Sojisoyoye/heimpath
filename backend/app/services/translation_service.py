@@ -1,17 +1,17 @@
-"""Azure Translator Service.
+"""Claude-based translation service for German real estate documents.
 
-Provides document translation for German real estate documents using
-Microsoft Azure Translator API (free tier: 2M chars/month).
+Provides document translation using the Anthropic Claude API (claude-haiku).
+Includes legal term detection and risk warnings for terms requiring
+professional review.
 """
 
-import asyncio
 import logging
 import re
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
-import aiohttp
+import anthropic
 import pybreaker
 
 from app.core.circuit_breakers import async_call as _breaker_async_call
@@ -31,15 +31,85 @@ from app.schemas.translation import (
 
 logger = logging.getLogger(__name__)
 
-# Shared ClientTimeout for all Azure Translator calls.
-# connect: max time to establish the TCP+TLS connection.
-# sock_read: max time to receive data once connected.
-# total: overall hard cap per request.
-_TRANSLATION_TIMEOUT = aiohttp.ClientTimeout(
-    total=settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS,
-    connect=10,
-    sock_read=50,
+_SYSTEM_PROMPT = (
+    "You are a professional translator specialising in German real estate and legal documents. "
+    "Translate accurately and formally, preserving the legal meaning of all terms. "
+    "Always call the provided tool with your output — never reply in plain text."
 )
+
+_TRANSLATE_TOOL: dict[str, Any] = {
+    "name": "translation_result",
+    "description": "Return the translation result",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "translated_text": {"type": "string"},
+            "detected_language": {
+                "type": "string",
+                "description": "ISO 639-1 language code of the source text",
+            },
+            "confidence": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0,
+                "description": "Self-assessed translation confidence (0–1)",
+            },
+        },
+        "required": ["translated_text", "detected_language", "confidence"],
+    },
+}
+
+_BATCH_TRANSLATE_TOOL: dict[str, Any] = {
+    "name": "batch_translation_result",
+    "description": "Return all translation results in order, one per input text",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "translations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "translated_text": {"type": "string"},
+                        "detected_language": {"type": "string"},
+                        "confidence": {
+                            "type": "number",
+                            "minimum": 0.0,
+                            "maximum": 1.0,
+                        },
+                    },
+                    "required": [
+                        "translated_text",
+                        "detected_language",
+                        "confidence",
+                    ],
+                },
+            }
+        },
+        "required": ["translations"],
+    },
+}
+
+_DETECT_TOOL: dict[str, Any] = {
+    "name": "language_detection_result",
+    "description": "Return the language detection result",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "language": {
+                "type": "string",
+                "description": "ISO 639-1 language code",
+            },
+            "confidence": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0,
+            },
+            "is_translation_supported": {"type": "boolean"},
+        },
+        "required": ["language", "confidence", "is_translation_supported"],
+    },
+}
 
 
 class TranslationError(Exception):
@@ -207,77 +277,43 @@ class TranslationResult:
 
 
 class TranslationService:
-    """Azure Translator Service.
+    """Claude-based translation service for German real estate documents.
 
-    Handles document translation for German real estate documents using
-    Microsoft Azure Translator API. Includes legal term detection and
-    risk warnings for terms requiring professional review.
+    Uses the Anthropic Claude API with structured tool use to translate
+    German real estate and legal documents. Includes legal term detection
+    and risk warnings for terms requiring professional review.
 
     Attributes:
-        _api_key: Azure Translator API key.
-        _region: Azure service region.
-        _endpoint: Azure Translator API endpoint.
+        _client: Anthropic async client instance.
     """
 
-    DEFAULT_ENDPOINT = "https://api.cognitive.microsofttranslator.com"
-
-    def __init__(
-        self,
-        api_key: str,
-        region: str,
-        endpoint: str | None = None,
-    ) -> None:
+    def __init__(self, api_key: str) -> None:
         """Initialize the translation service.
 
         Args:
-            api_key: Azure Translator API key.
-            region: Azure service region (e.g., 'westeurope').
-            endpoint: Azure Translator API endpoint (optional).
+            api_key: Anthropic API key.
         """
-        self._api_key = api_key
-        self._region = region
-        self._endpoint = endpoint or self.DEFAULT_ENDPOINT
+        self._client = anthropic.AsyncAnthropic(api_key=api_key)
 
-    def _get_headers(self) -> dict[str, str]:
-        """Get HTTP headers for Azure Translator API requests."""
-        return {
-            "Ocp-Apim-Subscription-Key": self._api_key,
-            "Ocp-Apim-Subscription-Region": self._region,
-            "Content-Type": "application/json",
-        }
+    def _extract_tool_input(
+        self, response: anthropic.types.Message, tool_name: str
+    ) -> dict[str, Any]:
+        """Extract structured input from a tool_use content block.
 
-    async def _post(
-        self,
-        url: str,
-        params: dict[str, str],
-        body: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
-        """POST to Azure Translator with the shared timeout; handle HTTP and timeout errors.
+        Args:
+            response: Claude API response message.
+            tool_name: Expected tool name to extract.
 
-        All three request methods delegate here so that the aiohttp session
-        management and timeout handling live in one place.
+        Returns:
+            Tool input dict.
 
         Raises:
-            TranslationError: On non-200 status or a connect/read timeout.
+            TranslationError: If no tool_use block is found in the response.
         """
-        try:
-            async with aiohttp.ClientSession(timeout=_TRANSLATION_TIMEOUT) as session:
-                async with session.post(
-                    url,
-                    headers=self._get_headers(),
-                    params=params,
-                    json=body,
-                ) as response:
-                    if response.status != 200:
-                        error_text = await response.text()
-                        raise TranslationError(
-                            f"Azure Translator API error (status {response.status}): {error_text}"
-                        )
-                    return await response.json()
-        except (asyncio.TimeoutError, aiohttp.ServerTimeoutError) as exc:
-            raise TranslationError(
-                f"Translation request timed out after {settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS}s"
-            ) from exc
+        for block in response.content:
+            if block.type == "tool_use" and block.name == tool_name:
+                return block.input  # type: ignore[return-value]
+        raise TranslationError(f"No '{tool_name}' tool_use block in Claude response")
 
     @translator_retry
     async def _make_request(
@@ -285,29 +321,38 @@ class TranslationService:
         text: str,
         source_language: str,
         target_language: str,
-    ) -> list[dict[str, Any]]:
-        """Make a translation request to Azure Translator API.
-
-        Args:
-            text: Text to translate.
-            source_language: Source language code.
-            target_language: Target language code.
+    ) -> dict[str, Any]:
+        """Translate a single text via Claude tool use.
 
         Returns:
-            API response as list of translation results.
+            Dict with keys: translated_text, detected_language, confidence.
 
         Raises:
-            TranslationError: If the API request fails.
+            TranslationError: On API error or missing tool_use block.
         """
-        return await self._post(
-            url=f"{self._endpoint}/translate",
-            params={
-                "api-version": "3.0",
-                "from": source_language,
-                "to": target_language,
-            },
-            body=[{"text": text}],
-        )
+        try:
+            response = await self._client.messages.create(
+                model=settings.TRANSLATION_MODEL,
+                max_tokens=4096,
+                system=_SYSTEM_PROMPT,
+                tools=[_TRANSLATE_TOOL],  # type: ignore[list-item]
+                tool_choice={"type": "tool", "name": "translation_result"},
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Translate the following text from {source_language} to {target_language}.\n\n"
+                            f"Text:\n{text}"
+                        ),
+                    }
+                ],
+            )
+            return self._extract_tool_input(response, "translation_result")
+        except (anthropic.APIConnectionError, anthropic.APITimeoutError):
+            # Propagate raw so @translator_retry can match and retry these.
+            raise
+        except anthropic.APIError as exc:
+            raise TranslationError(f"Translation API error: {exc}") from exc
 
     @translator_retry
     async def _make_batch_request(
@@ -316,46 +361,68 @@ class TranslationService:
         source_language: str,
         target_language: str,
     ) -> list[dict[str, Any]]:
-        """Make a batch translation request to Azure Translator API.
-
-        Args:
-            texts: List of texts to translate.
-            source_language: Source language code.
-            target_language: Target language code.
+        """Translate multiple texts in a single Claude call via tool use.
 
         Returns:
-            API response as list of translation results.
+            List of dicts each with: translated_text, detected_language, confidence.
 
         Raises:
-            TranslationError: If the API request fails.
+            TranslationError: On API error or missing tool_use block.
         """
-        return await self._post(
-            url=f"{self._endpoint}/translate",
-            params={
-                "api-version": "3.0",
-                "from": source_language,
-                "to": target_language,
-            },
-            body=[{"text": t} for t in texts],
-        )
+        numbered = "\n\n".join(f"{i + 1}. {t}" for i, t in enumerate(texts))
+        try:
+            response = await self._client.messages.create(
+                model=settings.TRANSLATION_MODEL,
+                max_tokens=8192,
+                system=_SYSTEM_PROMPT,
+                tools=[_BATCH_TRANSLATE_TOOL],  # type: ignore[list-item]
+                tool_choice={"type": "tool", "name": "batch_translation_result"},
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Translate each of the following {len(texts)} texts from "
+                            f"{source_language} to {target_language}. "
+                            "Return translations in the same order.\n\n"
+                            f"{numbered}"
+                        ),
+                    }
+                ],
+            )
+            result = self._extract_tool_input(response, "batch_translation_result")
+            return result["translations"]
+        except (anthropic.APIConnectionError, anthropic.APITimeoutError):
+            # Propagate raw so @translator_retry can match and retry these.
+            raise
+        except anthropic.APIError as exc:
+            raise TranslationError(f"Batch translation API error: {exc}") from exc
 
-    async def _make_detect_request(self, text: str) -> list[dict[str, Any]]:
-        """Make a language detection request to Azure Translator API.
-
-        Args:
-            text: Text to detect language of.
+    async def _make_detect_request(self, text: str) -> dict[str, Any]:
+        """Detect the language of a text via Claude tool use.
 
         Returns:
-            API response as list of detection results.
+            Dict with keys: language, confidence, is_translation_supported.
 
         Raises:
-            TranslationError: If the API request fails.
+            TranslationError: On API error or missing tool_use block.
         """
-        return await self._post(
-            url=f"{self._endpoint}/detect",
-            params={"api-version": "3.0"},
-            body=[{"text": text}],
-        )
+        try:
+            response = await self._client.messages.create(
+                model=settings.TRANSLATION_MODEL,
+                max_tokens=256,
+                system=_SYSTEM_PROMPT,
+                tools=[_DETECT_TOOL],  # type: ignore[list-item]
+                tool_choice={"type": "tool", "name": "language_detection_result"},
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"Detect the language of this text:\n{text}",
+                    }
+                ],
+            )
+            return self._extract_tool_input(response, "language_detection_result")
+        except anthropic.APIError as exc:
+            raise TranslationError(f"Language detection API error: {exc}") from exc
 
     async def translate_text(
         self,
@@ -382,7 +449,7 @@ class TranslationService:
         check_quota(len(text))
 
         try:
-            response = await _breaker_async_call(
+            result = await _breaker_async_call(
                 translator_breaker,
                 self._make_request,
                 text=text,
@@ -390,29 +457,17 @@ class TranslationService:
                 target_language=target_language.value,
             )
 
-            if not response:
-                raise TranslationError("Empty response from translation API")
-
-            result = response[0]
-            translations = result.get("translations", [])
-            if not translations:
-                raise TranslationError("No translations in response")
-
-            detected = result.get("detectedLanguage", {})
-            confidence = detected.get("score", 1.0)
-            detected_lang = detected.get("language", source_language.value)
-
             record_usage(len(text))
 
             return TranslationResult(
                 original_text=text,
-                translated_text=translations[0]["text"],
-                source_language=detected_lang,
+                translated_text=result["translated_text"],
+                source_language=result.get("detected_language", source_language.value),
                 target_language=target_language.value,
-                confidence=confidence,
+                confidence=result.get("confidence", 1.0),
             )
         except pybreaker.CircuitBreakerError as e:
-            raise TranslationError("Azure Translator circuit breaker is open") from e
+            raise TranslationError("Translation service circuit breaker is open") from e
         except TranslationError:
             raise
         except Exception as e:
@@ -431,17 +486,12 @@ class TranslationService:
             TranslationError: If detection fails.
         """
         try:
-            response = await self._make_detect_request(text)
-
-            if not response:
-                raise TranslationError("Empty response from detection API")
-
-            result = response[0]
-            language = result.get("language", "unknown")
-            confidence = result.get("score", 0.0)
-            is_supported = result.get("isTranslationSupported", False)
-
-            return language, confidence, is_supported
+            result = await self._make_detect_request(text)
+            return (
+                result.get("language", "unknown"),
+                result.get("confidence", 0.0),
+                result.get("is_translation_supported", False),
+            )
         except TranslationError:
             raise
         except Exception as e:
@@ -551,8 +601,8 @@ class TranslationService:
             source_language: Source language.
             target_language: Target language.
             include_legal_warnings: Whether to include legal term warnings.
-            partial: If True, accept partial responses from Azure — texts with
-                no corresponding response entry are marked with
+            partial: If True, accept partial responses — texts with no
+                corresponding response entry are marked with
                 ``translated_text="translation_failed"`` and ``requires_review=True``.
                 If False (default), a count mismatch raises TranslationError.
 
@@ -574,9 +624,7 @@ class TranslationService:
         check_quota(total_char_count)
 
         try:
-            logger.debug(
-                "batch_translate: sending %d texts to Azure Translator", len(texts)
-            )
+            logger.debug("batch_translate: sending %d texts to Claude", len(texts))
             response = await _breaker_async_call(
                 translator_breaker,
                 self._make_batch_request,
@@ -603,22 +651,19 @@ class TranslationService:
                 )
 
             translations: list[TranslationResponse] = []
-            # actual_chars: chars sent to Azure and successfully returned (quota billing).
-            # total_chars: all chars including partial-response placeholders (response metadata).
             actual_chars = 0
             total_chars = 0
             total_warnings = 0
 
             for original_text, result in zip(texts, response, strict=False):
-                translated = result.get("translations", [{}])[0]
-                detected = result.get("detectedLanguage", {})
-
                 translation_result = TranslationResultSchema(
                     original_text=original_text,
-                    translated_text=translated.get("text", ""),
-                    source_language=detected.get("language", source_language.value),
+                    translated_text=result.get("translated_text", ""),
+                    source_language=result.get(
+                        "detected_language", source_language.value
+                    ),
                     target_language=target_language.value,
-                    confidence=detected.get("score", 1.0),
+                    confidence=result.get("confidence", 1.0),
                 )
 
                 legal_warnings: list[LegalTermWarning] = []
@@ -644,7 +689,7 @@ class TranslationService:
                     )
                 )
 
-            # Fill placeholders for any texts beyond the received response count.
+            # Fill placeholders for texts beyond the received response count.
             for missing_text in texts[len(response) :]:
                 char_count = len(missing_text)
                 total_chars += char_count
@@ -671,7 +716,7 @@ class TranslationService:
                 total_warnings=total_warnings,
             )
         except pybreaker.CircuitBreakerError as e:
-            raise TranslationError("Azure Translator circuit breaker is open") from e
+            raise TranslationError("Translation service circuit breaker is open") from e
         except TranslationError:
             raise
         except Exception as e:
@@ -687,14 +732,11 @@ def get_translation_service() -> TranslationService | None:
     """Get the translation service singleton.
 
     Returns:
-        TranslationService instance if Azure Translator is configured,
-        None otherwise.
+        TranslationService instance if Anthropic is configured, None otherwise.
     """
     global _translation_service
     if _translation_service is None and settings.translator_enabled:
         _translation_service = TranslationService(
-            api_key=settings.AZURE_TRANSLATOR_KEY or "",
-            region=settings.AZURE_TRANSLATOR_REGION,
-            endpoint=settings.AZURE_TRANSLATOR_ENDPOINT,
+            api_key=settings.ANTHROPIC_API_KEY or "",
         )
     return _translation_service

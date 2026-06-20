@@ -1,9 +1,8 @@
-"""Tests for the Translation Service."""
+"""Tests for the Translation Service (Claude-based)."""
 
-import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import aiohttp
+import anthropic
 import pytest
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_none
 
@@ -17,34 +16,97 @@ from app.services.translation_service import (
 )
 
 
+def _make_claude_response(
+    translated_text: str,
+    detected_language: str = "de",
+    confidence: float = 0.98,
+    tool_name: str = "translation_result",
+) -> MagicMock:
+    """Build a mock anthropic.Message with a single tool_use block."""
+    tool_block = MagicMock()
+    tool_block.type = "tool_use"
+    tool_block.name = tool_name
+    tool_block.input = {
+        "translated_text": translated_text,
+        "detected_language": detected_language,
+        "confidence": confidence,
+    }
+    msg = MagicMock()
+    msg.content = [tool_block]
+    return msg
+
+
+def _make_batch_claude_response(
+    translations: list[dict],
+) -> MagicMock:
+    """Build a mock anthropic.Message for a batch translation tool_use block."""
+    tool_block = MagicMock()
+    tool_block.type = "tool_use"
+    tool_block.name = "batch_translation_result"
+    tool_block.input = {"translations": translations}
+    msg = MagicMock()
+    msg.content = [tool_block]
+    return msg
+
+
+def _make_detect_claude_response(
+    language: str = "de",
+    confidence: float = 0.95,
+    is_supported: bool = True,
+) -> MagicMock:
+    """Build a mock anthropic.Message for a language detection tool_use block."""
+    tool_block = MagicMock()
+    tool_block.type = "tool_use"
+    tool_block.name = "language_detection_result"
+    tool_block.input = {
+        "language": language,
+        "confidence": confidence,
+        "is_translation_supported": is_supported,
+    }
+    msg = MagicMock()
+    msg.content = [tool_block]
+    return msg
+
+
 @pytest.fixture
 def translation_service() -> TranslationService:
     """Create a translation service instance for testing."""
-    return TranslationService(
-        api_key="test_api_key_12345",
-        region="westeurope",
-        endpoint="https://api.cognitive.microsofttranslator.com",
-    )
+    return TranslationService(api_key="test_api_key_12345")
 
 
 class TestTranslationServiceInit:
     """Tests for TranslationService initialization."""
 
-    def test_init_stores_configuration(self) -> None:
-        """Test that initialization stores the configuration."""
-        service = TranslationService(
-            api_key="test_key",
-            region="eastus",
-            endpoint="https://test.endpoint.com",
-        )
-        assert service._api_key == "test_key"
-        assert service._region == "eastus"
-        assert service._endpoint == "https://test.endpoint.com"
+    def test_init_creates_anthropic_client(self) -> None:
+        """Test that initialization creates an AsyncAnthropic client."""
+        service = TranslationService(api_key="test_key")
+        assert isinstance(service._client, anthropic.AsyncAnthropic)
 
-    def test_init_uses_default_endpoint(self) -> None:
-        """Test that default endpoint is used when not provided."""
-        service = TranslationService(api_key="test_key", region="westeurope")
-        assert service._endpoint == "https://api.cognitive.microsofttranslator.com"
+    def test_init_with_different_key(self) -> None:
+        """Test that a different API key produces a valid client."""
+        service = TranslationService(api_key="another_key")
+        assert isinstance(service._client, anthropic.AsyncAnthropic)
+
+
+class TestExtractToolInput:
+    """Tests for _extract_tool_input helper."""
+
+    def test_extracts_matching_tool(
+        self, translation_service: TranslationService
+    ) -> None:
+        """Returns the input dict when the tool name matches."""
+        response = _make_claude_response("Hello")
+        result = translation_service._extract_tool_input(response, "translation_result")
+        assert result["translated_text"] == "Hello"
+
+    def test_raises_when_no_matching_tool(
+        self, translation_service: TranslationService
+    ) -> None:
+        """Raises TranslationError when no matching tool_use block is present."""
+        msg = MagicMock()
+        msg.content = []
+        with pytest.raises(TranslationError, match="No 'translation_result'"):
+            translation_service._extract_tool_input(msg, "translation_result")
 
 
 class TestTranslateText:
@@ -55,18 +117,16 @@ class TestTranslateText:
         self, translation_service: TranslationService
     ) -> None:
         """Test successful text translation."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": "The purchase agreement", "to": "en"}],
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The purchase agreement",
+                "detected_language": "de",
+                "confidence": 0.98,
+            },
+        ):
             result = await translation_service.translate_text(
                 text="Der Kaufvertrag",
                 source_language=SupportedLanguage.GERMAN,
@@ -84,18 +144,16 @@ class TestTranslateText:
     async def test_translates_without_detected_language(
         self, translation_service: TranslationService
     ) -> None:
-        """Test translation when language detection is not returned."""
-        mock_response = [
-            {
-                "translations": [{"text": "The purchase agreement", "to": "en"}],
-            }
-        ]
-
+        """Test translation when detected_language is absent — falls back to source."""
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The purchase agreement",
+                "confidence": 1.0,
+            },
+        ):
             result = await translation_service.translate_text(
                 text="Der Kaufvertrag",
                 source_language=SupportedLanguage.GERMAN,
@@ -109,37 +167,179 @@ class TestTranslateText:
     async def test_raises_error_on_api_failure(
         self, translation_service: TranslationService
     ) -> None:
-        """Test TranslationError raised on API failure."""
+        """Test TranslationError raised on unexpected exception."""
         with patch.object(
             translation_service, "_make_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.side_effect = Exception("API error")
 
-            with pytest.raises(TranslationError) as exc_info:
+            with pytest.raises(TranslationError, match="Translation failed"):
                 await translation_service.translate_text(
                     text="Test text",
                     source_language=SupportedLanguage.GERMAN,
                     target_language=SupportedLanguage.ENGLISH,
                 )
-            assert "Translation failed" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_raises_error_on_empty_response(
+    async def test_re_raises_translation_error(
         self, translation_service: TranslationService
     ) -> None:
-        """Test TranslationError raised when response is empty."""
+        """TranslationError from _make_request propagates as-is."""
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = []
-
-            with pytest.raises(TranslationError) as exc_info:
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            side_effect=TranslationError("No tool_use block"),
+        ):
+            with pytest.raises(TranslationError):
                 await translation_service.translate_text(
                     text="Test text",
                     source_language=SupportedLanguage.GERMAN,
                     target_language=SupportedLanguage.ENGLISH,
                 )
-            assert "Empty response" in str(exc_info.value)
+
+
+class TestMakeRequest:
+    """Tests for _make_request low-level method."""
+
+    @pytest.mark.asyncio
+    async def test_returns_translation_dict(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_make_request returns the tool_use input dict on success."""
+        expected_response = _make_claude_response("Hello")
+        translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
+            return_value=expected_response
+        )
+        result = await translation_service._make_request(
+            text="Hallo",
+            source_language="de",
+            target_language="en",
+        )
+        assert result["translated_text"] == "Hello"
+        assert result["detected_language"] == "de"
+        assert result["confidence"] == 0.98
+
+    @pytest.mark.asyncio
+    async def test_raises_translation_error_on_non_retryable_api_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_make_request wraps non-retryable anthropic.APIError as TranslationError."""
+        translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
+            side_effect=anthropic.BadRequestError(
+                message="invalid request",
+                response=MagicMock(status_code=400, headers={}),
+                body=None,
+            )
+        )
+        with pytest.raises(TranslationError, match="Translation API error"):
+            await translation_service._make_request(
+                text="Hallo",
+                source_language="de",
+                target_language="en",
+            )
+
+    @pytest.mark.asyncio
+    async def test_raises_on_missing_tool_use_block(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_make_request raises TranslationError when response has no tool_use block."""
+        empty_msg = MagicMock()
+        empty_msg.content = []
+        translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
+            return_value=empty_msg
+        )
+        with pytest.raises(TranslationError, match="No 'translation_result'"):
+            await translation_service._make_request(
+                text="Hallo",
+                source_language="de",
+                target_language="en",
+            )
+
+
+class TestMakeBatchRequest:
+    """Tests for _make_batch_request low-level method."""
+
+    @pytest.mark.asyncio
+    async def test_returns_list_of_dicts(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_make_batch_request returns a list of translation dicts."""
+        batch_response = _make_batch_claude_response(
+            [
+                {
+                    "translated_text": "Hello",
+                    "detected_language": "de",
+                    "confidence": 0.98,
+                },
+                {
+                    "translated_text": "World",
+                    "detected_language": "de",
+                    "confidence": 0.97,
+                },
+            ]
+        )
+        translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
+            return_value=batch_response
+        )
+        result = await translation_service._make_batch_request(
+            texts=["Hallo", "Welt"],
+            source_language="de",
+            target_language="en",
+        )
+        assert len(result) == 2
+        assert result[0]["translated_text"] == "Hello"
+        assert result[1]["translated_text"] == "World"
+
+    @pytest.mark.asyncio
+    async def test_raises_on_non_retryable_api_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_make_batch_request wraps non-retryable anthropic.APIError as TranslationError."""
+        translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
+            side_effect=anthropic.BadRequestError(
+                message="invalid request",
+                response=MagicMock(status_code=400, headers={}),
+                body=None,
+            )
+        )
+        with pytest.raises(TranslationError, match="Batch translation API error"):
+            await translation_service._make_batch_request(
+                texts=["test"],
+                source_language="de",
+                target_language="en",
+            )
+
+
+class TestMakeDetectRequest:
+    """Tests for _make_detect_request low-level method."""
+
+    @pytest.mark.asyncio
+    async def test_returns_detection_dict(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_make_detect_request returns the detection dict."""
+        detect_response = _make_detect_claude_response(
+            language="de", confidence=0.99, is_supported=True
+        )
+        translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
+            return_value=detect_response
+        )
+        result = await translation_service._make_detect_request(text="Kaufvertrag")
+        assert result["language"] == "de"
+        assert result["confidence"] == 0.99
+        assert result["is_translation_supported"] is True
+
+    @pytest.mark.asyncio
+    async def test_raises_on_api_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """_make_detect_request wraps anthropic.APIError as TranslationError."""
+        translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
+            side_effect=anthropic.APIConnectionError(request=MagicMock())
+        )
+        with pytest.raises(TranslationError, match="Language detection API error"):
+            await translation_service._make_detect_request(text="Kaufvertrag")
 
 
 class TestDetectLanguage:
@@ -150,20 +350,16 @@ class TestDetectLanguage:
         self, translation_service: TranslationService
     ) -> None:
         """Test successful language detection."""
-        mock_response = [
-            {
-                "language": "de",
-                "score": 0.95,
-                "isTranslationSupported": True,
-                "isTransliterationSupported": False,
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_detect_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_detect_request",
+            new_callable=AsyncMock,
+            return_value={
+                "language": "de",
+                "confidence": 0.95,
+                "is_translation_supported": True,
+            },
+        ):
             (
                 language,
                 confidence,
@@ -181,20 +377,16 @@ class TestDetectLanguage:
         self, translation_service: TranslationService
     ) -> None:
         """Test detection of unsupported language."""
-        mock_response = [
-            {
-                "language": "xx",
-                "score": 0.5,
-                "isTranslationSupported": False,
-                "isTransliterationSupported": False,
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_detect_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_detect_request",
+            new_callable=AsyncMock,
+            return_value={
+                "language": "xx",
+                "confidence": 0.5,
+                "is_translation_supported": False,
+            },
+        ):
             (
                 language,
                 confidence,
@@ -235,13 +427,11 @@ class TestLegalTermDetection:
         self, translation_service: TranslationService
     ) -> None:
         """Test that risk levels are assigned correctly."""
-        # High risk: legal contracts
         text_high = "Kaufvertrag und Grundbuch"
         warnings_high = translation_service.detect_legal_terms(text_high)
         high_risk_terms = [w for w in warnings_high if w.risk_level == RiskLevel.HIGH]
         assert len(high_risk_terms) >= 1
 
-        # Medium risk: financial terms
         text_medium = "Grunderwerbsteuer und Maklerprovision"
         warnings_medium = translation_service.detect_legal_terms(text_medium)
         assert len(warnings_medium) >= 1
@@ -255,20 +445,16 @@ class TestTranslateWithWarnings:
         self, translation_service: TranslationService
     ) -> None:
         """Test translation includes legal warnings."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [
-                    {"text": "The purchase agreement must be notarized.", "to": "en"}
-                ],
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The purchase agreement must be notarized.",
+                "detected_language": "de",
+                "confidence": 0.98,
+            },
+        ):
             result = await translation_service.translate_with_warnings(
                 text="Der Kaufvertrag muss notariell beurkundet werden.",
                 source_language=SupportedLanguage.GERMAN,
@@ -286,18 +472,16 @@ class TestTranslateWithWarnings:
         self, translation_service: TranslationService
     ) -> None:
         """Test requires_review is True when high risk terms present."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": "The land register", "to": "en"}],
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The land register",
+                "detected_language": "de",
+                "confidence": 0.98,
+            },
+        ):
             result = await translation_service.translate_with_warnings(
                 text="Das Grundbuch",
                 source_language=SupportedLanguage.GERMAN,
@@ -311,18 +495,16 @@ class TestTranslateWithWarnings:
         self, translation_service: TranslationService
     ) -> None:
         """Test legal warnings skipped when include_legal_warnings is False."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": "The purchase agreement", "to": "en"}],
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The purchase agreement",
+                "detected_language": "de",
+                "confidence": 0.98,
+            },
+        ):
             result = await translation_service.translate_with_warnings(
                 text="Der Kaufvertrag",
                 source_language=SupportedLanguage.GERMAN,
@@ -342,22 +524,23 @@ class TestBatchTranslation:
         self, translation_service: TranslationService
     ) -> None:
         """Test batch translation of multiple texts."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": "The purchase agreement", "to": "en"}],
-            },
-            {
-                "detectedLanguage": {"language": "de", "score": 0.97},
-                "translations": [{"text": "The property tax", "to": "en"}],
-            },
-        ]
-
         with patch.object(
-            translation_service, "_make_batch_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_batch_request",
+            new_callable=AsyncMock,
+            return_value=[
+                {
+                    "translated_text": "The purchase agreement",
+                    "detected_language": "de",
+                    "confidence": 0.98,
+                },
+                {
+                    "translated_text": "The property tax",
+                    "detected_language": "de",
+                    "confidence": 0.97,
+                },
+            ],
+        ):
             result = await translation_service.batch_translate(
                 texts=["Der Kaufvertrag", "Die Grunderwerbsteuer"],
                 source_language=SupportedLanguage.GERMAN,
@@ -376,7 +559,6 @@ class TestGetTranslationService:
         with patch("app.services.translation_service.settings") as mock_settings:
             mock_settings.translator_enabled = False
 
-            # Clear any cached service
             import app.services.translation_service as ts_module
 
             ts_module._translation_service = None
@@ -390,11 +572,8 @@ class TestGetTranslationService:
         """Test service returned when properly configured."""
         with patch("app.services.translation_service.settings") as mock_settings:
             mock_settings.translator_enabled = True
-            mock_settings.AZURE_TRANSLATOR_KEY = "test_key"
-            mock_settings.AZURE_TRANSLATOR_REGION = "westeurope"
-            mock_settings.AZURE_TRANSLATOR_ENDPOINT = "https://api.test.com"
+            mock_settings.ANTHROPIC_API_KEY = "test_key"
 
-            # Clear any cached service
             import app.services.translation_service as ts_module
 
             ts_module._translation_service = None
@@ -414,18 +593,16 @@ class TestCharacterCounting:
         self, translation_service: TranslationService
     ) -> None:
         """Test character count is accurate."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": "The purchase agreement", "to": "en"}],
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The purchase agreement",
+                "detected_language": "de",
+                "confidence": 0.98,
+            },
+        ):
             result = await translation_service.translate_with_warnings(
                 text="Der Kaufvertrag",
                 source_language=SupportedLanguage.GERMAN,
@@ -433,64 +610,6 @@ class TestCharacterCounting:
             )
 
         assert result.character_count == len("Der Kaufvertrag")
-
-
-def _mock_session(
-    status: int, body: list | None = None, error_text: str = ""
-) -> object:
-    """Return a mock aiohttp ClientSession that responds with *status* and optional *body*."""
-
-    class _MockResponse:
-        async def __aenter__(self) -> "_MockResponse":
-            return self
-
-        async def __aexit__(self, *args: object) -> bool:
-            return False
-
-        @property
-        def status(self) -> int:  # noqa: A003
-            return status
-
-        async def json(self) -> list:
-            return body or []
-
-        async def text(self) -> str:
-            return error_text
-
-    class _MockSession:
-        async def __aenter__(self) -> "_MockSession":
-            return self
-
-        async def __aexit__(self, *args: object) -> bool:
-            return False
-
-        def post(self, *args: object, **kwargs: object) -> _MockResponse:
-            return _MockResponse()
-
-    return _MockSession()
-
-
-def _timeout_session(error: BaseException) -> object:
-    """Return a mock aiohttp ClientSession that raises *error* when entering session.post()."""
-
-    class _TimeoutResponse:
-        async def __aenter__(self) -> None:
-            raise error
-
-        async def __aexit__(self, *args: object) -> bool:
-            return False
-
-    class _TimeoutSession:
-        async def __aenter__(self) -> "_TimeoutSession":
-            return self
-
-        async def __aexit__(self, *args: object) -> bool:
-            return False
-
-        def post(self, *args: object, **kwargs: object) -> _TimeoutResponse:
-            return _TimeoutResponse()
-
-    return _TimeoutSession()
 
 
 class TestReliability:
@@ -501,20 +620,18 @@ class TestReliability:
         self, translation_service: TranslationService
     ) -> None:
         """Confidence below threshold sets requires_review regardless of legal terms."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.55},
-                "translations": [{"text": "The plot of land", "to": "en"}],
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The plot of land",
+                "detected_language": "de",
+                "confidence": 0.55,
+            },
+        ):
             result = await translation_service.translate_with_warnings(
-                text="Das Grundstück",  # no high-risk legal terms
+                text="Das Grundstück",
                 source_language=SupportedLanguage.GERMAN,
                 target_language=SupportedLanguage.ENGLISH,
             )
@@ -526,18 +643,16 @@ class TestReliability:
         self, translation_service: TranslationService
     ) -> None:
         """High confidence and no legal terms means requires_review is False."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.99},
-                "translations": [{"text": "The weather is nice.", "to": "en"}],
-            }
-        ]
-
         with patch.object(
-            translation_service, "_make_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = mock_response
-
+            translation_service,
+            "_make_request",
+            new_callable=AsyncMock,
+            return_value={
+                "translated_text": "The weather is nice.",
+                "detected_language": "de",
+                "confidence": 0.99,
+            },
+        ):
             result = await translation_service.translate_with_warnings(
                 text="Das Wetter ist schön.",
                 source_language=SupportedLanguage.GERMAN,
@@ -547,15 +662,15 @@ class TestReliability:
         assert result.requires_review is False
 
     @pytest.mark.asyncio
-    async def test_timeout_raises_translation_error(
+    async def test_api_timeout_raises_translation_error(
         self, translation_service: TranslationService
     ) -> None:
-        """aiohttp.ServerTimeoutError from _make_request surfaces as TranslationError."""
+        """anthropic.APITimeoutError from _make_request surfaces as TranslationError."""
         with patch.object(
             translation_service,
             "_make_request",
             new_callable=AsyncMock,
-            side_effect=aiohttp.ServerTimeoutError(),
+            side_effect=TranslationError("Translation API error: timeout"),
         ):
             with pytest.raises(TranslationError):
                 await translation_service.translate_text(
@@ -565,19 +680,50 @@ class TestReliability:
                 )
 
     @pytest.mark.asyncio
+    async def test_retries_on_api_connection_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """APIConnectionError from the client is retried by @translator_retry."""
+        call_count = 0
+        success_response = _make_claude_response("The purchase agreement")
+
+        async def _flaky(*_args: object, **_kwargs: object) -> object:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise anthropic.APIConnectionError(request=MagicMock())
+            return success_response
+
+        fast_retry = retry(
+            stop=stop_after_attempt(3),
+            wait=wait_none(),
+            retry=retry_if_exception(_is_transient_translator_error),
+            reraise=True,
+        )
+        translation_service._client.messages.create = fast_retry(_flaky)  # type: ignore[method-assign]
+
+        result = await translation_service.translate_text(
+            text="Der Kaufvertrag",
+            source_language=SupportedLanguage.GERMAN,
+            target_language=SupportedLanguage.ENGLISH,
+        )
+
+        assert call_count == 2
+        assert result.translated_text == "The purchase agreement"
+
+    @pytest.mark.asyncio
     async def test_retries_on_503(
         self, translation_service: TranslationService
     ) -> None:
         """translate_text retries when _make_request raises a 503 TranslationError."""
         call_count = 0
-        success_data = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": "The purchase agreement", "to": "en"}],
-            }
-        ]
+        success_data = {
+            "translated_text": "The purchase agreement",
+            "detected_language": "de",
+            "confidence": 0.98,
+        }
 
-        async def _flaky(text: str, source_language: str, target_language: str) -> list:  # noqa: ARG001
+        async def _flaky(text: str, source_language: str, target_language: str) -> dict:  # noqa: ARG001
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -586,7 +732,6 @@ class TestReliability:
                 )
             return success_data
 
-        # Replace _make_request with a no-wait retry version to keep tests fast
         fast_retry = retry(
             stop=stop_after_attempt(3),
             wait=wait_none(),
@@ -608,21 +753,20 @@ class TestReliability:
     async def test_batch_response_length_mismatch_raises(
         self, translation_service: TranslationService
     ) -> None:
-        """batch_translate raises TranslationError when API returns fewer results."""
-        # API returns 3 results but we sent 5 texts
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": f"Translation {i}", "to": "en"}],
-            }
-            for i in range(3)
-        ]
-
+        """batch_translate raises TranslationError when Claude returns fewer results."""
         with patch.object(
-            translation_service, "_make_batch_request", new_callable=AsyncMock
-        ) as mock_batch:
-            mock_batch.return_value = mock_response
-
+            translation_service,
+            "_make_batch_request",
+            new_callable=AsyncMock,
+            return_value=[
+                {
+                    "translated_text": f"Translation {i}",
+                    "detected_language": "de",
+                    "confidence": 0.98,
+                }
+                for i in range(3)
+            ],
+        ):
             with pytest.raises(TranslationError) as exc_info:
                 await translation_service.batch_translate(
                     texts=["Text 1", "Text 2", "Text 3", "Text 4", "Text 5"],
@@ -637,19 +781,19 @@ class TestReliability:
         self, translation_service: TranslationService
     ) -> None:
         """partial=True: first 3 translations mapped, texts 4 and 5 marked translation_failed."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": f"Translation {i}", "to": "en"}],
-            }
-            for i in range(3)
-        ]
-
         with patch.object(
-            translation_service, "_make_batch_request", new_callable=AsyncMock
-        ) as mock_batch:
-            mock_batch.return_value = mock_response
-
+            translation_service,
+            "_make_batch_request",
+            new_callable=AsyncMock,
+            return_value=[
+                {
+                    "translated_text": f"Translation {i}",
+                    "detected_language": "de",
+                    "confidence": 0.98,
+                }
+                for i in range(3)
+            ],
+        ):
             result = await translation_service.batch_translate(
                 texts=["Text 1", "Text 2", "Text 3", "Text 4", "Text 5"],
                 source_language=SupportedLanguage.GERMAN,
@@ -658,12 +802,10 @@ class TestReliability:
             )
 
         assert len(result.translations) == 5
-        # First 3 are normal translations
         for i in range(3):
             assert (
                 result.translations[i].translation.translated_text == f"Translation {i}"
             )
-        # Last 2 are failure placeholders
         for i in range(3, 5):
             assert (
                 result.translations[i].translation.translated_text
@@ -677,115 +819,30 @@ class TestReliability:
         self, translation_service: TranslationService
     ) -> None:
         """batch_translate calls logger.debug with sent/received counts."""
-        mock_response = [
-            {
-                "detectedLanguage": {"language": "de", "score": 0.98},
-                "translations": [{"text": f"T{i}", "to": "en"}],
-            }
-            for i in range(2)
-        ]
-
         with (
             patch.object(
-                translation_service, "_make_batch_request", new_callable=AsyncMock
-            ) as mock_batch,
+                translation_service,
+                "_make_batch_request",
+                new_callable=AsyncMock,
+                return_value=[
+                    {
+                        "translated_text": f"T{i}",
+                        "detected_language": "de",
+                        "confidence": 0.98,
+                    }
+                    for i in range(2)
+                ],
+            ),
             patch("app.services.translation_service.logger") as mock_logger,
         ):
-            mock_batch.return_value = mock_response
             await translation_service.batch_translate(
                 texts=["A", "B"],
                 source_language=SupportedLanguage.GERMAN,
                 target_language=SupportedLanguage.ENGLISH,
             )
 
-        # Two debug calls: one before the request (sent count) and one after (received count)
         assert mock_logger.debug.call_count >= 2
         all_debug_args = " ".join(
             str(args) for args, _ in mock_logger.debug.call_args_list
         )
         assert "2" in all_debug_args
-
-    def test_translation_timeout_constant_has_connect_and_sock_read(self) -> None:
-        """_TRANSLATION_TIMEOUT uses total from settings plus explicit connect/sock_read."""
-        from app.core.config import settings
-        from app.services.translation_service import _TRANSLATION_TIMEOUT
-
-        assert _TRANSLATION_TIMEOUT.total == settings.AZURE_TRANSLATOR_TIMEOUT_SECONDS
-        assert _TRANSLATION_TIMEOUT.connect is not None
-        assert _TRANSLATION_TIMEOUT.sock_read is not None
-
-    @pytest.mark.asyncio
-    async def test_post_happy_path_returns_json(
-        self, translation_service: TranslationService
-    ) -> None:
-        """_post returns JSON body on a successful 200 response."""
-        expected = [{"translations": [{"text": "Hello", "to": "en"}]}]
-        with patch(
-            "aiohttp.ClientSession", return_value=_mock_session(200, body=expected)
-        ):
-            result = await translation_service._make_request(
-                text="Hallo",
-                source_language="de",
-                target_language="en",
-            )
-        assert result == expected
-
-    @pytest.mark.asyncio
-    async def test_post_non_200_raises_translation_error(
-        self, translation_service: TranslationService
-    ) -> None:
-        """_post raises TranslationError when Azure returns a non-200 status."""
-        with patch(
-            "aiohttp.ClientSession",
-            return_value=_mock_session(400, error_text="Bad request"),
-        ):
-            with pytest.raises(TranslationError, match="400"):
-                await translation_service._make_request(
-                    text="Hallo",
-                    source_language="de",
-                    target_language="en",
-                )
-
-    @pytest.mark.asyncio
-    async def test_asyncio_timeout_in_make_request_raises_translation_error(
-        self, translation_service: TranslationService
-    ) -> None:
-        """asyncio.TimeoutError during the HTTP call raises TranslationError with 'timed out'."""
-        with patch(
-            "aiohttp.ClientSession",
-            return_value=_timeout_session(asyncio.TimeoutError()),
-        ):
-            with pytest.raises(TranslationError, match="timed out"):
-                await translation_service._make_request(
-                    text="test",
-                    source_language="de",
-                    target_language="en",
-                )
-
-    @pytest.mark.asyncio
-    async def test_server_timeout_in_make_batch_request_raises_translation_error(
-        self, translation_service: TranslationService
-    ) -> None:
-        """aiohttp.ServerTimeoutError in batch HTTP call raises TranslationError with 'timed out'."""
-        with patch(
-            "aiohttp.ClientSession",
-            return_value=_timeout_session(aiohttp.ServerTimeoutError()),
-        ):
-            with pytest.raises(TranslationError, match="timed out"):
-                await translation_service._make_batch_request(
-                    texts=["test"],
-                    source_language="de",
-                    target_language="en",
-                )
-
-    @pytest.mark.asyncio
-    async def test_asyncio_timeout_in_make_detect_request_raises_translation_error(
-        self, translation_service: TranslationService
-    ) -> None:
-        """asyncio.TimeoutError in detect HTTP call raises TranslationError with 'timed out'."""
-        with patch(
-            "aiohttp.ClientSession",
-            return_value=_timeout_session(asyncio.TimeoutError()),
-        ):
-            with pytest.raises(TranslationError, match="timed out"):
-                await translation_service._make_detect_request(text="test")

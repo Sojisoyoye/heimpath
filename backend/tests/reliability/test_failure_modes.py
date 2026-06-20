@@ -188,25 +188,24 @@ class TestAIServiceFailureModes:
 
 
 class TestTranslationFailureModes:
-    """Azure Translator failures must surface as TranslationError, not raw exceptions."""
+    """Translation API failures must surface as TranslationError, not raw exceptions."""
 
     @pytest.mark.asyncio
     async def test_api_timeout_raises_translation_error(self) -> None:
-        """aiohttp.ServerTimeoutError is wrapped in TranslationError."""
-        import aiohttp
+        """anthropic.APITimeoutError from _make_request surfaces as TranslationError."""
 
         from app.services.translation_service import (
             TranslationError,
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch.object(
             service,
             "_make_request",
             new_callable=AsyncMock,
-            side_effect=aiohttp.ServerTimeoutError(),
+            side_effect=TranslationError("Translation API error: timeout"),
         ):
             with pytest.raises(TranslationError):
                 await service.translate_text(
@@ -227,7 +226,7 @@ class TestTranslationFailureModes:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch(
             "app.services.translation_service._breaker_async_call",
@@ -251,20 +250,19 @@ class TestTranslationFailureModes:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
         call_count = 0
-        good_response = [
-            {
-                "translations": [{"text": "purchase agreement"}],
-                "detectedLanguage": {"language": "de", "score": 0.9},
-            }
-        ]
+        good_response = {
+            "translated_text": "purchase agreement",
+            "detected_language": "de",
+            "confidence": 0.9,
+        }
 
-        async def flaky_http(
+        async def flaky_request(
             text: str,  # noqa: ARG001
             source_language: str,  # noqa: ARG001
             target_language: str,  # noqa: ARG001
-        ) -> list:
+        ) -> dict:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -279,7 +277,7 @@ class TestTranslationFailureModes:
             retry=retry_if_exception(_is_transient_translator_error),
             reraise=True,
         )
-        service._make_request = fast_retry(flaky_http)  # type: ignore[method-assign]
+        service._make_request = fast_retry(flaky_request)  # type: ignore[method-assign]
 
         result = await service.translate_text(
             text="Kaufvertrag",

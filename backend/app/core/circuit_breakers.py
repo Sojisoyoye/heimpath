@@ -2,7 +2,7 @@
 
 Each breaker protects one external integration:
 - stripe_breaker     — Stripe API (sync calls)
-- translator_breaker — Azure Translator API (async calls)
+- translator_breaker — Translation API via Claude (async calls)
 - anthropic_breaker  — Anthropic Claude API (async calls)
 - redis_breaker      — Redis (sync calls; fail_max=10, reset_timeout=15)
 

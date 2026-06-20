@@ -29,7 +29,7 @@ class TestFastPathShortCircuits:
         """batch_translate([]) short-circuits before making any HTTP request."""
         from app.services.translation_service import TranslationService
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch.object(
             service, "_make_batch_request", new_callable=AsyncMock
@@ -67,7 +67,7 @@ class TestFastPathShortCircuits:
         """
         from app.services.translation_service import TranslationService
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch.object(service, "_make_request", new_callable=AsyncMock) as mock_req:
             # Empty string — service must short-circuit
@@ -257,7 +257,7 @@ class TestDegradationBehaviour:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch(
             "app.services.translation_service._breaker_async_call",
@@ -395,21 +395,20 @@ class TestDegradationBehaviour:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
         call_timestamps: list[float] = []
 
-        async def _flaky(text: str, source_language: str, target_language: str) -> list:  # noqa: ARG001
+        async def _flaky(text: str, source_language: str, target_language: str) -> dict:  # noqa: ARG001
             call_timestamps.append(time.perf_counter())
             if len(call_timestamps) == 1:
                 raise TranslationError(
                     "Translation API error (status 503): Service Unavailable"
                 )
-            return [
-                {
-                    "translations": [{"text": "purchase agreement"}],
-                    "detectedLanguage": {"language": "de", "score": 0.9},
-                }
-            ]
+            return {
+                "translated_text": "purchase agreement",
+                "detected_language": "de",
+                "confidence": 0.9,
+            }
 
         fast_retry = retry(
             stop=stop_after_attempt(3),
@@ -519,11 +518,12 @@ class TestResourceUsageGuards:
         """5-text batch must issue exactly ONE _make_batch_request call, not 5."""
         from app.services.translation_service import TranslationService
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
         mock_response = [
             {
-                "translations": [{"text": f"translation {i}"}],
-                "detectedLanguage": {"language": "de", "score": 0.9},
+                "translated_text": f"translation {i}",
+                "detected_language": "de",
+                "confidence": 0.9,
             }
             for i in range(5)
         ]

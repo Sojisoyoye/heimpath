@@ -107,7 +107,7 @@ async def translate_text(
     if translation_service is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Translation service is not configured. Please set AZURE_TRANSLATOR_KEY.",
+            detail="Translation service is not configured. Please set ANTHROPIC_API_KEY.",
         )
     try:
         result = await translation_service.translate_with_warnings(
@@ -139,7 +139,7 @@ async def detect_language(
     if translation_service is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Translation service is not configured. Please set AZURE_TRANSLATOR_KEY.",
+            detail="Translation service is not configured. Please set ANTHROPIC_API_KEY.",
         )
     try:
         language, confidence, is_supported = await translation_service.detect_language(
@@ -193,7 +193,7 @@ async def batch_translate(
     if translation_service is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Translation service is not configured. Please set AZURE_TRANSLATOR_KEY.",
+            detail="Translation service is not configured. Please set ANTHROPIC_API_KEY.",
         )
     try:
         result = await translation_service.batch_translate(
