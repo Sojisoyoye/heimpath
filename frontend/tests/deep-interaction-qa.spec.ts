@@ -734,33 +734,33 @@ test.describe("TEST 12: ROI calculator inputs and result", () => {
     page,
   }) => {
     await page.goto("/tools/roi-calculator")
-    await page.waitForLoadState("networkidle")
 
-    // Purchase price (type="text") and rent per sqm (type="number")
+    // Wait for the purchase price input to be interactive (avoids unreliable networkidle)
     const priceInput = page
       .locator("#purchasePrice")
       .or(page.locator('input[placeholder*="240,000"]'))
       .first()
+
+    await priceInput.waitFor({ state: "visible", timeout: 15000 })
+
+    const sqmInput = page.locator("#squareMeters").first()
     const rentInput = page
       .locator("#rentPerSqm")
       .or(page.locator('input[placeholder*="12"]'))
       .first()
 
     expect.soft(await priceInput.isVisible().catch(() => false)).toBe(true)
-
-    // Wait for DOM to settle
-    await page.waitForTimeout(300)
-
     expect.soft(await rentInput.isVisible().catch(() => false)).toBe(true)
 
-    // Fill key inputs — results update reactively
+    // isValid = purchasePrice > 0 && squareMeters > 0; both required to trigger results
     if (await priceInput.isVisible().catch(() => false)) {
+      await sqmInput.fill("80")
       await priceInput.fill("240000")
       await rentInput.fill("12")
-      await page.waitForTimeout(300)
 
-      // Gross Rental Yield metric should appear in the evaluation section
+      // Wait for result (debounce 500ms + API call) instead of arbitrary timeout
       const grossYield = page.getByText(/gross rental yield/i, { exact: false })
+      await grossYield.waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
       expect.soft(await grossYield.isVisible().catch(() => false)).toBe(true)
     }
   })
