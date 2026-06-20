@@ -653,10 +653,19 @@ test.describe("TEST 9: property cost calculator inputs and calculation", () => {
     const comboboxes = page.locator('button[role="combobox"]')
     expect.soft(await comboboxes.count()).toBeGreaterThanOrEqual(2)
 
-    // Enter a price — triggers useMemo recalculation
+    // Enter a price then click Calculate to reveal the cost breakdown
     if (await priceInput.isVisible().catch(() => false)) {
       await priceInput.fill("350000")
-      await page.waitForTimeout(300)
+      await page.waitForTimeout(100)
+
+      // Click the Calculate button (results are gated behind it)
+      const calculateBtn = page.getByRole("button", { name: /^calculate$/i })
+      if (await calculateBtn.isVisible().catch(() => false)) {
+        await calculateBtn.click()
+      }
+
+      // Wait for the 400ms loading animation to complete
+      await page.waitForTimeout(600)
 
       // Cost breakdown heading should appear
       const totalCostHeading = page.getByText("Total Cost of Ownership", {

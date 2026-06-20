@@ -9,10 +9,11 @@ import {
   Euro,
   ExternalLink,
   Info,
+  Loader2,
   RefreshCw,
   Trash2,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   COST_DEFAULTS,
   GERMAN_STATES,
@@ -198,6 +199,9 @@ function HiddenCostsCalculator(props: IProps) {
     includeMoving: true,
   })
 
+  const [hasCalculated, setHasCalculated] = useState(false)
+  const [isCalculating, setIsCalculating] = useState(false)
+  const calculateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [saveName, setSaveName] = useState("")
   const [shareUrl, setShareUrl] = useState("")
 
@@ -207,6 +211,12 @@ function HiddenCostsCalculator(props: IProps) {
   const { data: savedCalcs } = useUserCalculations()
 
   const costs = useMemo(() => calculateCosts(inputs), [inputs])
+
+  const canCalculate =
+    !!inputs.propertyPrice &&
+    parseInt(inputs.propertyPrice, 10) > 0 &&
+    !!inputs.state &&
+    !!inputs.propertyType
 
   const updateInput = <K extends keyof CalculatorInputs>(
     key: K,
@@ -220,7 +230,28 @@ function HiddenCostsCalculator(props: IProps) {
     updateInput("propertyPrice", value)
   }
 
+  const handleCalculate = () => {
+    setIsCalculating(true)
+    calculateTimerRef.current = setTimeout(() => {
+      setIsCalculating(false)
+      setHasCalculated(true)
+    }, 400)
+  }
+
+  // Cancel in-flight timer on unmount so state is never set after unmount.
+  useEffect(() => {
+    return () => {
+      if (calculateTimerRef.current) clearTimeout(calculateTimerRef.current)
+    }
+  }, [])
+
   const handleReset = () => {
+    if (calculateTimerRef.current) {
+      clearTimeout(calculateTimerRef.current)
+      calculateTimerRef.current = null
+    }
+    setIsCalculating(false)
+    setHasCalculated(false)
     setInputs({
       propertyPrice: "",
       state: "BY",
@@ -408,6 +439,23 @@ function HiddenCostsCalculator(props: IProps) {
             </FormRow>
 
             <div className="flex gap-2">
+              <Button
+                onClick={handleCalculate}
+                disabled={!canCalculate || isCalculating}
+                className="flex-1 gap-2"
+              >
+                {isCalculating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Calculating...
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="h-4 w-4" />
+                    Calculate
+                  </>
+                )}
+              </Button>
               <Button variant="outline" onClick={handleReset} className="gap-2">
                 <RefreshCw className="h-4 w-4" />
                 Reset
@@ -427,7 +475,21 @@ function HiddenCostsCalculator(props: IProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {costs ? (
+            {isCalculating ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Loader2 className="mb-4 h-12 w-12 animate-spin text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  Calculating your costs...
+                </p>
+              </div>
+            ) : !hasCalculated ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Calculator className="mb-4 h-12 w-12 text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  Fill in your property details and click Calculate
+                </p>
+              </div>
+            ) : costs ? (
               <div className="space-y-4">
                 <CostLineItem
                   label="Property Price"
@@ -539,9 +601,9 @@ function HiddenCostsCalculator(props: IProps) {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Calculator className="h-12 w-12 text-muted-foreground mb-4" />
+                <Calculator className="mb-4 h-12 w-12 text-muted-foreground" />
                 <p className="text-muted-foreground">
-                  Enter a property price to see the cost breakdown
+                  Enter a valid property price to see the cost breakdown
                 </p>
               </div>
             )}
