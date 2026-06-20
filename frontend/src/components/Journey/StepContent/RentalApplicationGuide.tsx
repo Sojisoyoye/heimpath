@@ -3,7 +3,13 @@
  * Guidance on SCHUFA, Selbstauskunft, application documents, and cover letters
  */
 
-import { CreditCard, FileCheck, FileText, UserCheck } from "lucide-react"
+import {
+  CreditCard,
+  FileCheck,
+  FileText,
+  IdCard,
+  UserCheck,
+} from "lucide-react"
 
 import type { JourneyStep } from "@/models/journey"
 import { GuidanceCard } from "./GuidanceCard"
@@ -46,6 +52,12 @@ function RentalApplicationGuide(_props: Readonly<IProps>) {
             label: "Income Proof",
             detail:
               "Last 3 months' pay slips (Gehaltsabrechnungen) and/or employment contract. Landlords typically expect rent to be no more than 1/3 of your net income.",
+          },
+          {
+            icon: IdCard,
+            label: "Government ID",
+            detail:
+              "Passport or national ID card (Personalausweis) for all applicants. Non-EU residents should also bring their Aufenthaltstitel (residence permit). Landlords verify identity before handing over keys.",
           },
         ]}
         tip="Write a brief, friendly cover letter introducing yourself. Mention your profession, why you're moving, and that you're a reliable tenant. A personal touch can make the difference."
