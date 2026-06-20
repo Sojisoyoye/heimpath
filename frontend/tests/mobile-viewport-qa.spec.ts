@@ -29,9 +29,10 @@ let context: BrowserContext
 let page: Page
 
 test.describe("Mobile Viewport QA", () => {
-  test.beforeAll(async ({ browser: b }) => {
+  test.beforeAll(async ({ browser: b, baseURL }) => {
     browser = b
     context = await browser.newContext({
+      baseURL: baseURL ?? "http://localhost:5173",
       viewport: MOBILE_VIEWPORT,
     })
     page = await context.newPage()
