@@ -12,7 +12,9 @@ permissions:
 
 jobs:
 
-  # ── Job 1: Build backend image and push to GHCR ────────────────────────────
+  # ── Job 1: Build backend image and push to GHCR (SHA tag only) ─────────────
+  # staging-latest is re-tagged after health check passes, not here, so a
+  # failed staging deploy never poisons the staging-latest tag in GHCR.
   build:
     runs-on: ubuntu-latest
     outputs:
@@ -40,9 +42,7 @@ jobs:
           context: .
           file: backend/Dockerfile
           push: true
-          tags: |
-            ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }}
-            ${{ steps.meta.outputs.prefix }}/backend:staging-latest
+          tags: ${{ steps.meta.outputs.prefix }}/backend:${{ steps.meta.outputs.tag }}
 
   # ── Job 2: Deploy backend-staging to VPS via SSH ───────────────────────────
   deploy-staging-backend:
@@ -50,6 +50,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Deploy backend-staging via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -60,7 +67,7 @@ jobs:
             set -e
             cd /opt/heimpath
 
-            PREVIOUS_TAG=$(cat .last-deployed-tag 2>/dev/null || echo "staging-latest")
+            PREVIOUS_TAG=$(cat .last-deployed-tag 2>/dev/null || echo "")
             CURRENT_TAG="${{ needs.build.outputs.image-tag }}"
             IMAGE_PREFIX="${{ needs.build.outputs.image-prefix }}"
 
@@ -77,9 +84,11 @@ jobs:
             if timeout 60 bash -c \
               'until curl -sf http://localhost:8001/api/v1/utils/health-check/; do sleep 3; done'; then
               echo "${CURRENT_TAG}" > .last-deployed-tag
+              docker tag "${IMAGE_PREFIX}/backend:${CURRENT_TAG}" "${IMAGE_PREFIX}/backend:staging-latest"
+              docker push "${IMAGE_PREFIX}/backend:staging-latest"
             else
-              echo "Staging backend unhealthy — rolling back to ${PREVIOUS_TAG}"
-              BACKEND_IMAGE_TAG=${PREVIOUS_TAG} \
+              echo "Staging backend unhealthy — rolling back to ${PREVIOUS_TAG:-latest}"
+              BACKEND_IMAGE_TAG=${PREVIOUS_TAG:-latest} \
                 docker compose -f docker-compose.prod.yml -f docker-compose.staging.yml \
                   up -d --no-deps --pull missing backend-staging celery-worker-staging celery-beat-staging
               exit 1
@@ -96,8 +105,6 @@ jobs:
       - name: Deploy to Vercel staging
         run: |
           npx vercel deploy \
-            --project=$VERCEL_PROJECT_ID \
-            --scope=$VERCEL_ORG_ID \
             --yes \
             --build-env VITE_API_URL=${{ vars.STAGING_API_URL }} \
             --build-env VITE_SENTRY_DSN=${{ vars.STAGING_FRONTEND_SENTRY_DSN }}
@@ -133,7 +140,7 @@ jobs:
 
   # ── Job 5: Manual approval gate ────────────────────────────────────────────
   # "production" environment has required reviewers configured in GitHub.
-  # This job pauses until a reviewer approves in the GitHub Actions UI.
+  # This single job is the only gate — deploy-prod-* jobs do NOT repeat it.
   await-approval:
     needs: smoke-tests
     runs-on: ubuntu-latest
@@ -145,7 +152,6 @@ jobs:
   deploy-prod-backend:
     needs: [build, await-approval]
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - name: Deploy backend-prod via SSH
         uses: appleboy/ssh-action@v1
@@ -157,7 +163,7 @@ jobs:
             set -e
             cd /opt/heimpath
 
-            PREVIOUS_TAG=$(cat .last-prod-deployed-tag 2>/dev/null || echo "latest")
+            PREVIOUS_TAG=$(cat .last-prod-deployed-tag 2>/dev/null || echo "")
             CURRENT_TAG="${{ needs.build.outputs.image-tag }}"
             IMAGE_PREFIX="${{ needs.build.outputs.image-prefix }}"
 
@@ -174,8 +180,8 @@ jobs:
               'until curl -sf http://localhost:8000/api/v1/utils/health-check/; do sleep 3; done'; then
               echo "${CURRENT_TAG}" > .last-prod-deployed-tag
             else
-              echo "Prod backend unhealthy — rolling back to ${PREVIOUS_TAG}"
-              BACKEND_IMAGE_TAG=${PREVIOUS_TAG} \
+              echo "Prod backend unhealthy — rolling back to ${PREVIOUS_TAG:-latest}"
+              BACKEND_IMAGE_TAG=${PREVIOUS_TAG:-latest} \
                 docker compose -f docker-compose.prod.yml \
                   up -d --no-deps --pull missing backend celery-worker celery-beat
               exit 1
@@ -185,7 +191,6 @@ jobs:
   deploy-prod-frontend:
     needs: [build, await-approval]
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
 
@@ -193,8 +198,6 @@ jobs:
         run: |
           npx vercel deploy \
             --prod \
-            --project=$VERCEL_PROJECT_ID \
-            --scope=$VERCEL_ORG_ID \
             --yes \
             --build-env VITE_API_URL=${{ vars.PROD_API_URL }} \
             --build-env VITE_SENTRY_DSN=${{ vars.PROD_FRONTEND_SENTRY_DSN }}
