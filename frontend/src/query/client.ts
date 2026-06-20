@@ -1,19 +1,86 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
-import { ApiError } from "@/client"
+import { toast } from "sonner"
+import { ApiError, AuthService } from "@/client"
 
 /** Maximum delay between retry attempts (ms). */
 const MAX_RETRY_DELAY_MS = 30_000
 
 /**
- * Handle API errors globally
+ * Mutex for token refresh — ensures at most one /auth/refresh call is in
+ * flight at a time, regardless of how many parallel requests all 401 at once.
  */
-const handleApiError = (error: Error) => {
-  if (error instanceof ApiError && [401, 403].includes(error.status)) {
-    // Stay on /login — the login component handles its own 403 (unverified email)
-    if (globalThis.location.pathname === "/login") return
-    queryClient.clear()
-    localStorage.removeItem("access_token")
-    window.location.href = "/login"
+let refreshPromise: Promise<void> | null = null
+
+/**
+ * Attempt a silent token refresh. Parallel callers share the same promise so
+ * exactly one POST /auth/refresh is made per "wave" of 401 responses.
+ */
+async function attemptRefresh(): Promise<void> {
+  if (!refreshPromise) {
+    refreshPromise = AuthService.refreshToken({ requestBody: {} })
+      .then(() => undefined)
+      .finally(() => {
+        refreshPromise = null
+      })
+  }
+  return refreshPromise
+}
+
+/** Clear client state and navigate to /login. */
+function forceLogout(): void {
+  queryClient.clear()
+  localStorage.removeItem("access_token")
+  window.location.href = "/login"
+}
+
+/**
+ * Query error handler.
+ *
+ * On 401: attempt a silent refresh then invalidate all queries so they
+ * automatically re-fire. On 403 or refresh failure, force logout.
+ */
+const handleQueryError = (error: Error) => {
+  if (!(error instanceof ApiError)) return
+  if (globalThis.location.pathname === "/login") return
+
+  if (error.status === 403) {
+    forceLogout()
+    return
+  }
+
+  if (error.status === 401) {
+    attemptRefresh()
+      .then(() => {
+        void queryClient.invalidateQueries()
+      })
+      .catch(() => forceLogout())
+  }
+}
+
+/**
+ * Mutation error handler.
+ *
+ * On 401: attempt a silent refresh then inform the user to retry — mutations
+ * are not re-fired automatically because they may not be idempotent.
+ * On 403 or refresh failure, force logout.
+ */
+const handleMutationError = (error: Error) => {
+  if (!(error instanceof ApiError)) return
+  if (globalThis.location.pathname === "/login") return
+
+  if (error.status === 403) {
+    forceLogout()
+    return
+  }
+
+  if (error.status === 401) {
+    attemptRefresh()
+      .then(() =>
+        toast.info("Session refreshed — please try again.", {
+          duration: 5000,
+        }),
+      )
+      .catch(() => forceLogout())
   }
 }
 
@@ -41,9 +108,9 @@ export const queryClient = new QueryClient({
     },
   },
   queryCache: new QueryCache({
-    onError: handleApiError,
+    onError: handleQueryError,
   }),
   mutationCache: new MutationCache({
-    onError: handleApiError,
+    onError: handleMutationError,
   }),
 })
