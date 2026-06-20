@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 
 import type { JourneyStep } from "@/models/journey"
+import { CoverLetterGenerator } from "./CoverLetterGenerator"
 import { GuidanceCard } from "./GuidanceCard"
 
 interface IProps {
@@ -60,8 +61,8 @@ function RentalApplicationGuide(_props: Readonly<IProps>) {
               "Passport or national ID card (Personalausweis) for all applicants. Non-EU residents should also bring their Aufenthaltstitel (residence permit). Landlords verify identity before handing over keys.",
           },
         ]}
-        tip="Write a brief, friendly cover letter introducing yourself. Mention your profession, why you're moving, and that you're a reliable tenant. A personal touch can make the difference."
       />
+      <CoverLetterGenerator />
     </div>
   )
 }
