@@ -163,7 +163,7 @@ if settings.all_cors_origins:
     )
 
 # Extract real client IP from X-Forwarded-For set by the Caddy reverse proxy.
-if settings.ENVIRONMENT != "local":
+if settings.ENVIRONMENT != "local":  # pragma: no cover
     app.add_middleware(_ReverseProxyMiddleware)
 
 # Reject oversized JSON bodies before any body bytes are read.
