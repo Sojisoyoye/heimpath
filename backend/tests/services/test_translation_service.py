@@ -221,12 +221,16 @@ class TestMakeRequest:
         assert result["confidence"] == 0.98
 
     @pytest.mark.asyncio
-    async def test_raises_translation_error_on_api_error(
+    async def test_raises_translation_error_on_non_retryable_api_error(
         self, translation_service: TranslationService
     ) -> None:
-        """_make_request wraps anthropic.APIError as TranslationError."""
+        """_make_request wraps non-retryable anthropic.APIError as TranslationError."""
         translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
-            side_effect=anthropic.APIConnectionError(request=MagicMock())
+            side_effect=anthropic.BadRequestError(
+                message="invalid request",
+                response=MagicMock(status_code=400, headers={}),
+                body=None,
+            )
         )
         with pytest.raises(TranslationError, match="Translation API error"):
             await translation_service._make_request(
@@ -288,12 +292,16 @@ class TestMakeBatchRequest:
         assert result[1]["translated_text"] == "World"
 
     @pytest.mark.asyncio
-    async def test_raises_on_api_timeout(
+    async def test_raises_on_non_retryable_api_error(
         self, translation_service: TranslationService
     ) -> None:
-        """_make_batch_request wraps anthropic.APITimeoutError as TranslationError."""
+        """_make_batch_request wraps non-retryable anthropic.APIError as TranslationError."""
         translation_service._client.messages.create = AsyncMock(  # type: ignore[method-assign]
-            side_effect=anthropic.APITimeoutError(request=MagicMock())
+            side_effect=anthropic.BadRequestError(
+                message="invalid request",
+                response=MagicMock(status_code=400, headers={}),
+                body=None,
+            )
         )
         with pytest.raises(TranslationError, match="Batch translation API error"):
             await translation_service._make_batch_request(
@@ -670,6 +678,38 @@ class TestReliability:
                     source_language=SupportedLanguage.GERMAN,
                     target_language=SupportedLanguage.ENGLISH,
                 )
+
+    @pytest.mark.asyncio
+    async def test_retries_on_api_connection_error(
+        self, translation_service: TranslationService
+    ) -> None:
+        """APIConnectionError from the client is retried by @translator_retry."""
+        call_count = 0
+        success_response = _make_claude_response("The purchase agreement")
+
+        async def _flaky(*_args: object, **_kwargs: object) -> object:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise anthropic.APIConnectionError(request=MagicMock())
+            return success_response
+
+        fast_retry = retry(
+            stop=stop_after_attempt(3),
+            wait=wait_none(),
+            retry=retry_if_exception(_is_transient_translator_error),
+            reraise=True,
+        )
+        translation_service._client.messages.create = fast_retry(_flaky)  # type: ignore[method-assign]
+
+        result = await translation_service.translate_text(
+            text="Der Kaufvertrag",
+            source_language=SupportedLanguage.GERMAN,
+            target_language=SupportedLanguage.ENGLISH,
+        )
+
+        assert call_count == 2
+        assert result.translated_text == "The purchase agreement"
 
     @pytest.mark.asyncio
     async def test_retries_on_503(

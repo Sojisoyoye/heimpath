@@ -348,6 +348,9 @@ class TranslationService:
                 ],
             )
             return self._extract_tool_input(response, "translation_result")
+        except (anthropic.APIConnectionError, anthropic.APITimeoutError):
+            # Propagate raw so @translator_retry can match and retry these.
+            raise
         except anthropic.APIError as exc:
             raise TranslationError(f"Translation API error: {exc}") from exc
 
@@ -388,6 +391,9 @@ class TranslationService:
             )
             result = self._extract_tool_input(response, "batch_translation_result")
             return result["translations"]
+        except (anthropic.APIConnectionError, anthropic.APITimeoutError):
+            # Propagate raw so @translator_retry can match and retry these.
+            raise
         except anthropic.APIError as exc:
             raise TranslationError(f"Batch translation API error: {exc}") from exc
 

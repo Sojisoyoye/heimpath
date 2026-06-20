@@ -31,7 +31,7 @@ class TestConfidenceThresholdGating:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch.object(
             service,
@@ -61,7 +61,7 @@ class TestConfidenceThresholdGating:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch.object(
             service,
@@ -91,7 +91,7 @@ class TestConfidenceThresholdGating:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch.object(
             service,
@@ -124,7 +124,7 @@ class TestConfidenceThresholdGating:
             TranslationService,
         )
 
-        service = TranslationService(api_key="key", region="westeurope")
+        service = TranslationService(api_key="key")
 
         with patch.object(
             service,
