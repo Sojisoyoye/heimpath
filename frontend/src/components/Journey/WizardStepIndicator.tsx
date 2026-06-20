@@ -78,19 +78,34 @@ function StepDot(props: {
 function WizardStepIndicator(props: IProps) {
   const { steps, currentStep, completedSteps, className } = props
 
+  const isSummary = currentStep > steps.length
+  const mobileLabel = isSummary
+    ? "Review"
+    : `Step ${currentStep} of ${steps.length}`
+
   return (
-    <div className={cn("flex items-start justify-center", className)}>
-      {steps.map((step, index) => (
-        <StepDot
-          key={step.id}
-          step={step}
-          isCurrent={step.id === currentStep}
-          isCompleted={
-            completedSteps ? completedSteps.has(step.id) : step.id < currentStep
-          }
-          isLast={index === steps.length - 1}
-        />
-      ))}
+    <div className={cn("space-y-1", className)}>
+      {/* Mobile: compact text label avoids connector-margin overflow on narrow viewports */}
+      <p className="text-center text-sm text-muted-foreground sm:hidden">
+        {mobileLabel}
+      </p>
+
+      {/* sm+: full dot-and-connector row */}
+      <div className="hidden sm:flex sm:items-start sm:justify-center">
+        {steps.map((step, index) => (
+          <StepDot
+            key={step.id}
+            step={step}
+            isCurrent={step.id === currentStep}
+            isCompleted={
+              completedSteps
+                ? completedSteps.has(step.id)
+                : step.id < currentStep
+            }
+            isLast={index === steps.length - 1}
+          />
+        ))}
+      </div>
     </div>
   )
 }
