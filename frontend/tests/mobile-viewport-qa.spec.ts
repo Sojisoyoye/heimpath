@@ -81,4 +81,21 @@ test.describe("Mobile viewport QA (393×852)", () => {
       "horizontal overflow on /articles at 393 px width",
     ).toBeNull()
   })
+
+  test("journeys/new: wizard renders with no horizontal overflow", async ({
+    page,
+  }) => {
+    await page.goto("/journeys/new")
+    await page.waitForLoadState("networkidle")
+
+    await expect(
+      page.getByRole("heading", { name: "Start Your Property Journey" }),
+    ).toBeVisible({ timeout: 10_000 })
+
+    const offender = await firstOverflow(page)
+    expect(
+      offender,
+      "horizontal overflow on /journeys/new at 393 px width",
+    ).toBeNull()
+  })
 })

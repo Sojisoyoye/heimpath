@@ -364,7 +364,7 @@ function OnboardingWizard(props: Readonly<IProps>) {
           <DialogDescription>{STEP_DESCRIPTIONS[step]}</DialogDescription>
         </DialogHeader>
 
-        <div className="py-2">
+        <div className="overflow-x-hidden py-2">
           {step === 0 && (
             <PersonaStep selected={persona} onSelect={setPersona} />
           )}
