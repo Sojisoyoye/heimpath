@@ -106,6 +106,9 @@ export const JOURNEY_TYPE_LABELS: Record<"buying" | "rental", string> = {
   rental: "Rent Apartment",
 } as const
 
+// Contact
+export const CONTACT_EMAIL = "support@heimpath.com"
+
 // Pagination defaults
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,

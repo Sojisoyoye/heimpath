@@ -15,7 +15,8 @@ interface IUseInViewOptions {
  */
 function useInView(options: IUseInViewOptions = {}) {
   const { threshold = 0.1, triggerOnce = true } = options
-  const [isInView, setIsInView] = useState(false)
+  const isSSR = typeof window === "undefined"
+  const [isInView, setIsInView] = useState(isSSR)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
   // Respect prefers-reduced-motion

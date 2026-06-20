@@ -20,6 +20,14 @@ function LandingHeader() {
         <Logo variant="full" asLink={false} />
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="hidden sm:inline-flex"
+          >
+            <Link to="/pricing">Pricing</Link>
+          </Button>
           <Appearance />
           {authenticated ? (
             <>

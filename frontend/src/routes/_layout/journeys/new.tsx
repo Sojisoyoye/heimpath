@@ -38,9 +38,10 @@ function NewJourneyPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold">Create New Journey</h1>
+        <h1 className="text-2xl font-bold">Start Your Property Journey</h1>
         <p className="text-muted-foreground">
-          Answer a few questions to get your personalized property buying guide
+          Answer a few questions to get your personalised path from renter to
+          property owner
         </p>
       </div>
 

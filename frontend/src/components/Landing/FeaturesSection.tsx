@@ -4,6 +4,7 @@ import {
   Home,
   LayoutDashboard,
   Scale,
+  TrendingUp,
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -31,8 +32,15 @@ const FEATURES = [
       "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400",
   },
   {
+    icon: TrendingUp,
+    title: "Rent vs. Buy Wealth Calculator",
+    description:
+      "See the 3-year math: same monthly cost as rent, opposite wealth outcome. Compare equity built against rent paid and know when buying beats renting in your market.",
+    color: "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400",
+  },
+  {
     icon: Calculator,
-    title: "Financial Calculators",
+    title: "Full Cost Calculators",
     description:
       "Calculate the true cost of buying property in Germany — including notary fees, property transfer tax, agent commissions, and other hidden costs.",
     color:
