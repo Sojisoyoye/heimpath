@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import useAuth from "@/hooks/useAuth"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 /******************************************************************************
                               Constants
@@ -27,15 +28,44 @@ import useAuth from "@/hooks/useAuth"
 type Language = "en" | "de"
 
 const PLACEHOLDER = "Click Generate to create your personalised Anschreiben"
-const CLIPBOARD_RESET_MS = 2000
 
-function buildEnglishLetter(
+interface IFormFields {
+  profession: string
+  income: string
+  moveInDate: string
+  householdSize: string
+  letterText: string
+}
+
+const INITIAL_FIELDS: IFormFields = {
+  profession: "",
+  income: "",
+  moveInDate: "",
+  householdSize: "1",
+  letterText: "",
+}
+
+function buildLetter(
+  lang: Language,
   name: string,
   profession: string,
   income: string,
   moveInDate: string,
   householdSize: string,
 ): string {
+  if (lang === "de") {
+    return `Sehr geehrte Damen und Herren,
+
+mein Name ist ${name}. Ich bin als ${profession} tätig und verfüge über ein monatliches Nettoeinkommen von ${income} EUR. Ich suche derzeit eine Mietwohnung und würde gerne zum ${moveInDate} einziehen.
+
+Mein Haushalt besteht aus ${householdSize} Person(en). Ich bin ein zuverlässiger, ordentlicher und rücksichtsvoller Mieter, der die Miete stets pünktlich zahlt.
+
+Über die Möglichkeit eines Besichtigungstermins würde ich mich sehr freuen. Für weitere Informationen stehe ich Ihnen jederzeit gerne zur Verfügung.
+
+Mit freundlichen Grüßen,
+${name}`
+  }
+
   return `Dear Landlord / Ladies and Gentlemen,
 
 My name is ${name}. I am a ${profession} with a net monthly income of ${income} EUR. I am currently looking for a rental apartment and would like to move in on ${moveInDate}.
@@ -48,72 +78,44 @@ Yours sincerely,
 ${name}`
 }
 
-function buildGermanLetter(
-  name: string,
-  profession: string,
-  income: string,
-  moveInDate: string,
-  householdSize: string,
-): string {
-  return `Sehr geehrte Damen und Herren,
-
-mein Name ist ${name}. Ich bin als ${profession} tätig und verfüge über ein monatliches Nettoeinkommen von ${income} EUR. Ich suche derzeit eine Mietwohnung und würde gerne zum ${moveInDate} einziehen.
-
-Mein Haushalt besteht aus ${householdSize} Person(en). Ich bin ein zuverlässiger, ordentlicher und rücksichtsvoller Mieter, der die Miete stets pünktlich zahlt.
-
-Über die Möglichkeit eines Besichtigungstermins würde ich mich sehr freuen. Für weitere Informationen stehe ich Ihnen jederzeit gerne zur Verfügung.
-
-Mit freundlichen Grüßen,
-${name}`
-}
-
 /******************************************************************************
                               Components
 ******************************************************************************/
 
 function CoverLetterGenerator() {
   const { user } = useAuth()
+  const [copiedText, copy] = useCopyToClipboard()
 
-  const [profession, setProfession] = useState("")
-  const [income, setIncome] = useState("")
-  const [moveInDate, setMoveInDate] = useState("")
-  const [householdSize, setHouseholdSize] = useState("1")
-  const [letterText, setLetterText] = useState("")
+  const [fields, setFields] = useState<IFormFields>(INITIAL_FIELDS)
   const [language, setLanguage] = useState<Language>("en")
-  const [copied, setCopied] = useState(false)
 
-  const handleGenerate = () => {
-    const name = user?.full_name || "[Your Name]"
-    const displayProfession = profession || "[Profession]"
-    const displayIncome = income || "[Net Monthly Income]"
-    const displayMoveInDate = moveInDate || "[Move-in Date]"
-    const displayHouseholdSize = householdSize || "1"
-
-    const text =
-      language === "en"
-        ? buildEnglishLetter(
-            name,
-            displayProfession,
-            displayIncome,
-            displayMoveInDate,
-            displayHouseholdSize,
-          )
-        : buildGermanLetter(
-            name,
-            displayProfession,
-            displayIncome,
-            displayMoveInDate,
-            displayHouseholdSize,
-          )
-
-    setLetterText(text)
+  const updateField = (key: keyof IFormFields, value: string) => {
+    setFields((prev) => ({ ...prev, [key]: value }))
   }
 
-  const handleCopy = async () => {
-    if (!letterText) return
-    await navigator.clipboard.writeText(letterText)
-    setCopied(true)
-    setTimeout(() => setCopied(false), CLIPBOARD_RESET_MS)
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang)
+    // Clear letter so user knows they need to regenerate in the new language
+    setFields((prev) => ({ ...prev, letterText: "" }))
+  }
+
+  const handleGenerate = () => {
+    const name = user?.full_name?.trim() || "[Your Name]"
+    const displayProfession = fields.profession || "[Profession]"
+    const displayIncome = fields.income || "[Net Monthly Income]"
+    const displayMoveInDate = fields.moveInDate || "[Move-in Date]"
+    const displayHouseholdSize = fields.householdSize || "[Household Size]"
+
+    const text = buildLetter(
+      language,
+      name,
+      displayProfession,
+      displayIncome,
+      displayMoveInDate,
+      displayHouseholdSize,
+    )
+
+    setFields((prev) => ({ ...prev, letterText: text }))
   }
 
   return (
@@ -129,7 +131,7 @@ function CoverLetterGenerator() {
           <div className="flex items-center gap-0.5 rounded-md border p-0.5">
             <button
               type="button"
-              onClick={() => setLanguage("en")}
+              onClick={() => handleLanguageChange("en")}
               className={cn(
                 "rounded px-2 py-0.5 text-xs font-medium transition-all",
                 language === "en"
@@ -141,7 +143,7 @@ function CoverLetterGenerator() {
             </button>
             <button
               type="button"
-              onClick={() => setLanguage("de")}
+              onClick={() => handleLanguageChange("de")}
               className={cn(
                 "rounded px-2 py-0.5 text-xs font-medium transition-all",
                 language === "de"
@@ -167,8 +169,8 @@ function CoverLetterGenerator() {
             <Input
               id="cl-profession"
               placeholder="e.g. Software Engineer"
-              value={profession}
-              onChange={(e) => setProfession(e.target.value)}
+              value={fields.profession}
+              onChange={(e) => updateField("profession", e.target.value)}
               className="h-8 text-sm"
             />
           </div>
@@ -179,8 +181,8 @@ function CoverLetterGenerator() {
             <Input
               id="cl-income"
               placeholder="e.g. 3500"
-              value={income}
-              onChange={(e) => setIncome(e.target.value)}
+              value={fields.income}
+              onChange={(e) => updateField("income", e.target.value)}
               className="h-8 text-sm"
             />
           </div>
@@ -191,8 +193,8 @@ function CoverLetterGenerator() {
             <Input
               id="cl-move-in"
               placeholder="e.g. 01.09.2025"
-              value={moveInDate}
-              onChange={(e) => setMoveInDate(e.target.value)}
+              value={fields.moveInDate}
+              onChange={(e) => updateField("moveInDate", e.target.value)}
               className="h-8 text-sm"
             />
           </div>
@@ -203,8 +205,8 @@ function CoverLetterGenerator() {
             <Input
               id="cl-household"
               placeholder="e.g. 2"
-              value={householdSize}
-              onChange={(e) => setHouseholdSize(e.target.value)}
+              value={fields.householdSize}
+              onChange={(e) => updateField("householdSize", e.target.value)}
               className="h-8 text-sm"
             />
           </div>
@@ -215,8 +217,8 @@ function CoverLetterGenerator() {
         </Button>
 
         <Textarea
-          value={letterText}
-          onChange={(e) => setLetterText(e.target.value)}
+          value={fields.letterText}
+          onChange={(e) => updateField("letterText", e.target.value)}
           placeholder={PLACEHOLDER}
           className="min-h-[220px] resize-y text-sm"
         />
@@ -224,11 +226,11 @@ function CoverLetterGenerator() {
         <Button
           variant="outline"
           size="sm"
-          onClick={handleCopy}
-          disabled={!letterText}
+          onClick={() => copy(fields.letterText)}
+          disabled={!fields.letterText}
           className="w-full"
         >
-          {copied ? (
+          {copiedText !== null ? (
             <>
               <Check className="mr-1.5 h-3.5 w-3.5" />
               Copied!
