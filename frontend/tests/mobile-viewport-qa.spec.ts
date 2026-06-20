@@ -5,8 +5,7 @@ import {
   type Page,
   test,
 } from "@playwright/test"
-
-const BASE_URL = "https://www.heimpath.com"
+import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
 
 const PAGES = [
   { path: "/dashboard", heading: /dashboard/i },
@@ -33,7 +32,6 @@ test.describe("Mobile Viewport QA", () => {
   test.beforeAll(async ({ browser: b }) => {
     browser = b
     context = await browser.newContext({
-      baseURL: BASE_URL,
       viewport: MOBILE_VIEWPORT,
     })
     page = await context.newPage()
@@ -42,8 +40,8 @@ test.describe("Mobile Viewport QA", () => {
     await page.goto("/login")
     await page.getByTestId("email-input").waitFor({ state: "visible", timeout: 15000 })
 
-    await page.getByTestId("email-input").fill("soji.soyoye@gmail.com")
-    await page.getByTestId("password-input").fill("HeimPathQA2026!")
+    await page.getByTestId("email-input").fill(firstSuperuser)
+    await page.getByTestId("password-input").fill(firstSuperuserPassword)
     await page.getByRole("button", { name: "Sign In" }).click()
 
     await page.waitForURL("**/dashboard")

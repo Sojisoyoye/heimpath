@@ -759,8 +759,7 @@ test.describe("TEST 12: ROI calculator inputs and result", () => {
 
       // Wait for result (debounce 500ms + API call) instead of arbitrary timeout
       const grossYield = page.getByText(/gross rental yield/i, { exact: false })
-      await grossYield.waitFor({ state: "visible", timeout: 10000 }).catch(() => {})
-      expect.soft(await grossYield.isVisible().catch(() => false)).toBe(true)
+      await expect.soft(grossYield.first()).toBeVisible({ timeout: 10000 })
     }
   })
 })
