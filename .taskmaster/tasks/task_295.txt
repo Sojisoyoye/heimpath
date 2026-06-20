@@ -1,0 +1,24 @@
+# Task ID: 295
+# Title: [GrowthOS Fix] Calculator inputs not detected by QA — ROI Calculator
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Fix audit finding from GrowthOS: Same issue on /tools/roi-calculator
+# Details:
+## Source
+Created automatically by HeimPath GrowthOS v5 Fix Now integration.
+GrowthOS fix request ID: 13
+Finding ID: qa-audit-3-calc-4
+Severity: medium
+
+  ## Problem
+Same issue on /tools/roi-calculator
+
+  ## Required Fix
+
+
+  ## Workflow
+Follow .claude/skills/ship/SKILL.md. Run pre-commit and tests before raising PR.
+Never push directly to main. Feature branch → PR → CI → merge.
+# Test Strategy:
+Verify the fix resolves: "Calculator inputs not detected by QA — ROI Calculator". Run pre-commit run --all-files and the full test suite. Confirm no existing functionality is broken.

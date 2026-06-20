@@ -1,0 +1,24 @@
+# Task ID: 290
+# Title: [GrowthOS Fix] Page title not keyword-optimised
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Fix audit finding from GrowthOS: Current: 'HeimPath - Navigate German Real Estate with Confidence'. HeimPath has zero search authority. Leading with brand name wastes the title.
+# Details:
+## Source
+Created automatically by HeimPath GrowthOS v5 Fix Now integration.
+GrowthOS fix request ID: 8
+Finding ID: title_tag
+Severity: medium
+
+  ## Problem
+Current: 'HeimPath - Navigate German Real Estate with Confidence'. HeimPath has zero search authority. Leading with brand name wastes the title.
+
+  ## Required Fix
+Rewrite: 'Buy Property in Germany as a Foreigner — HeimPath | English Guide & Calculators'
+
+  ## Workflow
+Follow .claude/skills/ship/SKILL.md. Run pre-commit and tests before raising PR.
+Never push directly to main. Feature branch → PR → CI → merge.
+# Test Strategy:
+Verify the fix resolves: "Page title not keyword-optimised". Run pre-commit run --all-files and the full test suite. Confirm no existing functionality is broken.

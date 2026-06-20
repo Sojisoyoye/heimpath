@@ -1,0 +1,24 @@
+# Task ID: 288
+# Title: [GrowthOS Fix] All features behind login wall
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Fix audit finding from GrowthOS: Every URL beyond homepage requires authentication. Visitors cannot try anything without signup. Zero free demonstration of value.
+# Details:
+## Source
+Created automatically by HeimPath GrowthOS v5 Fix Now integration.
+GrowthOS fix request ID: 6
+Finding ID: paywall
+Severity: high
+
+  ## Problem
+Every URL beyond homepage requires authentication. Visitors cannot try anything without signup. Zero free demonstration of value.
+
+  ## Required Fix
+Move Grunderwerbsteuer calculator to homepage — fully functional, zero signup required. This is the product demo.
+
+  ## Workflow
+Follow .claude/skills/ship/SKILL.md. Run pre-commit and tests before raising PR.
+Never push directly to main. Feature branch → PR → CI → merge.
+# Test Strategy:
+Verify the fix resolves: "All features behind login wall". Run pre-commit run --all-files and the full test suite. Confirm no existing functionality is broken.

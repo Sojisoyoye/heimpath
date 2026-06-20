@@ -1,0 +1,24 @@
+# Task ID: 291
+# Title: [GrowthOS Fix] E2E test fix
+# Status: pending
+# Dependencies: None
+# Priority: low
+# Description: Fix audit finding from GrowthOS: Testing Fix Now button end to end
+# Details:
+## Source
+Created automatically by HeimPath GrowthOS v5 Fix Now integration.
+GrowthOS fix request ID: 9
+Finding ID: test_e2e_001
+Severity: low
+
+  ## Problem
+Testing Fix Now button end to end
+
+  ## Required Fix
+Verify full lifecycle works
+
+  ## Workflow
+Follow .claude/skills/ship/SKILL.md. Run pre-commit and tests before raising PR.
+Never push directly to main. Feature branch → PR → CI → merge.
+# Test Strategy:
+Verify the fix resolves: "E2E test fix". Run pre-commit run --all-files and the full test suite. Confirm no existing functionality is broken.

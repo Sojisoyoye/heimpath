@@ -1,0 +1,24 @@
+# Task ID: 287
+# Title: [GrowthOS Fix] Zero Google indexing
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Fix audit finding from GrowthOS: site:heimpath.com returns zero results. HeimPath does not exist in Google's index. No organic traffic is possible until fixed.
+# Details:
+## Source
+Created automatically by HeimPath GrowthOS v5 Fix Now integration.
+GrowthOS fix request ID: 5
+Finding ID: index
+Severity: critical
+
+  ## Problem
+site:heimpath.com returns zero results. HeimPath does not exist in Google's index. No organic traffic is possible until fixed.
+
+  ## Required Fix
+Fix SSR first. Then re-verify Search Console, resubmit sitemap, request indexing for every page.
+
+  ## Workflow
+Follow .claude/skills/ship/SKILL.md. Run pre-commit and tests before raising PR.
+Never push directly to main. Feature branch → PR → CI → merge.
+# Test Strategy:
+Verify the fix resolves: "Zero Google indexing". Run pre-commit run --all-files and the full test suite. Confirm no existing functionality is broken.

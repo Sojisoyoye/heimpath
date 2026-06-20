@@ -1,0 +1,24 @@
+# Task ID: 289
+# Title: [GrowthOS Fix] Meta description has no keywords
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Fix audit finding from GrowthOS: Current: 'Navigate German real estate with confidence.' Contains no search terms people actually type. Will not rank for any query.
+# Details:
+## Source
+Created automatically by HeimPath GrowthOS v5 Fix Now integration.
+GrowthOS fix request ID: 7
+Finding ID: meta_desc
+Severity: medium
+
+  ## Problem
+Current: 'Navigate German real estate with confidence.' Contains no search terms people actually type. Will not rank for any query.
+
+  ## Required Fix
+Rewrite: 'Calculate the exact cost of buying property in Germany as a foreigner — Grunderwerbsteuer, notary, mortgage. In English.'
+
+  ## Workflow
+Follow .claude/skills/ship/SKILL.md. Run pre-commit and tests before raising PR.
+Never push directly to main. Feature branch → PR → CI → merge.
+# Test Strategy:
+Verify the fix resolves: "Meta description has no keywords". Run pre-commit run --all-files and the full test suite. Confirm no existing functionality is broken.

@@ -1,0 +1,24 @@
+# Task ID: 286
+# Title: [GrowthOS Fix] No server-side rendering
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Fix audit finding from GrowthOS: Homepage renders via JavaScript only. Google sees an empty page. Zero indexable content. Switch to SSR or SSG immediately.
+# Details:
+## Source
+Created automatically by HeimPath GrowthOS v5 Fix Now integration.
+GrowthOS fix request ID: 4
+Finding ID: ssr
+Severity: critical
+
+  ## Problem
+Homepage renders via JavaScript only. Google sees an empty page. Zero indexable content. Switch to SSR or SSG immediately.
+
+  ## Required Fix
+Implement Next.js SSR or SSG on all pages. Verify rendered HTML is visible without JS execution.
+
+  ## Workflow
+Follow .claude/skills/ship/SKILL.md. Run pre-commit and tests before raising PR.
+Never push directly to main. Feature branch → PR → CI → merge.
+# Test Strategy:
+Verify the fix resolves: "No server-side rendering". Run pre-commit run --all-files and the full test suite. Confirm no existing functionality is broken.
