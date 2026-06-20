@@ -304,7 +304,19 @@ export ARM_SUBSCRIPTION_ID="<subscriptionId>"
 export ARM_TENANT_ID="<tenantId>"
 ```
 
+Verify the service principal is still active before proceeding (a revoked SP will cause
+`terraform init -migrate-state` to fail at the blob-read step with no easy recovery):
+
+```bash
+az login --service-principal \
+  -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID"
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+az account show   # should print subscription details; if this fails, renew the SP first
+```
+
 ### Step 1 — Migrate state from Azure blob to local
+
+All subsequent terraform commands must be run from `infra/terraform/`.
 
 ```bash
 cd infra/terraform
@@ -313,8 +325,16 @@ terraform init -migrate-state
 ```
 
 State is now stored in `infra/terraform/terraform.tfstate` (do not commit this file).
+**Back it up immediately** before running apply — if the file is lost, resources must be
+cleaned up manually via the Azure portal:
+
+```bash
+cp terraform.tfstate terraform.tfstate.manual-backup
+```
 
 ### Step 2 — Destroy all Azure resources
+
+Run from `infra/terraform/`:
 
 ```bash
 terraform apply
@@ -322,11 +342,19 @@ terraform apply
 # Confirm "yes"
 ```
 
-Key Vault `kv-heimpath-prod` has `purge_protection_enabled = true` with a 30-day retention.
-After it is soft-deleted by `terraform apply`, purge it manually to fully remove it:
+Both Key Vaults are soft-deleted by `terraform apply` and must be purged manually.
+
+`kv-heimpath-prod` has `purge_protection_enabled = true` with a 30-day retention.
+Azure **blocks** `az keyvault purge` for the entire retention window — the command will
+return a `409 Conflict` until day 30. Run it now to start the clock; re-run it after
+30 days to complete the purge.
+
+`kv-heimpath-staging` has `purge_protection_enabled = false` (7-day retention) — purge
+succeeds immediately so the name is released from the namespace at once:
 
 ```bash
 az keyvault purge --name kv-heimpath-prod --location germanywestcentral
+az keyvault purge --name kv-heimpath-staging --location germanywestcentral
 ```
 
 ### Step 3 — Delete the tfstate storage account

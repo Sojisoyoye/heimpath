@@ -68,17 +68,18 @@ class _JsonBodySizeLimitMiddleware:
         await self.app(scope, receive, send)
 
 
-class _ContainerAppsProxyMiddleware:
-    """Proxy header middleware for Azure Container Apps.
+class _ReverseProxyMiddleware:
+    """Proxy header middleware for Caddy reverse proxy (Hetzner VPS).
 
-    Container Apps' Envoy ingress appends the real downstream client IP to the
-    X-Forwarded-For chain.  Reading the rightmost entry gives the IP added by
-    the trusted CAE ingress, which cannot be spoofed: even if a client injects
-    values earlier in the chain, CAE always appends the real IP at the end.
+    Caddy sits in front of uvicorn and sets X-Forwarded-For before forwarding
+    the request.  In default mode (no trusted_proxies), Caddy replaces XFF
+    with just the connecting client IP.  With trusted_proxies configured, Caddy
+    appends the connecting hop to the right end of any existing XFF chain.
+    Either way, the rightmost entry is the real client address as seen by the
+    innermost trusted proxy and cannot be spoofed by the client.
 
     Replaces uvicorn's ProxyHeadersMiddleware (which reads the leftmost value
-    and is therefore vulnerable to X-Forwarded-For spoofing when all hosts are
-    trusted).
+    and is vulnerable to client-injected XFF spoofing).
     """
 
     def __init__(self, app: ASGIApp) -> None:
@@ -92,8 +93,8 @@ class _ContainerAppsProxyMiddleware:
                 v.decode("latin1") for k, v in headers if k == b"x-forwarded-for"
             ]
             if xff_values:
-                # CAE Envoy appends the real client IP at the end of the XFF chain.
-                # Take the rightmost entry to prevent spoofing via injected XFF values.
+                # Caddy appends/replaces with the real client IP; rightmost
+                # entry is the innermost trusted hop, not spoofable by clients.
                 real_ip = ", ".join(xff_values).split(",")[-1].strip()
                 # Only overwrite when non-empty; scope["client"] may be None on
                 # Unix-socket connections where the server has no peer address.
@@ -104,7 +105,7 @@ class _ContainerAppsProxyMiddleware:
                 v.decode("latin1") for k, v in headers if k == b"x-forwarded-proto"
             ]
             if proto_values:
-                # Take the leftmost proto — set by the client; CAE does not override it.
+                # Take the leftmost proto — set by Caddy, not overridable by clients.
                 proto = proto_values[0].split(",")[0].strip()
                 if proto in {"http", "https", "ws", "wss"}:
                     scope["scheme"] = proto
@@ -161,9 +162,9 @@ if settings.all_cors_origins:
         allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
     )
 
-# Extract real client IP from X-Forwarded-For set by Azure Container Apps ingress.
+# Extract real client IP from X-Forwarded-For set by the Caddy reverse proxy.
 if settings.ENVIRONMENT != "local":
-    app.add_middleware(_ContainerAppsProxyMiddleware)
+    app.add_middleware(_ReverseProxyMiddleware)
 
 # Reject oversized JSON bodies before any body bytes are read.
 app.add_middleware(_JsonBodySizeLimitMiddleware)
