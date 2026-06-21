@@ -9,12 +9,13 @@ import sentry_sdk
 from sqlalchemy import select
 from sqlmodel import Session as SyncSession
 
-from app.core.database import AsyncSessionLocal
+from app.core.database import AsyncSessionLocal, async_engine
 from app.core.db import engine as sync_engine
 from app.models.document import Document, DocumentStatus
 from app.models.notification import NotificationType
 from app.services import document_service, notification_service
 from app.services.document_service import _MAX_NOTIFICATION_RETRIES
+from app.services.scheduler_service import record_job_run
 from app.worker import celery_app
 
 logger = logging.getLogger(__name__)
@@ -40,13 +41,18 @@ def process_document_task(self, document_id_str: str) -> None:  # type: ignore[m
     the default prefork pool. Do NOT switch to the gevent or eventlet pool — both
     conflict with asyncio.run().
     """
-    try:
-        asyncio.run(
-            document_service.process_document(
-                document_id=uuid.UUID(document_id_str),
-                session_factory=AsyncSessionLocal,
-            )
+
+    async def _run() -> None:
+        # Dispose stale asyncpg connections from prior asyncio.run() loops
+        # before creating new sessions in the current event loop.
+        await async_engine.dispose()
+        await document_service.process_document(
+            document_id=uuid.UUID(document_id_str),
+            session_factory=AsyncSessionLocal,
         )
+
+    try:
+        asyncio.run(_run())
     except _NON_RETRYABLE as exc:
         # Non-transient errors (bad UUID, programming mistake) — do not retry.
         logger.error("Non-retryable error in process_document_task: %s", exc)
@@ -151,4 +157,16 @@ def retry_failed_notifications() -> int:
 
     Scheduled every 10 minutes via :data:`app.worker.celery_app` beat schedule.
     """
-    return asyncio.run(_retry_failed_notifications_async())
+
+    async def _run() -> int:
+        await async_engine.dispose()
+        return await _retry_failed_notifications_async()
+
+    try:
+        return asyncio.run(_run())
+    except Exception as exc:
+        sentry_sdk.capture_exception(exc)
+        logger.exception("Notification retry task failed")
+        return 0
+    finally:
+        record_job_run("notification_retry")
