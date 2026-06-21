@@ -168,16 +168,15 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
         raise HTTPException(status_code=400, detail="Invalid token")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    # Receiving and acting on the reset email proves ownership — mark as verified.
+    # Set before update_user so both changes land in its single internal commit.
+    user.email_verified = True
     user_in_update = UserUpdate(password=body.new_password)
     crud.update_user(
         session=session,
         db_user=user,
         user_in=user_in_update,
     )
-    # Receiving and acting on the reset email proves ownership — mark as verified.
-    user.email_verified = True
-    session.add(user)
-    session.commit()
     return Message(message="Password updated successfully")
 
 
