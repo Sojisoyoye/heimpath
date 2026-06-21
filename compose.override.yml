@@ -140,6 +140,7 @@ services:
     ipc: host
     depends_on:
       - backend
+      - celery-worker
       - mailcatcher
     env_file:
       - .env
