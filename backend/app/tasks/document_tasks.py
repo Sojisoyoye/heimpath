@@ -15,6 +15,7 @@ from app.models.document import Document, DocumentStatus
 from app.models.notification import NotificationType
 from app.services import document_service, notification_service
 from app.services.document_service import _MAX_NOTIFICATION_RETRIES
+from app.services.scheduler_service import record_job_run
 from app.worker import celery_app
 
 logger = logging.getLogger(__name__)
@@ -161,4 +162,11 @@ def retry_failed_notifications() -> int:
         await async_engine.dispose()
         return await _retry_failed_notifications_async()
 
-    return asyncio.run(_run())
+    try:
+        return asyncio.run(_run())
+    except Exception as exc:
+        sentry_sdk.capture_exception(exc)
+        logger.exception("Notification retry task failed")
+        return 0
+    finally:
+        record_job_run("notification_retry")

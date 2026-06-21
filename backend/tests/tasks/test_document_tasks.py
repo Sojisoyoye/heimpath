@@ -239,9 +239,29 @@ class TestRetryFailedNotifications:
                 "app.tasks.document_tasks.AsyncSessionLocal",
                 return_value=_factory(),
             ),
+            patch("app.tasks.document_tasks.record_job_run") as mock_heartbeat,
         ):
             mock_engine.dispose = AsyncMock()
             result = retry_failed_notifications.apply()
 
         assert result.get() == 0
         mock_engine.dispose.assert_awaited_once()
+        mock_heartbeat.assert_called_once_with("notification_retry")
+
+    def test_retry_failed_notifications_records_heartbeat_on_exception(self) -> None:
+        """record_job_run fires even when the task raises."""
+        with (
+            patch("app.tasks.document_tasks.async_engine") as mock_engine,
+            patch(
+                "app.tasks.document_tasks.AsyncSessionLocal",
+                side_effect=RuntimeError("DB down"),
+            ),
+            patch("app.tasks.document_tasks.record_job_run") as mock_heartbeat,
+            patch("app.tasks.document_tasks.sentry_sdk") as mock_sentry,
+        ):
+            mock_engine.dispose = AsyncMock()
+            result = retry_failed_notifications.apply()
+
+        assert result.get() == 0
+        mock_sentry.capture_exception.assert_called_once()
+        mock_heartbeat.assert_called_once_with("notification_retry")
