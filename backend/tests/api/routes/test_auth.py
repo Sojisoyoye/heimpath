@@ -427,6 +427,28 @@ def test_reset_password_success(client: TestClient, db: Session) -> None:
     assert verified
 
 
+def test_reset_password_marks_email_verified(client: TestClient, db: Session) -> None:
+    """Resetting via a valid link proves email ownership — user should be marked verified."""
+    email = random_email()
+    client.post(f"{AUTH}/register", json={"email": email, "password": _VALID_PASSWORD})
+
+    user = get_user_by_email(session=db, email=email)
+    assert user is not None
+    assert user.email_verified is False  # just registered, not yet verified
+
+    svc = get_password_reset_service()
+    token_data = svc.generate_token(user_id=str(user.id), email=email)
+
+    r = client.post(
+        f"{AUTH}/reset-password",
+        json={"token": token_data.token, "new_password": "NewSecure3"},
+    )
+    assert r.status_code == 200
+
+    db.refresh(user)
+    assert user.email_verified is True
+
+
 def test_reset_password_invalid_token_returns_400(client: TestClient) -> None:
     r = client.post(
         f"{AUTH}/reset-password",

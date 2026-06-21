@@ -699,6 +699,9 @@ async def reset_password(
         )
 
     user.hashed_password = get_password_hash(request.new_password)
+    # Receiving and acting on the password reset email proves email ownership —
+    # treat this as implicit email verification so the user can log in immediately.
+    user.email_verified = True
     session.add(user)
     session.commit()
 

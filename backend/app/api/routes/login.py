@@ -174,6 +174,10 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
         db_user=user,
         user_in=user_in_update,
     )
+    # Receiving and acting on the reset email proves ownership — mark as verified.
+    user.email_verified = True
+    session.add(user)
+    session.commit()
     return Message(message="Password updated successfully")
 
 
