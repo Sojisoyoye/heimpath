@@ -97,6 +97,7 @@ class TestCleanupStuckDocumentsTask:
             yield mock_session
 
         with (
+            patch("app.tasks.scheduled_tasks.async_engine") as mock_engine,
             patch(
                 "app.tasks.scheduled_tasks.AsyncSessionLocal",
                 return_value=_factory(),
@@ -108,9 +109,11 @@ class TestCleanupStuckDocumentsTask:
             ) as mock_cleanup,
             patch("app.tasks.scheduled_tasks.record_job_run"),
         ):
+            mock_engine.dispose = AsyncMock()
             result = cleanup_stuck_documents_task.apply()
 
         mock_cleanup.assert_awaited_once()
+        mock_engine.dispose.assert_awaited_once()
         assert result.get() == 2
 
     def test_records_job_run_even_on_exception(self) -> None:

@@ -12,6 +12,7 @@ from app.models.document import Document, DocumentStatus, DocumentType
 from app.tasks.document_tasks import (
     _retry_failed_notifications_async,
     process_document_task,
+    retry_failed_notifications,
 )
 
 
@@ -20,16 +21,23 @@ class TestProcessDocumentTask:
         """Task calls process_document with correct UUID and actually runs the coroutine."""
         document_id = uuid.uuid4()
 
-        with patch(
-            "app.tasks.document_tasks.document_service.process_document",
-            new_callable=AsyncMock,
-            return_value=None,
-        ) as mock_process:
+        with (
+            patch(
+                "app.tasks.document_tasks.async_engine",
+            ) as mock_engine,
+            patch(
+                "app.tasks.document_tasks.document_service.process_document",
+                new_callable=AsyncMock,
+                return_value=None,
+            ) as mock_process,
+        ):
+            mock_engine.dispose = AsyncMock()
             # apply() runs the task synchronously, exercising asyncio.run() for real.
             process_document_task.apply(args=[str(document_id)])
 
         mock_process.assert_called_once()
         assert mock_process.call_args[1]["document_id"] == document_id
+        mock_engine.dispose.assert_awaited_once()
 
     def test_process_document_task_retries_on_exception(self) -> None:
         """Task triggers Celery retry when process_document raises a transient exception."""
@@ -210,3 +218,30 @@ class TestRetryFailedNotifications:
         assert doc.notification_failure_count == 3
         assert doc.notification_retry_at is None  # no further retries scheduled
         mock_sentry.capture_message.assert_called_once()
+
+    def test_retry_failed_notifications_task_runs_via_apply(self) -> None:
+        """Task wrapper exercises asyncio.run(_run()) including async_engine.dispose()."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+
+        mock_session = AsyncMock()
+        mock_session.execute.return_value = mock_result
+
+        from contextlib import asynccontextmanager
+
+        @asynccontextmanager
+        async def _factory():
+            yield mock_session
+
+        with (
+            patch("app.tasks.document_tasks.async_engine") as mock_engine,
+            patch(
+                "app.tasks.document_tasks.AsyncSessionLocal",
+                return_value=_factory(),
+            ),
+        ):
+            mock_engine.dispose = AsyncMock()
+            result = retry_failed_notifications.apply()
+
+        assert result.get() == 0
+        mock_engine.dispose.assert_awaited_once()
