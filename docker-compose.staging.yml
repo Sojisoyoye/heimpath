@@ -72,7 +72,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     restart: always
-    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=2 --hostname=worker-staging@%h
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=50 --hostname=worker-staging@%h
     env_file:
       - .env.staging
     extra_hosts:
