@@ -76,6 +76,14 @@ The backend runs on a Hetzner VPS with Caddy as the reverse proxy. Both producti
 | `heimpath-celery-worker-staging-1` | Staging Celery worker | — |
 | `heimpath-celery-beat-staging-1` | Staging Celery beat | — |
 
+**Worker memory (added 2026-07-10):** both `celery-worker` commands run with `--max-tasks-per-child=50`.
+Python/glibc rarely returns memory to the OS after a heavy task (document/translation/analysis jobs),
+so a worker process's RSS climbs to whatever its biggest task needed and stays there indefinitely.
+Staging was observed at ~3x prod's per-process RSS (237MB/214MB vs 73MB/37MB) despite identical
+concurrency and uptime — not a leak, just accumulated high-water-mark from heavier QA-driven testing
+traffic. `--max-tasks-per-child` forces periodic worker process recycling, which reclaims that memory
+back to the OS.
+
 Caddy (running in the `modish_modish` Docker network on the same host) reverse-proxies:
 - `api.heimpath.com` → `heimpath-backend:8000`
 - `api.staging.heimpath.com` → `heimpath-backend-staging:8000`
