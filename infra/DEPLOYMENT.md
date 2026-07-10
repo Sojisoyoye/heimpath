@@ -80,6 +80,23 @@ Caddy (running in the `modish_modish` Docker network on the same host) reverse-p
 - `api.heimpath.com` → `heimpath-backend:8000`
 - `api.staging.heimpath.com` → `heimpath-backend-staging:8000`
 
+#### Caddy routing ownership (added 2026-07-10)
+
+The shared `/opt/modish/Caddyfile` used to be a single hand-edited file covering every project on
+this Hetzner box (heimpath, trading-teddy, modishlog, growthos, n8n). A manual edit to it silently
+blanked heimpath's routing — the site blocks were left empty (no `reverse_proxy` inside), which
+still terminates TLS and matches the host, but returns an empty `200` for every request instead of
+a `502`. That's a much harder failure to notice than an outright outage.
+
+To fix this for good, `/opt/modish/Caddyfile` now just does `import /opt/modish/sites/*.caddy`, and
+this repo owns its own routing snippet at `deploy/caddy/heimpath.caddy` (covering both
+`api.heimpath.com` and `api.staging.heimpath.com`). `deploy.yml`'s `deploy-prod-backend` job `scp`s
+this file to `/opt/modish/sites/heimpath.caddy` on every deploy and runs `caddy validate` before
+`caddy reload`, so a bad snippet fails the deploy instead of reloading broken shared routing.
+
+**Never hand-edit `/opt/modish/sites/heimpath.caddy` directly on the server** — edit
+`deploy/caddy/heimpath.caddy` in this repo and deploy, so the server and git stay in sync.
+
 ### VPS access
 
 ```bash

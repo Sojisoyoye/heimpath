@@ -153,6 +153,18 @@ jobs:
     needs: [build, await-approval]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy Caddy site snippet to shared proxy
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "deploy/caddy/heimpath.caddy"
+          target: "/opt/modish/sites"
+          strip_components: 2
+
       - name: Deploy backend-prod via SSH
         uses: appleboy/ssh-action@v1
         env:
@@ -190,6 +202,17 @@ jobs:
               BACKEND_IMAGE_TAG=${PREVIOUS_TAG:-latest} \
                 docker compose -f docker-compose.prod.yml \
                   up -d --no-deps --pull missing backend celery-worker celery-beat
+              exit 1
+            fi
+
+            # Reload the shared Caddy proxy so it picks up our snippet above.
+            # Only our own file (/opt/modish/sites/heimpath.caddy) was touched —
+            # validate before reload so a bad snippet fails this deploy instead
+            # of breaking routing for the other projects sharing this Caddy.
+            if docker exec caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile; then
+              docker exec caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+            else
+              echo "❌ Caddy config validation failed — skipping reload to avoid breaking shared routing"
               exit 1
             fi
 
