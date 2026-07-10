@@ -1,0 +1,7 @@
+api.heimpath.com {
+    reverse_proxy heimpath-backend:8000
+}
+
+api.staging.heimpath.com {
+    reverse_proxy heimpath-backend-staging:8000
+}
