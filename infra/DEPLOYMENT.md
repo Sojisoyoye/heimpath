@@ -105,6 +105,17 @@ this file to `/opt/modish/sites/heimpath.caddy` on every deploy and runs `caddy 
 **Never hand-edit `/opt/modish/sites/heimpath.caddy` directly on the server** — edit
 `deploy/caddy/heimpath.caddy` in this repo and deploy, so the server and git stay in sync.
 
+**Permissions note (fixed 2026-07-11):** the scp step deploys as the `deploy` SSH user (not root),
+which needs *both* group-write on `/opt/modish/sites/` (via the shared `modish-deploy` group,
+setgid on the directory) *and* actual ownership of `heimpath.caddy` itself — `tar` can restore a
+file's *content* with group-write alone, but restoring its mtime/mode during extraction requires
+being the file's owner (or root). This was only caught by actually running the deploy end-to-end,
+not by reviewing the workflow diff — a first attempt at the fix (group-write only) still failed
+with `Cannot utime: Operation not permitted`. If a fresh server ever needs this set up again:
+`groupadd modish-deploy && usermod -aG modish-deploy deploy`, then `chgrp modish-deploy` +
+`chmod g+w,+s` on `/opt/modish/sites/`, and `chown deploy:modish-deploy` specifically on
+`heimpath.caddy`.
+
 The shared stack itself (Caddy's top-level config, cliproxy) is now owned by
 [`modish-infra`](https://github.com/Sojisoyoye/modish-infra) — see that repo's `HETZNER-INFRA.md`
 for the full shared-box reference (server access, every domain on the box, DNS, general
