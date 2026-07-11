@@ -164,6 +164,7 @@ jobs:
           source: "deploy/caddy/heimpath.caddy"
           target: "/opt/modish/sites"
           strip_components: 2
+          overwrite: true
 
       - name: Deploy backend-prod via SSH
         uses: appleboy/ssh-action@v1
