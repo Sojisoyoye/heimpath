@@ -105,6 +105,11 @@ this file to `/opt/modish/sites/heimpath.caddy` on every deploy and runs `caddy 
 **Never hand-edit `/opt/modish/sites/heimpath.caddy` directly on the server** — edit
 `deploy/caddy/heimpath.caddy` in this repo and deploy, so the server and git stay in sync.
 
+The shared stack itself (Caddy's top-level config, cliproxy) is now owned by
+[`modish-infra`](https://github.com/Sojisoyoye/modish-infra) — see that repo's `HETZNER-INFRA.md`
+for the full shared-box reference (server access, every domain on the box, DNS, general
+troubleshooting). This repo only needs to know about its own `sites/heimpath.caddy`.
+
 ### VPS access
 
 ```bash
