@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { GERMAN_STATES, LAW_CATEGORIES } from "@/common/constants"
 import { cn } from "@/common/utils"
+import { LeadGenBanner } from "@/components/Auth"
 import { Badge } from "@/components/ui/badge"
 import {
   Breadcrumb,
@@ -272,6 +273,9 @@ function LawDetail(props: IProps) {
           )}
         </div>
       </div>
+
+      {/* Lead-gen CTA for anonymous visitors */}
+      <LeadGenBanner message="Sign up for a free account to bookmark laws and customize your feed." />
 
       {/* Summary */}
       <Card>

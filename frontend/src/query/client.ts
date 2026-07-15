@@ -1,6 +1,7 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { ApiError, AuthService } from "@/client"
+import { isLoggedIn } from "@/hooks/useAuth"
 
 /** Maximum delay between retry attempts (ms). */
 const MAX_RETRY_DELAY_MS = 30_000
@@ -34,14 +35,26 @@ function forceLogout(): void {
 }
 
 /**
+ * Whether the global session-recovery flow (silent refresh / force logout)
+ * should run for this error. Skips non-API errors, requests already on the
+ * login page, and — importantly — anonymous visitors: a 401 for a visitor
+ * with no session (e.g. hitting a freemium page's gated action) is expected
+ * and should not force-navigate an anonymous browser to /login.
+ */
+function shouldHandleAuthError(error: Error): error is ApiError {
+  if (!(error instanceof ApiError)) return false
+  if (globalThis.location.pathname === "/login") return false
+  return isLoggedIn()
+}
+
+/**
  * Query error handler.
  *
  * On 401: attempt a silent refresh then invalidate all queries so they
  * automatically re-fire. On 403 or refresh failure, force logout.
  */
 const handleQueryError = (error: Error) => {
-  if (!(error instanceof ApiError)) return
-  if (globalThis.location.pathname === "/login") return
+  if (!shouldHandleAuthError(error)) return
 
   if (error.status === 403) {
     forceLogout()
@@ -65,8 +78,7 @@ const handleQueryError = (error: Error) => {
  * On 403 or refresh failure, force logout.
  */
 const handleMutationError = (error: Error) => {
-  if (!(error instanceof ApiError)) return
-  if (globalThis.location.pathname === "/login") return
+  if (!shouldHandleAuthError(error)) return
 
   if (error.status === 403) {
     forceLogout()
