@@ -3909,13 +3909,124 @@
         "priority": "high",
         "subtasks": [],
         "updatedAt": "2026-06-20T18:50:26.923Z"
+      },
+      {
+        "id": "304",
+        "title": "Public access for Articles, Glossary & Laws (unauthenticated view)",
+        "description": "Allow anonymous visitors to read Articles, Glossary, and Laws content without logging in, as a freemium top-of-funnel strategy, while keeping all writes/interactions gated behind auth. Backend read endpoints for all three are already public; the work is a pathless public route layout, a new loader+head SEO pattern for all three content types (corrected scope — see below), 401-triggered signup modals with a CTA banner, and a build-time dynamic sitemap.",
+        "details": "Confirmed current state (re-verified in codebase during /batch planning, 2026-07-15):\n\nROUTES:\n- /articles -> frontend/src/routes/_layout/articles/index.tsx, $slug.tsx\n- /glossary -> frontend/src/routes/_layout/glossary/index.tsx, $slug.tsx\n- /laws -> frontend/src/routes/_layout/laws/index.tsx, $lawId.tsx\n- /laws/bookmarks -> frontend/src/routes/_layout/laws/bookmarks.tsx (NOT in scope for public access — shows a user's own saved laws, inherently personal data; stays behind the auth guard)\nAll are nested under the shared _layout route (beforeLoad in frontend/src/routes/_layout.tsx:50-59, redirects to /login if !isLoggedIn()).\n\nROUTE-GUARD APPROACH (decided during /batch planning): rather than adding conditional path-allowlisting inside the shared _layout.tsx beforeLoad (couples a generic guard to specific downstream paths), move the six public routes out from under _layout into a new pathless public layout (e.g. routes/_public/...). Pathless layout routes (prefixed _) add no URL segment, so /articles still resolves to /articles. Do NOT move laws/bookmarks.tsx.\n\nCORRECTION to prior scope — SEO (this superseded an earlier, incorrect premise that Articles/Glossary already had seoMeta() wired in): fresh inspection shows NONE of the three detail routes (articles/$slug.tsx, glossary/$slug.tsx, laws/$lawId.tsx) call seoMeta() at all — all three just set a bare static { title: \"...\" }. This is real, symmetric new work across all three content types, not an audit of Articles/Glossary plus new work for Laws only. seoMeta() itself (frontend/src/common/seo.ts) is a working, reusable helper — it's just never been called from these routes.\n\nARCHITECTURAL NOTE on dynamic meta: head() runs before the component mounts, so it can't read data from the useArticle/useGlossaryTerm/useLaw Query hooks (client-side fetch inside the component). Each detail route needs a loader that calls queryClient.ensureQueryData(...) using the same query key as its hook (refactor frontend/src/hooks/queries/useArticleQueries.ts, useGlossaryQueries.ts, useLegalQueries.ts to expose a queryOptions(...) the loader can reuse), so the loader pre-warms the cache and head({ loaderData }) gets real per-page data. The shared queryClient is exported from frontend/src/query/client.ts and importable outside React components. No route in this codebase currently uses loader+head together — new pattern.\n\nARCHITECTURAL NOTE on sitemap: no backend sitemap endpoint exists; frontend/public/sitemap.xml is a static, manually-maintained file. Frontend (Vercel) and backend (Hetzner VPS) are separately hosted, so a backend-served dynamic /sitemap.xml wouldn't automatically appear at heimpath.com/sitemap.xml without new cross-service proxy config (out of scope). Fit: a build-time script (frontend/scripts/generate-sitemap.mjs) that fetches all published article/glossary/law slugs from the existing public GET endpoints and writes frontend/public/sitemap.xml before/at deploy, wired into the build (e.g. prebuild step) with a safe fallback — keep the last-committed file if the API is unreachable rather than failing the build.\n\nLAWS (distinct backend resource, not an Articles category — own DB model Law, table law, in backend/app/models/legal.py):\n- Backend routes in backend/app/api/routes/laws.py: GET /laws/, GET /laws/search, GET /laws/categories, GET /laws/{law_id}, GET /laws/by-journey-step/{step_content_key} are already public (no auth).\n- POST /laws/, PUT /laws/{law_id}, DELETE /laws/{law_id} require superuser — unchanged.\n- POST/DELETE /laws/{law_id}/bookmark and GET /laws/bookmarks require auth (CurrentUser) — same 401-with-no-UI-handling problem as article rating.\n\nWORK UNITS (decomposed for parallel /batch implementation in isolated worktrees — merged where file overlap made further splitting conflict-prone):\n\n1. Public route access + dynamic SEO (Articles, Glossary, Laws)\n   - Move the 6 public routes to a new pathless public layout; leave laws/bookmarks.tsx under _layout.\n   - Refactor the 3 query hooks to expose queryOptions; add loader + head({ loaderData }) using seoMeta() to the 3 detail routes (and reasonable static seoMeta() on the 3 index routes).\n   - Audit any component reading current-user context on these pages for user === null handling.\n\n2. Interactive-action signup gating + lead-gen CTA (merged — both touch the same 3 detail components)\n   - Add signup/login modal on 401 from POST /articles/{slug}/rate (useRateArticle in useArticleMutations.ts) and POST/DELETE /laws/{law_id}/bookmark (useToggleBookmark in useLegalMutations.ts), reusing the existing Dialog pattern (frontend/src/components/ui/dialog.tsx, see FeedbackDialog.tsx for usage).\n   - Add a non-intrusive in-line signup CTA banner (using ui/card.tsx) to ArticleDetail.tsx, GlossaryDetail.tsx, LawDetail.tsx. No sticky footer/soft-paywall banner in scope.\n   - General principle for future work: any new interactive action added later (commenting, liking, editing) must also gate behind this modal for anonymous users.\n\n3. Build-time dynamic sitemap generation\n   - New frontend/scripts/generate-sitemap.mjs fetching all published slugs/IDs from the public list endpoints, writing frontend/public/sitemap.xml; wire into frontend/package.json build with a safe fallback. No backend changes.\n\nNOTE: SSR/prerendering for crawler-visible content on individual pages is tracked as a separate task (see \"SSR/prerendering for Articles, Glossary & Laws public pages\", #305) since it requires a framework-level change (e.g. TanStack Start) and is much larger in scope than this ticket.",
+        "testStrategy": "- E2E/Playwright: visit /articles, /articles/{slug}, /glossary, /glossary/{slug}, /laws, /laws/{lawId} while logged out — confirm no redirect to /login and content renders.\n- Confirm /laws/bookmarks still redirects to /login when logged out (regression check that this route was NOT made public).\n- Confirm logged-in behavior on all routes is unchanged (regression check).\n- Hit POST /articles/{slug}/rate as an anonymous user — confirm signup/login modal appears instead of an unhandled error/toast.\n- Hit POST /laws/{law_id}/bookmark as an anonymous user — confirm the same signup/login modal behavior.\n- Confirm admin-only POST/PUT/DELETE endpoints for articles, glossary, and laws still reject unauthenticated and non-admin requests (403/401).\n- Validate generated sitemap.xml includes all published article slugs, glossary term slugs, and individual law pages, and is valid XML.\n- Manually inspect page source / use a JS-rendering check for a sample article, glossary, and law page to confirm meta/OG tags are present and correct per page.",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Public route access + dynamic SEO for Articles, Glossary, Laws",
+            "description": "Move the 6 public routes to a new pathless public layout and add loader+head SEO wiring — corrected scope: this is new work for all three content types, not an audit of Articles/Glossary.",
+            "details": "Move frontend/src/routes/_layout/{articles,glossary}/{index,$slug}.tsx and laws/{index,$lawId}.tsx out from under _layout into a new pathless public layout (e.g. routes/_public/...) so they're reachable without login; do NOT move laws/bookmarks.tsx, it stays auth-gated. Refactor useArticleQueries.ts, useGlossaryQueries.ts, useLegalQueries.ts to expose queryOptions(...) so a route loader can call queryClient.ensureQueryData(...) (queryClient exported from frontend/src/query/client.ts) with the same query key the component's existing hook uses. Add loader + head({ loaderData }) using seoMeta() (frontend/src/common/seo.ts) to all 3 detail routes for real per-page title/description/OG tags — none of the three currently call seoMeta() at all, they only set a bare static title. Audit any component reading current-user context on these pages for user === null handling (no crash, no redirect loop).",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 304,
+            "updatedAt": "2026-07-15T20:10:26.113Z",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Interactive-action signup gating + lead-gen CTA",
+            "description": "Add a signup/login modal on the existing 401s (rating, bookmarking) and an in-line CTA banner on the 3 detail pages — merged into one unit since both touch the same component files.",
+            "details": "Add signup/login modal handling for POST /articles/{slug}/rate (useRateArticle in frontend/src/hooks/mutations/useArticleMutations.ts) and POST/DELETE /laws/{law_id}/bookmark (useToggleBookmark in useLegalMutations.ts), which already require auth and currently just 401 with no UI handling. Build a shared SignUpModal reusing the existing Dialog pattern (frontend/src/components/ui/dialog.tsx, see FeedbackDialog.tsx for usage) and wire it into ArticleDetail.tsx and LawDetail.tsx/BookmarkButton.tsx. Add a non-intrusive in-line signup CTA banner (using ui/card.tsx) to ArticleDetail.tsx, GlossaryDetail.tsx, and LawDetail.tsx — no sticky footer/soft-paywall banner in scope. General principle for future work: any new interactive action added later (commenting, liking, editing) must also gate behind this modal for anonymous users.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 304,
+            "parentId": "undefined",
+            "updatedAt": "2026-07-15T20:10:26.134Z"
+          },
+          {
+            "id": 3,
+            "title": "Build-time dynamic sitemap generation",
+            "description": "Replace the static sitemap.xml with one generated at build time from live content, via a frontend script (no backend endpoint — frontend and backend are hosted separately).",
+            "details": "Add frontend/scripts/generate-sitemap.mjs that fetches all published article slugs, glossary slugs, and law IDs from the existing public GET /articles/, GET /glossary/, GET /laws/ endpoints and writes frontend/public/sitemap.xml with one <url> entry per page plus the index pages. Wire it into frontend/package.json (e.g. a prebuild step) with a safe fallback — if the backend is unreachable at build time, keep the last-committed sitemap.xml rather than failing the build. No backend changes; a backend-served dynamic endpoint was considered but rejected since frontend (Vercel) and backend (Hetzner) are separately hosted and that would need new cross-service proxy config, out of scope here.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 304,
+            "parentId": "undefined",
+            "updatedAt": "2026-07-15T20:10:26.142Z"
+          }
+        ],
+        "updatedAt": "2026-07-15T20:10:26.142Z"
+      },
+      {
+        "id": "305",
+        "title": "SSR/prerendering for Articles, Glossary & Laws public pages (crawler indexing)",
+        "description": "Enable real crawler indexing of individual article, glossary term, and law pages. The frontend is currently a pure client-side SPA (Vite + TanStack Router, no SSR/prerendering plugin) — detail pages depend on client-side API calls, so crawlers that don't fully render JS see empty shells. Meta/OG tags and the sitemap (see task #304) are necessary but not sufficient for full indexing without this.",
+        "details": "Confirmed current state (verified in codebase, 2026-07-15): no SSR framework in use; vite.config.ts is standard Vite + TanStack Router with no prerendering plugin. A comment in frontend/src/routes/_layout.tsx suggests prerender intent but it was never implemented.\n\nScope:\n- Evaluate migration path to a framework with SSR/static-generation support for the public /articles/*, /glossary/*, and /laws/* routes (e.g. TanStack Start, or a lighter-weight prerender-at-build-time approach for these specific public routes if a full framework migration is too costly). /laws/$lawId is included since task #304 makes it public; /laws/bookmarks stays out of scope since it remains behind auth.\n- Ensure server-rendered/prerendered HTML includes real article/glossary/law content (not skeleton/loading states) for crawlers.\n- Keep the rest of the authenticated app (dashboard, calculators, etc.) unaffected — scope SSR/prerendering to the public content routes only unless a full migration is chosen.\n- Depends on task #304 (route auth-guard changes for articles, glossary, and laws) landing first, since these routes need to already be public before prerendering makes sense.\n\nThis is a larger architectural effort than a typical feature ticket — expect its own design/spike phase before implementation (evaluate build-time prerender vs. full SSR framework migration, assess CI/deploy pipeline impact on the Hetzner VPS + Vercel setup).",
+        "testStrategy": "- Fetch a sample article, glossary, and law page HTML with a plain HTTP client (no JS execution, e.g. curl) and confirm real content (title, body text) is present in the initial response, not just a skeleton/loading div.\n- Use Google's URL Inspection tool (Search Console) or a headless-browser-free crawler simulation to confirm indexable content for all three page types.\n- Confirm no regression in build/deploy pipeline (Vercel) or in authenticated-route behavior, including /laws/bookmarks remaining auth-gated and unaffected.\n- Load-test/verify prerender build step doesn't significantly increase CI build time beyond an agreed threshold.",
+        "status": "pending",
+        "dependencies": [
+          "304"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": "306",
+        "title": "Temporarily hide Professionals, Mortgage Guide, and Bank Account Guide sections behind feature flags",
+        "description": "Hide three unfinished/incomplete sections — Professionals, Mortgage Guide, and Bank Account Guide — from logged-in users while development continues, without deleting any code, components, or DB schema. None of these are a public/anonymous-visitor concern — all three already sit behind the app's existing _layout auth guard, so the real audience to hide them from is authenticated users who currently see them in the sidebar (and, for Professionals, via Journey-step CTAs; for Mortgage/Bank Account Guide, via a Journey financing CTA and mutual cross-links between the two guides).",
+        "details": "Confirmed current state (verified in codebase, 2026-07-15):\n\nPROFESSIONALS:\n- Frontend routes: /professionals (frontend/src/routes/_layout/professionals/index.tsx) and /professionals/$professionalId — both already nested under the _layout route's existing auth guard, so anonymous users can't reach them today.\n- Nav entries: sidebar item in frontend/src/components/Sidebar/AppSidebar.tsx:55 (in baseItems, visible to all authenticated users), plus 6 hardcoded ctaHref=\"/professionals\" CTA buttons in Journey step components: OwnershipTaxFinance, RentalTaxStrategy, NotaryAndContract, OwnershipRegistration, RentalContractReview, RentalPropertyManagement (all under frontend/src/components/Journey/StepContent/). No header/footer public link exists — nothing to remove there.\n- Backend routes in backend/app/api/routes/professionals.py: GET /filters, GET /, GET /{id}, POST /{id}/click are currently public (no auth). POST /{id}/reviews, POST /{id}/inquiries, POST/DELETE /{id}/save require auth (CurrentUser). POST /, PUT /{id}, DELETE /{id}, PATCH /{id}/verify require superuser already.\n\nMORTGAGE GUIDE:\n- Single-page frontend route: /mortgage-guide (frontend/src/routes/_layout/mortgage-guide.tsx), nested under the same _layout auth guard. No detail/subpages, no backend routes or DB models at all — this is frontend-only static/educational content.\n- Nav entries: sidebar item in AppSidebar.tsx:48, plus a Journey CTA in frontend/src/components/Journey/FinancingSelector.tsx:120 (shown when a user selects the mortgage financing option), plus a cross-link to the Bank Account Guide at mortgage-guide.tsx:319.\n- Has route-level meta tags (title) already set.\n\nBANK ACCOUNT GUIDE:\n- Single-page frontend route: /bank-account-guide (frontend/src/routes/_layout/bank-account-guide.tsx), nested under the same _layout auth guard. No detail/subpages, no backend routes or DB models — frontend-only static/educational content.\n- Nav entries: sidebar item in AppSidebar.tsx:50-52, plus a cross-link back to the Mortgage Guide at bank-account-guide.tsx:290.\n- Has full seoMeta() (title + description) already set.\n\nSHARED:\n- No feature-flag system exists anywhere in the codebase (no GrowthBook/LaunchDarkly/Unleash, no VITE_FEATURE_* env vars). This task introduces minimal ones, not toggles an existing system.\n- Backend already has an ENVIRONMENT setting (local/staging/production) in backend/app/core/config.py but it's unrelated to this feature and not reused here.\n- SEO: none of the three are in frontend/public/sitemap.xml, and all three routes already require login — no noindex/redirect work needed for any of them, just keep them out of the sitemap going forward.\n\nSUBTASKS:\n\n1. New minimal feature flags (separate per section, so each can be revealed independently later)\n   - Backend: add FEATURE_PROFESSIONALS_ENABLED (bool, default False) to backend/app/core/config.py — the only one of the three with a backend to gate.\n   - Frontend: add VITE_FEATURE_PROFESSIONALS_ENABLED, VITE_FEATURE_MORTGAGE_GUIDE_ENABLED, and VITE_FEATURE_BANK_ACCOUNT_GUIDE_ENABLED build-time env vars, all default false.\n\n2. Navigation & UI removal\n   - Remove the \"Professionals\", \"Mortgage Guide\", and \"Bank Account Guide\" sidebar items (AppSidebar.tsx:48-55) when their respective flag is off.\n   - Remove/hide the 6 Journey-step CTA buttons pointing to /professionals when that flag is off.\n   - Remove/hide the Journey financing CTA pointing to /mortgage-guide (FinancingSelector.tsx:120) when the mortgage-guide flag is off.\n   - Remove/hide the mutual cross-links between mortgage-guide.tsx and bank-account-guide.tsx when the corresponding target's flag is off, so hiding one guide never leaves a dead link in the other.\n\n3. Route protection\n   - Add a beforeLoad check on /professionals and /professionals/$professionalId, /mortgage-guide, and /bank-account-guide that redirects to home (or 404) when that route's flag is off.\n\n4. Backend gating (Professionals only — Mortgage Guide and Bank Account Guide have no backend routes to gate)\n   - Gate GET /filters, GET /, GET /{id}, and POST /{id}/click behind the Professionals flag: return 404 when disabled, with a superuser bypass so devs/admins can keep exercising the API while it's built out.\n   - No change needed to already-auth-gated endpoints (reviews, inquiries, save) or already-superuser-only CRUD endpoints (create/update/delete/verify).\n\nReverting any of these later is just flipping that section's env var(s) back to true — no code/schema changes needed to restore any of the three features.",
+        "testStrategy": "- With all flags off: confirm sidebar has none of the three items, the 6 Journey-step components render without their Professionals CTA, FinancingSelector renders without its mortgage-guide CTA, and neither guide page links to the other.\n- With flags off: navigate directly to /professionals, /professionals/{id}, /mortgage-guide, and /bank-account-guide as a logged-in user — confirm redirect to home/404 for each, not the underlying content.\n- With Professionals flag off: hit GET /api/v1/professionals/, /filters, /{id}, and POST /{id}/click as a non-superuser — confirm 404. Hit the same as a superuser — confirm normal 200 response (dev/admin bypass works).\n- Confirm already-auth-gated Professionals endpoints (reviews, inquiries, save) and superuser-only CRUD endpoints behave unchanged regardless of flag state.\n- Flip each flag independently to true — confirm only that section's nav/route/CTA/cross-link is restored while the other two stay hidden, proving the flags are truly independent.\n- Flip all flags to true — confirm all three sections (nav, routes, CTAs, cross-links, and the Professionals API) are fully restored with zero code changes.\n- Confirm sitemap.xml still has no entries for any of the three sections.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Introduce minimal feature flags (per section)",
+            "description": "Add separate backend and frontend flags for Professionals, Mortgage Guide, and Bank Account Guide.",
+            "details": "Backend: add FEATURE_PROFESSIONALS_ENABLED (bool, default False) to backend/app/core/config.py — the only one of the three with a backend to gate. Frontend: add VITE_FEATURE_PROFESSIONALS_ENABLED, VITE_FEATURE_MORTGAGE_GUIDE_ENABLED, and VITE_FEATURE_BANK_ACCOUNT_GUIDE_ENABLED build-time env vars, all default false. No feature-flag system exists anywhere in the codebase today — this introduces minimal ones, not toggles an existing system.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 306,
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Navigation & UI removal for all three sections",
+            "description": "Remove sidebar entries and dead-end CTAs/cross-links when each section's flag is off.",
+            "details": "Remove the \"Professionals\", \"Mortgage Guide\", and \"Bank Account Guide\" sidebar items (AppSidebar.tsx:48-55) when their respective flag is off. Remove/hide the 6 Journey-step CTA buttons pointing to /professionals when that flag is off. Remove/hide the Journey financing CTA pointing to /mortgage-guide (FinancingSelector.tsx:120) when the mortgage-guide flag is off. Remove/hide the mutual cross-links between mortgage-guide.tsx and bank-account-guide.tsx when the corresponding target's flag is off, so hiding one guide never leaves a dead link in the other.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 306,
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Route protection for all three sections",
+            "description": "Add beforeLoad flag checks that redirect away when a section's flag is off.",
+            "details": "Add a beforeLoad check on /professionals and /professionals/$professionalId, /mortgage-guide, and /bank-account-guide that redirects to home (or 404) when that route's flag is off.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 306,
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Backend gating for Professionals endpoints",
+            "description": "Gate the public Professionals GET/click endpoints behind the flag, with a superuser bypass. Mortgage Guide and Bank Account Guide have no backend to gate.",
+            "details": "Gate GET /filters, GET /, GET /{id}, and POST /{id}/click behind the Professionals flag: return 404 when disabled, with a superuser bypass so devs/admins can keep exercising the API while it's built out. No change needed to already-auth-gated endpoints (reviews, inquiries, save) or already-superuser-only CRUD endpoints (create/update/delete/verify). Mortgage Guide and Bank Account Guide are frontend-only with no backend routes, so nothing to gate there.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 306,
+            "parentId": "undefined"
+          }
+        ]
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-06-20T18:50:26.998Z",
-      "taskCount": 302,
-      "completedCount": 298,
+      "lastModified": "2026-07-15T20:10:26.142Z",
+      "taskCount": 305,
+      "completedCount": 299,
       "tags": [
         "master"
       ]
