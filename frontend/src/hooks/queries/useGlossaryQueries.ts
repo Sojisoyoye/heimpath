@@ -3,10 +3,22 @@
  * React Query hooks for German real estate glossary data fetching
  */
 
-import { useQuery } from "@tanstack/react-query"
+import { queryOptions, useQuery } from "@tanstack/react-query"
 import type { GlossaryFilter } from "@/models/glossary"
 import { queryKeys } from "@/query/queryKeys"
 import { GlossaryService } from "@/services/GlossaryService"
+
+/**
+ * Query options for glossary term detail by slug — shared between the
+ * `useGlossaryTerm` hook and route `loader`s (e.g. for SEO metadata).
+ */
+export function glossaryTermQueryOptions(slug: string) {
+  return queryOptions({
+    queryKey: queryKeys.glossary.detail(slug),
+    queryFn: () => GlossaryService.getTerm(slug),
+    enabled: !!slug,
+  })
+}
 
 /**
  * Get paginated list of glossary terms
@@ -24,11 +36,7 @@ export function useGlossaryTerms(filters?: GlossaryFilter) {
  * Get glossary term detail by slug
  */
 export function useGlossaryTerm(slug: string) {
-  return useQuery({
-    queryKey: queryKeys.glossary.detail(slug),
-    queryFn: () => GlossaryService.getTerm(slug),
-    enabled: !!slug,
-  })
+  return useQuery(glossaryTermQueryOptions(slug))
 }
 
 /**

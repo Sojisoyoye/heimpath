@@ -3,10 +3,22 @@
  * React Query hooks for legal knowledge base data fetching
  */
 
-import { useQuery } from "@tanstack/react-query"
+import { queryOptions, useQuery } from "@tanstack/react-query"
 import type { LawFilter } from "@/models/legal"
 import { queryKeys } from "@/query/queryKeys"
 import { LegalService } from "@/services/LegalService"
+
+/**
+ * Query options for a specific law by ID — shared between the `useLaw`
+ * hook and route `loader`s (e.g. for SEO metadata).
+ */
+export function lawQueryOptions(lawId: string) {
+  return queryOptions({
+    queryKey: queryKeys.laws.detail(lawId),
+    queryFn: () => LegalService.getLaw(lawId),
+    enabled: !!lawId,
+  })
+}
 
 /**
  * Get paginated list of laws with filters
@@ -24,11 +36,7 @@ export function useLaws(filters?: LawFilter) {
  * Get a specific law by ID
  */
 export function useLaw(lawId: string) {
-  return useQuery({
-    queryKey: queryKeys.laws.detail(lawId),
-    queryFn: () => LegalService.getLaw(lawId),
-    enabled: !!lawId,
-  })
+  return useQuery(lawQueryOptions(lawId))
 }
 
 /**

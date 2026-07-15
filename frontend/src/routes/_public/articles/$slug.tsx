@@ -5,19 +5,33 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 
+import { seoMeta } from "@/common/seo"
 import { ArticleDetail } from "@/components/Articles"
-import { useArticle } from "@/hooks/queries"
+import { articleQueryOptions, useArticle } from "@/hooks/queries"
 import type { ArticleDetail as ArticleDetailType } from "@/models/article"
 
 /******************************************************************************
                               Route
 ******************************************************************************/
 
-export const Route = createFileRoute("/_layout/articles/$slug")({
+export const Route = createFileRoute("/_public/articles/$slug")({
   component: ArticleDetailPage,
-  head: () => ({
-    meta: [{ title: "Article - HeimPath" }],
-  }),
+  // Swallow fetch errors (e.g. 404 on a bad/stale slug) instead of letting
+  // them throw and bounce anonymous visitors to the generic root error page
+  // — the component below already renders a friendly in-page error state
+  // via `useArticle`'s `error` field.
+  loader: ({ context, params }) =>
+    context.queryClient
+      .ensureQueryData(articleQueryOptions(params.slug))
+      .catch(() => undefined),
+  head: ({ loaderData, params }) =>
+    seoMeta({
+      title: loaderData
+        ? `${loaderData.title} - HeimPath`
+        : "Article - HeimPath",
+      description: loaderData?.metaDescription || loaderData?.excerpt,
+      path: `/articles/${params.slug}`,
+    }),
 })
 
 /******************************************************************************

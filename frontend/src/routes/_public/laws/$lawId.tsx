@@ -5,19 +5,33 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 
+import { seoMeta } from "@/common/seo"
 import { LawDetail } from "@/components/Legal"
-import { useLaw } from "@/hooks/queries"
+import { lawQueryOptions, useLaw } from "@/hooks/queries"
 import type { LawDetail as LawDetailType } from "@/models/legal"
 
 /******************************************************************************
                               Route
 ******************************************************************************/
 
-export const Route = createFileRoute("/_layout/laws/$lawId")({
+export const Route = createFileRoute("/_public/laws/$lawId")({
   component: LawDetailPage,
-  head: () => ({
-    meta: [{ title: "Law Details - HeimPath" }],
-  }),
+  // Swallow fetch errors (e.g. 404 on a bad/stale id) instead of letting
+  // them throw and bounce anonymous visitors to the generic root error page
+  // — the component below already renders a friendly in-page error state
+  // via `useLaw`'s `error` field.
+  loader: ({ context, params }) =>
+    context.queryClient
+      .ensureQueryData(lawQueryOptions(params.lawId))
+      .catch(() => undefined),
+  head: ({ loaderData, params }) =>
+    seoMeta({
+      title: loaderData
+        ? `${loaderData.titleEn} - HeimPath Legal Knowledge Base`
+        : "Law Details - HeimPath",
+      description: loaderData?.shortSummary || loaderData?.oneLineSummary,
+      path: `/laws/${params.lawId}`,
+    }),
 })
 
 /******************************************************************************

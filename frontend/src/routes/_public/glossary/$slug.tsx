@@ -5,18 +5,32 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 
+import { seoMeta } from "@/common/seo"
 import { GlossaryDetail } from "@/components/Glossary"
-import { useGlossaryTerm } from "@/hooks/queries"
+import { glossaryTermQueryOptions, useGlossaryTerm } from "@/hooks/queries"
 
 /******************************************************************************
                               Route
 ******************************************************************************/
 
-export const Route = createFileRoute("/_layout/glossary/$slug")({
+export const Route = createFileRoute("/_public/glossary/$slug")({
   component: GlossaryTermPage,
-  head: () => ({
-    meta: [{ title: "Glossary Term - HeimPath" }],
-  }),
+  // Swallow fetch errors (e.g. 404 on a bad/stale slug) instead of letting
+  // them throw and bounce anonymous visitors to the generic root error page
+  // — the component below already renders a friendly in-page error state
+  // via `useGlossaryTerm`'s `error` field.
+  loader: ({ context, params }) =>
+    context.queryClient
+      .ensureQueryData(glossaryTermQueryOptions(params.slug))
+      .catch(() => undefined),
+  head: ({ loaderData, params }) =>
+    seoMeta({
+      title: loaderData
+        ? `${loaderData.termEn} (${loaderData.termDe}) - HeimPath Glossary`
+        : "Glossary Term - HeimPath",
+      description: loaderData?.definitionShort,
+      path: `/glossary/${params.slug}`,
+    }),
 })
 
 /******************************************************************************
