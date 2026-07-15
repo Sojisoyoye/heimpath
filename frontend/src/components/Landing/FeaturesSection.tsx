@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router"
 import {
   Calculator,
   FileText,
@@ -30,6 +31,7 @@ const FEATURES = [
       "Access 50+ German real estate laws and regulations explained in plain English. Understand your rights, obligations, and key legal milestones before you sign.",
     color:
       "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400",
+    href: "/laws",
   },
   {
     icon: TrendingUp,
@@ -85,8 +87,9 @@ function FeaturesSection() {
         </AnimateIn>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, i) => (
-            <AnimateIn key={feature.title} delayMs={(i + 1) * 100}>
+          {FEATURES.map((feature, i) => {
+            const href = "href" in feature ? feature.href : undefined
+            const card = (
               <Card className="h-full transition-shadow hover:shadow-md">
                 <CardContent className="flex gap-4 p-6">
                   <div
@@ -102,8 +105,20 @@ function FeaturesSection() {
                   </div>
                 </CardContent>
               </Card>
-            </AnimateIn>
-          ))}
+            )
+
+            return (
+              <AnimateIn key={feature.title} delayMs={(i + 1) * 100}>
+                {href ? (
+                  <Link to={href} className="block h-full">
+                    {card}
+                  </Link>
+                ) : (
+                  card
+                )}
+              </AnimateIn>
+            )
+          })}
         </div>
       </div>
     </section>
