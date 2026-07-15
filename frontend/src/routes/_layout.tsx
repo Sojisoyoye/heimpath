@@ -49,8 +49,10 @@ export const Route = createFileRoute("/_layout")({
   component: Layout,
   beforeLoad: async () => {
     // During SSR (prerender), window is undefined — skip the auth redirect so
-    // public content pages (mortgage-guide, glossary, laws, articles) are
-    // pre-rendered with full HTML for Google indexing.
+    // any pages still under this guard (e.g. mortgage-guide) are pre-rendered
+    // with full HTML for Google indexing. Articles, Glossary, and Laws are
+    // publicly accessible and live under the `_public` layout instead — see
+    // src/routes/_public.tsx.
     if (typeof window === "undefined") return
     if (!isLoggedIn()) {
       throw redirect({

@@ -1,12 +1,13 @@
 /**
- * Glossary List Page
- * Browse and search German real estate terminology
+ * Articles List Page
+ * Browse and search the content library
  */
 
 import { createFileRoute } from "@tanstack/react-router"
-import { Languages, Search } from "lucide-react"
+import { BookOpen, Search } from "lucide-react"
+import { seoMeta } from "@/common/seo"
 import { validateSearchTabQuery } from "@/common/utils"
-import { GlossaryList, GlossarySearch } from "@/components/Glossary"
+import { ArticleList, ArticleSearch } from "@/components/Articles"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTabQueryNavigation } from "@/hooks"
 
@@ -14,34 +15,38 @@ import { useTabQueryNavigation } from "@/hooks"
                               Route
 ******************************************************************************/
 
-export const Route = createFileRoute("/_layout/glossary/")({
-  component: GlossaryPage,
+export const Route = createFileRoute("/_public/articles/")({
+  component: ArticlesPage,
   validateSearch: validateSearchTabQuery,
-  head: () => ({
-    meta: [{ title: "German RE Glossary - HeimPath" }],
-  }),
+  head: () =>
+    seoMeta({
+      title: "Content Library - HeimPath",
+      description:
+        "In-depth guides to buying property in Germany as a foreigner — the buying process, costs and taxes, regulations, and common pitfalls.",
+      path: "/articles",
+    }),
 })
 
 /******************************************************************************
                               Components
 ******************************************************************************/
 
-/** Default component. Glossary listing page. */
-function GlossaryPage() {
+/** Default component. Articles listing page. */
+function ArticlesPage() {
   const { tab, q } = Route.useSearch()
   const { activeTab, handleTabChange, handleQueryChange } =
-    useTabQueryNavigation("/glossary", { tab, q })
+    useTabQueryNavigation("/articles", { tab, q })
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Languages className="h-6 w-6" />
-          German Real Estate Glossary
+          <BookOpen className="h-6 w-6" />
+          Content Library
         </h1>
         <p className="text-muted-foreground">
-          Key German terms every property buyer should know
+          In-depth guides to buying property in Germany
         </p>
       </div>
 
@@ -49,7 +54,7 @@ function GlossaryPage() {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="browse" className="gap-2">
-            <Languages className="h-4 w-4" />
+            <BookOpen className="h-4 w-4" />
             Browse
           </TabsTrigger>
           <TabsTrigger value="search" className="gap-2">
@@ -59,11 +64,11 @@ function GlossaryPage() {
         </TabsList>
 
         <TabsContent value="browse" className="mt-6">
-          <GlossaryList showCategoryFilter pageSize={21} />
+          <ArticleList showCategoryFilter pageSize={12} />
         </TabsContent>
 
         <TabsContent value="search" className="mt-6">
-          <GlossarySearch initialQuery={q} onQueryChange={handleQueryChange} />
+          <ArticleSearch initialQuery={q} onQueryChange={handleQueryChange} />
         </TabsContent>
       </Tabs>
     </div>
@@ -74,4 +79,4 @@ function GlossaryPage() {
                               Export
 ******************************************************************************/
 
-export default GlossaryPage
+export default ArticlesPage

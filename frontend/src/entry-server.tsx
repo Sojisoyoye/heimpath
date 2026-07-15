@@ -18,6 +18,7 @@ export async function render(url: string): Promise<string> {
   const router = createRouter({
     routeTree,
     history: memoryHistory,
+    context: { queryClient },
     defaultPreloadStaleTime: 0,
   })
   await router.load()

@@ -5,22 +5,28 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Bookmark, Scale, Search } from "lucide-react"
+import { seoMeta } from "@/common/seo"
 import { validateSearchTabQuery } from "@/common/utils"
 import { LawList, LawSearch } from "@/components/Legal"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTabQueryNavigation } from "@/hooks"
+import { isLoggedIn } from "@/hooks/useAuth"
 
 /******************************************************************************
                               Route
 ******************************************************************************/
 
-export const Route = createFileRoute("/_layout/laws/")({
+export const Route = createFileRoute("/_public/laws/")({
   component: LawsPage,
   validateSearch: validateSearchTabQuery,
-  head: () => ({
-    meta: [{ title: "Legal Knowledge Base - HeimPath" }],
-  }),
+  head: () =>
+    seoMeta({
+      title: "Legal Knowledge Base - HeimPath",
+      description:
+        "German property laws explained in plain English — buying process, costs and taxes, rental law, condominium rules, and agent regulations.",
+      path: "/laws",
+    }),
 })
 
 /******************************************************************************
@@ -46,12 +52,14 @@ function LawsPage() {
             German property laws explained in plain English
           </p>
         </div>
-        <Button variant="outline" asChild className="self-start shrink-0">
-          <Link to="/laws/bookmarks">
-            <Bookmark className="mr-2 h-4 w-4" />
-            My Bookmarks
-          </Link>
-        </Button>
+        {isLoggedIn() && (
+          <Button variant="outline" asChild className="self-start shrink-0">
+            <Link to="/laws/bookmarks">
+              <Bookmark className="mr-2 h-4 w-4" />
+              My Bookmarks
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}

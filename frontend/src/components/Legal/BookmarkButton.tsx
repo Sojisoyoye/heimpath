@@ -8,6 +8,7 @@ import { Bookmark, Loader2 } from "lucide-react"
 import { cn } from "@/common/utils"
 import { Button } from "@/components/ui/button"
 import { useToggleBookmark } from "@/hooks/mutations"
+import useRequireAuth from "@/hooks/useRequireAuth"
 
 interface IProps {
   lawId: string
@@ -22,7 +23,9 @@ interface IProps {
                               Components
 ******************************************************************************/
 
-/** Default component. Bookmark toggle button. */
+/** Default component. Bookmark toggle button. Anonymous visitors (this
+ * button can render on public /laws and /laws/$lawId pages) are prompted
+ * to log in instead of firing an authenticated mutation that would 401. */
 function BookmarkButton(props: IProps) {
   const {
     lawId,
@@ -34,10 +37,14 @@ function BookmarkButton(props: IProps) {
   } = props
 
   const { toggle, isPending } = useToggleBookmark()
+  const { requireAuth } = useRequireAuth()
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+
+    if (!requireAuth("Log in to save laws for quick reference.")) return
+
     toggle(lawId, isBookmarked)
   }
 

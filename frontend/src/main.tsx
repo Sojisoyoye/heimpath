@@ -23,6 +23,7 @@ initializeApiClient()
 
 const router = createRouter({
   routeTree,
+  context: { queryClient },
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
 })

@@ -3,10 +3,22 @@
  * React Query hooks for content library data fetching
  */
 
-import { useQuery } from "@tanstack/react-query"
+import { queryOptions, useQuery } from "@tanstack/react-query"
 import type { ArticleFilter } from "@/models/article"
 import { queryKeys } from "@/query/queryKeys"
 import { ArticleService } from "@/services/ArticleService"
+
+/**
+ * Query options for article detail by slug — shared between the
+ * `useArticle` hook and route `loader`s (e.g. for SEO metadata).
+ */
+export function articleQueryOptions(slug: string) {
+  return queryOptions({
+    queryKey: queryKeys.articles.detail(slug),
+    queryFn: () => ArticleService.getArticle(slug),
+    enabled: !!slug,
+  })
+}
 
 /**
  * Get paginated list of published articles
@@ -24,11 +36,7 @@ export function useArticles(filters?: ArticleFilter) {
  * Get article detail by slug
  */
 export function useArticle(slug: string) {
-  return useQuery({
-    queryKey: queryKeys.articles.detail(slug),
-    queryFn: () => ArticleService.getArticle(slug),
-    enabled: !!slug,
-  })
+  return useQuery(articleQueryOptions(slug))
 }
 
 /**

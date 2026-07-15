@@ -20,6 +20,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ImprintRouteImport } from './routes/imprint'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools/index'
@@ -37,23 +38,23 @@ import { Route as LayoutContractExplainerRouteImport } from './routes/_layout/co
 import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
 import { Route as LayoutBankAccountGuideRouteImport } from './routes/_layout/bank-account-guide'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as PublicLawsIndexRouteImport } from './routes/_public/laws/index'
+import { Route as PublicGlossaryIndexRouteImport } from './routes/_public/glossary/index'
+import { Route as PublicArticlesIndexRouteImport } from './routes/_public/articles/index'
 import { Route as LayoutProfessionalsIndexRouteImport } from './routes/_layout/professionals/index'
 import { Route as LayoutPortfolioIndexRouteImport } from './routes/_layout/portfolio/index'
-import { Route as LayoutLawsIndexRouteImport } from './routes/_layout/laws/index'
 import { Route as LayoutJourneysIndexRouteImport } from './routes/_layout/journeys/index'
-import { Route as LayoutGlossaryIndexRouteImport } from './routes/_layout/glossary/index'
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents/index'
-import { Route as LayoutArticlesIndexRouteImport } from './routes/_layout/articles/index'
 import { Route as SharedEvaluationShareIdRouteImport } from './routes/shared/evaluation.$shareId'
+import { Route as PublicLawsLawIdRouteImport } from './routes/_public/laws/$lawId'
+import { Route as PublicGlossarySlugRouteImport } from './routes/_public/glossary/$slug'
+import { Route as PublicArticlesSlugRouteImport } from './routes/_public/articles/$slug'
 import { Route as LayoutProfessionalsProfessionalIdRouteImport } from './routes/_layout/professionals/$professionalId'
 import { Route as LayoutPortfolioPropertyIdRouteImport } from './routes/_layout/portfolio/$propertyId'
 import { Route as LayoutLawsBookmarksRouteImport } from './routes/_layout/laws/bookmarks'
-import { Route as LayoutLawsLawIdRouteImport } from './routes/_layout/laws/$lawId'
 import { Route as LayoutJourneysNewRouteImport } from './routes/_layout/journeys/new'
 import { Route as LayoutJourneysJourneyIdRouteImport } from './routes/_layout/journeys/$journeyId'
-import { Route as LayoutGlossarySlugRouteImport } from './routes/_layout/glossary/$slug'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents/$documentId'
-import { Route as LayoutArticlesSlugRouteImport } from './routes/_layout/articles/$slug'
 import { Route as LayoutJourneysJourneyIdIndexRouteImport } from './routes/_layout/journeys/$journeyId.index'
 import { Route as LayoutJourneysJourneyIdPropertyEvaluationRouteImport } from './routes/_layout/journeys/$journeyId.property-evaluation'
 
@@ -110,6 +111,10 @@ const LoginRoute = LoginRouteImport.update({
 const ImprintRoute = ImprintRouteImport.update({
   id: '/imprint',
   path: '/imprint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutRoute = LayoutRouteImport.update({
@@ -198,6 +203,21 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const PublicLawsIndexRoute = PublicLawsIndexRouteImport.update({
+  id: '/laws/',
+  path: '/laws/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicGlossaryIndexRoute = PublicGlossaryIndexRouteImport.update({
+  id: '/glossary/',
+  path: '/glossary/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicArticlesIndexRoute = PublicArticlesIndexRouteImport.update({
+  id: '/articles/',
+  path: '/articles/',
+  getParentRoute: () => PublicRoute,
+} as any)
 const LayoutProfessionalsIndexRoute =
   LayoutProfessionalsIndexRouteImport.update({
     id: '/professionals/',
@@ -209,19 +229,9 @@ const LayoutPortfolioIndexRoute = LayoutPortfolioIndexRouteImport.update({
   path: '/portfolio/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutLawsIndexRoute = LayoutLawsIndexRouteImport.update({
-  id: '/laws/',
-  path: '/laws/',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutJourneysIndexRoute = LayoutJourneysIndexRouteImport.update({
   id: '/journeys/',
   path: '/journeys/',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutGlossaryIndexRoute = LayoutGlossaryIndexRouteImport.update({
-  id: '/glossary/',
-  path: '/glossary/',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDocumentsIndexRoute = LayoutDocumentsIndexRouteImport.update({
@@ -229,15 +239,25 @@ const LayoutDocumentsIndexRoute = LayoutDocumentsIndexRouteImport.update({
   path: '/documents/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutArticlesIndexRoute = LayoutArticlesIndexRouteImport.update({
-  id: '/articles/',
-  path: '/articles/',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const SharedEvaluationShareIdRoute = SharedEvaluationShareIdRouteImport.update({
   id: '/shared/evaluation/$shareId',
   path: '/shared/evaluation/$shareId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PublicLawsLawIdRoute = PublicLawsLawIdRouteImport.update({
+  id: '/laws/$lawId',
+  path: '/laws/$lawId',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicGlossarySlugRoute = PublicGlossarySlugRouteImport.update({
+  id: '/glossary/$slug',
+  path: '/glossary/$slug',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicArticlesSlugRoute = PublicArticlesSlugRouteImport.update({
+  id: '/articles/$slug',
+  path: '/articles/$slug',
+  getParentRoute: () => PublicRoute,
 } as any)
 const LayoutProfessionalsProfessionalIdRoute =
   LayoutProfessionalsProfessionalIdRouteImport.update({
@@ -256,11 +276,6 @@ const LayoutLawsBookmarksRoute = LayoutLawsBookmarksRouteImport.update({
   path: '/laws/bookmarks',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutLawsLawIdRoute = LayoutLawsLawIdRouteImport.update({
-  id: '/laws/$lawId',
-  path: '/laws/$lawId',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutJourneysNewRoute = LayoutJourneysNewRouteImport.update({
   id: '/journeys/new',
   path: '/journeys/new',
@@ -271,22 +286,12 @@ const LayoutJourneysJourneyIdRoute = LayoutJourneysJourneyIdRouteImport.update({
   path: '/journeys/$journeyId',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutGlossarySlugRoute = LayoutGlossarySlugRouteImport.update({
-  id: '/glossary/$slug',
-  path: '/glossary/$slug',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutDocumentsDocumentIdRoute =
   LayoutDocumentsDocumentIdRouteImport.update({
     id: '/documents/$documentId',
     path: '/documents/$documentId',
     getParentRoute: () => LayoutRoute,
   } as any)
-const LayoutArticlesSlugRoute = LayoutArticlesSlugRouteImport.update({
-  id: '/articles/$slug',
-  path: '/articles/$slug',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutJourneysJourneyIdIndexRoute =
   LayoutJourneysJourneyIdIndexRouteImport.update({
     id: '/',
@@ -328,23 +333,23 @@ export interface FileRoutesByFullPath {
   '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/': typeof ToolsIndexRoute
-  '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
-  '/glossary/$slug': typeof LayoutGlossarySlugRoute
   '/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
   '/journeys/new': typeof LayoutJourneysNewRoute
-  '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
   '/portfolio/$propertyId': typeof LayoutPortfolioPropertyIdRoute
   '/professionals/$professionalId': typeof LayoutProfessionalsProfessionalIdRoute
+  '/articles/$slug': typeof PublicArticlesSlugRoute
+  '/glossary/$slug': typeof PublicGlossarySlugRoute
+  '/laws/$lawId': typeof PublicLawsLawIdRoute
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
-  '/articles/': typeof LayoutArticlesIndexRoute
   '/documents/': typeof LayoutDocumentsIndexRoute
-  '/glossary/': typeof LayoutGlossaryIndexRoute
   '/journeys/': typeof LayoutJourneysIndexRoute
-  '/laws/': typeof LayoutLawsIndexRoute
   '/portfolio/': typeof LayoutPortfolioIndexRoute
   '/professionals/': typeof LayoutProfessionalsIndexRoute
+  '/articles/': typeof PublicArticlesIndexRoute
+  '/glossary/': typeof PublicGlossaryIndexRoute
+  '/laws/': typeof PublicLawsIndexRoute
   '/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
   '/journeys/$journeyId/': typeof LayoutJourneysJourneyIdIndexRoute
 }
@@ -375,22 +380,22 @@ export interface FileRoutesByTo {
   '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools': typeof ToolsIndexRoute
-  '/articles/$slug': typeof LayoutArticlesSlugRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
-  '/glossary/$slug': typeof LayoutGlossarySlugRoute
   '/journeys/new': typeof LayoutJourneysNewRoute
-  '/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/laws/bookmarks': typeof LayoutLawsBookmarksRoute
   '/portfolio/$propertyId': typeof LayoutPortfolioPropertyIdRoute
   '/professionals/$professionalId': typeof LayoutProfessionalsProfessionalIdRoute
+  '/articles/$slug': typeof PublicArticlesSlugRoute
+  '/glossary/$slug': typeof PublicGlossarySlugRoute
+  '/laws/$lawId': typeof PublicLawsLawIdRoute
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
-  '/articles': typeof LayoutArticlesIndexRoute
   '/documents': typeof LayoutDocumentsIndexRoute
-  '/glossary': typeof LayoutGlossaryIndexRoute
   '/journeys': typeof LayoutJourneysIndexRoute
-  '/laws': typeof LayoutLawsIndexRoute
   '/portfolio': typeof LayoutPortfolioIndexRoute
   '/professionals': typeof LayoutProfessionalsIndexRoute
+  '/articles': typeof PublicArticlesIndexRoute
+  '/glossary': typeof PublicGlossaryIndexRoute
+  '/laws': typeof PublicLawsIndexRoute
   '/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
   '/journeys/$journeyId': typeof LayoutJourneysJourneyIdIndexRoute
 }
@@ -398,6 +403,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_layout': typeof LayoutRouteWithChildren
+  '/_public': typeof PublicRouteWithChildren
   '/imprint': typeof ImprintRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -424,23 +430,23 @@ export interface FileRoutesById {
   '/tools/rent-vs-buy-calculator': typeof ToolsRentVsBuyCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/': typeof ToolsIndexRoute
-  '/_layout/articles/$slug': typeof LayoutArticlesSlugRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
-  '/_layout/glossary/$slug': typeof LayoutGlossarySlugRoute
   '/_layout/journeys/$journeyId': typeof LayoutJourneysJourneyIdRouteWithChildren
   '/_layout/journeys/new': typeof LayoutJourneysNewRoute
-  '/_layout/laws/$lawId': typeof LayoutLawsLawIdRoute
   '/_layout/laws/bookmarks': typeof LayoutLawsBookmarksRoute
   '/_layout/portfolio/$propertyId': typeof LayoutPortfolioPropertyIdRoute
   '/_layout/professionals/$professionalId': typeof LayoutProfessionalsProfessionalIdRoute
+  '/_public/articles/$slug': typeof PublicArticlesSlugRoute
+  '/_public/glossary/$slug': typeof PublicGlossarySlugRoute
+  '/_public/laws/$lawId': typeof PublicLawsLawIdRoute
   '/shared/evaluation/$shareId': typeof SharedEvaluationShareIdRoute
-  '/_layout/articles/': typeof LayoutArticlesIndexRoute
   '/_layout/documents/': typeof LayoutDocumentsIndexRoute
-  '/_layout/glossary/': typeof LayoutGlossaryIndexRoute
   '/_layout/journeys/': typeof LayoutJourneysIndexRoute
-  '/_layout/laws/': typeof LayoutLawsIndexRoute
   '/_layout/portfolio/': typeof LayoutPortfolioIndexRoute
   '/_layout/professionals/': typeof LayoutProfessionalsIndexRoute
+  '/_public/articles/': typeof PublicArticlesIndexRoute
+  '/_public/glossary/': typeof PublicGlossaryIndexRoute
+  '/_public/laws/': typeof PublicLawsIndexRoute
   '/_layout/journeys/$journeyId/property-evaluation': typeof LayoutJourneysJourneyIdPropertyEvaluationRoute
   '/_layout/journeys/$journeyId/': typeof LayoutJourneysJourneyIdIndexRoute
 }
@@ -474,23 +480,23 @@ export interface FileRouteTypes {
     | '/tools/rent-vs-buy-calculator'
     | '/tools/roi-calculator'
     | '/tools/'
-    | '/articles/$slug'
     | '/documents/$documentId'
-    | '/glossary/$slug'
     | '/journeys/$journeyId'
     | '/journeys/new'
-    | '/laws/$lawId'
     | '/laws/bookmarks'
     | '/portfolio/$propertyId'
     | '/professionals/$professionalId'
+    | '/articles/$slug'
+    | '/glossary/$slug'
+    | '/laws/$lawId'
     | '/shared/evaluation/$shareId'
-    | '/articles/'
     | '/documents/'
-    | '/glossary/'
     | '/journeys/'
-    | '/laws/'
     | '/portfolio/'
     | '/professionals/'
+    | '/articles/'
+    | '/glossary/'
+    | '/laws/'
     | '/journeys/$journeyId/property-evaluation'
     | '/journeys/$journeyId/'
   fileRoutesByTo: FileRoutesByTo
@@ -521,28 +527,29 @@ export interface FileRouteTypes {
     | '/tools/rent-vs-buy-calculator'
     | '/tools/roi-calculator'
     | '/tools'
-    | '/articles/$slug'
     | '/documents/$documentId'
-    | '/glossary/$slug'
     | '/journeys/new'
-    | '/laws/$lawId'
     | '/laws/bookmarks'
     | '/portfolio/$propertyId'
     | '/professionals/$professionalId'
+    | '/articles/$slug'
+    | '/glossary/$slug'
+    | '/laws/$lawId'
     | '/shared/evaluation/$shareId'
-    | '/articles'
     | '/documents'
-    | '/glossary'
     | '/journeys'
-    | '/laws'
     | '/portfolio'
     | '/professionals'
+    | '/articles'
+    | '/glossary'
+    | '/laws'
     | '/journeys/$journeyId/property-evaluation'
     | '/journeys/$journeyId'
   id:
     | '__root__'
     | '/'
     | '/_layout'
+    | '/_public'
     | '/imprint'
     | '/login'
     | '/pricing'
@@ -569,23 +576,23 @@ export interface FileRouteTypes {
     | '/tools/rent-vs-buy-calculator'
     | '/tools/roi-calculator'
     | '/tools/'
-    | '/_layout/articles/$slug'
     | '/_layout/documents/$documentId'
-    | '/_layout/glossary/$slug'
     | '/_layout/journeys/$journeyId'
     | '/_layout/journeys/new'
-    | '/_layout/laws/$lawId'
     | '/_layout/laws/bookmarks'
     | '/_layout/portfolio/$propertyId'
     | '/_layout/professionals/$professionalId'
+    | '/_public/articles/$slug'
+    | '/_public/glossary/$slug'
+    | '/_public/laws/$lawId'
     | '/shared/evaluation/$shareId'
-    | '/_layout/articles/'
     | '/_layout/documents/'
-    | '/_layout/glossary/'
     | '/_layout/journeys/'
-    | '/_layout/laws/'
     | '/_layout/portfolio/'
     | '/_layout/professionals/'
+    | '/_public/articles/'
+    | '/_public/glossary/'
+    | '/_public/laws/'
     | '/_layout/journeys/$journeyId/property-evaluation'
     | '/_layout/journeys/$journeyId/'
   fileRoutesById: FileRoutesById
@@ -593,6 +600,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LayoutRoute: typeof LayoutRouteWithChildren
+  PublicRoute: typeof PublicRouteWithChildren
   ImprintRoute: typeof ImprintRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
@@ -684,6 +692,13 @@ declare module '@tanstack/react-router' {
       path: '/imprint'
       fullPath: '/imprint'
       preLoaderRoute: typeof ImprintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout': {
@@ -805,6 +820,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_public/laws/': {
+      id: '/_public/laws/'
+      path: '/laws'
+      fullPath: '/laws/'
+      preLoaderRoute: typeof PublicLawsIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/glossary/': {
+      id: '/_public/glossary/'
+      path: '/glossary'
+      fullPath: '/glossary/'
+      preLoaderRoute: typeof PublicGlossaryIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/articles/': {
+      id: '/_public/articles/'
+      path: '/articles'
+      fullPath: '/articles/'
+      preLoaderRoute: typeof PublicArticlesIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_layout/professionals/': {
       id: '/_layout/professionals/'
       path: '/professionals'
@@ -819,25 +855,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutPortfolioIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/laws/': {
-      id: '/_layout/laws/'
-      path: '/laws'
-      fullPath: '/laws/'
-      preLoaderRoute: typeof LayoutLawsIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/journeys/': {
       id: '/_layout/journeys/'
       path: '/journeys'
       fullPath: '/journeys/'
       preLoaderRoute: typeof LayoutJourneysIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/glossary/': {
-      id: '/_layout/glossary/'
-      path: '/glossary'
-      fullPath: '/glossary/'
-      preLoaderRoute: typeof LayoutGlossaryIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/documents/': {
@@ -847,19 +869,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDocumentsIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/articles/': {
-      id: '/_layout/articles/'
-      path: '/articles'
-      fullPath: '/articles/'
-      preLoaderRoute: typeof LayoutArticlesIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/shared/evaluation/$shareId': {
       id: '/shared/evaluation/$shareId'
       path: '/shared/evaluation/$shareId'
       fullPath: '/shared/evaluation/$shareId'
       preLoaderRoute: typeof SharedEvaluationShareIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_public/laws/$lawId': {
+      id: '/_public/laws/$lawId'
+      path: '/laws/$lawId'
+      fullPath: '/laws/$lawId'
+      preLoaderRoute: typeof PublicLawsLawIdRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/glossary/$slug': {
+      id: '/_public/glossary/$slug'
+      path: '/glossary/$slug'
+      fullPath: '/glossary/$slug'
+      preLoaderRoute: typeof PublicGlossarySlugRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/articles/$slug': {
+      id: '/_public/articles/$slug'
+      path: '/articles/$slug'
+      fullPath: '/articles/$slug'
+      preLoaderRoute: typeof PublicArticlesSlugRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/_layout/professionals/$professionalId': {
       id: '/_layout/professionals/$professionalId'
@@ -882,13 +918,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutLawsBookmarksRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/laws/$lawId': {
-      id: '/_layout/laws/$lawId'
-      path: '/laws/$lawId'
-      fullPath: '/laws/$lawId'
-      preLoaderRoute: typeof LayoutLawsLawIdRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/journeys/new': {
       id: '/_layout/journeys/new'
       path: '/journeys/new'
@@ -903,25 +932,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutJourneysJourneyIdRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/glossary/$slug': {
-      id: '/_layout/glossary/$slug'
-      path: '/glossary/$slug'
-      fullPath: '/glossary/$slug'
-      preLoaderRoute: typeof LayoutGlossarySlugRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/documents/$documentId': {
       id: '/_layout/documents/$documentId'
       path: '/documents/$documentId'
       fullPath: '/documents/$documentId'
       preLoaderRoute: typeof LayoutDocumentsDocumentIdRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/articles/$slug': {
-      id: '/_layout/articles/$slug'
-      path: '/articles/$slug'
-      fullPath: '/articles/$slug'
-      preLoaderRoute: typeof LayoutArticlesSlugRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/journeys/$journeyId/': {
@@ -969,20 +984,14 @@ interface LayoutRouteChildren {
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutViewingChecklistRoute: typeof LayoutViewingChecklistRoute
-  LayoutArticlesSlugRoute: typeof LayoutArticlesSlugRoute
   LayoutDocumentsDocumentIdRoute: typeof LayoutDocumentsDocumentIdRoute
-  LayoutGlossarySlugRoute: typeof LayoutGlossarySlugRoute
   LayoutJourneysJourneyIdRoute: typeof LayoutJourneysJourneyIdRouteWithChildren
   LayoutJourneysNewRoute: typeof LayoutJourneysNewRoute
-  LayoutLawsLawIdRoute: typeof LayoutLawsLawIdRoute
   LayoutLawsBookmarksRoute: typeof LayoutLawsBookmarksRoute
   LayoutPortfolioPropertyIdRoute: typeof LayoutPortfolioPropertyIdRoute
   LayoutProfessionalsProfessionalIdRoute: typeof LayoutProfessionalsProfessionalIdRoute
-  LayoutArticlesIndexRoute: typeof LayoutArticlesIndexRoute
   LayoutDocumentsIndexRoute: typeof LayoutDocumentsIndexRoute
-  LayoutGlossaryIndexRoute: typeof LayoutGlossaryIndexRoute
   LayoutJourneysIndexRoute: typeof LayoutJourneysIndexRoute
-  LayoutLawsIndexRoute: typeof LayoutLawsIndexRoute
   LayoutPortfolioIndexRoute: typeof LayoutPortfolioIndexRoute
   LayoutProfessionalsIndexRoute: typeof LayoutProfessionalsIndexRoute
 }
@@ -998,27 +1007,42 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutViewingChecklistRoute: LayoutViewingChecklistRoute,
-  LayoutArticlesSlugRoute: LayoutArticlesSlugRoute,
   LayoutDocumentsDocumentIdRoute: LayoutDocumentsDocumentIdRoute,
-  LayoutGlossarySlugRoute: LayoutGlossarySlugRoute,
   LayoutJourneysJourneyIdRoute: LayoutJourneysJourneyIdRouteWithChildren,
   LayoutJourneysNewRoute: LayoutJourneysNewRoute,
-  LayoutLawsLawIdRoute: LayoutLawsLawIdRoute,
   LayoutLawsBookmarksRoute: LayoutLawsBookmarksRoute,
   LayoutPortfolioPropertyIdRoute: LayoutPortfolioPropertyIdRoute,
   LayoutProfessionalsProfessionalIdRoute:
     LayoutProfessionalsProfessionalIdRoute,
-  LayoutArticlesIndexRoute: LayoutArticlesIndexRoute,
   LayoutDocumentsIndexRoute: LayoutDocumentsIndexRoute,
-  LayoutGlossaryIndexRoute: LayoutGlossaryIndexRoute,
   LayoutJourneysIndexRoute: LayoutJourneysIndexRoute,
-  LayoutLawsIndexRoute: LayoutLawsIndexRoute,
   LayoutPortfolioIndexRoute: LayoutPortfolioIndexRoute,
   LayoutProfessionalsIndexRoute: LayoutProfessionalsIndexRoute,
 }
 
 const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
+
+interface PublicRouteChildren {
+  PublicArticlesSlugRoute: typeof PublicArticlesSlugRoute
+  PublicGlossarySlugRoute: typeof PublicGlossarySlugRoute
+  PublicLawsLawIdRoute: typeof PublicLawsLawIdRoute
+  PublicArticlesIndexRoute: typeof PublicArticlesIndexRoute
+  PublicGlossaryIndexRoute: typeof PublicGlossaryIndexRoute
+  PublicLawsIndexRoute: typeof PublicLawsIndexRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicArticlesSlugRoute: PublicArticlesSlugRoute,
+  PublicGlossarySlugRoute: PublicGlossarySlugRoute,
+  PublicLawsLawIdRoute: PublicLawsLawIdRoute,
+  PublicArticlesIndexRoute: PublicArticlesIndexRoute,
+  PublicGlossaryIndexRoute: PublicGlossaryIndexRoute,
+  PublicLawsIndexRoute: PublicLawsIndexRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
 
 interface ToolsRouteChildren {
   ToolsMortgageCalculatorRoute: typeof ToolsMortgageCalculatorRoute
@@ -1041,6 +1065,7 @@ const ToolsRouteWithChildren = ToolsRoute._addFileChildren(ToolsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LayoutRoute: LayoutRouteWithChildren,
+  PublicRoute: PublicRouteWithChildren,
   ImprintRoute: ImprintRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,

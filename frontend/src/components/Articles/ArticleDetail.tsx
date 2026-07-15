@@ -34,6 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRateArticle } from "@/hooks/mutations"
+import useRequireAuth from "@/hooks/useRequireAuth"
 import type { ArticleDetail as ArticleDetailType } from "@/models/article"
 import {
   ArticleCard,
@@ -141,7 +142,9 @@ function KeyTakeaways(props: { takeaways: string[] }) {
   )
 }
 
-/** Rating widget (thumbs up/down). */
+/** Rating widget (thumbs up/down). Anonymous visitors (this widget can
+ * render on the now-public article detail page) are prompted to log in
+ * instead of firing an authenticated mutation that would 401. */
 function RatingWidget(props: {
   slug: string
   helpfulCount: number
@@ -150,8 +153,11 @@ function RatingWidget(props: {
 }) {
   const { slug, helpfulCount, notHelpfulCount, userRating } = props
   const rateArticle = useRateArticle()
+  const { requireAuth } = useRequireAuth()
 
   const handleRate = (isHelpful: boolean) => {
+    if (!requireAuth("Log in to rate this article.")) return
+
     rateArticle.mutate({ slug, isHelpful })
   }
 
@@ -339,6 +345,21 @@ function ArticleDetail(props: IProps) {
           <Markdown
             remarkPlugins={[remarkGfm]}
             components={{
+              // Article body content must never introduce a second <h1> —
+              // the page title above already owns that role, so demote any
+              // level-1 heading from the markdown itself to an <h2>.
+              h1: ({ children, ...rest }) => {
+                const text = String(children)
+                const id = text
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/(^-|-$)/g, "")
+                return (
+                  <h2 id={id} {...rest}>
+                    {children}
+                  </h2>
+                )
+              },
               h2: ({ children, ...rest }) => {
                 const text = String(children)
                 const id = text
