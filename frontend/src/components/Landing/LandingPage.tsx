@@ -3,6 +3,7 @@ import { AdvantagesSection } from "./AdvantagesSection"
 import { ComparisonTable } from "./ComparisonTable"
 import { CtaSection } from "./CtaSection"
 import { FeaturesSection } from "./FeaturesSection"
+import { FreeLibrarySection } from "./FreeLibrarySection"
 import { FreeToolsSection } from "./FreeToolsSection"
 import { HeroSection } from "./HeroSection"
 import { HowItWorksSection } from "./HowItWorksSection"
@@ -41,6 +42,7 @@ function LandingPage() {
         <TestimonialsSection />
         <PropertyEvaluationCtaSection />
         <HowItWorksSection />
+        <FreeLibrarySection />
         <FreeToolsSection />
         <AdvantagesSection />
         <CtaSection />
