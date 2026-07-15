@@ -13,6 +13,7 @@ RUN bun install
 
 COPY ./frontend /app/frontend
 ARG VITE_SENTRY_DSN
+ARG VITE_API_URL
 
 RUN bun run build
 
