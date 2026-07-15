@@ -18,8 +18,8 @@ import {
 import { useMemo, useState } from "react"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-
 import { cn } from "@/common/utils"
+import { LeadGenBanner } from "@/components/Auth"
 import { Badge } from "@/components/ui/badge"
 import {
   Breadcrumb,
@@ -334,6 +334,9 @@ function ArticleDetail(props: IProps) {
       </div>
 
       <Separator />
+
+      {/* Lead-gen CTA for anonymous visitors */}
+      <LeadGenBanner message="Sign up for a free account to rate articles, bookmark content, and customize your feed." />
 
       {/* Key Takeaways */}
       <KeyTakeaways takeaways={article.keyTakeaways} />

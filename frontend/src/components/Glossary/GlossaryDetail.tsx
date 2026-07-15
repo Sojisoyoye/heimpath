@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router"
 import { ArrowLeft, BookOpen, Quote } from "lucide-react"
 
 import { cn } from "@/common/utils"
+import { LeadGenBanner } from "@/components/Auth"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -106,6 +107,9 @@ function GlossaryDetail(props: Readonly<IProps>) {
 
       {/* Example usage */}
       {term.exampleUsage && <ExampleUsage text={term.exampleUsage} />}
+
+      {/* Lead-gen CTA for anonymous visitors */}
+      <LeadGenBanner message="Sign up for a free account to save glossary terms and personalize your learning path." />
 
       {/* Related terms */}
       {term.relatedTerms.length > 0 && (
