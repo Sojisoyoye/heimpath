@@ -63,23 +63,13 @@ const FEATURES = [
                               Components
 ******************************************************************************/
 
-/** Default component. Features section — headline on the left, a 2-per-row card grid on the right. */
+/** Default component. Features section — card grid on the left, headline on the right. */
 function FeaturesSection() {
   return (
     <section id="features" className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <AnimateIn>
-            <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-4xl">
-              Everything You Need — From Search to Portfolio
-            </h2>
-            <p className="mt-4 max-w-md text-muted-foreground">
-              Purpose-built tools for international buyers navigating the German
-              real estate market and managing their investments.
-            </p>
-          </AnimateIn>
-
-          <AnimateIn delayMs={100}>
             <div className="grid grid-cols-2 gap-4">
               {FEATURES.map((feature, i) => {
                 const href = "href" in feature ? feature.href : undefined
@@ -116,6 +106,16 @@ function FeaturesSection() {
                 )
               })}
             </div>
+          </AnimateIn>
+
+          <AnimateIn delayMs={100}>
+            <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
+              Everything You Need — From Search to Portfolio
+            </h2>
+            <p className="mt-4 max-w-md text-muted-foreground">
+              Purpose-built tools for international buyers navigating the German
+              real estate market and managing their investments.
+            </p>
           </AnimateIn>
         </div>
       </div>
