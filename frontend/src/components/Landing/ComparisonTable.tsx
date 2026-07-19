@@ -130,53 +130,55 @@ function ComparisonTable() {
         </AnimateIn>
 
         <AnimateIn>
-          <div className="grid grid-cols-[1.3fr_0.85fr_0.85fr_1fr]">
-            {/* Header row */}
-            <div />
-            {COLUMNS.map((col) => (
-              <div
-                key={col.key}
-                className="flex flex-col items-center gap-2 px-2 pb-6"
-              >
-                <col.icon className="h-6 w-6 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">
-                  {col.label}
+          <div className="overflow-x-auto">
+            <div className="grid min-w-[640px] grid-cols-[1.3fr_0.85fr_0.85fr_1fr]">
+              {/* Header row */}
+              <div />
+              {COLUMNS.map((col) => (
+                <div
+                  key={col.key}
+                  className="flex flex-col items-center gap-2 px-2 pb-6"
+                >
+                  <col.icon className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {col.label}
+                  </span>
+                </div>
+              ))}
+              <div className="flex flex-col items-center gap-2 rounded-t-xl border border-b-0 border-primary/20 bg-card px-2 pt-4 pb-6">
+                <Logo variant="icon" asLink={false} className="h-7 w-7" />
+                <span className="text-xs font-semibold text-primary">
+                  HeimPath
                 </span>
               </div>
-            ))}
-            <div className="flex flex-col items-center gap-2 rounded-t-xl border border-b-0 border-primary/20 bg-card px-2 pt-4 pb-6">
-              <Logo variant="icon" asLink={false} className="h-7 w-7" />
-              <span className="text-xs font-semibold text-primary">
-                HeimPath
-              </span>
-            </div>
 
-            {/* Feature rows */}
-            {ROWS.map((row) => (
-              <Fragment key={row.feature}>
-                <div className="flex items-center border-t py-4 pr-3 text-sm font-medium">
-                  {row.feature}
-                </div>
-                <div className="flex items-center justify-center border-t py-4">
-                  <CellValue value={row.diy} muted />
-                </div>
-                <div className="flex items-center justify-center border-t py-4">
-                  <CellValue value={row.broker} muted />
-                </div>
-                <div className="flex items-center justify-center border-x border-t border-primary/20 bg-card py-4">
-                  <CellValue value={row.heimpath} />
-                </div>
-              </Fragment>
-            ))}
+              {/* Feature rows */}
+              {ROWS.map((row) => (
+                <Fragment key={row.feature}>
+                  <div className="flex items-center border-t py-4 pr-3 text-sm font-medium">
+                    {row.feature}
+                  </div>
+                  <div className="flex items-center justify-center border-t py-4">
+                    <CellValue value={row.diy} muted />
+                  </div>
+                  <div className="flex items-center justify-center border-t py-4">
+                    <CellValue value={row.broker} muted />
+                  </div>
+                  <div className="flex items-center justify-center border-x border-t border-primary/20 bg-card py-4">
+                    <CellValue value={row.heimpath} />
+                  </div>
+                </Fragment>
+              ))}
 
-            {/* CTA row */}
-            <div />
-            <div />
-            <div />
-            <div className="flex justify-center rounded-b-xl border-x border-b border-primary/20 bg-card px-4 pt-2 pb-6">
-              <Button size="sm" className="w-full" asChild>
-                <Link to="/signup">Start My Journey</Link>
-              </Button>
+              {/* CTA row */}
+              <div />
+              <div />
+              <div />
+              <div className="flex justify-center rounded-b-xl border-x border-b border-primary/20 bg-card px-4 pt-2 pb-6">
+                <Button size="sm" className="w-full" asChild>
+                  <Link to="/signup">Start My Journey</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </AnimateIn>
