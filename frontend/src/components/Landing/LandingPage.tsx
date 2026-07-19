@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react"
-import { AdvantagesSection } from "./AdvantagesSection"
 import { ComparisonTable } from "./ComparisonTable"
 import { CtaSection } from "./CtaSection"
 import { FeaturesSection } from "./FeaturesSection"
@@ -38,7 +37,6 @@ function LandingPage() {
         <FreeLibrarySection />
         <ComparisonTable />
         <TestimonialsSection />
-        <AdvantagesSection />
         <CtaSection />
       </main>
       <LandingFooter />
