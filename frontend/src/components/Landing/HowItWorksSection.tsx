@@ -90,7 +90,7 @@ function PhaseStep(props: { phase: (typeof PHASES)[number]; index: number }) {
         </span>
       </div>
 
-      <h3 className="mt-4 font-semibold">{phase.title}</h3>
+      <h3 className="mt-4 text-xl font-bold">{phase.title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{phase.description}</p>
     </div>
   )
@@ -99,11 +99,11 @@ function PhaseStep(props: { phase: (typeof PHASES)[number]; index: number }) {
 /** Default component. How it works timeline section. */
 function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="bg-muted/50 py-20 md:py-28">
+    <section id="how-it-works" className="bg-muted/50 py-28 md:py-36">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <AnimateIn>
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+          <div className="mx-auto mb-20 max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
               How It Works
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
@@ -114,7 +114,7 @@ function HowItWorksSection() {
         </AnimateIn>
 
         {/* Desktop: horizontal timeline */}
-        <div className="relative hidden gap-4 lg:flex">
+        <div className="relative hidden gap-16 lg:flex">
           {/* Dashed connector line — centred on icon circles */}
           <div className="pointer-events-none absolute left-[8%] right-[8%] top-8 border-t-2 border-dashed border-muted-foreground/25" />
 
@@ -130,7 +130,7 @@ function HowItWorksSection() {
         </div>
 
         {/* Tablet: 3-column grid */}
-        <div className="hidden grid-cols-3 gap-6 md:grid lg:hidden">
+        <div className="hidden grid-cols-3 gap-14 md:grid lg:hidden">
           {PHASES.map((phase, i) => (
             <AnimateIn key={phase.title} delayMs={(i + 1) * 150}>
               <PhaseStep phase={phase} index={i} />
@@ -139,7 +139,7 @@ function HowItWorksSection() {
         </div>
 
         {/* Mobile: vertical timeline */}
-        <div className="flex flex-col gap-8 md:hidden">
+        <div className="flex flex-col gap-10 md:hidden">
           {PHASES.map((phase, i) => {
             const Icon = phase.icon
             return (
@@ -159,7 +159,7 @@ function HowItWorksSection() {
                     )}
                   </div>
                   <div className="self-center pb-4">
-                    <h3 className="font-semibold">{phase.title}</h3>
+                    <h3 className="text-xl font-bold">{phase.title}</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {phase.description}
                     </p>

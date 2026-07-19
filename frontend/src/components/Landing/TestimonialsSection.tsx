@@ -57,7 +57,7 @@ function TestimonialsSection() {
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <AnimateIn>
           <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
               What Expats Say About HeimPath
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
