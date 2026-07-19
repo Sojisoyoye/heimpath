@@ -4,7 +4,6 @@ import { ComparisonTable } from "./ComparisonTable"
 import { CtaSection } from "./CtaSection"
 import { FeaturesSection } from "./FeaturesSection"
 import { FreeLibrarySection } from "./FreeLibrarySection"
-import { FreeToolsSection } from "./FreeToolsSection"
 import { HeroSection } from "./HeroSection"
 import { HowItWorksSection } from "./HowItWorksSection"
 import { LandingFooter } from "./LandingFooter"
@@ -37,7 +36,6 @@ function LandingPage() {
         <FeaturesSection />
         <HowItWorksSection />
         <FreeLibrarySection />
-        <FreeToolsSection />
         <ComparisonTable />
         <TestimonialsSection />
         <AdvantagesSection />
