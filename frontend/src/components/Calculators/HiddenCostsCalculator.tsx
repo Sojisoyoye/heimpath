@@ -3,6 +3,7 @@
  * Calculates total cost of property ownership including all fees
  */
 
+import { Link } from "@tanstack/react-router"
 import {
   Calculator,
   Download,
@@ -28,6 +29,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -109,6 +118,12 @@ const MOVING_COST_ESTIMATE = 3000 // Flat estimate for moving costs
 /******************************************************************************
                               Functions
 ******************************************************************************/
+
+/** Current path + query, for post-auth redirects. SSR-safe (no window on the server). */
+function getRedirectPath(): string {
+  if (typeof window === "undefined") return "/tools/property-cost-calculator"
+  return window.location.pathname + window.location.search
+}
 
 /** Calculate all costs based on inputs. */
 function calculateCosts(inputs: CalculatorInputs): CostBreakdown | null {
@@ -225,6 +240,7 @@ function HiddenCostsCalculator(props: IProps) {
   const calculateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [saveName, setSaveName] = useState("")
   const [shareUrl, setShareUrl] = useState("")
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false)
 
   const authenticated = isLoggedIn()
   const saveCalculation = useSaveCalculation()
@@ -277,6 +293,10 @@ function HiddenCostsCalculator(props: IProps) {
   }
 
   const handleExport = () => {
+    if (!authenticated) {
+      setShowSignInPrompt(true)
+      return
+    }
     if (!costs) return
 
     const stateName =
@@ -633,6 +653,31 @@ function HiddenCostsCalculator(props: IProps) {
           isDeleting={deleteCalculation.isPending}
         />
       )}
+
+      {/* Sign-in prompt for downloading the PDF report */}
+      <Dialog open={showSignInPrompt} onOpenChange={setShowSignInPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign in to download your report</DialogTitle>
+            <DialogDescription>
+              Create a free account (or log in) to download this cost breakdown
+              as a PDF.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" asChild>
+              <Link to="/login" search={{ redirect: getRedirectPath() }}>
+                Log In
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/signup" search={{ redirect: getRedirectPath() }}>
+                Sign Up Free
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
