@@ -18,35 +18,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { CURRENCY_FORMATTER, PreviewMetric } from "./PreviewMetric"
 
 /******************************************************************************
                               Constants
 ******************************************************************************/
-
-const CURRENCY_FORMATTER = new Intl.NumberFormat("de-DE", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-})
 
 const FIXED_RATE_OPTIONS = ["5", "10", "15", "20"]
 
 /******************************************************************************
                               Components
 ******************************************************************************/
-
-/** Mini metric display used across all three calculator previews. */
-function PreviewMetric(props: { label: string; value: string }) {
-  const { label, value } = props
-  return (
-    <div className="rounded-lg border bg-background px-3 py-2">
-      <p className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-0.5 text-lg font-bold tabular-nums">{value}</p>
-    </div>
-  )
-}
 
 /** Default component. Mortgage tab preview. */
 function MortgagePreview() {
@@ -170,7 +152,7 @@ function MortgagePreview() {
             propertyPrice: price || undefined,
             downPaymentPercent: percent || undefined,
             interestRate: rate || undefined,
-            fixedRatePeriod: Number.parseInt(fixedRatePeriod, 10),
+            fixedRatePeriod: Number.parseInt(fixedRatePeriod, 10) || undefined,
           }}
         >
           See Detailed Result
@@ -185,4 +167,4 @@ function MortgagePreview() {
                               Export
 ******************************************************************************/
 
-export { MortgagePreview, PreviewMetric, CURRENCY_FORMATTER }
+export { MortgagePreview }

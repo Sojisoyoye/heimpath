@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { CURRENCY_FORMATTER, PreviewMetric } from "./MortgagePreview"
+import { CURRENCY_FORMATTER, PreviewMetric } from "./PreviewMetric"
 
 /******************************************************************************
                               Components

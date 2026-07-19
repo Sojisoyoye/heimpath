@@ -49,6 +49,12 @@ const GRADE_COLORS: Record<string, string> = {
                               Functions
 ******************************************************************************/
 
+/** Current path + query, for post-auth redirects. SSR-safe (no window on the server). */
+function getRedirectPath(): string {
+  if (typeof window === "undefined") return "/tools/roi-calculator"
+  return window.location.pathname + window.location.search
+}
+
 /** Format tax impact: positive = benefit ("+"), negative = tax ("-"). */
 function formatTaxImpact(value: number): {
   label: string
@@ -487,12 +493,12 @@ function SignupGate(props: { children: React.ReactNode }) {
         </p>
         <div className="flex gap-2">
           <Button size="sm" asChild>
-            <Link to="/signup" search={{ redirect: "/tools/roi-calculator" }}>
+            <Link to="/signup" search={{ redirect: getRedirectPath() }}>
               Sign Up Free
             </Link>
           </Button>
           <Button size="sm" variant="outline" asChild>
-            <Link to="/login" search={{ redirect: "/tools/roi-calculator" }}>
+            <Link to="/login" search={{ redirect: getRedirectPath() }}>
               Log In
             </Link>
           </Button>
