@@ -29,7 +29,7 @@ function LandingPage() {
         <HeroSection />
         <Suspense
           fallback={
-            <div className="border-y bg-muted/30 py-16 md:py-24 min-h-[640px]" />
+            <div className="border-y bg-muted/30 py-20 md:py-28 min-h-[720px]" />
           }
         >
           <CalculatorsSection />

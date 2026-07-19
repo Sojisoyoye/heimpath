@@ -5,6 +5,16 @@ import { ToolsPageLayout } from "@/components/Tools/ToolsPageLayout"
 import { toolsMeta } from "@/components/Tools/toolsMeta"
 
 /******************************************************************************
+                              Functions
+******************************************************************************/
+
+function parseSearchNumber(value: unknown): number | undefined {
+  if (typeof value === "number") return value
+  if (typeof value === "string") return Number.parseFloat(value) || undefined
+  return undefined
+}
+
+/******************************************************************************
                               Route
 ******************************************************************************/
 
@@ -12,14 +22,16 @@ export const Route = createFileRoute("/tools/roi-calculator")({
   component: ROICalculatorPage,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { purchasePrice?: number; state?: string } => ({
-    purchasePrice:
-      typeof search.purchasePrice === "number"
-        ? search.purchasePrice
-        : typeof search.purchasePrice === "string"
-          ? Number.parseFloat(search.purchasePrice) || undefined
-          : undefined,
+  ): {
+    purchasePrice?: number
+    state?: string
+    squareMeters?: number
+    monthlyRent?: number
+  } => ({
+    purchasePrice: parseSearchNumber(search.purchasePrice),
     state: typeof search.state === "string" ? search.state : undefined,
+    squareMeters: parseSearchNumber(search.squareMeters),
+    monthlyRent: parseSearchNumber(search.monthlyRent),
   }),
   head: () => ({
     ...toolsMeta(
@@ -35,7 +47,7 @@ export const Route = createFileRoute("/tools/roi-calculator")({
 ******************************************************************************/
 
 function ROICalculatorPage() {
-  const { purchasePrice, state } = Route.useSearch()
+  const { purchasePrice, state, squareMeters, monthlyRent } = Route.useSearch()
 
   return (
     <ToolsPageLayout
@@ -45,6 +57,8 @@ function ROICalculatorPage() {
       <PropertyEvaluationCalculator
         initialPurchasePrice={purchasePrice}
         initialState={state}
+        initialSquareMeters={squareMeters}
+        initialMonthlyRent={monthlyRent}
       />
     </ToolsPageLayout>
   )

@@ -76,13 +76,20 @@ function getTransferTaxRate(stateCode?: string): number {
 function createInitialState(
   initialStateCode?: string,
   initialBudget?: number,
+  initialSquareMeters?: number,
+  initialMonthlyRent?: number,
 ): PropertyEvaluationState {
   const transferTax = getTransferTaxRate(initialStateCode)
+  const squareMeters = initialSquareMeters || 0
+  const rentPerSqm =
+    initialMonthlyRent && squareMeters > 0
+      ? initialMonthlyRent / squareMeters
+      : EVALUATION_DEFAULTS.RENT_PER_SQM
 
   return {
     propertyInfo: {
       address: "",
-      squareMeters: 0,
+      squareMeters,
       purchasePrice: initialBudget || 0,
       brokerFeePercent: EVALUATION_DEFAULTS.BROKER_FEE_PERCENT,
       notaryFeePercent: EVALUATION_DEFAULTS.NOTARY_FEE_PERCENT,
@@ -90,7 +97,7 @@ function createInitialState(
       transferTaxPercent: transferTax,
     },
     rent: {
-      rentPerSqm: EVALUATION_DEFAULTS.RENT_PER_SQM,
+      rentPerSqm,
       parkingRent: EVALUATION_DEFAULTS.PARKING_RENT,
       depreciationRatePercent: EVALUATION_DEFAULTS.DEPRECIATION_RATE_PERCENT,
       buildingSharePercent: EVALUATION_DEFAULTS.BUILDING_SHARE_PERCENT,
@@ -125,10 +132,17 @@ function loadFromStorage(
   journeyId?: string,
   initialStateCode?: string,
   initialBudget?: number,
+  initialSquareMeters?: number,
+  initialMonthlyRent?: number,
 ): PropertyEvaluationState {
   const storageKey = STORAGE_KEY_PREFIX + (journeyId || "standalone")
 
-  const defaults = createInitialState(initialStateCode, initialBudget)
+  const defaults = createInitialState(
+    initialStateCode,
+    initialBudget,
+    initialSquareMeters,
+    initialMonthlyRent,
+  )
 
   try {
     const stored = localStorage.getItem(storageKey)
@@ -278,6 +292,8 @@ function PropertyEvaluationCalculator(
     initialState,
     initialBudget,
     initialPurchasePrice,
+    initialSquareMeters,
+    initialMonthlyRent,
     propertyUse,
     className,
   } = props
@@ -289,6 +305,8 @@ function PropertyEvaluationCalculator(
       journeyId,
       initialState,
       initialPurchasePrice ?? initialBudget,
+      initialSquareMeters,
+      initialMonthlyRent,
     ),
   )
   const [saveName, setSaveName] = useState("")
@@ -351,7 +369,12 @@ function PropertyEvaluationCalculator(
   }, [])
 
   const handleReset = () => {
-    const newState = createInitialState(initialState, initialBudget)
+    const newState = createInitialState(
+      initialState,
+      initialBudget,
+      initialSquareMeters,
+      initialMonthlyRent,
+    )
     setState(newState)
     saveToStorage(storageKey, newState)
   }

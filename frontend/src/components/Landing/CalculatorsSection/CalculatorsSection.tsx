@@ -80,7 +80,7 @@ function CalculatorsSection() {
   const copy = TAB_COPY[tab]
 
   return (
-    <section id="calculators" className="border-y bg-muted/30 py-16 md:py-24">
+    <section id="calculators" className="border-y bg-muted/30 py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <AnimateIn>
           <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
@@ -112,7 +112,7 @@ function CalculatorsSection() {
                   Property Evaluation
                 </TabsTrigger>
               </TabsList>
-              <div className="mt-4 rounded-xl border bg-card p-6">
+              <div className="mt-4 min-h-[460px] rounded-xl border bg-card p-6">
                 <TabsContent value="mortgage" className="mt-0">
                   <MortgagePreview />
                 </TabsContent>

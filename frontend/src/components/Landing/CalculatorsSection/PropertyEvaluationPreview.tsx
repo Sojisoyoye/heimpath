@@ -1,8 +1,8 @@
 /**
  * Property Evaluation mini-preview
- * Unlike the other two tabs, this collects a couple of basics only — no
- * inline result. The full evaluation (and its account-gated detail) lives
- * on the destination page, not here.
+ * Unlike the other two tabs, this collects inputs only — no inline result.
+ * The full evaluation (and its account-gated detail) lives on the
+ * destination page, not here.
  */
 
 import { Link } from "@tanstack/react-router"
@@ -27,9 +27,13 @@ import {
 /** Default component. Property Evaluation tab preview — inputs only. */
 function PropertyEvaluationPreview() {
   const [propertyPrice, setPropertyPrice] = useState("350000")
+  const [squareMeters, setSquareMeters] = useState("75")
+  const [monthlyRent, setMonthlyRent] = useState("900")
   const [state, setState] = useState("BE")
 
   const price = Number.parseFloat(propertyPrice) || 0
+  const size = Number.parseFloat(squareMeters) || 0
+  const rent = Number.parseFloat(monthlyRent) || 0
 
   return (
     <div className="space-y-4">
@@ -51,6 +55,38 @@ function PropertyEvaluationPreview() {
             value={propertyPrice}
             onChange={(e) =>
               setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
+            }
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="pe-size"
+            className="font-mono text-xs text-muted-foreground"
+          >
+            Living Space (m²)
+          </Label>
+          <Input
+            id="pe-size"
+            inputMode="numeric"
+            value={squareMeters}
+            onChange={(e) =>
+              setSquareMeters(e.target.value.replace(/[^\d]/g, ""))
+            }
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="pe-rent"
+            className="font-mono text-xs text-muted-foreground"
+          >
+            Monthly Rent
+          </Label>
+          <Input
+            id="pe-rent"
+            inputMode="numeric"
+            value={monthlyRent}
+            onChange={(e) =>
+              setMonthlyRent(e.target.value.replace(/[^\d]/g, ""))
             }
           />
         </div>
@@ -79,7 +115,12 @@ function PropertyEvaluationPreview() {
       <Button className="w-full gap-2" asChild>
         <Link
           to="/tools/roi-calculator"
-          search={{ purchasePrice: price || undefined, state }}
+          search={{
+            purchasePrice: price || undefined,
+            state,
+            squareMeters: size || undefined,
+            monthlyRent: rent || undefined,
+          }}
         >
           See My Evaluation
           <ArrowRight className="h-4 w-4" />
