@@ -1,10 +1,8 @@
-import { Link } from "@tanstack/react-router"
 import {
   Calculator,
   FileText,
   Home,
   LayoutDashboard,
-  Scale,
   TrendingUp,
 } from "lucide-react"
 
@@ -22,14 +20,6 @@ const FEATURES = [
     title: "Guided Property Journeys",
     description: "Step-by-step guidance from research through closing.",
     color: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
-  },
-  {
-    icon: Scale,
-    title: "Legal Knowledge Base",
-    description: "50+ German real estate laws in plain English.",
-    color:
-      "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400",
-    href: "/laws",
   },
   {
     icon: TrendingUp,
@@ -71,9 +61,8 @@ function FeaturesSection() {
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <AnimateIn>
             <div className="grid grid-cols-2 gap-4">
-              {FEATURES.map((feature, i) => {
-                const href = "href" in feature ? feature.href : undefined
-                const card = (
+              {FEATURES.map((feature, i) => (
+                <AnimateIn key={feature.title} delayMs={(i + 1) * 75}>
                   <Card className="h-full transition-shadow hover:shadow-md">
                     <CardContent className="flex flex-col gap-3 p-4">
                       <div
@@ -91,20 +80,8 @@ function FeaturesSection() {
                       </div>
                     </CardContent>
                   </Card>
-                )
-
-                return (
-                  <AnimateIn key={feature.title} delayMs={(i + 1) * 75}>
-                    {href ? (
-                      <Link to={href} className="block h-full">
-                        {card}
-                      </Link>
-                    ) : (
-                      card
-                    )}
-                  </AnimateIn>
-                )
-              })}
+                </AnimateIn>
+              ))}
             </div>
           </AnimateIn>
 
