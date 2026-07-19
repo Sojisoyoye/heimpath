@@ -20,7 +20,7 @@ const HERO_PILLS = [
                               Components
 ******************************************************************************/
 
-/** Default component. Hero section with a full-bleed skyline photo, headline, CTAs, and feature pills. */
+/** Default component. Hero section with a full-bleed modern-apartments photo, headline, CTAs, and feature pills. */
 function HeroSection() {
   const bgRef = useParallax(0.15)
 
@@ -33,7 +33,7 @@ function HeroSection() {
         className="absolute inset-x-0 -top-24 -bottom-24 will-change-transform"
       >
         <img
-          src="/images/hero-skyline.jpg"
+          src="/images/hero-modern-apartments.jpg"
           alt=""
           className="h-full w-full object-cover"
           loading="eager"
