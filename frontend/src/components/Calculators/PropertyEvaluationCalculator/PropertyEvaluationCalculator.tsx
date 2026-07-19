@@ -80,9 +80,10 @@ function createInitialState(
   initialMonthlyRent?: number,
 ): PropertyEvaluationState {
   const transferTax = getTransferTaxRate(initialStateCode)
-  const squareMeters = initialSquareMeters || 0
+  const squareMeters =
+    initialSquareMeters && initialSquareMeters > 0 ? initialSquareMeters : 0
   const rentPerSqm =
-    initialMonthlyRent && squareMeters > 0
+    initialMonthlyRent && initialMonthlyRent > 0 && squareMeters > 0
       ? initialMonthlyRent / squareMeters
       : EVALUATION_DEFAULTS.RENT_PER_SQM
 
@@ -90,7 +91,7 @@ function createInitialState(
     propertyInfo: {
       address: "",
       squareMeters,
-      purchasePrice: initialBudget || 0,
+      purchasePrice: initialBudget && initialBudget > 0 ? initialBudget : 0,
       brokerFeePercent: EVALUATION_DEFAULTS.BROKER_FEE_PERCENT,
       notaryFeePercent: EVALUATION_DEFAULTS.NOTARY_FEE_PERCENT,
       landRegistryFeePercent: EVALUATION_DEFAULTS.LAND_REGISTRY_FEE_PERCENT,
@@ -143,6 +144,16 @@ function loadFromStorage(
     initialSquareMeters,
     initialMonthlyRent,
   )
+
+  // Fresh prefill values (e.g. from the landing page) should win over
+  // whatever was previously saved for this browser — otherwise a returning
+  // user's stale stored numbers silently override what they just entered.
+  const hasFreshPrefill = Boolean(
+    (initialBudget && initialBudget > 0) ||
+      (initialSquareMeters && initialSquareMeters > 0) ||
+      (initialMonthlyRent && initialMonthlyRent > 0),
+  )
+  if (hasFreshPrefill) return defaults
 
   try {
     const stored = localStorage.getItem(storageKey)

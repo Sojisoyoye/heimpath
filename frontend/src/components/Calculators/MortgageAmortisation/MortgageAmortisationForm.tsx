@@ -74,7 +74,8 @@ function formatPrice(v: string): string {
 function buildInitialFields(
   initialValues?: MortgageInitialValues,
 ): typeof INITIAL_STATE {
-  if (!initialValues?.propertyPrice) return INITIAL_STATE
+  if (!initialValues?.propertyPrice || initialValues.propertyPrice <= 0)
+    return INITIAL_STATE
 
   const percent = initialValues.downPaymentPercent ?? 20
   const synced = syncDownPayment(

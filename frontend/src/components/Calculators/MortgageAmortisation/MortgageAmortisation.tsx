@@ -42,7 +42,8 @@ interface IProps {
 function buildInitialInput(
   initialValues?: MortgageInitialValues,
 ): MortgageInput | null {
-  if (!initialValues?.propertyPrice) return null
+  if (!initialValues?.propertyPrice || initialValues.propertyPrice <= 0)
+    return null
   const downPaymentPercent = initialValues.downPaymentPercent ?? 20
   return {
     propertyPrice: initialValues.propertyPrice,
