@@ -52,32 +52,38 @@ function FreeLibrarySection() {
       className="relative overflow-hidden py-16 md:py-24"
       id="free-library"
     >
-      {/* Cinematic library background — cards below are opaque, so only the
-          surrounding text needs the overlay to stay legible. */}
-      <img
-        src="/images/library-bg.jpg"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-        loading="lazy"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-br from-background/92 via-background/88 to-background/75"
-      />
+      {/* Cinematic library photo — fills the right half of the section,
+          edge to edge, full height. Cards float on top of it. */}
+      <div className="absolute inset-y-0 right-0 hidden w-1/2 lg:block">
+        <img
+          src="/images/library-bg.jpg"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
 
       <div className="relative mx-auto max-w-7xl px-4 md:px-6">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-20">
           <AnimateIn>
             <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
               No sign-up required
             </span>
             <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
-              Read Before You Sign Up
-            </h2>
-            <p className="mt-4 max-w-md text-muted-foreground">
               50+ German property laws, in-depth guides, and a full glossary of
-              real estate terms — all free to read, no account needed.
+              real estate terms — all free to read.
+            </h2>
+            <p className="mt-8 max-w-md text-sm text-muted-foreground">
+              Want to save your favorites?{" "}
+              <Link
+                to="/signup"
+                className="font-medium text-primary hover:underline"
+              >
+                Create a free account
+              </Link>{" "}
+              to bookmark laws, track articles you've read, and personalize your
+              feed.
             </p>
           </AnimateIn>
 
@@ -85,7 +91,7 @@ function FreeLibrarySection() {
             <div className="grid grid-cols-2 gap-4">
               {FREE_LIBRARY.map((item, i) => (
                 <AnimateIn key={item.href} delayMs={(i + 1) * 75}>
-                  <Card className="flex h-full flex-col">
+                  <Card className="h-full">
                     <CardContent className="flex-1 p-4">
                       <div
                         className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${item.color}`}
@@ -116,20 +122,6 @@ function FreeLibrarySection() {
             </div>
           </AnimateIn>
         </div>
-
-        <AnimateIn>
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            Want to save your favorites?{" "}
-            <Link
-              to="/signup"
-              className="font-medium text-primary hover:underline"
-            >
-              Create a free account
-            </Link>{" "}
-            to bookmark laws, track articles you've read, and personalize your
-            feed.
-          </p>
-        </AnimateIn>
       </div>
     </section>
   )
