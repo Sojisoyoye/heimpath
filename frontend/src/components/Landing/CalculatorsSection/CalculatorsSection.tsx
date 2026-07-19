@@ -112,14 +112,20 @@ function CalculatorsSection() {
                   Property Evaluation
                 </TabsTrigger>
               </TabsList>
-              <div className="mt-4 min-h-[460px] rounded-xl border bg-card p-6">
-                <TabsContent value="mortgage" className="mt-0">
+              <div className="mt-4 flex min-h-[460px] flex-col rounded-xl border bg-card p-6">
+                <TabsContent value="mortgage" className="mt-0 flex flex-col">
                   <MortgagePreview />
                 </TabsContent>
-                <TabsContent value="purchase-cost" className="mt-0">
+                <TabsContent
+                  value="purchase-cost"
+                  className="mt-0 flex flex-col"
+                >
                   <PurchaseCostPreview />
                 </TabsContent>
-                <TabsContent value="property-evaluation" className="mt-0">
+                <TabsContent
+                  value="property-evaluation"
+                  className="mt-0 flex flex-col"
+                >
                   <PropertyEvaluationPreview />
                 </TabsContent>
               </div>

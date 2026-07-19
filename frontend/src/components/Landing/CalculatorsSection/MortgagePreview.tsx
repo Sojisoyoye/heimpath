@@ -73,90 +73,92 @@ function MortgagePreview() {
   }, [price, percent, rate, fixedRatePeriod])
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="mp-price"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            Property Price
-          </Label>
-          <Input
-            id="mp-price"
-            inputMode="numeric"
-            value={propertyPrice}
-            onChange={(e) =>
-              setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
-            }
-          />
+    <div className="flex flex-1 flex-col justify-between gap-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="mp-price"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              Property Price
+            </Label>
+            <Input
+              id="mp-price"
+              inputMode="numeric"
+              value={propertyPrice}
+              onChange={(e) =>
+                setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="mp-down"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              Down Payment %
+            </Label>
+            <Input
+              id="mp-down"
+              inputMode="decimal"
+              value={downPaymentPercent}
+              onChange={(e) => setDownPaymentPercent(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="mp-rate"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              Interest Rate %
+            </Label>
+            <Input
+              id="mp-rate"
+              inputMode="decimal"
+              value={interestRate}
+              onChange={(e) => setInterestRate(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="mp-fixed"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              Fixed-Rate Period
+            </Label>
+            <Select value={fixedRatePeriod} onValueChange={setFixedRatePeriod}>
+              <SelectTrigger id="mp-fixed" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FIXED_RATE_OPTIONS.map((y) => (
+                  <SelectItem key={y} value={y}>
+                    {y} years
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="mp-down"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            Down Payment %
-          </Label>
-          <Input
-            id="mp-down"
-            inputMode="decimal"
-            value={downPaymentPercent}
-            onChange={(e) => setDownPaymentPercent(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="mp-rate"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            Interest Rate %
-          </Label>
-          <Input
-            id="mp-rate"
-            inputMode="decimal"
-            value={interestRate}
-            onChange={(e) => setInterestRate(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="mp-fixed"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            Fixed-Rate Period
-          </Label>
-          <Select value={fixedRatePeriod} onValueChange={setFixedRatePeriod}>
-            <SelectTrigger id="mp-fixed" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FIXED_RATE_OPTIONS.map((y) => (
-                <SelectItem key={y} value={y}>
-                  {y} years
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {result && (
-        <div className="grid grid-cols-3 gap-2">
-          <PreviewMetric
-            label="Monthly Payment"
-            value={CURRENCY_FORMATTER.format(result.monthlyPayment)}
-          />
-          <PreviewMetric
-            label="Total Interest"
-            value={CURRENCY_FORMATTER.format(result.totalInterestDuringFixed)}
-          />
-          <PreviewMetric
-            label="LTV Ratio"
-            value={`${result.ltvRatio.toFixed(0)}%`}
-          />
-        </div>
-      )}
+        {result && (
+          <div className="grid grid-cols-3 gap-2">
+            <PreviewMetric
+              label="Monthly Payment"
+              value={CURRENCY_FORMATTER.format(result.monthlyPayment)}
+            />
+            <PreviewMetric
+              label="Total Interest"
+              value={CURRENCY_FORMATTER.format(result.totalInterestDuringFixed)}
+            />
+            <PreviewMetric
+              label="LTV Ratio"
+              value={`${result.ltvRatio.toFixed(0)}%`}
+            />
+          </div>
+        )}
+      </div>
 
       <Button className="w-full gap-2" variant="outline" asChild>
         <Link

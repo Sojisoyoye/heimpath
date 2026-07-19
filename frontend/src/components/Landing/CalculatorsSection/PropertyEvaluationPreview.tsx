@@ -36,79 +36,81 @@ function PropertyEvaluationPreview() {
   const rent = Number.parseFloat(monthlyRent) || 0
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Enter a few basics — see your full evaluation on the next screen.
-      </p>
+    <div className="flex flex-1 flex-col justify-between gap-6">
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Enter a few basics — see your full evaluation on the next screen.
+        </p>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="pe-price"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            Property Price
-          </Label>
-          <Input
-            id="pe-price"
-            inputMode="numeric"
-            value={propertyPrice}
-            onChange={(e) =>
-              setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
-            }
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="pe-size"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            Living Space (m²)
-          </Label>
-          <Input
-            id="pe-size"
-            inputMode="numeric"
-            value={squareMeters}
-            onChange={(e) =>
-              setSquareMeters(e.target.value.replace(/[^\d]/g, ""))
-            }
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="pe-rent"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            Monthly Rent
-          </Label>
-          <Input
-            id="pe-rent"
-            inputMode="numeric"
-            value={monthlyRent}
-            onChange={(e) =>
-              setMonthlyRent(e.target.value.replace(/[^\d]/g, ""))
-            }
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="pe-state"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            State
-          </Label>
-          <Select value={state} onValueChange={setState}>
-            <SelectTrigger id="pe-state" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {GERMAN_STATES.map((s) => (
-                <SelectItem key={s.code} value={s.code}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="pe-price"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              Property Price
+            </Label>
+            <Input
+              id="pe-price"
+              inputMode="numeric"
+              value={propertyPrice}
+              onChange={(e) =>
+                setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="pe-size"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              Living Space (m²)
+            </Label>
+            <Input
+              id="pe-size"
+              inputMode="numeric"
+              value={squareMeters}
+              onChange={(e) =>
+                setSquareMeters(e.target.value.replace(/[^\d]/g, ""))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="pe-rent"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              Monthly Rent
+            </Label>
+            <Input
+              id="pe-rent"
+              inputMode="numeric"
+              value={monthlyRent}
+              onChange={(e) =>
+                setMonthlyRent(e.target.value.replace(/[^\d]/g, ""))
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="pe-state"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              State
+            </Label>
+            <Select value={state} onValueChange={setState}>
+              <SelectTrigger id="pe-state" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GERMAN_STATES.map((s) => (
+                  <SelectItem key={s.code} value={s.code}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
