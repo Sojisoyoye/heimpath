@@ -20,30 +20,43 @@ const HERO_PILLS = [
                               Components
 ******************************************************************************/
 
-/** Default component. Hero section with headline, CTAs, and feature pills. */
+/** Default component. Hero section with a full-bleed skyline photo, headline, CTAs, and feature pills. */
 function HeroSection() {
-  const blobTopRef = useParallax(0.3)
-  const blobBottomRef = useParallax(0.5)
+  const bgRef = useParallax(0.15)
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-100/50 to-primary/10 dark:from-blue-950/30 dark:to-primary/15">
+    <section className="relative overflow-hidden bg-background">
+      {/* Background photo — subtle parallax on md+ screens, buffered so edges never show */}
+      <div
+        ref={bgRef}
+        aria-hidden="true"
+        className="absolute inset-x-0 -top-24 -bottom-24 will-change-transform"
+      >
+        <img
+          src="/images/hero-skyline.jpg"
+          alt=""
+          className="h-full w-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+        />
+      </div>
+
+      {/* Legibility overlay — flat on mobile (centered text spans full width), directional
+          on md+ where text is left-aligned and the photo should open up on the right.
+          Uses a single gradient (equal stops on mobile) so background-color and
+          background-image don't stack across breakpoints. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/70 to-black/70 md:from-black/85 md:via-black/55 md:to-black/20"
+      />
+
       {/* Gradient accent bar — echoes CTA gradient for visual bookend */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 to-primary"
+        className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-blue-600 to-primary"
       />
 
-      {/* Decorative blur blobs — parallax on md+ screens */}
-      <div
-        ref={blobTopRef}
-        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-blue-400/15 blur-3xl will-change-transform"
-      />
-      <div
-        ref={blobBottomRef}
-        className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-primary/15 blur-3xl will-change-transform"
-      />
-
-      <div className="relative mx-auto flex max-w-7xl flex-col items-center px-4 py-24 text-center md:items-start md:px-6 md:py-36 md:text-left">
+      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 py-24 text-center md:items-start md:px-6 md:py-36 md:text-left">
         <Badge
           variant="outline"
           className="mb-8 animate-in fade-in slide-in-from-bottom-3 border-primary/35 bg-primary/10 font-mono text-[11px] uppercase tracking-wide text-primary duration-500 fill-mode-backwards motion-reduce:animate-none"
