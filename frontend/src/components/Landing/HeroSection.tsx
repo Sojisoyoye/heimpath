@@ -58,14 +58,14 @@ function HeroSection() {
           Stop Renting. Start Building German Equity.
         </Badge>
 
-        <h1 className="max-w-3xl animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards text-4xl font-bold tracking-tight text-balance delay-100 duration-500 motion-reduce:animate-none md:text-5xl lg:text-6xl">
+        <h1 className="max-w-3xl animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards text-4xl font-bold tracking-tight text-balance text-white delay-100 duration-500 motion-reduce:animate-none md:text-5xl lg:text-6xl">
           Own German Property.{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-primary bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-blue-400 to-primary bg-clip-text text-transparent">
             Build Real Wealth.
           </span>
         </h1>
 
-        <p className="mt-8 max-w-xl animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards text-lg text-muted-foreground delay-200 duration-500 motion-reduce:animate-none">
+        <p className="mt-8 max-w-xl animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards text-lg text-white/80 delay-200 duration-500 motion-reduce:animate-none">
           Join investors who've tracked €2.3M in European property deals — start
           in 2 minutes.
         </p>
@@ -75,11 +75,16 @@ function HeroSection() {
             <Button size="lg" asChild>
               <Link to="/signup">Start My Journey</Link>
             </Button>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-white/70">
               Free · No credit card · Takes 2 minutes
             </span>
           </div>
-          <Button size="lg" variant="outline" asChild>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            asChild
+          >
             <a href="#features">See How It Works</a>
           </Button>
         </div>
@@ -88,7 +93,7 @@ function HeroSection() {
           {HERO_PILLS.map((pill) => (
             <span
               key={pill.label}
-              className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 font-mono text-xs text-muted-foreground"
+              className="flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-4 py-2 font-mono text-xs text-white/90"
             >
               <span
                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${pill.dot}`}
