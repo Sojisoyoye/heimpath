@@ -10,6 +10,7 @@ import { useMemo, useState } from "react"
 import { COST_DEFAULTS, GERMAN_STATES } from "@/common/constants"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -51,12 +52,12 @@ function PurchaseCostPreview() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="pc-price"
             className="font-mono text-xs text-muted-foreground"
           >
             Property Price
-          </label>
+          </Label>
           <Input
             id="pc-price"
             inputMode="numeric"
@@ -67,12 +68,12 @@ function PurchaseCostPreview() {
           />
         </div>
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="pc-state"
             className="font-mono text-xs text-muted-foreground"
           >
             State
-          </label>
+          </Label>
           <Select value={state} onValueChange={setState}>
             <SelectTrigger id="pc-state" className="w-full">
               <SelectValue />

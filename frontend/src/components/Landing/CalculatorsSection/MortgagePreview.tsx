@@ -10,6 +10,7 @@ import { useMemo, useState } from "react"
 import { calculateMortgage } from "@/components/Calculators/MortgageAmortisation/mortgageCalculations"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -75,12 +76,12 @@ function MortgagePreview() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="mp-price"
             className="font-mono text-xs text-muted-foreground"
           >
             Property Price
-          </label>
+          </Label>
           <Input
             id="mp-price"
             inputMode="numeric"
@@ -91,12 +92,12 @@ function MortgagePreview() {
           />
         </div>
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="mp-down"
             className="font-mono text-xs text-muted-foreground"
           >
             Down Payment %
-          </label>
+          </Label>
           <Input
             id="mp-down"
             inputMode="decimal"
@@ -105,12 +106,12 @@ function MortgagePreview() {
           />
         </div>
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="mp-rate"
             className="font-mono text-xs text-muted-foreground"
           >
             Interest Rate %
-          </label>
+          </Label>
           <Input
             id="mp-rate"
             inputMode="decimal"
@@ -119,12 +120,12 @@ function MortgagePreview() {
           />
         </div>
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="mp-fixed"
             className="font-mono text-xs text-muted-foreground"
           >
             Fixed-Rate Period
-          </label>
+          </Label>
           <Select value={fixedRatePeriod} onValueChange={setFixedRatePeriod}>
             <SelectTrigger id="mp-fixed" className="w-full">
               <SelectValue />

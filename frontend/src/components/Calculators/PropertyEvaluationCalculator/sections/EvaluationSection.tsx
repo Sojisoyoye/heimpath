@@ -474,7 +474,10 @@ function SignupGate(props: { children: React.ReactNode }) {
 
   return (
     <div className="relative">
-      <div aria-hidden="true" className="select-none blur-md">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none select-none blur-md"
+      >
         {children}
       </div>
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background/70 px-6 text-center backdrop-blur-sm">

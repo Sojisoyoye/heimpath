@@ -11,6 +11,7 @@ import { useState } from "react"
 import { GERMAN_STATES } from "@/common/constants"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -38,12 +39,12 @@ function PropertyEvaluationPreview() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="pe-price"
             className="font-mono text-xs text-muted-foreground"
           >
             Property Price
-          </label>
+          </Label>
           <Input
             id="pe-price"
             inputMode="numeric"
@@ -54,12 +55,12 @@ function PropertyEvaluationPreview() {
           />
         </div>
         <div className="space-y-1.5">
-          <label
+          <Label
             htmlFor="pe-state"
             className="font-mono text-xs text-muted-foreground"
           >
             State
-          </label>
+          </Label>
           <Select value={state} onValueChange={setState}>
             <SelectTrigger id="pe-state" className="w-full">
               <SelectValue />
