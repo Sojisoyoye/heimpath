@@ -74,24 +74,40 @@ function MortgagePreview() {
 
   return (
     <div className="flex flex-1 flex-col justify-between gap-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="mp-price"
-              className="font-mono text-xs text-muted-foreground"
-            >
-              Property Price
-            </Label>
-            <Input
-              id="mp-price"
-              inputMode="numeric"
-              value={propertyPrice}
-              onChange={(e) =>
-                setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
-              }
-            />
-          </div>
+      <div className="space-y-5">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="mp-price"
+            className="font-mono text-xs text-muted-foreground"
+          >
+            Property Price
+          </Label>
+          <Input
+            id="mp-price"
+            inputMode="numeric"
+            className="h-11"
+            value={propertyPrice}
+            onChange={(e) =>
+              setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
+            }
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="mp-rate"
+            className="font-mono text-xs text-muted-foreground"
+          >
+            Interest Rate %
+          </Label>
+          <Input
+            id="mp-rate"
+            inputMode="decimal"
+            className="h-11"
+            value={interestRate}
+            onChange={(e) => setInterestRate(e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-x-3">
           <div className="space-y-1.5">
             <Label
               htmlFor="mp-down"
@@ -102,22 +118,9 @@ function MortgagePreview() {
             <Input
               id="mp-down"
               inputMode="decimal"
+              className="h-11"
               value={downPaymentPercent}
               onChange={(e) => setDownPaymentPercent(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="mp-rate"
-              className="font-mono text-xs text-muted-foreground"
-            >
-              Interest Rate %
-            </Label>
-            <Input
-              id="mp-rate"
-              inputMode="decimal"
-              value={interestRate}
-              onChange={(e) => setInterestRate(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
@@ -128,7 +131,7 @@ function MortgagePreview() {
               Fixed-Rate Period
             </Label>
             <Select value={fixedRatePeriod} onValueChange={setFixedRatePeriod}>
-              <SelectTrigger id="mp-fixed" className="w-full">
+              <SelectTrigger id="mp-fixed" className="h-11 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

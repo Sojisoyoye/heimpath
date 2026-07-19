@@ -90,7 +90,7 @@ function CalculatorsSection() {
 
         <div className="mt-6 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <AnimateIn>
-            <h2 className="text-3xl font-bold tracking-tight text-balance md:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
               {copy.headline}
             </h2>
             <p className="mt-4 max-w-md text-muted-foreground">{copy.sub}</p>

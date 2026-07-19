@@ -50,44 +50,43 @@ function PurchaseCostPreview() {
 
   return (
     <div className="flex flex-1 flex-col justify-between gap-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="pc-price"
-              className="font-mono text-xs text-muted-foreground"
-            >
-              Property Price
-            </Label>
-            <Input
-              id="pc-price"
-              inputMode="numeric"
-              value={propertyPrice}
-              onChange={(e) =>
-                setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
-              }
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="pc-state"
-              className="font-mono text-xs text-muted-foreground"
-            >
-              State
-            </Label>
-            <Select value={state} onValueChange={setState}>
-              <SelectTrigger id="pc-state" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {GERMAN_STATES.map((s) => (
-                  <SelectItem key={s.code} value={s.code}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="space-y-5">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="pc-price"
+            className="font-mono text-xs text-muted-foreground"
+          >
+            Property Price
+          </Label>
+          <Input
+            id="pc-price"
+            inputMode="numeric"
+            className="h-11"
+            value={propertyPrice}
+            onChange={(e) =>
+              setPropertyPrice(e.target.value.replace(/[^\d]/g, ""))
+            }
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="pc-state"
+            className="font-mono text-xs text-muted-foreground"
+          >
+            State
+          </Label>
+          <Select value={state} onValueChange={setState}>
+            <SelectTrigger id="pc-state" className="h-11 w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {GERMAN_STATES.map((s) => (
+                <SelectItem key={s.code} value={s.code}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {costs && (
