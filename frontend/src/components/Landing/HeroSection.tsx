@@ -50,12 +50,6 @@ function HeroSection() {
         className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/70 to-black/70 md:from-black/85 md:via-black/55 md:to-black/20"
       />
 
-      {/* Gradient accent bar — echoes CTA gradient for visual bookend */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-blue-600 to-primary"
-      />
-
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 py-24 text-center md:items-start md:px-6 md:py-36 md:text-left">
         <Badge
           variant="outline"
