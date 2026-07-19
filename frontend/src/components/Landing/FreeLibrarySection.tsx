@@ -48,8 +48,25 @@ const FREE_LIBRARY = [
 /** Free content library teaser for the landing page — headline on the left, a 2-per-row card grid on the right. */
 function FreeLibrarySection() {
   return (
-    <section className="py-16 md:py-24" id="free-library">
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
+    <section
+      className="relative overflow-hidden py-16 md:py-24"
+      id="free-library"
+    >
+      {/* Cinematic library background — cards below are opaque, so only the
+          surrounding text needs the overlay to stay legible. */}
+      <img
+        src="/images/library-bg.jpg"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+        loading="lazy"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-br from-background/92 via-background/88 to-background/75"
+      />
+
+      <div className="relative mx-auto max-w-7xl px-4 md:px-6">
         <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <AnimateIn>
             <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
