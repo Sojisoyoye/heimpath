@@ -11,6 +11,7 @@ import { useParallax } from "@/hooks/useParallax"
 const HERO_PILLS = [
   { label: "Property Journey", dot: "bg-blue-500" },
   { label: "Cost & Mortgage Calculators", dot: "bg-primary" },
+  { label: "ROI Calculator", dot: "bg-rose-500" },
   { label: "Legal Guidance", dot: "bg-orange-500" },
   { label: "Document Translation", dot: "bg-green-500" },
 ] as const
