@@ -3,6 +3,7 @@
  * Displays calculated results: yields, cashflow, tax, and return on equity
  */
 
+import { Link } from "@tanstack/react-router"
 import {
   Calculator,
   Home,
@@ -17,8 +18,10 @@ import {
   EUR_FORMATTER_2 as CURRENCY_FORMATTER,
   PERCENT_FORMATTER,
 } from "@/common/utils/formatters"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { isLoggedIn } from "@/hooks/useAuth"
 import type { EvaluationResults } from "../types"
 
 interface IProps {
@@ -460,6 +463,42 @@ function InvestorView(props: { results: EvaluationResults }) {
   )
 }
 
+/**
+ * Blurs the full result for anonymous visitors and shows a sign-up/log-in
+ * CTA. Applies to every anonymous visit to this page, not just ones
+ * arriving from the landing page — the calculator itself stays free to
+ * use, only the detailed result requires an account.
+ */
+function SignupGate(props: { children: React.ReactNode }) {
+  const { children } = props
+
+  return (
+    <div className="relative">
+      <div aria-hidden="true" className="select-none blur-md">
+        {children}
+      </div>
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background/70 px-6 text-center backdrop-blur-sm">
+        <p className="max-w-xs text-sm text-muted-foreground">
+          Sign up free (or log in) to see your full evaluation — yield,
+          cashflow, tax impact, and multi-year projections.
+        </p>
+        <div className="flex gap-2">
+          <Button size="sm" asChild>
+            <Link to="/signup" search={{ redirect: "/tools/roi-calculator" }}>
+              Sign Up Free
+            </Link>
+          </Button>
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/login" search={{ redirect: "/tools/roi-calculator" }}>
+              Log In
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Default component. Evaluation results section. */
 function EvaluationSection(props: IProps) {
   const { results, isOwnerOccupier, isLoading, className } = props
@@ -480,6 +519,12 @@ function EvaluationSection(props: IProps) {
     )
   }
 
+  const resultView = isOwnerOccupier ? (
+    <OwnerOccupierView results={results} />
+  ) : (
+    <InvestorView results={results} />
+  )
+
   return (
     <Card className={cn("overflow-hidden relative", className)}>
       <CardHeader className={cn("py-3", SECTION_COLORS.evaluation)}>
@@ -491,11 +536,7 @@ function EvaluationSection(props: IProps) {
           )}
         </CardTitle>
       </CardHeader>
-      {isOwnerOccupier ? (
-        <OwnerOccupierView results={results} />
-      ) : (
-        <InvestorView results={results} />
-      )}
+      {isLoggedIn() ? resultView : <SignupGate>{resultView}</SignupGate>}
     </Card>
   )
 }

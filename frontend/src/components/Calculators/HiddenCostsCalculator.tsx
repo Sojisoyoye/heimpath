@@ -49,8 +49,16 @@ import { FormRow } from "./common/FormRow"
 import { SaveShareSection } from "./common/SaveShareSection"
 import { generateHiddenCostsPdf } from "./HiddenCosts/GenerateHiddenCostsPdf"
 
+interface HiddenCostsInitialValues {
+  propertyPrice?: number
+  state?: string
+  propertyType?: string
+  includeAgent?: boolean
+}
+
 interface IProps {
   className?: string
+  initialValues?: HiddenCostsInitialValues
 }
 
 /******************************************************************************
@@ -186,20 +194,33 @@ function CostLineItem(props: {
   )
 }
 
-/** Default component. Hidden costs calculator. */
-function HiddenCostsCalculator(props: IProps) {
-  const { className } = props
-
-  const [inputs, setInputs] = useState<CalculatorInputs>({
-    propertyPrice: "",
-    state: "BY",
-    propertyType: "apartment",
-    includeAgent: true,
+/** Build the calculator's default inputs, merging in any prefill values. */
+function buildInitialInputs(
+  initialValues?: HiddenCostsInitialValues,
+): CalculatorInputs {
+  return {
+    propertyPrice: initialValues?.propertyPrice
+      ? String(initialValues.propertyPrice)
+      : "",
+    state: initialValues?.state ?? "BY",
+    propertyType: initialValues?.propertyType ?? "apartment",
+    includeAgent: initialValues?.includeAgent ?? true,
     renovationLevel: "light",
     includeMoving: true,
-  })
+  }
+}
 
-  const [hasCalculated, setHasCalculated] = useState(false)
+/** Default component. Hidden costs calculator. */
+function HiddenCostsCalculator(props: IProps) {
+  const { className, initialValues } = props
+
+  const [inputs, setInputs] = useState<CalculatorInputs>(() =>
+    buildInitialInputs(initialValues),
+  )
+
+  const [hasCalculated, setHasCalculated] = useState(
+    () => !!initialValues?.propertyPrice,
+  )
   const [isCalculating, setIsCalculating] = useState(false)
   const calculateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [saveName, setSaveName] = useState("")
@@ -252,14 +273,7 @@ function HiddenCostsCalculator(props: IProps) {
     }
     setIsCalculating(false)
     setHasCalculated(false)
-    setInputs({
-      propertyPrice: "",
-      state: "BY",
-      propertyType: "apartment",
-      includeAgent: true,
-      renovationLevel: "light",
-      includeMoving: true,
-    })
+    setInputs(buildInitialInputs())
   }
 
   const handleExport = () => {
@@ -710,3 +724,4 @@ function SavedCalculations(props: {
 ******************************************************************************/
 
 export { HiddenCostsCalculator }
+export type { HiddenCostsInitialValues }

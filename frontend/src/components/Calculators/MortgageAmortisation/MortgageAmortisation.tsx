@@ -18,7 +18,10 @@ import type {
   MortgageResult,
 } from "@/models/mortgageAmortisation"
 import { MortgageAmortisationChart } from "./MortgageAmortisationChart"
-import { MortgageAmortisationForm } from "./MortgageAmortisationForm"
+import {
+  MortgageAmortisationForm,
+  type MortgageInitialValues,
+} from "./MortgageAmortisationForm"
 import { MortgageAmortisationResults } from "./MortgageAmortisationResults"
 import { MortgageAmortisationTable } from "./MortgageAmortisationTable"
 import { MortgageCompareRates } from "./MortgageCompareRates"
@@ -28,6 +31,28 @@ import { calculateMortgage } from "./mortgageCalculations"
 
 interface IProps {
   className?: string
+  initialValues?: MortgageInitialValues
+}
+
+/******************************************************************************
+                              Functions
+******************************************************************************/
+
+/** Build a fully-resolved mortgage input from partial prefill values, defaulting the rest. */
+function buildInitialInput(
+  initialValues?: MortgageInitialValues,
+): MortgageInput | null {
+  if (!initialValues?.propertyPrice) return null
+  const downPaymentPercent = initialValues.downPaymentPercent ?? 20
+  return {
+    propertyPrice: initialValues.propertyPrice,
+    downPaymentAmount: initialValues.propertyPrice * (downPaymentPercent / 100),
+    downPaymentPercent,
+    interestRate: initialValues.interestRate ?? 3.5,
+    initialRepaymentRate: initialValues.initialRepaymentRate ?? 2,
+    fixedRatePeriod: initialValues.fixedRatePeriod ?? 10,
+    specialRepaymentPercent: 0,
+  }
 }
 
 /******************************************************************************
@@ -35,10 +60,15 @@ interface IProps {
 ******************************************************************************/
 
 function MortgageAmortisation(props: Readonly<IProps>) {
-  const { className } = props
+  const { className, initialValues } = props
 
-  const [result, setResult] = useState<MortgageResult | null>(null)
-  const [lastInput, setLastInput] = useState<MortgageInput | null>(null)
+  const [result, setResult] = useState<MortgageResult | null>(() => {
+    const initialInput = buildInitialInput(initialValues)
+    return initialInput ? calculateMortgage(initialInput) : null
+  })
+  const [lastInput, setLastInput] = useState<MortgageInput | null>(() =>
+    buildInitialInput(initialValues),
+  )
 
   const handleCalculate = (input: MortgageInput) => {
     setLastInput(input)
@@ -50,7 +80,10 @@ function MortgageAmortisation(props: Readonly<IProps>) {
     <div className={cn("space-y-6", className)}>
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Input Form */}
-        <MortgageAmortisationForm onCalculate={handleCalculate} />
+        <MortgageAmortisationForm
+          onCalculate={handleCalculate}
+          initialValues={initialValues}
+        />
 
         {/* Results */}
         <Card>

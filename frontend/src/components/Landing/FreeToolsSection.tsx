@@ -30,7 +30,7 @@ const FREE_TOOLS = [
     icon: TrendingUp,
     title: "ROI Calculator",
     description:
-      "Analyse rental yield, get an investment grade, and see 10-year cashflow projections with tax impact.",
+      "Analyse rental yield and cashflow free — sign up to unlock your full investment grade and 10-year projections.",
     href: "/tools/roi-calculator",
     color:
       "text-violet-600 bg-violet-50 dark:bg-violet-950/40 dark:text-violet-400",

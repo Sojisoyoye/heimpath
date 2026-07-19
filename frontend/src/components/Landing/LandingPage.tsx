@@ -9,15 +9,12 @@ import { HeroSection } from "./HeroSection"
 import { HowItWorksSection } from "./HowItWorksSection"
 import { LandingFooter } from "./LandingFooter"
 import { LandingHeader } from "./LandingHeader"
-import { PropertyEvaluationCtaSection } from "./PropertyEvaluationCtaSection"
 import { TestimonialsSection } from "./TestimonialsSection"
 
-// Lazy-loaded so jsPDF and the calculator's auth-aware hooks are excluded from
-// the homepage's SSG/SSR render (Suspense renders the fallback during
-// renderToString, avoiding isLoggedIn() hydration mismatches for logged-in users).
-const HomepageCalculatorSection = lazy(
-  () => import("./HomepageCalculatorSection"),
-)
+// Lazy-loaded so the calculator's auth-aware hooks (isLoggedIn) are excluded
+// from the homepage's SSG/SSR render (Suspense renders the fallback during
+// renderToString, avoiding hydration mismatches for logged-in users).
+const CalculatorsSection = lazy(() => import("./CalculatorsSection"))
 
 /******************************************************************************
                               Components
@@ -30,13 +27,12 @@ function LandingPage() {
       <LandingHeader />
       <main className="flex-1">
         <HeroSection />
-        <PropertyEvaluationCtaSection />
         <Suspense
           fallback={
             <div className="border-y bg-muted/30 py-16 md:py-24 min-h-[640px]" />
           }
         >
-          <HomepageCalculatorSection />
+          <CalculatorsSection />
         </Suspense>
         <FeaturesSection />
         <HowItWorksSection />
