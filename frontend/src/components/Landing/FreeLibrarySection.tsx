@@ -2,13 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { ArrowRight, BookOpen, Languages, Scale } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 
 import { AnimateIn } from "./AnimateIn"
 
@@ -51,55 +45,59 @@ const FREE_LIBRARY = [
                               Components
 ******************************************************************************/
 
-/** Free content library teaser for the landing page — no sign-up required. */
+/** Free content library teaser for the landing page — headline on the left, a 2-per-row card grid on the right. */
 function FreeLibrarySection() {
   return (
     <section className="py-16 md:py-24" id="free-library">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <AnimateIn>
-          <div className="mb-10 text-center md:mb-14">
+        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <AnimateIn>
             <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
               No sign-up required
             </span>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
               Read Before You Sign Up
             </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+            <p className="mt-4 max-w-md text-muted-foreground">
               50+ German property laws, in-depth guides, and a full glossary of
               real estate terms — all free to read, no account needed.
             </p>
-          </div>
-        </AnimateIn>
+          </AnimateIn>
 
-        <div className="grid gap-6 sm:grid-cols-3">
-          {FREE_LIBRARY.map((item) => (
-            <AnimateIn key={item.href}>
-              <Card className="flex h-full flex-col">
-                <CardHeader className="flex-1">
-                  <div
-                    className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${item.color}`}
-                  >
-                    <item.icon className="h-6 w-6" />
-                  </div>
-                  <CardTitle className="text-lg">{item.title}</CardTitle>
-                  <CardDescription>{item.description}</CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                    className="w-full"
-                  >
-                    <Link to={item.href}>
-                      {item.cta}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </AnimateIn>
-          ))}
+          <AnimateIn delayMs={100}>
+            <div className="grid grid-cols-2 gap-4">
+              {FREE_LIBRARY.map((item, i) => (
+                <AnimateIn key={item.href} delayMs={(i + 1) * 75}>
+                  <Card className="flex h-full flex-col">
+                    <CardContent className="flex-1 p-4">
+                      <div
+                        className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${item.color}`}
+                      >
+                        <item.icon className="h-5 w-5" />
+                      </div>
+                      <h3 className="text-sm font-semibold">{item.title}</h3>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {item.description}
+                      </p>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        className="w-full"
+                      >
+                        <Link to={item.href}>
+                          {item.cta}
+                          <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </AnimateIn>
+              ))}
+            </div>
+          </AnimateIn>
         </div>
 
         <AnimateIn>
