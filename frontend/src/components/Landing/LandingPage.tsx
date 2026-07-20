@@ -30,6 +30,7 @@ function LandingPage() {
       <LandingHeader />
       <main className="flex-1">
         <HeroSection />
+        <PropertyEvaluationCtaSection />
         <Suspense
           fallback={
             <div className="border-y bg-muted/30 py-16 md:py-24 min-h-[640px]" />
@@ -38,12 +39,11 @@ function LandingPage() {
           <HomepageCalculatorSection />
         </Suspense>
         <FeaturesSection />
-        <ComparisonTable />
-        <TestimonialsSection />
-        <PropertyEvaluationCtaSection />
         <HowItWorksSection />
         <FreeLibrarySection />
         <FreeToolsSection />
+        <ComparisonTable />
+        <TestimonialsSection />
         <AdvantagesSection />
         <CtaSection />
       </main>
