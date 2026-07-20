@@ -3,6 +3,7 @@
  * Calculates total cost of property ownership including all fees
  */
 
+import { Link } from "@tanstack/react-router"
 import {
   Calculator,
   Download,
@@ -28,6 +29,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -49,8 +58,16 @@ import { FormRow } from "./common/FormRow"
 import { SaveShareSection } from "./common/SaveShareSection"
 import { generateHiddenCostsPdf } from "./HiddenCosts/GenerateHiddenCostsPdf"
 
+interface HiddenCostsInitialValues {
+  propertyPrice?: number
+  state?: string
+  propertyType?: string
+  includeAgent?: boolean
+}
+
 interface IProps {
   className?: string
+  initialValues?: HiddenCostsInitialValues
 }
 
 /******************************************************************************
@@ -101,6 +118,12 @@ const MOVING_COST_ESTIMATE = 3000 // Flat estimate for moving costs
 /******************************************************************************
                               Functions
 ******************************************************************************/
+
+/** Current path + query, for post-auth redirects. SSR-safe (no window on the server). */
+function getRedirectPath(): string {
+  if (typeof window === "undefined") return "/tools/property-cost-calculator"
+  return window.location.pathname + window.location.search
+}
 
 /** Calculate all costs based on inputs. */
 function calculateCosts(inputs: CalculatorInputs): CostBreakdown | null {
@@ -186,24 +209,38 @@ function CostLineItem(props: {
   )
 }
 
-/** Default component. Hidden costs calculator. */
-function HiddenCostsCalculator(props: IProps) {
-  const { className } = props
-
-  const [inputs, setInputs] = useState<CalculatorInputs>({
-    propertyPrice: "",
-    state: "BY",
-    propertyType: "apartment",
-    includeAgent: true,
+/** Build the calculator's default inputs, merging in any prefill values. */
+function buildInitialInputs(
+  initialValues?: HiddenCostsInitialValues,
+): CalculatorInputs {
+  return {
+    propertyPrice: initialValues?.propertyPrice
+      ? String(initialValues.propertyPrice)
+      : "",
+    state: initialValues?.state ?? "BY",
+    propertyType: initialValues?.propertyType ?? "apartment",
+    includeAgent: initialValues?.includeAgent ?? true,
     renovationLevel: "light",
     includeMoving: true,
-  })
+  }
+}
 
-  const [hasCalculated, setHasCalculated] = useState(false)
+/** Default component. Hidden costs calculator. */
+function HiddenCostsCalculator(props: IProps) {
+  const { className, initialValues } = props
+
+  const [inputs, setInputs] = useState<CalculatorInputs>(() =>
+    buildInitialInputs(initialValues),
+  )
+
+  const [hasCalculated, setHasCalculated] = useState(
+    () => !!initialValues?.propertyPrice,
+  )
   const [isCalculating, setIsCalculating] = useState(false)
   const calculateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [saveName, setSaveName] = useState("")
   const [shareUrl, setShareUrl] = useState("")
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false)
 
   const authenticated = isLoggedIn()
   const saveCalculation = useSaveCalculation()
@@ -252,17 +289,14 @@ function HiddenCostsCalculator(props: IProps) {
     }
     setIsCalculating(false)
     setHasCalculated(false)
-    setInputs({
-      propertyPrice: "",
-      state: "BY",
-      propertyType: "apartment",
-      includeAgent: true,
-      renovationLevel: "light",
-      includeMoving: true,
-    })
+    setInputs(buildInitialInputs())
   }
 
   const handleExport = () => {
+    if (!authenticated) {
+      setShowSignInPrompt(true)
+      return
+    }
     if (!costs) return
 
     const stateName =
@@ -619,6 +653,31 @@ function HiddenCostsCalculator(props: IProps) {
           isDeleting={deleteCalculation.isPending}
         />
       )}
+
+      {/* Sign-in prompt for downloading the PDF report */}
+      <Dialog open={showSignInPrompt} onOpenChange={setShowSignInPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign in to download your report</DialogTitle>
+            <DialogDescription>
+              Create a free account (or log in) to download this cost breakdown
+              as a PDF.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" asChild>
+              <Link to="/login" search={{ redirect: getRedirectPath() }}>
+                Log In
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/signup" search={{ redirect: getRedirectPath() }}>
+                Sign Up Free
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -710,3 +769,4 @@ function SavedCalculations(props: {
 ******************************************************************************/
 
 export { HiddenCostsCalculator }
+export type { HiddenCostsInitialValues }

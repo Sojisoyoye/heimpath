@@ -26,8 +26,17 @@ import type { MortgageInput } from "@/models/mortgageAmortisation"
 import { FormRow } from "../common/FormRow"
 import { syncDownPayment } from "./mortgageCalculations"
 
+interface MortgageInitialValues {
+  propertyPrice?: number
+  downPaymentPercent?: number
+  interestRate?: number
+  initialRepaymentRate?: number
+  fixedRatePeriod?: number
+}
+
 interface IProps {
   onCalculate: (inputs: MortgageInput) => void
+  initialValues?: MortgageInitialValues
 }
 
 /******************************************************************************
@@ -61,13 +70,49 @@ function formatPrice(v: string): string {
   return Number.isNaN(num) ? "" : num.toLocaleString("de-DE")
 }
 
+/** Merge prefill values (e.g. from the landing page) into the form's default state. */
+function buildInitialFields(
+  initialValues?: MortgageInitialValues,
+): typeof INITIAL_STATE {
+  if (!initialValues?.propertyPrice || initialValues.propertyPrice <= 0)
+    return INITIAL_STATE
+
+  const percent = initialValues.downPaymentPercent ?? 20
+  const synced = syncDownPayment(
+    initialValues.propertyPrice,
+    undefined,
+    percent,
+  )
+
+  return {
+    ...INITIAL_STATE,
+    propertyPrice: String(initialValues.propertyPrice),
+    downPaymentAmount:
+      synced.amount > 0 ? String(Math.round(synced.amount)) : "",
+    downPaymentPercent:
+      synced.percent > 0 ? String(Math.round(synced.percent * 10) / 10) : "",
+    interestRate:
+      initialValues.interestRate !== undefined
+        ? String(initialValues.interestRate)
+        : INITIAL_STATE.interestRate,
+    initialRepaymentRate:
+      initialValues.initialRepaymentRate !== undefined
+        ? String(initialValues.initialRepaymentRate)
+        : INITIAL_STATE.initialRepaymentRate,
+    fixedRatePeriod:
+      initialValues.fixedRatePeriod !== undefined
+        ? String(initialValues.fixedRatePeriod)
+        : INITIAL_STATE.fixedRatePeriod,
+  }
+}
+
 /******************************************************************************
                               Components
 ******************************************************************************/
 
 function MortgageAmortisationForm(props: Readonly<IProps>) {
-  const { onCalculate } = props
-  const [fields, setFields] = useState(INITIAL_STATE)
+  const { onCalculate, initialValues } = props
+  const [fields, setFields] = useState(() => buildInitialFields(initialValues))
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
 
@@ -374,3 +419,4 @@ function MortgageAmortisationForm(props: Readonly<IProps>) {
 ******************************************************************************/
 
 export { MortgageAmortisationForm }
+export type { MortgageInitialValues }

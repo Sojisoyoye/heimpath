@@ -10,7 +10,7 @@ import autoTable from "jspdf-autotable"
                               Constants
 ******************************************************************************/
 
-export const BRAND_BLUE = [30, 64, 175] as const // #1e40af
+export const BRAND_BLUE = [21, 93, 252] as const // #155DFC — same blue-600 used by the in-app logo
 export const TEXT_DARK = [17, 24, 39] as const // #111827
 export const TEXT_MUTED = [107, 114, 128] as const // #6b7280
 export const PAGE_MARGIN = 20
@@ -29,19 +29,22 @@ export function addHeader(
 ): number {
   let y = PAGE_MARGIN
 
-  // Blue square logo with "H"
+  // Rounded blue square logo with a house glyph, matching the in-app Logo
   doc.setFillColor(...BRAND_BLUE)
-  doc.rect(PAGE_MARGIN, y, 12, 12, "F")
-  doc.setTextColor(255, 255, 255)
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "bold")
-  doc.text("H", PAGE_MARGIN + 4.2, y + 8.5)
+  doc.roundedRect(PAGE_MARGIN, y, 12, 12, 2, 2, "F")
+  doc.setFillColor(255, 255, 255)
+  const cx = PAGE_MARGIN + 6
+  doc.triangle(cx, y + 3, cx - 3, y + 7, cx + 3, y + 7, "F")
+  doc.rect(cx - 2.2, y + 7, 4.4, 3, "F")
 
-  // Title
+  // Title — "Heim" in dark text, "Path" in brand blue, matching the in-app logo
   doc.setTextColor(...TEXT_DARK)
   doc.setFontSize(18)
   doc.setFont("helvetica", "bold")
-  doc.text("HeimPath", PAGE_MARGIN + 16, y + 5)
+  doc.text("Heim", PAGE_MARGIN + 16, y + 5)
+  const heimWidth = doc.getTextWidth("Heim")
+  doc.setTextColor(...BRAND_BLUE)
+  doc.text("Path", PAGE_MARGIN + 16 + heimWidth, y + 5)
 
   // Subtitle
   doc.setFontSize(11)

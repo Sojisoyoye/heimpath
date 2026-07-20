@@ -19,6 +19,8 @@ export interface PropertyEvaluationCalculatorProps {
   initialState?: string // German state code for transfer tax
   initialBudget?: number
   initialPurchasePrice?: number
+  initialSquareMeters?: number
+  initialMonthlyRent?: number // total cold rent per month — converted to rent-per-sqm internally
   propertyUse?: "live_in" | "rent_out"
   className?: string
 }

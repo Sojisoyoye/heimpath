@@ -76,21 +76,29 @@ function getTransferTaxRate(stateCode?: string): number {
 function createInitialState(
   initialStateCode?: string,
   initialBudget?: number,
+  initialSquareMeters?: number,
+  initialMonthlyRent?: number,
 ): PropertyEvaluationState {
   const transferTax = getTransferTaxRate(initialStateCode)
+  const squareMeters =
+    initialSquareMeters && initialSquareMeters > 0 ? initialSquareMeters : 0
+  const rentPerSqm =
+    initialMonthlyRent && initialMonthlyRent > 0 && squareMeters > 0
+      ? initialMonthlyRent / squareMeters
+      : EVALUATION_DEFAULTS.RENT_PER_SQM
 
   return {
     propertyInfo: {
       address: "",
-      squareMeters: 0,
-      purchasePrice: initialBudget || 0,
+      squareMeters,
+      purchasePrice: initialBudget && initialBudget > 0 ? initialBudget : 0,
       brokerFeePercent: EVALUATION_DEFAULTS.BROKER_FEE_PERCENT,
       notaryFeePercent: EVALUATION_DEFAULTS.NOTARY_FEE_PERCENT,
       landRegistryFeePercent: EVALUATION_DEFAULTS.LAND_REGISTRY_FEE_PERCENT,
       transferTaxPercent: transferTax,
     },
     rent: {
-      rentPerSqm: EVALUATION_DEFAULTS.RENT_PER_SQM,
+      rentPerSqm,
       parkingRent: EVALUATION_DEFAULTS.PARKING_RENT,
       depreciationRatePercent: EVALUATION_DEFAULTS.DEPRECIATION_RATE_PERCENT,
       buildingSharePercent: EVALUATION_DEFAULTS.BUILDING_SHARE_PERCENT,
@@ -125,10 +133,27 @@ function loadFromStorage(
   journeyId?: string,
   initialStateCode?: string,
   initialBudget?: number,
+  initialSquareMeters?: number,
+  initialMonthlyRent?: number,
 ): PropertyEvaluationState {
   const storageKey = STORAGE_KEY_PREFIX + (journeyId || "standalone")
 
-  const defaults = createInitialState(initialStateCode, initialBudget)
+  const defaults = createInitialState(
+    initialStateCode,
+    initialBudget,
+    initialSquareMeters,
+    initialMonthlyRent,
+  )
+
+  // Fresh prefill values (e.g. from the landing page) should win over
+  // whatever was previously saved for this browser — otherwise a returning
+  // user's stale stored numbers silently override what they just entered.
+  const hasFreshPrefill = Boolean(
+    (initialBudget && initialBudget > 0) ||
+      (initialSquareMeters && initialSquareMeters > 0) ||
+      (initialMonthlyRent && initialMonthlyRent > 0),
+  )
+  if (hasFreshPrefill) return defaults
 
   try {
     const stored = localStorage.getItem(storageKey)
@@ -278,6 +303,8 @@ function PropertyEvaluationCalculator(
     initialState,
     initialBudget,
     initialPurchasePrice,
+    initialSquareMeters,
+    initialMonthlyRent,
     propertyUse,
     className,
   } = props
@@ -289,6 +316,8 @@ function PropertyEvaluationCalculator(
       journeyId,
       initialState,
       initialPurchasePrice ?? initialBudget,
+      initialSquareMeters,
+      initialMonthlyRent,
     ),
   )
   const [saveName, setSaveName] = useState("")
@@ -351,7 +380,12 @@ function PropertyEvaluationCalculator(
   }, [])
 
   const handleReset = () => {
-    const newState = createInitialState(initialState, initialBudget)
+    const newState = createInitialState(
+      initialState,
+      initialBudget,
+      initialSquareMeters,
+      initialMonthlyRent,
+    )
     setState(newState)
     saveToStorage(storageKey, newState)
   }
