@@ -91,7 +91,7 @@ Caddy (running in the `modish_modish` Docker network on the same host) reverse-p
 #### Caddy routing ownership (added 2026-07-10)
 
 The shared `/opt/modish/Caddyfile` used to be a single hand-edited file covering every project on
-this Hetzner box (heimpath, trading-teddy, modishlog, growthos, n8n). A manual edit to it silently
+this shared host. A manual edit to it silently
 blanked heimpath's routing — the site blocks were left empty (no `reverse_proxy` inside), which
 still terminates TLS and matches the host, but returns an empty `200` for every request instead of
 a `502`. That's a much harder failure to notice than an outright outage.
@@ -116,16 +116,18 @@ with `Cannot utime: Operation not permitted`. If a fresh server ever needs this 
 `chmod g+w,+s` on `/opt/modish/sites/`, and `chown deploy:modish-deploy` specifically on
 `heimpath.caddy`.
 
-The shared stack itself (Caddy's top-level config, cliproxy) is now owned by
-[`modish-infra`](https://github.com/Sojisoyoye/modish-infra) — see that repo's `HETZNER-INFRA.md`
-for the full shared-box reference (server access, every domain on the box, DNS, general
-troubleshooting). This repo only needs to know about its own `sites/heimpath.caddy`.
+The shared stack itself (Caddy's top-level config, cliproxy, and reference for every other
+service on this host) is owned by a private ops repo — see that repo's infra reference doc
+for server access, DNS, and general troubleshooting. This repo only needs to know about its
+own `sites/heimpath.caddy`.
 
 ### VPS access
 
 ```bash
-ssh -i ~/.ssh/hetzner_modish root@178.104.122.53
+ssh -i ~/.ssh/hetzner_modish <deploy-user>@<VPS_HOST>
 ```
+
+> See password manager / private ops notes for the actual host and user.
 
 ### Environment files
 
@@ -150,7 +152,7 @@ DATABASE_USE_SSL=false
 REDIS_PASSWORD=<strong-random>
 REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379  # redis-staging:6379 for staging
 SECRET_KEY=<random-64-char-hex>
-FIRST_SUPERUSER=soji.soyoye@gmail.com  # admin@heimpath.com for staging
+FIRST_SUPERUSER=<admin-email>  # see password manager for actual value per environment
 FIRST_SUPERUSER_PASSWORD=<secure-password>
 BACKEND_CORS_ORIGINS=https://heimpath.com,https://www.heimpath.com,https://staging.heimpath.com
 ```
@@ -159,7 +161,7 @@ BACKEND_CORS_ORIGINS=https://heimpath.com,https://www.heimpath.com,https://stagi
 >
 > **REDIS_URL:** The `backend` service reads `REDIS_URL` from `.env` (not computed by docker-compose), so it must be set explicitly with the actual password expanded. The `celery-worker` and `celery-beat` services compute it at compose-time via `environment:`.
 >
-> **Staging credentials:** superuser is `admin@heimpath.com` / see password manager.
+> **Staging credentials:** see password manager for the current superuser email/password.
 
 ### Deploying a backend update
 
