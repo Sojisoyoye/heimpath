@@ -116,10 +116,11 @@ with `Cannot utime: Operation not permitted`. If a fresh server ever needs this 
 `chmod g+w,+s` on `/opt/modish/sites/`, and `chown deploy:modish-deploy` specifically on
 `heimpath.caddy`.
 
-The shared stack itself (Caddy's top-level config, cliproxy, and reference for every other
-service on this host) is owned by a private ops repo — see that repo's infra reference doc
-for server access, DNS, and general troubleshooting. This repo only needs to know about its
-own `sites/heimpath.caddy`.
+The shared stack itself (Caddy's top-level config, cliproxy) is now owned by
+[`modish-infra`](https://github.com/Sojisoyoye/modish-infra) (private) — see that repo's
+`HETZNER-INFRA.md` for the full shared-box reference (server access, every domain on the
+box, DNS, general troubleshooting). This repo only needs to know about its own
+`sites/heimpath.caddy`.
 
 ### VPS access
 
