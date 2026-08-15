@@ -60,6 +60,9 @@ jobs:
     # Only run on schedule — building Docker images is too slow for every PR
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -104,6 +107,10 @@ jobs:
       - name: TruffleHog Secret Scan
         uses: trufflesecurity/trufflehog@v3.94.2
         with:
+          # Pin the scanner binary itself — the action defaults to the
+          # floating `latest` docker tag, which previously produced
+          # verified-secret false positives (see security-scan run 31378393952).
+          version: 3.97.0
           extra_args: --only-verified
 
   alls-green:
