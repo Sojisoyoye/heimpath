@@ -9,103 +9,66 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VerifyEmailRouteImport } from './routes/verify-email'
-import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as ToolsRouteImport } from './routes/tools'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ImprintRouteImport } from './routes/imprint'
-import { Route as PublicRouteImport } from './routes/_public'
-import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ToolsIndexRouteImport } from './routes/tools/index'
-import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools/roi-calculator'
-import { Route as ToolsRentVsBuyCalculatorRouteImport } from './routes/tools/rent-vs-buy-calculator'
-import { Route as ToolsPropertyCostCalculatorRouteImport } from './routes/tools/property-cost-calculator'
-import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mortgage-calculator'
-import { Route as LayoutViewingChecklistRouteImport } from './routes/_layout/viewing-checklist'
-import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
-import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
-import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
-import { Route as LayoutMortgageGuideRouteImport } from './routes/_layout/mortgage-guide'
-import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
-import { Route as LayoutContractExplainerRouteImport } from './routes/_layout/contract-explainer'
-import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
-import { Route as LayoutBankAccountGuideRouteImport } from './routes/_layout/bank-account-guide'
+import { Route as LayoutRouteImport } from './routes/_layout'
+import { Route as PublicRouteImport } from './routes/_public'
+import { Route as ImprintRouteImport } from './routes/imprint'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ToolsRouteImport } from './routes/tools'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
-import { Route as PublicLawsIndexRouteImport } from './routes/_public/laws/index'
-import { Route as PublicGlossaryIndexRouteImport } from './routes/_public/glossary/index'
-import { Route as PublicArticlesIndexRouteImport } from './routes/_public/articles/index'
-import { Route as LayoutProfessionalsIndexRouteImport } from './routes/_layout/professionals/index'
-import { Route as LayoutPortfolioIndexRouteImport } from './routes/_layout/portfolio/index'
-import { Route as LayoutJourneysIndexRouteImport } from './routes/_layout/journeys/index'
+import { Route as LayoutBankAccountGuideRouteImport } from './routes/_layout/bank-account-guide'
+import { Route as LayoutCalculatorsRouteImport } from './routes/_layout/calculators'
+import { Route as LayoutContractExplainerRouteImport } from './routes/_layout/contract-explainer'
+import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutMortgageGuideRouteImport } from './routes/_layout/mortgage-guide'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
+import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
+import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutViewingChecklistRouteImport } from './routes/_layout/viewing-checklist'
+import { Route as ToolsIndexRouteImport } from './routes/tools/index'
+import { Route as ToolsMortgageCalculatorRouteImport } from './routes/tools/mortgage-calculator'
+import { Route as ToolsPropertyCostCalculatorRouteImport } from './routes/tools/property-cost-calculator'
+import { Route as ToolsRentVsBuyCalculatorRouteImport } from './routes/tools/rent-vs-buy-calculator'
+import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools/roi-calculator'
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents/index'
-import { Route as SharedEvaluationShareIdRouteImport } from './routes/shared/evaluation.$shareId'
-import { Route as PublicLawsLawIdRouteImport } from './routes/_public/laws/$lawId'
-import { Route as PublicGlossarySlugRouteImport } from './routes/_public/glossary/$slug'
-import { Route as PublicArticlesSlugRouteImport } from './routes/_public/articles/$slug'
-import { Route as LayoutProfessionalsProfessionalIdRouteImport } from './routes/_layout/professionals/$professionalId'
-import { Route as LayoutPortfolioPropertyIdRouteImport } from './routes/_layout/portfolio/$propertyId'
-import { Route as LayoutLawsBookmarksRouteImport } from './routes/_layout/laws/bookmarks'
-import { Route as LayoutJourneysNewRouteImport } from './routes/_layout/journeys/new'
-import { Route as LayoutJourneysJourneyIdRouteImport } from './routes/_layout/journeys/$journeyId'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents/$documentId'
+import { Route as LayoutJourneysIndexRouteImport } from './routes/_layout/journeys/index'
+import { Route as LayoutJourneysJourneyIdRouteImport } from './routes/_layout/journeys/$journeyId'
+import { Route as LayoutJourneysNewRouteImport } from './routes/_layout/journeys/new'
+import { Route as LayoutLawsBookmarksRouteImport } from './routes/_layout/laws/bookmarks'
+import { Route as LayoutPortfolioIndexRouteImport } from './routes/_layout/portfolio/index'
+import { Route as LayoutPortfolioPropertyIdRouteImport } from './routes/_layout/portfolio/$propertyId'
+import { Route as LayoutProfessionalsIndexRouteImport } from './routes/_layout/professionals/index'
+import { Route as LayoutProfessionalsProfessionalIdRouteImport } from './routes/_layout/professionals/$professionalId'
+import { Route as PublicArticlesIndexRouteImport } from './routes/_public/articles/index'
+import { Route as PublicArticlesSlugRouteImport } from './routes/_public/articles/$slug'
+import { Route as PublicGlossaryIndexRouteImport } from './routes/_public/glossary/index'
+import { Route as PublicGlossarySlugRouteImport } from './routes/_public/glossary/$slug'
+import { Route as PublicLawsIndexRouteImport } from './routes/_public/laws/index'
+import { Route as PublicLawsLawIdRouteImport } from './routes/_public/laws/$lawId'
+import { Route as SharedEvaluationShareIdRouteImport } from './routes/shared/evaluation.$shareId'
 import { Route as LayoutJourneysJourneyIdIndexRouteImport } from './routes/_layout/journeys/$journeyId.index'
 import { Route as LayoutJourneysJourneyIdPropertyEvaluationRouteImport } from './routes/_layout/journeys/$journeyId.property-evaluation'
 
-const VerifyEmailRoute = VerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UnsubscribeRoute = UnsubscribeRouteImport.update({
-  id: '/unsubscribe',
-  path: '/unsubscribe',
+const LayoutRoute = LayoutRouteImport.update({
+  id: '/_layout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsRoute = ToolsRouteImport.update({
-  id: '/tools',
-  path: '/tools',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
-  id: '/recover-password',
-  path: '/recover-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ImprintRoute = ImprintRouteImport.update({
@@ -113,84 +76,59 @@ const ImprintRoute = ImprintRouteImport.update({
   path: '/imprint',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicRoute = PublicRouteImport.update({
-  id: '/_public',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutRoute = LayoutRouteImport.update({
-  id: '/_layout',
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsIndexRoute = ToolsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ToolsRoute,
+const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
+  id: '/recover-password',
+  path: '/recover-password',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
-  id: '/roi-calculator',
-  path: '/roi-calculator',
-  getParentRoute: () => ToolsRoute,
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsRentVsBuyCalculatorRoute =
-  ToolsRentVsBuyCalculatorRouteImport.update({
-    id: '/rent-vs-buy-calculator',
-    path: '/rent-vs-buy-calculator',
-    getParentRoute: () => ToolsRoute,
-  } as any)
-const ToolsPropertyCostCalculatorRoute =
-  ToolsPropertyCostCalculatorRouteImport.update({
-    id: '/property-cost-calculator',
-    path: '/property-cost-calculator',
-    getParentRoute: () => ToolsRoute,
-  } as any)
-const ToolsMortgageCalculatorRoute = ToolsMortgageCalculatorRouteImport.update({
-  id: '/mortgage-calculator',
-  path: '/mortgage-calculator',
-  getParentRoute: () => ToolsRoute,
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutViewingChecklistRoute = LayoutViewingChecklistRouteImport.update({
-  id: '/viewing-checklist',
-  path: '/viewing-checklist',
-  getParentRoute: () => LayoutRoute,
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => LayoutRoute,
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutSearchRoute = LayoutSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => LayoutRoute,
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => LayoutRoute,
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutMortgageGuideRoute = LayoutMortgageGuideRouteImport.update({
-  id: '/mortgage-guide',
-  path: '/mortgage-guide',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutContractExplainerRoute = LayoutContractExplainerRouteImport.update({
-  id: '/contract-explainer',
-  path: '/contract-explainer',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutCalculatorsRoute = LayoutCalculatorsRouteImport.update({
-  id: '/calculators',
-  path: '/calculators',
+const LayoutAdminRoute = LayoutAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutBankAccountGuideRoute = LayoutBankAccountGuideRouteImport.update({
@@ -198,92 +136,76 @@ const LayoutBankAccountGuideRoute = LayoutBankAccountGuideRouteImport.update({
   path: '/bank-account-guide',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutAdminRoute = LayoutAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const LayoutCalculatorsRoute = LayoutCalculatorsRouteImport.update({
+  id: '/calculators',
+  path: '/calculators',
   getParentRoute: () => LayoutRoute,
 } as any)
-const PublicLawsIndexRoute = PublicLawsIndexRouteImport.update({
-  id: '/laws/',
-  path: '/laws/',
-  getParentRoute: () => PublicRoute,
+const LayoutContractExplainerRoute = LayoutContractExplainerRouteImport.update({
+  id: '/contract-explainer',
+  path: '/contract-explainer',
+  getParentRoute: () => LayoutRoute,
 } as any)
-const PublicGlossaryIndexRoute = PublicGlossaryIndexRouteImport.update({
-  id: '/glossary/',
-  path: '/glossary/',
-  getParentRoute: () => PublicRoute,
+const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
 } as any)
-const PublicArticlesIndexRoute = PublicArticlesIndexRouteImport.update({
-  id: '/articles/',
-  path: '/articles/',
-  getParentRoute: () => PublicRoute,
+const LayoutMortgageGuideRoute = LayoutMortgageGuideRouteImport.update({
+  id: '/mortgage-guide',
+  path: '/mortgage-guide',
+  getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutProfessionalsIndexRoute =
-  LayoutProfessionalsIndexRouteImport.update({
-    id: '/professionals/',
-    path: '/professionals/',
-    getParentRoute: () => LayoutRoute,
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutSearchRoute = LayoutSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutViewingChecklistRoute = LayoutViewingChecklistRouteImport.update({
+  id: '/viewing-checklist',
+  path: '/viewing-checklist',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ToolsRoute,
+} as any)
+const ToolsMortgageCalculatorRoute = ToolsMortgageCalculatorRouteImport.update({
+  id: '/mortgage-calculator',
+  path: '/mortgage-calculator',
+  getParentRoute: () => ToolsRoute,
+} as any)
+const ToolsPropertyCostCalculatorRoute =
+  ToolsPropertyCostCalculatorRouteImport.update({
+    id: '/property-cost-calculator',
+    path: '/property-cost-calculator',
+    getParentRoute: () => ToolsRoute,
   } as any)
-const LayoutPortfolioIndexRoute = LayoutPortfolioIndexRouteImport.update({
-  id: '/portfolio/',
-  path: '/portfolio/',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutJourneysIndexRoute = LayoutJourneysIndexRouteImport.update({
-  id: '/journeys/',
-  path: '/journeys/',
-  getParentRoute: () => LayoutRoute,
+const ToolsRentVsBuyCalculatorRoute =
+  ToolsRentVsBuyCalculatorRouteImport.update({
+    id: '/rent-vs-buy-calculator',
+    path: '/rent-vs-buy-calculator',
+    getParentRoute: () => ToolsRoute,
+  } as any)
+const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
+  id: '/roi-calculator',
+  path: '/roi-calculator',
+  getParentRoute: () => ToolsRoute,
 } as any)
 const LayoutDocumentsIndexRoute = LayoutDocumentsIndexRouteImport.update({
   id: '/documents/',
   path: '/documents/',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const SharedEvaluationShareIdRoute = SharedEvaluationShareIdRouteImport.update({
-  id: '/shared/evaluation/$shareId',
-  path: '/shared/evaluation/$shareId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PublicLawsLawIdRoute = PublicLawsLawIdRouteImport.update({
-  id: '/laws/$lawId',
-  path: '/laws/$lawId',
-  getParentRoute: () => PublicRoute,
-} as any)
-const PublicGlossarySlugRoute = PublicGlossarySlugRouteImport.update({
-  id: '/glossary/$slug',
-  path: '/glossary/$slug',
-  getParentRoute: () => PublicRoute,
-} as any)
-const PublicArticlesSlugRoute = PublicArticlesSlugRouteImport.update({
-  id: '/articles/$slug',
-  path: '/articles/$slug',
-  getParentRoute: () => PublicRoute,
-} as any)
-const LayoutProfessionalsProfessionalIdRoute =
-  LayoutProfessionalsProfessionalIdRouteImport.update({
-    id: '/professionals/$professionalId',
-    path: '/professionals/$professionalId',
-    getParentRoute: () => LayoutRoute,
-  } as any)
-const LayoutPortfolioPropertyIdRoute =
-  LayoutPortfolioPropertyIdRouteImport.update({
-    id: '/portfolio/$propertyId',
-    path: '/portfolio/$propertyId',
-    getParentRoute: () => LayoutRoute,
-  } as any)
-const LayoutLawsBookmarksRoute = LayoutLawsBookmarksRouteImport.update({
-  id: '/laws/bookmarks',
-  path: '/laws/bookmarks',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutJourneysNewRoute = LayoutJourneysNewRouteImport.update({
-  id: '/journeys/new',
-  path: '/journeys/new',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutJourneysJourneyIdRoute = LayoutJourneysJourneyIdRouteImport.update({
-  id: '/journeys/$journeyId',
-  path: '/journeys/$journeyId',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDocumentsDocumentIdRoute =
@@ -292,6 +214,84 @@ const LayoutDocumentsDocumentIdRoute =
     path: '/documents/$documentId',
     getParentRoute: () => LayoutRoute,
   } as any)
+const LayoutJourneysIndexRoute = LayoutJourneysIndexRouteImport.update({
+  id: '/journeys/',
+  path: '/journeys/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutJourneysJourneyIdRoute = LayoutJourneysJourneyIdRouteImport.update({
+  id: '/journeys/$journeyId',
+  path: '/journeys/$journeyId',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutJourneysNewRoute = LayoutJourneysNewRouteImport.update({
+  id: '/journeys/new',
+  path: '/journeys/new',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutLawsBookmarksRoute = LayoutLawsBookmarksRouteImport.update({
+  id: '/laws/bookmarks',
+  path: '/laws/bookmarks',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPortfolioIndexRoute = LayoutPortfolioIndexRouteImport.update({
+  id: '/portfolio/',
+  path: '/portfolio/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPortfolioPropertyIdRoute =
+  LayoutPortfolioPropertyIdRouteImport.update({
+    id: '/portfolio/$propertyId',
+    path: '/portfolio/$propertyId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
+const LayoutProfessionalsIndexRoute =
+  LayoutProfessionalsIndexRouteImport.update({
+    id: '/professionals/',
+    path: '/professionals/',
+    getParentRoute: () => LayoutRoute,
+  } as any)
+const LayoutProfessionalsProfessionalIdRoute =
+  LayoutProfessionalsProfessionalIdRouteImport.update({
+    id: '/professionals/$professionalId',
+    path: '/professionals/$professionalId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
+const PublicArticlesIndexRoute = PublicArticlesIndexRouteImport.update({
+  id: '/articles/',
+  path: '/articles/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicArticlesSlugRoute = PublicArticlesSlugRouteImport.update({
+  id: '/articles/$slug',
+  path: '/articles/$slug',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicGlossaryIndexRoute = PublicGlossaryIndexRouteImport.update({
+  id: '/glossary/',
+  path: '/glossary/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicGlossarySlugRoute = PublicGlossarySlugRouteImport.update({
+  id: '/glossary/$slug',
+  path: '/glossary/$slug',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicLawsIndexRoute = PublicLawsIndexRouteImport.update({
+  id: '/laws/',
+  path: '/laws/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicLawsLawIdRoute = PublicLawsLawIdRouteImport.update({
+  id: '/laws/$lawId',
+  path: '/laws/$lawId',
+  getParentRoute: () => PublicRoute,
+} as any)
+const SharedEvaluationShareIdRoute = SharedEvaluationShareIdRouteImport.update({
+  id: '/shared/evaluation/$shareId',
+  path: '/shared/evaluation/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutJourneysJourneyIdIndexRoute =
   LayoutJourneysJourneyIdIndexRouteImport.update({
     id: '/',
@@ -617,88 +617,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/verify-email': {
-      id: '/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof VerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/unsubscribe': {
-      id: '/unsubscribe'
-      path: '/unsubscribe'
-      fullPath: '/unsubscribe'
-      preLoaderRoute: typeof UnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools': {
-      id: '/tools'
-      path: '/tools'
-      fullPath: '/tools'
-      preLoaderRoute: typeof ToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recover-password': {
-      id: '/recover-password'
-      path: '/recover-password'
-      fullPath: '/recover-password'
-      preLoaderRoute: typeof RecoverPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/imprint': {
-      id: '/imprint'
-      path: '/imprint'
-      fullPath: '/imprint'
-      preLoaderRoute: typeof ImprintRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_public': {
-      id: '/_public'
-      path: ''
+    '/': {
+      id: '/'
+      path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof PublicRouteImport
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout': {
@@ -708,102 +631,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
+    '/_public': {
+      id: '/_public'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/': {
-      id: '/tools/'
-      path: '/'
-      fullPath: '/tools/'
-      preLoaderRoute: typeof ToolsIndexRouteImport
-      parentRoute: typeof ToolsRoute
+    '/imprint': {
+      id: '/imprint'
+      path: '/imprint'
+      fullPath: '/imprint'
+      preLoaderRoute: typeof ImprintRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/roi-calculator': {
-      id: '/tools/roi-calculator'
-      path: '/roi-calculator'
-      fullPath: '/tools/roi-calculator'
-      preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
-      parentRoute: typeof ToolsRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/rent-vs-buy-calculator': {
-      id: '/tools/rent-vs-buy-calculator'
-      path: '/rent-vs-buy-calculator'
-      fullPath: '/tools/rent-vs-buy-calculator'
-      preLoaderRoute: typeof ToolsRentVsBuyCalculatorRouteImport
-      parentRoute: typeof ToolsRoute
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/property-cost-calculator': {
-      id: '/tools/property-cost-calculator'
-      path: '/property-cost-calculator'
-      fullPath: '/tools/property-cost-calculator'
-      preLoaderRoute: typeof ToolsPropertyCostCalculatorRouteImport
-      parentRoute: typeof ToolsRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/mortgage-calculator': {
-      id: '/tools/mortgage-calculator'
-      path: '/mortgage-calculator'
-      fullPath: '/tools/mortgage-calculator'
-      preLoaderRoute: typeof ToolsMortgageCalculatorRouteImport
-      parentRoute: typeof ToolsRoute
+    '/recover-password': {
+      id: '/recover-password'
+      path: '/recover-password'
+      fullPath: '/recover-password'
+      preLoaderRoute: typeof RecoverPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/viewing-checklist': {
-      id: '/_layout/viewing-checklist'
-      path: '/viewing-checklist'
-      fullPath: '/viewing-checklist'
-      preLoaderRoute: typeof LayoutViewingChecklistRouteImport
-      parentRoute: typeof LayoutRoute
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/settings': {
-      id: '/_layout/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof LayoutSettingsRouteImport
-      parentRoute: typeof LayoutRoute
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/search': {
-      id: '/_layout/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof LayoutSearchRouteImport
-      parentRoute: typeof LayoutRoute
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/notifications': {
-      id: '/_layout/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof LayoutNotificationsRouteImport
-      parentRoute: typeof LayoutRoute
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/mortgage-guide': {
-      id: '/_layout/mortgage-guide'
-      path: '/mortgage-guide'
-      fullPath: '/mortgage-guide'
-      preLoaderRoute: typeof LayoutMortgageGuideRouteImport
-      parentRoute: typeof LayoutRoute
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/dashboard': {
-      id: '/_layout/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof LayoutDashboardRouteImport
-      parentRoute: typeof LayoutRoute
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/contract-explainer': {
-      id: '/_layout/contract-explainer'
-      path: '/contract-explainer'
-      fullPath: '/contract-explainer'
-      preLoaderRoute: typeof LayoutContractExplainerRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/calculators': {
-      id: '/_layout/calculators'
-      path: '/calculators'
-      fullPath: '/calculators'
-      preLoaderRoute: typeof LayoutCalculatorsRouteImport
+    '/_layout/admin': {
+      id: '/_layout/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/bank-account-guide': {
@@ -813,46 +729,109 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutBankAccountGuideRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/admin': {
-      id: '/_layout/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof LayoutAdminRouteImport
+    '/_layout/calculators': {
+      id: '/_layout/calculators'
+      path: '/calculators'
+      fullPath: '/calculators'
+      preLoaderRoute: typeof LayoutCalculatorsRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_public/laws/': {
-      id: '/_public/laws/'
-      path: '/laws'
-      fullPath: '/laws/'
-      preLoaderRoute: typeof PublicLawsIndexRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/glossary/': {
-      id: '/_public/glossary/'
-      path: '/glossary'
-      fullPath: '/glossary/'
-      preLoaderRoute: typeof PublicGlossaryIndexRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/articles/': {
-      id: '/_public/articles/'
-      path: '/articles'
-      fullPath: '/articles/'
-      preLoaderRoute: typeof PublicArticlesIndexRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_layout/professionals/': {
-      id: '/_layout/professionals/'
-      path: '/professionals'
-      fullPath: '/professionals/'
-      preLoaderRoute: typeof LayoutProfessionalsIndexRouteImport
+    '/_layout/contract-explainer': {
+      id: '/_layout/contract-explainer'
+      path: '/contract-explainer'
+      fullPath: '/contract-explainer'
+      preLoaderRoute: typeof LayoutContractExplainerRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/portfolio/': {
-      id: '/_layout/portfolio/'
-      path: '/portfolio'
-      fullPath: '/portfolio/'
-      preLoaderRoute: typeof LayoutPortfolioIndexRouteImport
+    '/_layout/dashboard': {
+      id: '/_layout/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof LayoutDashboardRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/mortgage-guide': {
+      id: '/_layout/mortgage-guide'
+      path: '/mortgage-guide'
+      fullPath: '/mortgage-guide'
+      preLoaderRoute: typeof LayoutMortgageGuideRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/notifications': {
+      id: '/_layout/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof LayoutNotificationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/search': {
+      id: '/_layout/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof LayoutSearchRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/settings': {
+      id: '/_layout/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof LayoutSettingsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/viewing-checklist': {
+      id: '/_layout/viewing-checklist'
+      path: '/viewing-checklist'
+      fullPath: '/viewing-checklist'
+      preLoaderRoute: typeof LayoutViewingChecklistRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/tools/': {
+      id: '/tools/'
+      path: '/'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/mortgage-calculator': {
+      id: '/tools/mortgage-calculator'
+      path: '/mortgage-calculator'
+      fullPath: '/tools/mortgage-calculator'
+      preLoaderRoute: typeof ToolsMortgageCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/property-cost-calculator': {
+      id: '/tools/property-cost-calculator'
+      path: '/property-cost-calculator'
+      fullPath: '/tools/property-cost-calculator'
+      preLoaderRoute: typeof ToolsPropertyCostCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/rent-vs-buy-calculator': {
+      id: '/tools/rent-vs-buy-calculator'
+      path: '/rent-vs-buy-calculator'
+      fullPath: '/tools/rent-vs-buy-calculator'
+      preLoaderRoute: typeof ToolsRentVsBuyCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/tools/roi-calculator': {
+      id: '/tools/roi-calculator'
+      path: '/roi-calculator'
+      fullPath: '/tools/roi-calculator'
+      preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
+    }
+    '/_layout/documents/': {
+      id: '/_layout/documents/'
+      path: '/documents'
+      fullPath: '/documents/'
+      preLoaderRoute: typeof LayoutDocumentsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/documents/$documentId': {
+      id: '/_layout/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/documents/$documentId'
+      preLoaderRoute: typeof LayoutDocumentsDocumentIdRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/journeys/': {
@@ -862,60 +841,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutJourneysIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/documents/': {
-      id: '/_layout/documents/'
-      path: '/documents'
-      fullPath: '/documents/'
-      preLoaderRoute: typeof LayoutDocumentsIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/shared/evaluation/$shareId': {
-      id: '/shared/evaluation/$shareId'
-      path: '/shared/evaluation/$shareId'
-      fullPath: '/shared/evaluation/$shareId'
-      preLoaderRoute: typeof SharedEvaluationShareIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_public/laws/$lawId': {
-      id: '/_public/laws/$lawId'
-      path: '/laws/$lawId'
-      fullPath: '/laws/$lawId'
-      preLoaderRoute: typeof PublicLawsLawIdRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/glossary/$slug': {
-      id: '/_public/glossary/$slug'
-      path: '/glossary/$slug'
-      fullPath: '/glossary/$slug'
-      preLoaderRoute: typeof PublicGlossarySlugRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/articles/$slug': {
-      id: '/_public/articles/$slug'
-      path: '/articles/$slug'
-      fullPath: '/articles/$slug'
-      preLoaderRoute: typeof PublicArticlesSlugRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_layout/professionals/$professionalId': {
-      id: '/_layout/professionals/$professionalId'
-      path: '/professionals/$professionalId'
-      fullPath: '/professionals/$professionalId'
-      preLoaderRoute: typeof LayoutProfessionalsProfessionalIdRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/portfolio/$propertyId': {
-      id: '/_layout/portfolio/$propertyId'
-      path: '/portfolio/$propertyId'
-      fullPath: '/portfolio/$propertyId'
-      preLoaderRoute: typeof LayoutPortfolioPropertyIdRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/laws/bookmarks': {
-      id: '/_layout/laws/bookmarks'
-      path: '/laws/bookmarks'
-      fullPath: '/laws/bookmarks'
-      preLoaderRoute: typeof LayoutLawsBookmarksRouteImport
+    '/_layout/journeys/$journeyId': {
+      id: '/_layout/journeys/$journeyId'
+      path: '/journeys/$journeyId'
+      fullPath: '/journeys/$journeyId'
+      preLoaderRoute: typeof LayoutJourneysJourneyIdRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/journeys/new': {
@@ -925,19 +855,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutJourneysNewRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/journeys/$journeyId': {
-      id: '/_layout/journeys/$journeyId'
-      path: '/journeys/$journeyId'
-      fullPath: '/journeys/$journeyId'
-      preLoaderRoute: typeof LayoutJourneysJourneyIdRouteImport
+    '/_layout/laws/bookmarks': {
+      id: '/_layout/laws/bookmarks'
+      path: '/laws/bookmarks'
+      fullPath: '/laws/bookmarks'
+      preLoaderRoute: typeof LayoutLawsBookmarksRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/documents/$documentId': {
-      id: '/_layout/documents/$documentId'
-      path: '/documents/$documentId'
-      fullPath: '/documents/$documentId'
-      preLoaderRoute: typeof LayoutDocumentsDocumentIdRouteImport
+    '/_layout/portfolio/': {
+      id: '/_layout/portfolio/'
+      path: '/portfolio'
+      fullPath: '/portfolio/'
+      preLoaderRoute: typeof LayoutPortfolioIndexRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/_layout/portfolio/$propertyId': {
+      id: '/_layout/portfolio/$propertyId'
+      path: '/portfolio/$propertyId'
+      fullPath: '/portfolio/$propertyId'
+      preLoaderRoute: typeof LayoutPortfolioPropertyIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/professionals/': {
+      id: '/_layout/professionals/'
+      path: '/professionals'
+      fullPath: '/professionals/'
+      preLoaderRoute: typeof LayoutProfessionalsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/professionals/$professionalId': {
+      id: '/_layout/professionals/$professionalId'
+      path: '/professionals/$professionalId'
+      fullPath: '/professionals/$professionalId'
+      preLoaderRoute: typeof LayoutProfessionalsProfessionalIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_public/articles/': {
+      id: '/_public/articles/'
+      path: '/articles'
+      fullPath: '/articles/'
+      preLoaderRoute: typeof PublicArticlesIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/articles/$slug': {
+      id: '/_public/articles/$slug'
+      path: '/articles/$slug'
+      fullPath: '/articles/$slug'
+      preLoaderRoute: typeof PublicArticlesSlugRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/glossary/': {
+      id: '/_public/glossary/'
+      path: '/glossary'
+      fullPath: '/glossary/'
+      preLoaderRoute: typeof PublicGlossaryIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/glossary/$slug': {
+      id: '/_public/glossary/$slug'
+      path: '/glossary/$slug'
+      fullPath: '/glossary/$slug'
+      preLoaderRoute: typeof PublicGlossarySlugRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/laws/': {
+      id: '/_public/laws/'
+      path: '/laws'
+      fullPath: '/laws/'
+      preLoaderRoute: typeof PublicLawsIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/laws/$lawId': {
+      id: '/_public/laws/$lawId'
+      path: '/laws/$lawId'
+      fullPath: '/laws/$lawId'
+      preLoaderRoute: typeof PublicLawsLawIdRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/shared/evaluation/$shareId': {
+      id: '/shared/evaluation/$shareId'
+      path: '/shared/evaluation/$shareId'
+      fullPath: '/shared/evaluation/$shareId'
+      preLoaderRoute: typeof SharedEvaluationShareIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_layout/journeys/$journeyId/': {
       id: '/_layout/journeys/$journeyId/'
