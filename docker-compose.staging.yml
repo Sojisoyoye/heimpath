@@ -77,20 +77,12 @@ services:
       - .env.staging
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Only REDIS_URL here, same as backend-staging. Everything else must come
+    # from env_file (.env.staging): ${VAR} in this block is interpolated from
+    # /opt/heimpath/.env -- PRODUCTION's file -- and overrides env_file, which
+    # pointed these staging workers at the production database.
     environment:
-      - ENVIRONMENT=${ENVIRONMENT}
-      - PROJECT_NAME=${PROJECT_NAME}
-      - POSTGRES_SERVER=${POSTGRES_SERVER}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - SECRET_KEY=${SECRET_KEY}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis-staging:6379
-      - SENTRY_DSN=${SENTRY_DSN}
-      - TRANSLATION_MODEL=${TRANSLATION_MODEL}
     depends_on:
       redis-staging:
         condition: service_healthy
@@ -110,19 +102,12 @@ services:
       - .env.staging
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Only REDIS_URL here, same as backend-staging. Everything else must come
+    # from env_file (.env.staging): ${VAR} in this block is interpolated from
+    # /opt/heimpath/.env -- PRODUCTION's file -- and overrides env_file, which
+    # pointed these staging workers at the production database.
     environment:
-      - ENVIRONMENT=${ENVIRONMENT}
-      - PROJECT_NAME=${PROJECT_NAME}
-      - POSTGRES_SERVER=${POSTGRES_SERVER}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - SECRET_KEY=${SECRET_KEY}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis-staging:6379
-      - SENTRY_DSN=${SENTRY_DSN}
     depends_on:
       redis-staging:
         condition: service_healthy
