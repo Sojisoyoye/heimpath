@@ -50,6 +50,23 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
+      - uses: actions/checkout@v4
+
+      # The server only has the compose files this step copies -- /opt/heimpath
+      # is not a git checkout. Without this, compose changes merged to main
+      # never reached the box (found 2026-10-27: the staging celery env fix).
+      # Staging copies only its own file; docker-compose.prod.yml is copied by
+      # the prod job, after approval.
+      - name: Copy docker-compose.staging.yml to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.staging.yml"
+          target: "/opt/heimpath"
+          overwrite: true
+
       - name: Deploy backend-staging via SSH
         uses: appleboy/ssh-action@v1
         env:
@@ -164,6 +181,16 @@ jobs:
           source: "deploy/caddy/heimpath.caddy"
           target: "/opt/modish/sites"
           strip_components: 2
+          overwrite: true
+
+      - name: Copy docker-compose.prod.yml to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/opt/heimpath"
           overwrite: true
 
       - name: Deploy backend-prod via SSH
